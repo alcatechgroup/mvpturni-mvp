@@ -120,28 +120,116 @@ body::before{
 body.slow-conn .turni-intro{animation:none !important;opacity:0;visibility:hidden}
 body.slow-conn .nav{opacity:1 !important;animation:none !important}
 
-/* ═══ HERO diagonal ═══ */
-.hero{position:relative;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;background:radial-gradient(circle at 50% 60%,rgba(0,168,104,.08) 0%,transparent 60%),#050807;z-index:2}
-.hero-side{position:relative;display:flex;flex-direction:column;justify-content:center;padding:120px 64px 80px;z-index:2}
-.hero-side.emp{align-items:flex-start;border-right:1px solid rgba(255,255,255,.06)}
-.hero-side.pro{align-items:flex-end;text-align:right}
-.hero-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--logo-green-soft);margin-bottom:24px;display:inline-flex;align-items:center;gap:10px;opacity:0;animation:fade-up 1s cubic-bezier(.16,1,.3,1) 4.7s forwards}
-.hero-eyebrow::before{content:'';width:32px;height:1px;background:var(--logo-green-soft)}
-.pro .hero-eyebrow::before{display:none}
-.pro .hero-eyebrow::after{content:'';width:32px;height:1px;background:var(--logo-green-soft);margin-left:10px}
-.hero-h{font-family:'Bebas Neue',sans-serif;font-size:clamp(54px,7vw,108px);letter-spacing:1px;line-height:.92;color:#fff;margin-bottom:24px;opacity:0;animation:fade-up 1.2s cubic-bezier(.16,1,.3,1) 4.9s forwards}
-.hero-h .accent{color:var(--logo-green-soft)}
-.hero-d{font-size:18px;line-height:1.55;color:rgba(255,255,255,.78);max-width:440px;margin-bottom:36px;opacity:0;animation:fade-up 1.2s cubic-bezier(.16,1,.3,1) 5.1s forwards}
-.hero-d b{color:#fff;font-weight:500}
-@keyframes fade-up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.hero-btn{display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:999px;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;letter-spacing:.1px;cursor:pointer;transition:transform .15s,box-shadow .2s;border:none;opacity:0;animation:fade-up 1.2s cubic-bezier(.16,1,.3,1) 5.3s forwards}
-.hero-btn.emp{background:var(--vinho);color:#0F0F0F;box-shadow:0 8px 24px rgba(184,132,47,.35)}
-.hero-btn.emp:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(184,132,47,.5)}
-.hero-btn.pro{background:var(--logo-green);color:#fff;box-shadow:0 8px 24px rgba(0,168,104,.4)}
-.hero-btn.pro:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,168,104,.55)}
-.hero-btn svg{width:16px;height:16px;stroke-width:2}
+/* ═══ HERO · fullscreen diagonal · foto + overlay vermelho/verde + tipografia gigante ═══ */
+.hero{
+  position:relative;
+  min-height:100vh;
+  width:100%;
+  overflow:hidden;
+  background:#000;
+  z-index:2;
+}
+.hero-bg{
+  position:absolute;inset:0;z-index:1;
+  background-image:url('img/04-hero-empresario.jpg');
+  background-size:cover;
+  background-position:center 35%;
+  filter:saturate(.92) contrast(1.05);
+}
+/* Overlay vermelho · top-left diagonal */
+.hero-bg::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,
+    rgba(94,21,24,.78) 0%,
+    rgba(126,29,34,.55) 22%,
+    rgba(0,0,0,.35) 42%,
+    rgba(0,0,0,.35) 58%,
+    rgba(15,40,24,.55) 78%,
+    rgba(15,40,24,.78) 100%);
+  pointer-events:none;
+}
+/* Linha diagonal sutil · separação simbólica */
+.hero-bg::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg, transparent 49.6%, rgba(255,255,255,.05) 50%, transparent 50.4%);
+  pointer-events:none;
+}
 
-/* ═══ STORY STAGE · 5 atos × 2 personas ═══ */
+/* Texto empresário · superior esquerdo */
+.hero-emp-text{
+  position:absolute;top:18%;left:5%;z-index:5;text-align:left;max-width:50%;
+  opacity:0;animation:hero-fade 1.2s cubic-bezier(.16,1,.3,1) 4.7s forwards;
+}
+.hero-eyebrow-line{
+  display:inline-flex;align-items:center;gap:14px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:3.5px;text-transform:uppercase;
+  color:#E84545;margin-bottom:24px;
+  text-shadow:0 2px 12px rgba(0,0,0,.5);
+}
+.hero-eyebrow-line::before{content:'';width:42px;height:1px;background:#E84545}
+.hero-emp-text .word-emp{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(72px,12vw,200px);
+  letter-spacing:1px;line-height:.85;color:#E84545;
+  text-shadow:0 6px 40px rgba(0,0,0,.65), 0 0 80px rgba(232,69,69,.18);
+  font-weight:400;
+}
+
+/* Texto trabalhador · inferior direito */
+.hero-pro-text{
+  position:absolute;bottom:14%;right:5%;z-index:5;text-align:right;max-width:50%;
+  opacity:0;animation:hero-fade 1.2s cubic-bezier(.16,1,.3,1) 5.0s forwards;
+}
+.hero-pro-text .word-pro{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(72px,12vw,200px);
+  letter-spacing:1px;line-height:.85;color:#7BC299;
+  text-shadow:0 6px 40px rgba(0,0,0,.65), 0 0 80px rgba(0,168,104,.22);
+  font-weight:400;margin-bottom:24px;
+}
+.hero-eyebrow-line.right{
+  flex-direction:row-reverse;color:#7BC299;
+  text-shadow:0 2px 12px rgba(0,0,0,.5);
+}
+.hero-eyebrow-line.right::before{background:#7BC299}
+
+@keyframes hero-fade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* Scroll indicator · centro inferior */
+.hero-scroll-indicator{
+  position:absolute;bottom:38px;left:50%;transform:translateX(-50%);z-index:5;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  opacity:0;animation:hero-fade 1s cubic-bezier(.16,1,.3,1) 5.4s forwards;
+  pointer-events:none;
+}
+.hero-scroll-indicator .lbl{
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:3px;text-transform:uppercase;
+  color:rgba(255,255,255,.7);text-shadow:0 2px 8px rgba(0,0,0,.5);
+}
+.hero-scroll-indicator .line{
+  width:1px;height:42px;background:linear-gradient(180deg,rgba(255,255,255,.5) 0%,transparent 100%);
+  animation:scroll-pulse 2.4s ease-in-out infinite;
+}
+@keyframes scroll-pulse{
+  0%,100%{transform:scaleY(1);opacity:.5}
+  50%{transform:scaleY(1.4);opacity:1}
+}
+
+/* Vinheta sutil nas bordas para foco no centro */
+.hero::after{
+  content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,.35) 100%);
+}
+
+@media(max-width:980px){
+  .hero-bg{background-position:center}
+  .hero-emp-text{top:12%;left:6%;max-width:80%}
+  .hero-pro-text{bottom:12%;right:6%;max-width:80%}
+  .hero-emp-text .word-emp,.hero-pro-text .word-pro{font-size:clamp(54px,16vw,110px)}
+  .hero-eyebrow-line{font-size:10px;letter-spacing:2.5px}
+}
+
+  /* ═══ STORY STAGE · 5 atos × 2 personas ═══ */
 .story{position:relative;padding:120px 32px;background:linear-gradient(180deg,#0F0F0F 0%,#0A0A0A 100%);border-top:1px solid var(--line);z-index:2}
 .story-stage-bg{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -747,19 +835,20 @@ body.tour-active{ padding-bottom:160px !important }
 
 <div class="turni-intro">TURN<span class="di">I</span><span class="de">.</span></div>
 
-<!-- ═══ HERO diagonal split ═══ -->
+<!-- ═══ HERO · fullscreen diagonal · foto cobrindo · tipografia gigante ═══ -->
 <section class="hero">
-  <div class="hero-side emp">
-    <div class="hero-eyebrow">para quem contrata</div>
-    <h1 class="hero-h">COBRIMOS<br>O SEU <span class="accent">PRÓXIMO</span><br>TURNO.</h1>
-    <p class="hero-d">Falta gente na sexta? Chef sumiu? <b>Em 2 horas</b> a TURN<span class="di">I</span><span class="de">.</span> coloca o profissional certo na sua porta · com checklist · com PIN bilateral · com pagamento Pagar.me nativo.</p>
-    <a class="hero-btn emp" href="app.html#/cadastro/emp">Quero cobrir um turno <i data-lucide="arrow-right"></i></a>
+  <div class="hero-bg"></div>
+  <div class="hero-emp-text">
+    <div class="hero-eyebrow-line">empresário · a dor</div>
+    <h1 class="word-emp">FALTOU<br>GENTE.</h1>
   </div>
-  <div class="hero-side pro">
-    <div class="hero-eyebrow">para quem trabalha</div>
-    <h1 class="hero-h">O TURNO<br>É <span class="accent">SEU.</span><br>SEMPRE.</h1>
-    <p class="hero-d">Sua agenda. Seu preço. <b>Pix em 15 minutos</b> após o check-out. Sem CLT, sem submissão · com cartão de saúde, HUB físico no Itaim e trilha de níveis.</p>
-    <a class="hero-btn pro" href="app.html#/cadastro/wkr">Quero turnificar <i data-lucide="arrow-right"></i></a>
+  <div class="hero-pro-text">
+    <h1 class="word-pro">O TURNO<br>É SEU.</h1>
+    <div class="hero-eyebrow-line right">trabalhador · a escolha</div>
+  </div>
+  <div class="hero-scroll-indicator">
+    <div class="lbl">scroll · ver o porquê</div>
+    <div class="line"></div>
   </div>
 </section>
 
@@ -775,7 +864,7 @@ body.tour-active{ padding-bottom:160px !important }
     <div class="story-grid">
       <div class="story-col emp">
         <article class="story-card active" data-ato="1">
-          <div class="story-card-photo" style="background-image:url('img/turniempresariodiagonal.jpg');background-position:center 30%"><span class="story-card-tag">empresário</span></div>
+          <div class="story-card-photo" style="background-image:url('img/turniempresariodiagonal.png');background-position:center 30%"><span class="story-card-tag">empresário</span></div>
           <div class="story-card-body">
             <div class="story-eye">ato 1 · a dor</div>
             <h3 class="story-h3">Faltou gente.</h3>
@@ -791,7 +880,7 @@ body.tour-active{ padding-bottom:160px !important }
           </div>
         </article>
         <article class="story-card" data-ato="3">
-          <div class="story-card-photo" style="background-image:url('img/turnicompliance.jpg');background-position:center 50%"><span class="story-card-tag">empresário</span></div>
+          <div class="story-card-photo" style="background-image:url('img/turnicompliance.png');background-position:center 50%"><span class="story-card-tag">empresário</span></div>
           <div class="story-card-body">
             <div class="story-eye">ato 3 · sem risco</div>
             <h3 class="story-h3">Sem passivo trabalhista.</h3>
@@ -799,7 +888,7 @@ body.tour-active{ padding-bottom:160px !important }
           </div>
         </article>
         <article class="story-card" data-ato="4">
-          <div class="story-card-photo" style="background-image:url('img/turnigestaotarefas.jpg');background-position:center 30%"><span class="story-card-tag">empresário</span></div>
+          <div class="story-card-photo" style="background-image:url('img/turnigestaotarefas.png');background-position:center 30%"><span class="story-card-tag">empresário</span></div>
           <div class="story-card-body">
             <div class="story-eye">ato 4 · operação pronta</div>
             <h3 class="story-h3">Profissional chega sabendo.</h3>
@@ -841,7 +930,7 @@ body.tour-active{ padding-bottom:160px !important }
           </div>
         </article>
         <article class="story-card" data-ato="4">
-          <div class="story-card-photo" style="background-image:url('img/turnirenda.jpg');background-position:center 35%"><span class="story-card-tag">trabalhador</span></div>
+          <div class="story-card-photo" style="background-image:url('img/turnirenda.png');background-position:center 35%"><span class="story-card-tag">trabalhador</span></div>
           <div class="story-card-body">
             <div class="story-eye">ato 4 · sua meta</div>
             <h3 class="story-h3">Defina suas metas.</h3>
@@ -907,7 +996,7 @@ body.tour-active{ padding-bottom:160px !important }
       <div class="j-list-item"><i data-lucide="activity"></i><div><b>Trilha de auditoria completa</b> · check-in, check-out e avaliação registrados por plantão</div></div>
       <div class="j-list-item"><i data-lucide="users"></i><div><b>Pool de profissionais qualificados</b> · MEI ativo · contrato B2B PJ↔PJ · sem passivo</div></div>
     </div>
-    <div class="j-photo-banner" style="background-image:url('img/turnimaodeobra.jpg')"></div>
+    <div class="j-photo-banner" style="background-image:url('img/turnimaodeobra.png')"></div>
   </div>
 </section>
 
