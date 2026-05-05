@@ -1,0 +1,42 @@
+{
+  "name": "TURNI · Hospitalidade on-demand",
+  "short_name": "TURNI",
+  "description": "Match IA · PIN Bilateral · Pix em 15min. A plataforma onde profissional vende turnos com autonomia e contratante cobre escala que muda.",
+  "start_url": "./app.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F7F4EC",
+  "theme_color": "#00A868",
+  "lang": "pt-BR",
+  "categories": ["business", "productivity", "lifestyle"],
+  "icons": [
+    {
+      "src": "img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nova vaga",
+      "short_name": "Vaga",
+      "description": "Abrir uma nova vaga rapidamente",
+      "url": "./app.html#/contratante/vagas/nova",
+      "icons": [{ "src": "img/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Feed de vagas",
+      "short_name": "Feed",
+      "description": "Ver oportunidades disponíveis",
+      "url": "./app.html#/profissional/feed",
+      "icons": [{ "src": "img/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
