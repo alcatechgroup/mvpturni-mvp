@@ -1,0 +1,133 @@
+{
+  "version": 2,
+  "generated_at": "2026-05-26T20:45:13Z",
+  "project": {
+    "name": "Turni",
+    "current_wave": null,
+    "current_sprint": null,
+    "phase": "fundacao-de-produto",
+    "notes": "Fluxo 0 concluído (vision, personas, north-star). Especificação inicial em docs/especificacao/. Próximo passo: planejar WAVE-2026-01 (Fluxo A) com EPIC-000 Foundation."
+  },
+  "product": {
+    "vision": "product/vision.md",
+    "personas": "product/personas.md",
+    "north_star": "product/north-star.md"
+  },
+  "spec": {
+    "root": "../especificacao/",
+    "glossary": "../especificacao/glossary.md",
+    "business_rules": "../especificacao/business-rules.md",
+    "non_functional": "../especificacao/non-functional.md",
+    "domain": {
+      "usuario": "../especificacao/domain/usuario.md",
+      "vaga": "../especificacao/domain/vaga.md",
+      "candidatura": "../especificacao/domain/candidatura.md",
+      "turno": "../especificacao/domain/turno.md",
+      "pagamento": "../especificacao/domain/pagamento.md",
+      "match": "../especificacao/domain/match.md",
+      "niveis_e_score": "../especificacao/domain/niveis-e-score.md",
+      "compliance": "../especificacao/domain/compliance.md",
+      "disputa": "../especificacao/domain/disputa.md"
+    },
+    "flows_index": "../especificacao/flows/README.md",
+    "screens_index": "../especificacao/screens/README.md"
+  },
+  "waves": [],
+  "epics": [],
+  "stories": [],
+  "sprints": [],
+  "decisions": {
+    "pdr": [
+      {
+        "id": "PDR-001",
+        "title": "Profissional pode ser PF, MEI ou PJ; sem validação automática contra Receita",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-001-tipos-de-pessoa-aceitos.md",
+        "decided_at": "2026-05-26"
+      },
+      {
+        "id": "PDR-002",
+        "title": "Habitualidade limitada a 2 alocações/semana no mesmo estabelecimento, com regra distinta para PF e PJ",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-002-habitualidade-no-mesmo-estabelecimento.md",
+        "decided_at": "2026-05-26"
+      },
+      {
+        "id": "PDR-003",
+        "title": "Duas interfaces (WebApp + Backoffice); backoffice mínimo viável na primeira onda",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-003-duas-interfaces-webapp-e-backoffice.md",
+        "decided_at": "2026-05-26"
+      },
+      {
+        "id": "PDR-004",
+        "title": "Taxa Turni cobrada do contratante; profissional recebe valor integral; Pix em até 15 min",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-004-modelo-financeiro-taxa-do-contratante.md",
+        "decided_at": "2026-05-26"
+      },
+      {
+        "id": "PDR-005",
+        "title": "Avaliação recíproca obrigatória e bloqueante para nova candidatura/publicação",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-005-avaliacao-reciproca-obrigatoria.md",
+        "decided_at": "2026-05-26"
+      },
+      {
+        "id": "PDR-006",
+        "title": "Disputa de check-out marca turno como em_disputa e é resolvida no backoffice admin",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-006-disputa-checkout-via-admin.md",
+        "decided_at": "2026-05-26"
+      },
+      {
+        "id": "PDR-007",
+        "title": "Cancelamento permitido no MVP; motor de penalidade previsto como evolução",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-007-cancelamento-permitido-com-penalidade-futura.md",
+        "decided_at": "2026-05-26"
+      },
+      {
+        "id": "PDR-008",
+        "title": "Geofencing no check-in alerta e registra, não bloqueia",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-008-geofencing-alerta-e-registra.md",
+        "decided_at": "2026-05-26"
+      },
+      {
+        "id": "PDR-009",
+        "title": "Edição de vaga após candidaturas é permitida e notifica candidatos",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-009-edicao-de-vaga-pos-candidatura.md",
+        "decided_at": "2026-05-26"
+      },
+      {
+        "id": "PDR-010",
+        "title": "Tratamento de falha de Pix após 15 min fora do escopo MVP",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-010-refresh-pix-fora-de-escopo-mvp.md",
+        "decided_at": "2026-05-26"
+      }
+    ],
+    "adr": [],
+    "idr": [],
+    "ddr": []
+  },
+  "design": {
+    "screens": [],
+    "system": {
+      "root_path": "design/system/",
+      "tokens": null,
+      "components": null,
+      "patterns": null,
+      "voice_and_tone": null,
+      "canonical_reference": "../especificacao/design-system.md"
+    }
+  },
+  "reports": [
+    {
+      "date": "2026-05-26",
+      "path": "reports/status-2026-05-26.md"
+    }
+  ]
+}
