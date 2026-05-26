@@ -8,6 +8,7 @@ owner_role: po
 created_at: 2026-05-26
 updated_at: 2026-05-26
 target_completion: 2026-06-09  # estimativa orientativa
+stories_detailed_at: 2026-05-26  # Fluxo C concluído — 11 estórias escritas e em status `ready`
 ---
 
 # EPIC-000 — Foundation
@@ -71,58 +72,68 @@ Ao fim deste épico, o time tem **stack escolhida e registrada em ADRs vigentes*
 
 ## Estórias
 
-> Estórias detalhadas serão escritas pelo PO via Fluxo C antes de cada uma entrar em sprint. Aqui fica a sequência prevista e o tipo.
+> Fluxo C concluído em 2026-05-26 — todas as 11 estórias previstas foram escritas em `stories/` e estão em `status: ready` no `index.json`. As estórias detalhadas contêm contexto, CAs testáveis, dependências, padrões de qualidade e protocolo do agente. Os checkboxes abaixo marcam **estória escrita e em `ready`**; serão completados na etapa de execução conforme cada estória passar por `in_progress` → `in_review` → `done`.
 
 **Fase de spike (Arquiteto):**
 
-- [ ] **STORY-001** — Spike Arquiteto: stack principal + topologia + monorepo vs polirepo
-  - `type: spike`, `target_role: arquiteto`
+- [x] **STORY-001** — Spike Arquiteto: stack principal + topologia + monorepo vs polirepo
+  - `type: spike`, `target_role: arquiteto`, `status: ready`
+  - Path: `stories/STORY-001-spike-stack-topologia-monorepo.md`
   - Saída: ADR-001, ADR-002, ADR-003 propostos para aprovação.
 
-- [ ] **STORY-002** — Spike Arquiteto: hospedagem, IaC e estratégia de deploy
-  - `type: spike`, `target_role: arquiteto`
-  - Saída: ADR-004 proposto para aprovação. Confirma viabilidade de deployar ambas as interfaces em homologação no provedor escolhido.
+- [x] **STORY-002** — Spike Arquiteto: hospedagem, IaC e estratégia de deploy
+  - `type: spike`, `target_role: arquiteto`, `status: ready`
+  - Path: `stories/STORY-002-spike-hospedagem-iac-deploy.md`
+  - Saída: ADR-004 proposto. Confirma viabilidade de deployar ambas as interfaces no provedor escolhido. Bloqueada por STORY-001.
 
-- [ ] **STORY-003** — Spike Arquiteto: Pagar.me alto nível + estratégia de habitualidade
-  - `type: spike`, `target_role: arquiteto`
-  - Saída: ADR-005 e ADR-006 propostos. Não implementa nada — apenas decide a abordagem para os épicos seguintes.
+- [x] **STORY-003** — Spike Arquiteto: Pagar.me alto nível + estratégia de habitualidade
+  - `type: spike`, `target_role: arquiteto`, `status: ready`
+  - Path: `stories/STORY-003-spike-pagarme-e-habitualidade.md`
+  - Saída: ADR-005 e ADR-006 propostos. Não implementa — decide a abordagem para os épicos seguintes. Bloqueada por STORY-001.
 
-- [ ] **STORY-004** — Spike Arquiteto: autenticação base e observabilidade mínima
-  - `type: spike`, `target_role: arquiteto`
-  - Saída: ADR-007 e ADR-008 propostos.
+- [x] **STORY-004** — Spike Arquiteto: autenticação base e observabilidade mínima
+  - `type: spike`, `target_role: arquiteto`, `status: ready`
+  - Path: `stories/STORY-004-spike-auth-e-observabilidade.md`
+  - Saída: ADR-007 e ADR-008 propostos. Bloqueada por STORY-001 e STORY-002.
 
-- [ ] **STORY-005** — Spike Arquiteto: ADR-000 retroativo formalizando PostgreSQL
-  - `type: spike`, `target_role: arquiteto`
-  - Saída: ADR-000 proposto. Decisão simples mas formaliza disciplina "estado registrado, sempre".
+- [x] **STORY-005** — Spike Arquiteto: ADR-000 retroativo formalizando PostgreSQL
+  - `type: spike`, `target_role: arquiteto`, `status: ready`
+  - Path: `stories/STORY-005-spike-adr-000-postgresql-retroativo.md`
+  - Saída: ADR-000 proposto. Roda em paralelo às demais spikes — sem bloqueio.
 
-**Fase de implementação:**
+**Fase de implementação (Programador / Designer):**
 
-- [ ] **STORY-006** — Setup do repositório, ambiente local em 1 comando (princípio #6)
-  - `type: enablement`, `target_role: programador`
-  - Entregável: `git clone && <um comando>` sobe o app vazio + banco + serviços mockados.
+- [x] **STORY-006** — Setup do repositório, ambiente local em 1 comando (princípio #6)
+  - `type: enablement`, `target_role: programador`, `status: ready`
+  - Path: `stories/STORY-006-setup-repo-e-ambiente-local-1-comando.md`
+  - Entregável: `git clone && <um comando>` sobe app vazio + PostgreSQL + mock Pagar.me + hook de pré-push instalado. Bloqueada por STORY-001/002/003/004/005.
 
-- [ ] **STORY-007** — Pipeline CI/CD configurado, deploy automático para ambas as homologações
-  - `type: enablement`, `target_role: programador`
-  - Entregável: merge em `main` faz deploy.
+- [x] **STORY-007** — Pipeline CI/CD configurado, deploy automático para ambas as homologações
+  - `type: enablement`, `target_role: programador`, `status: ready`
+  - Path: `stories/STORY-007-pipeline-cicd-deploy-automatico-homologacao.md`
+  - Entregável: merge em `main` + tag `-rc.N` faz deploy automático ≤ 10 min nas duas URLs com health-check verde. Bloqueada por STORY-006/002/001/004. Tamanho L justificado.
 
-- [ ] **STORY-008** — "Hello world" no webapp: rota raiz + health-check
-  - `type: implementation`, `target_role: programador`
-  - Entregável: `app.homolog.turni.com.br` retornando página inicial.
-  - **Designer entra em paralelo**: rabisco inicial da página de boas-vindas (não é a tela final do produto — é placeholder para evidenciar que o deploy funciona; visual mínimo coerente com identidade da landing).
+- [x] **STORY-008** — "Hello world" no WebApp: rota raiz + health-check + identidade visual base
+  - `type: implementation`, `target_role: programador`, `requires_design: true`, `status: ready`
+  - Path: `stories/STORY-008-hello-world-webapp.md`
+  - Entregável: `app.homolog.turni.com.br` retornando página de boas-vindas + `/health` + PWA mínimo + E2E em browser real. Designer entra em paralelo via STORY-010 (rabisco + screen spec). Bloqueada por STORY-007/006/001/004/010.
 
-- [ ] **STORY-009** — "Hello world" no backoffice: rota raiz + health-check
-  - `type: implementation`, `target_role: programador`
-  - Entregável: `admin.homolog.turni.com.br` retornando página inicial separada.
+- [x] **STORY-009** — "Hello world" no Backoffice: rota raiz + health-check
+  - `type: implementation`, `target_role: programador`, `status: ready`
+  - Path: `stories/STORY-009-hello-world-backoffice.md`
+  - Entregável: `admin.homolog.turni.com.br` retornando página identificadora + `/health` + E2E em browser real. Sem `requires_design` (placeholder mínimo aplica DDR-001 sem screen spec). Bloqueada por STORY-007/006/001/004/010.
 
-- [ ] **STORY-010** — DDR-001: fundação do Design System (tokens base, tipografia, paleta inicial)
-  - `type: implementation`, `target_role: designer`
-  - Entregável: DDR-001 aprovado registrando padrão visual base que será aplicado em EPIC-001 em diante. Executável em paralelo com STORY-001 a STORY-005.
+- [x] **STORY-010** — DDR-001: fundação do Design System (tokens base, tipografia, paleta)
+  - `type: implementation`, `target_role: designer`, `status: ready`
+  - Path: `stories/STORY-010-ddr-001-fundacao-design-system.md`
+  - Entregável: DDR-001 proposto + `tokens.md` + `voice-and-tone.md` + screen spec da página de boas-vindas em `ready`. Sem bloqueio — roda em paralelo às spikes do Arquiteto.
 
 **Validação final:**
 
-- [ ] **STORY-011** (validação) — Validação final do EPIC-000
-  - `type: validation`, `target_role: validador`
-  - Executa checklist em `validation/checklist.md`.
+- [x] **STORY-011** (validação) — Validação final do EPIC-000
+  - `type: validation`, `target_role: validador`, `status: ready`
+  - Path: `stories/STORY-011-validacao-final-epic-000.md`
+  - Executa checklist em `validation/checklist.md` e produz `validation/report.md` com veredito. Bloqueada por todas as 10 estórias anteriores em `done`.
 
 ## Validação final
 
@@ -133,3 +144,4 @@ Critérios em `validation/checklist.md`. Relatório do validador em `validation/
 ## Histórico
 
 - 2026-05-26 — criado por PO (Alexandro / Claude) durante planejamento da WAVE-2026-01.
+- 2026-05-26 — Fluxo C concluído: 11 estórias detalhadas escritas em `stories/`, todas em `status: ready` no `index.json`. Sequência prevista, dependências (`blocked_by`/`blocks`) e `target_role` corretos. Pronto para abertura da SPRINT-2026-W22.
