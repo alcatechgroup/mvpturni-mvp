@@ -22,9 +22,11 @@ estimated_session_size: L
 
 A métrica primária do EPIC-000 é: **"merge na `main` dispara deploy automático para ambas as homologações em ≤ 10 min, com health-check verde no fim, repetível em 3 merges consecutivos sem intervenção manual"** (`epic.md`). Esta estória entrega o aparato que torna essa métrica perseguível. Sem ela, STORY-008 e STORY-009 (hello world) não têm onde aterrissar — escrevem código mas nada sobe sozinho em homologação.
 
+> **Importante sobre o disparador (alinhamento com `quality-standards.md` seção 2.2):** quando o épico diz "merge dispara deploy", o **disparador concreto e único** é a **criação de tag** `vX.Y.Z-rc.N` em cima do commit recém-mergeado em `main`. Push e merge em `main`, isoladamente, **não** disparam build de release nem deploy — só fazem CI leve passar (lint, scanners, build de smoke). O fluxo do épico é: PR → merge em main (CI leve verde) → criar tag `-rc.N` no commit de main → tag dispara build de release + deploy automático em homologação. A "tag criada" pode ser ato manual de quem libera o release ou um passo automatizado pós-merge — decisão do agente em IDR, contanto que **build de release + deploy aconteçam **somente** quando a tag existir**, nunca por push/merge sozinhos.
+
 Estória **horizontal por natureza** (`type: enablement`) — não atravessa fluxo de usuário, configura o canal de entrega. Justificativa (`story-craft.md` "Estórias que resistem a vertical slicing"): pipeline de CI/CD não pertence a fluxo específico; destrava STORY-008/009 e toda estória subsequente que precisa ir para homologação.
 
-Tamanho estimado **L** justificado: cobre **CI** (jobs no PR), **CD para homologação automática** via tag-based promotion, **IaC** provisionando os dois subdomínios e bucket/runtime de cada interface, e **observabilidade mínima** acessível (logs visíveis, health-check externamente probe-able). Não foi quebrada em duas estórias porque os pedaços não são deployáveis isoladamente (CI sem CD não destrava nada; CD sem IaC não tem onde deployar). Se durante a execução o agente descobrir que cabe quebrar, escala antes de fatiar.
+Tamanho estimado **L** justificado: cobre **CI** (jobs no PR), **CD para homologação automática** via tag-based promotion, **stamping da tag** no artefato de release (consumido por STORY-008/009 para exibir versão em runtime), **IaC** provisionando os dois subdomínios e bucket/runtime de cada interface, e **observabilidade mínima** acessível (logs visíveis, health-check externamente probe-able). Não foi quebrada em duas estórias porque os pedaços não são deployáveis isoladamente (CI sem CD não destrava nada; CD sem IaC não tem onde deployar). Se durante a execução o agente descobrir que cabe quebrar, escala antes de fatiar.
 
 - Épico: `docs/project-state/epics/EPIC-000-foundation/epic.md`
 - Documentos canônicos a ler ANTES de codificar:
@@ -40,12 +42,13 @@ Tamanho estimado **L** justificado: cobre **CI** (jobs no PR), **CD para homolog
 
 Implementar e ativar:
 
-1. **CI leve em cada PR** rodando: lint da linguagem/framework, lint de commit messages, análise de dependências vulneráveis, detecção de segredos commitados, análise estática de imagens de container (se aplicável), build do artefato de deploy. Sem subir banco ou browser no runner (`quality-standards.md` seção 2.2 — testes pesados ficam no hook de pré-push de STORY-006).
-2. **Promoção tag-based para homologação**: criação de tag `vX.Y.Z-rc.N` em `main` dispara deploy automático **sem gate humano** para `app.homolog.turni.com.br` e `admin.homolog.turni.com.br`. (Tag `vX.Y.Z` sem `-rc` dispara produção com gate humano — esta estória **deixa o gancho pronto** mas o ambiente de produção em si fica para EPIC-006.)
-3. **IaC versionado em git** provisionando os dois subdomínios, runtime de cada interface, banco PostgreSQL gerenciado de homologação, certificado HTTPS, segredos via cofre do provedor — conforme ADR-004. Recriar homologação a partir do código é um runbook viável (`quality-standards.md` seção 2.3).
-4. **Health-check probe externo** — o sistema do provedor monitora `/health` em cada interface; alerta para Alexandro (canal definido em ADR-008) se cair além do limiar.
-5. **Logs estruturados** indo para o destino definido em ADR-008, com `request_id` propagado e visíveis a partir de um comando/UI simples documentado no README.
-6. **Pipeline testa o setup local** periodicamente (CA-8 de STORY-006) — job de CI agendado que clona em runner limpo, executa o comando único, faz curl nas portas.
+1. **CI leve em cada PR** rodando: lint da linguagem/framework, lint de commit messages, análise de dependências vulneráveis, detecção de segredos commitados, análise estática de imagens de container (se aplicável), build de **smoke** do artefato (verifica que o artefato compila — não é o artefato de release). Sem subir banco ou browser no runner (`quality-standards.md` seção 2.2 — testes pesados ficam no hook de pré-push de STORY-006). Push ou merge em `main` **não** dispara build de release nem deploy.
+2. **Promoção tag-based para homologação** — **único disparador** de build de release + deploy: criação de tag `vX.Y.Z-rc.N` (no commit já mergeado em `main`) dispara, sem gate humano, o pipeline de release, que: (a) builda os artefatos de WebApp e Backoffice **injetando o nome da tag** como versão no momento do build; (b) publica os artefatos em registry/storage do provedor; (c) deploya em `app.homolog.turni.com.br` e `admin.homolog.turni.com.br`. (Tag `vX.Y.Z` sem `-rc` dispara o mesmo fluxo apontando para produção com gate humano — esta estória **deixa o gancho pronto** mas o ambiente de produção fica para EPIC-006.)
+3. **Stamping da tag no artefato e exposição em runtime** — o artefato de release de cada interface carrega a tag de origem como **versão própria** (injetada via build arg, variável de ambiente do build, arquivo gerado no build, ou mecanismo equivalente — agente decide e registra em IDR). Cada interface expõe essa versão em runtime por um **mecanismo padronizado** (ex: variável global em JS / arquivo `version.json` servido / endpoint `/version` / header HTTP de resposta — agente decide um padrão único usado pelas duas interfaces), de modo que STORY-008 e STORY-009 consumam isso para mostrar versão na página inicial e em `/health` **sem inventar** o mecanismo. O padrão escolhido fica documentado no README do repositório (para STORY-008/009 e estórias futuras).
+4. **IaC versionado em git** provisionando os dois subdomínios, runtime de cada interface, banco PostgreSQL gerenciado de homologação, certificado HTTPS, segredos via cofre do provedor — conforme ADR-004. Recriar homologação a partir do código é um runbook viável (`quality-standards.md` seção 2.3).
+5. **Health-check probe externo** — o sistema do provedor monitora `/health` em cada interface; alerta para Alexandro (canal definido em ADR-008) se cair além do limiar.
+6. **Logs estruturados** indo para o destino definido em ADR-008, com `request_id` propagado e visíveis a partir de um comando/UI simples documentado no README.
+7. **Pipeline testa o setup local** periodicamente (CA-8 de STORY-006) — job de CI agendado que clona em runner limpo, executa o comando único, faz curl nas portas.
 
 ## Por quê (valor para o usuário)
 
@@ -55,16 +58,23 @@ Esta estória, junto com STORY-008/009, materializa o entregável visível do EP
 
 ### CI no PR
 
-- [ ] **CA-1:** Todo PR para `main` dispara CI que executa: lint da linguagem/framework (ADR-001), lint de commit messages (ex: Conventional Commits — agente escolhe especificação coerente), análise de dependências vulneráveis (scanner público/grátis), detecção de segredos commitados (scanner público/grátis), build do artefato de deploy de **cada interface** (WebApp e Backoffice). Falha em qualquer step bloqueia merge.
+- [ ] **CA-1:** Todo PR para `main` dispara CI que executa: lint da linguagem/framework (ADR-001), lint de commit messages (ex: Conventional Commits — agente escolhe especificação coerente), análise de dependências vulneráveis (scanner público/grátis), detecção de segredos commitados (scanner público/grátis), **build de smoke** do artefato de **cada interface** (WebApp e Backoffice) — verifica que o artefato compila, mas **não** é o artefato de release publicado nem deployado. Falha em qualquer step bloqueia merge.
 - [ ] **CA-2:** CI **não sobe banco nem browser** no runner (testes pesados são responsabilidade do hook de pré-push em STORY-006).
 - [ ] **CA-3:** CI executa em ≤ 5 min em PR típico.
 
 ### CD tag-based para homologação
 
-- [ ] **CA-4:** Criação de tag `vX.Y.Z-rc.N` em `main` dispara, automaticamente e sem gate humano, deploy do WebApp para `app.homolog.turni.com.br` e do Backoffice para `admin.homolog.turni.com.br`. Tempo total (tag criada → health-check verde em ambas as URLs) ≤ **10 min** em pelo menos 3 execuções consecutivas (evidência: logs de CI).
-- [ ] **CA-5:** Deploys das duas interfaces são **independentes** — falha em uma não impede a outra (PDR-003). Reexecutar deploy da interface que falhou é uma ação de 1 comando ou 1 clique no CI, sem precisar recriar a tag.
-- [ ] **CA-6:** Promoção é **tag-based explícita** — push em `main` sem tag faz CI passar, mas **não** dispara deploy. Só a tag `-rc.N` dispara homologação.
-- [ ] **CA-7:** Estrutura de promoção para produção (`vX.Y.Z` sem `-rc`) está **desenhada no pipeline com gate humano de 1 clique**, mesmo que o ambiente de produção ainda não exista (EPIC-006). O gate é o mecanismo nativo do CI escolhido (`quality-standards.md` seção 2.2).
+- [ ] **CA-4:** Criação de tag `vX.Y.Z-rc.N` (no commit já mergeado em `main`) é o **único disparador** de build de release + deploy. O pipeline executa, sem gate humano, build dos artefatos de WebApp e Backoffice **com a tag injetada como versão**, publica os artefatos no registry/storage do provedor, e deploya em `app.homolog.turni.com.br` e `admin.homolog.turni.com.br`. Tempo total (tag criada → health-check verde em ambas as URLs) ≤ **10 min** em pelo menos 3 execuções consecutivas (evidência: logs de CI).
+- [ ] **CA-5:** Deploys das duas interfaces são **independentes** — falha em uma não impede a outra (PDR-003). Reexecutar deploy da interface que falhou é uma ação de 1 comando ou 1 clique no CI usando os artefatos **já publicados pela mesma tag** (sem precisar recriar a tag nem rebuildar do zero).
+- [ ] **CA-6:** Promoção é **tag-based exclusiva** — push, commit ou merge em `main` (sem tag posterior) faz **apenas o CI leve** do PR/branch passar; **não** builda artefato de release, **não** publica e **não** deploya. Só a criação da tag `vX.Y.Z-rc.N` dispara homologação. Evidência: ao menos um push em `main` (com `git push origin main` ou merge) registrado nos logs de CI que **não** resultou em deploy, mostrando o disparo apenas do CI leve.
+- [ ] **CA-7:** Estrutura de promoção para produção (`vX.Y.Z` sem `-rc`) está **desenhada no pipeline com gate humano de 1 clique**, mesmo que o ambiente de produção ainda não exista (EPIC-006). O gate é o mecanismo nativo do CI escolhido (`quality-standards.md` seção 2.2). Tags de produção reutilizam os artefatos publicados pela tag `-rc.N` correspondente (não rebuildam).
+
+### Stamping da tag e exposição da versão em runtime
+
+- [ ] **CA-7b:** O pipeline de release **injeta o nome da tag** (`vX.Y.Z-rc.N`) no artefato de cada interface no momento do build, via mecanismo escolhido pelo agente (build arg, variável de ambiente de build, arquivo gerado no build, label de imagem, equivalente). A versão injetada **persiste** no artefato publicado — não depende de variável de runtime do provedor para existir.
+- [ ] **CA-7c:** Cada interface expõe a versão em runtime por um **mecanismo padronizado e único para as duas interfaces** (à escolha do agente — ex: variável global em JS, arquivo estático `/version.json`, endpoint `/version`, header HTTP de resposta — desde que seja **o mesmo padrão nas duas**). Documentação do padrão no README do repositório, em formato consumível por STORY-008 (página inicial + payload de `/health`) e STORY-009 (página inicial + payload de `/health`) **sem que essas estórias precisem inventar** o mecanismo.
+- [ ] **CA-7d:** A versão exposta em runtime no artefato deployado bate **exatamente** com o nome da tag que disparou o deploy. Evidência: para um deploy com tag `vX.Y.Z-rc.N`, fazer `curl` (ou inspeção pelo mecanismo escolhido) retorna `vX.Y.Z-rc.N`. Versão `unknown`, `dev`, `0.0.0` ou similar **não** é aceitável em homologação — é `fail` da estória.
+- [ ] **CA-7e:** Se o agente escolher um mecanismo que requer convenção transversal (ex: endpoint `/version` que outras estórias devem implementar nas próximas interfaces), o padrão é registrado em **IDR** referenciado no `index.json`, de modo que estórias futuras herdem sem reabrir a decisão.
 
 ### IaC
 
@@ -118,8 +128,9 @@ Esta estória segue os padrões em `docs/skills/po/references/quality-standards.
 - **ADR-004** — provedor, IaC, modelo de gate, modelo de promoção tag-based.
 - **ADR-008** — formato de log, destino, mecanismo de alerta.
 - **PDR-003** — duas URLs separadas, deploys independentes.
-- **`quality-standards.md` seção 2.2** — modelo de promoção tag-based; CI leve no PR (sem banco/browser); gate humano de 1 clique em produção; deploy nunca manual.
+- **`quality-standards.md` seção 2.2** — promoção tag-based como **único** caminho para build de release + deploy; CI leve no PR (sem banco/browser); gate humano de 1 clique em produção; deploy nunca manual.
 - **`quality-standards.md` seção 2.3** — IaC sem cliques manuais.
+- **STORY-008 (CA-1) e STORY-009 (CA-1) consomem o mecanismo de exposição de versão** decidido aqui (CA-7b a CA-7e). Essas estórias **não** reinventam — esperam o padrão documentado em README + IDR.
 
 ## Liberdade técnica do agente
 
@@ -130,12 +141,17 @@ Você (agente programador) decide:
 - Scanners específicos (Trivy, gitleaks, Dependabot, equivalentes).
 - Cadência do job agendado de setup local (CA-14).
 - Estrutura de IaC (módulos, ambientes, naming) dentro do que ADR-004 permite.
-- Mecanismo concreto de rollback (re-deploy de tag, blue/green, rollback do provedor).
+- Mecanismo concreto de rollback (re-deploy de tag anterior, blue/green, rollback do provedor).
+- **Mecanismo de stamping da tag no artefato** (build arg, env de build, arquivo gerado no build, label de imagem — escolha consistente entre WebApp e Backoffice).
+- **Mecanismo de exposição da versão em runtime** (`/version.json`, endpoint `/version`, header HTTP, variável global em JS — escolha um padrão único para as duas interfaces, documente no README, registre em IDR se houver convenção transversal).
+- Se a criação da tag é ato manual de quem libera o release ou um passo automatizado pós-merge (ex: GitHub Action que cria a tag automaticamente quando merge é feito em main com label específico) — desde que a regra "tag é o único disparador" se mantenha intacta.
 - Refatorações locais.
 
 Você (agente programador) NÃO decide:
 - Suprimir o gate humano em produção (mesmo que produção ainda não exista).
-- Disparar deploy em homologação sem tag-based promotion.
+- **Disparar deploy a partir de push/merge em `main` sem tag** — único disparador é a tag.
+- **Rebuildar artefato no deploy de produção** quando ele veio de tag `-rc.N` aprovada — tags de produção reutilizam o artefato já publicado.
+- **Expor versão como `unknown` / `dev` / vazio** em homologação — se o stamping falhou, é bug do pipeline.
 - Pôr segredo em git.
 - Mudar provedor (ADR-004 trava).
 - Reabrir escopo do EPIC-000 (produção fica para EPIC-006).
@@ -144,14 +160,15 @@ Se durante a execução você perceber que ADR-004 não cobre cenário concreto 
 
 ## Definição de Pronto (DoD)
 
-- [ ] Todos os CAs (CA-1 a CA-16) atendidos.
+- [ ] Todos os CAs (CA-1 a CA-3, CA-4 a CA-7, CA-7b a CA-7e, CA-8 a CA-16) atendidos.
 - [ ] Cobertura unitária ≥ 80% no código novo testável.
-- [ ] **Métrica primária do EPIC-000 demonstrada**: 3 merges consecutivos em `main` (cada um com tag `-rc.N` após merge) resultaram em deploy automático verde em ambas as URLs em ≤ 10 min — evidência (links de CI) registrada em "Notas do agente".
+- [ ] **Métrica primária do EPIC-000 demonstrada**: 3 tags `-rc.N` consecutivas (cada uma criada em commit já mergeado em `main`) resultaram em build de release + deploy automático verde em ambas as URLs em ≤ 10 min — evidência (links de CI) registrada em "Notas do agente". Cada um dos 3 deploys teve a versão correta exposta em runtime conferida via `curl` no mecanismo padronizado (CA-7d).
+- [ ] **Evidência de não-disparo**: ao menos um push/merge em `main` sem tag posterior, mostrando que CI leve passou mas nenhum deploy foi disparado (CA-6).
 - [ ] Pipeline verde no PR.
 - [ ] IaC versionado, runbook de recriação documentado.
 - [ ] Health-check ativo em ambas as URLs com alerta plugado.
-- [ ] README atualizado: como rodar, como deployar, como acessar logs, como rollback.
-- [ ] IDR registrado para padrões transversais (ex: convenção de tags, estrutura de IaC, naming de recursos).
+- [ ] README atualizado: como rodar, como deployar (criar tag), como acessar logs, como rollback, **como STORY-008/009 consomem a versão do artefato**.
+- [ ] IDR registrado para padrões transversais — no mínimo: convenção de tags, estrutura de IaC, naming de recursos, **mecanismo de stamping da tag no artefato**, **mecanismo de exposição da versão em runtime**.
 - [ ] `index.json` atualizado.
 - [ ] Esta estória com "Notas do agente" preenchida.
 
@@ -184,9 +201,17 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 - E2E: N/A nesta estória
 
 ### Evidência da métrica primária do EPIC-000
-- Merge 1 → deploy: <link CI> — tempo total: <X min> — health-check: <link>
-- Merge 2 → deploy: <link CI> — tempo total: <X min> — health-check: <link>
-- Merge 3 → deploy: <link CI> — tempo total: <X min> — health-check: <link>
+- Tag 1 (`vX.Y.Z-rc.N`) → build+deploy: <link CI> — tempo total: <X min> — health-check: <link> — versão exposta em runtime: `<vX.Y.Z-rc.N>` (link curl)
+- Tag 2 (`vX.Y.Z-rc.N`) → build+deploy: <link CI> — tempo total: <X min> — health-check: <link> — versão exposta em runtime: `<vX.Y.Z-rc.N>` (link curl)
+- Tag 3 (`vX.Y.Z-rc.N`) → build+deploy: <link CI> — tempo total: <X min> — health-check: <link> — versão exposta em runtime: `<vX.Y.Z-rc.N>` (link curl)
+
+### Evidência de não-disparo por push/merge em `main`
+- Push/merge em `main` sem tag posterior: <link CI mostrando só CI leve, sem job de deploy>
+
+### Padrão de versionamento documentado (consumido por STORY-008/009)
+- Mecanismo de stamping no artefato: <descrição>
+- Mecanismo de exposição em runtime: <descrição + path no README>
+- IDR: <link>
 
 ### Links de evidência
 - PR: <url>

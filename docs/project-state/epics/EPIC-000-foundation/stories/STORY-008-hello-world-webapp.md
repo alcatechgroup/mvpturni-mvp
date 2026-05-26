@@ -58,7 +58,7 @@ A métrica primária do EPIC-000 — "merge em main dispara deploy automático p
 
 ### Rota raiz
 
-- [ ] **CA-1:** `GET /` em `app.homolog.turni.com.br` retorna 200 com página HTML renderizando: nome "Turni", subtítulo curto coerente com a landing do protótipo, versão visível (formato `vX.Y.Z-rc.N`, lido da tag de deploy), e link explícito para `/health`.
+- [ ] **CA-1:** `GET /` em `app.homolog.turni.com.br` retorna 200 com página HTML renderizando: nome "Turni", subtítulo curto coerente com a landing do protótipo, versão visível (formato `vX.Y.Z-rc.N`, lida em runtime pelo **mecanismo padronizado definido em STORY-007 / IDR correspondente** — não inventar mecanismo paralelo), e link explícito para `/health`.
 - [ ] **CA-2:** A página aplica tokens do Design System de DDR-001 (tipografia, paleta, espaçamento) conforme spec do Designer em `design/screens/STORY-008-hello-world-webapp.md` (paths podem variar conforme convenção do Designer — siga o spec).
 - [ ] **CA-3:** A página é **mobile-first** e respeita compatibilidade de `non-functional.md`: iOS Safari 15+, Android Chrome 100+ no mínimo; texto base ≥ 14px em mobile.
 - [ ] **CA-4:** Contraste atende **WCAG 2.1 AA** (`quality-standards.md` seção 5).
@@ -66,7 +66,7 @@ A métrica primária do EPIC-000 — "merge em main dispara deploy automático p
 
 ### Rota `/health`
 
-- [ ] **CA-6:** `GET /health` retorna 200 com payload JSON (ou conforme ADR-008) contendo no mínimo: `status: "ok"`, `version: "<tag de deploy>"`, `timestamp: "<ISO 8601>"`, `service: "webapp"`.
+- [ ] **CA-6:** `GET /health` retorna 200 com payload JSON (ou conforme ADR-008) contendo no mínimo: `status: "ok"`, `version: "<tag injetada no artefato pela STORY-007>"`, `timestamp: "<ISO 8601>"`, `service: "webapp"`. O campo `version` vem do **mesmo mecanismo padronizado** consumido por CA-1 — não inventar segunda fonte de verdade.
 - [ ] **CA-7:** Quando PostgreSQL está inacessível, `/health` retorna status ≥ 500 com payload descrevendo a dependência indisponível (sem vazar segredo). Verifica isso com teste de integração apontando para PostgreSQL desligado intencionalmente.
 - [ ] **CA-8:** `/health` responde em ≤ 500ms p95 em condição normal (mais rápido se possível — é endpoint de probe).
 
@@ -128,8 +128,9 @@ Você (agente programador) decide:
 - Estrutura de pastas e módulos dentro do WebApp.
 - Como organizar componentes (mesmo que mínimos nesta estória).
 - Estratégia concreta de service worker (lib usada, registro, atualização) — dentro do que ADR-001 permite.
-- Como ler a versão do build em runtime (variável de ambiente, arquivo gerado no build, etc).
 - Quais cenários E2E adicionais escrever além do caminho feliz exigido.
+
+Você **não** decide aqui: como a versão do build é injetada no artefato nem como ela é exposta em runtime — isso é decisão de STORY-007 / IDR transversal. Você **consome** o mecanismo documentado no README.
 
 Você (agente programador) NÃO decide:
 - Substituir framework escolhido em ADR-001.

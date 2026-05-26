@@ -54,13 +54,13 @@ Para o **Admin Turni** (Alexandro e futura equipe), ainda não há valor operaci
 
 ### Rota raiz
 
-- [ ] **CA-1:** `GET /` em `admin.homolog.turni.com.br` retorna 200 com página HTML renderizando: "Turni — Backoffice (Admin)" como identificador inequívoco (não pode ser confundida visualmente com a página do WebApp), versão visível (formato `vX.Y.Z-rc.N`), link explícito para `/health`.
+- [ ] **CA-1:** `GET /` em `admin.homolog.turni.com.br` retorna 200 com página HTML renderizando: "Turni — Backoffice (Admin)" como identificador inequívoco (não pode ser confundida visualmente com a página do WebApp), versão visível (formato `vX.Y.Z-rc.N`, lida em runtime pelo **mecanismo padronizado definido em STORY-007 / IDR correspondente** — não inventar mecanismo paralelo), link explícito para `/health`.
 - [ ] **CA-2:** A página aplica tokens base de DDR-001 (tipografia, paleta) em nível mínimo, sem layout administrativo. Contraste WCAG 2.1 AA (`quality-standards.md` seção 5).
 - [ ] **CA-3:** A página funciona em **desktop** nos navegadores listados em `non-functional.md` (Chrome, Firefox, Safari, Edge nas duas últimas versões major). Não exige experiência mobile (PDR-003: backoffice é desktop-only).
 
 ### Rota `/health`
 
-- [ ] **CA-4:** `GET /health` retorna 200 com payload JSON (ou conforme ADR-008) contendo no mínimo: `status: "ok"`, `version: "<tag>"`, `timestamp: "<ISO 8601>"`, `service: "backoffice"`.
+- [ ] **CA-4:** `GET /health` retorna 200 com payload JSON (ou conforme ADR-008) contendo no mínimo: `status: "ok"`, `version: "<tag injetada no artefato pela STORY-007>"`, `timestamp: "<ISO 8601>"`, `service: "backoffice"`. O campo `version` vem do **mesmo mecanismo padronizado** consumido por CA-1 — não inventar segunda fonte de verdade.
 - [ ] **CA-5:** Quando PostgreSQL está inacessível, `/health` retorna status ≥ 500 com payload descrevendo dependência indisponível (sem vazar segredo). Verificado por teste de integração.
 - [ ] **CA-6:** `/health` responde em ≤ 500ms p95 em condição normal.
 
@@ -117,8 +117,9 @@ Esta estória segue `docs/skills/po/references/quality-standards.md`. Em particu
 Você (agente programador) decide:
 - Estrutura de pastas e módulos do Backoffice (dentro de ADR-003).
 - Como reutilizar utilitários do WebApp (lib comum, monorepo, etc — conforme ADR-003).
-- Como ler a versão do build em runtime.
 - Cenários E2E adicionais opcionais.
+
+Você **não** decide aqui: como a versão do build é injetada no artefato nem como ela é exposta em runtime — isso é decisão de STORY-007 / IDR transversal. Você **consome** o mecanismo documentado no README (o mesmo usado pelo WebApp).
 
 Você (agente programador) NÃO decide:
 - Misturar WebApp e Backoffice em deploy/build acoplados (PDR-003 trava).
