@@ -1,14 +1,14 @@
 # Design System — Turni (esqueleto inicial)
 
-> Este é o template para inicializar o Design System **vivo** em `docs/project-state/design/system/`. Ele **herda** do DS canônico em `docs/especificacao/design-system.md` — copie os tokens reais de lá (paleta Stripe-like com `tertiary #635BFF`, Inter, sombras sutis, raios curtos). Toda inclusão/alteração relevante de componente, token ou padrão passa por um DDR (Design Decision Record); mudança de fundação visual (paleta, tipografia, regra de "único acento") exige DDR **e** atualização coordenada da especificação ou supersede formal.
+> Este é o template para inicializar o Design System **vivo** em `docs/project-state/design/system/`. Os tokens reais saem do **protótipo** em `docs/prototipo/` (manifest, CSS, comportamento das telas) e da paleta Material 3 derivada dele. O DS é descrito em **tokens e comportamento** — não em código Dart — mas com a forma que mapeia direto para `ThemeData` + `ColorScheme.fromSeed` + `TextTheme` + `ShapeBorder` + Material elevation/motion, para que o Programador transforme em theme do Flutter sem tradução. Toda inclusão/alteração relevante de componente, token ou padrão passa por um **DDR** (Design Decision Record); mudança de fundação visual (paleta, tipografia, regra de acento) exige DDR **e** atualização coordenada com o PO.
 
 A estrutura recomendada do DS são 4 arquivos sob `project-state/design/system/`:
 
 ```
 project-state/design/system/
 ├── README.md              ← entrada (visão + como navegar)
-├── tokens.md              ← fundações: cor, tipografia, espaçamento, raio, sombra, motion
-├── components.md          ← biblioteca de componentes com variantes e estados
+├── tokens.md              ← fundações: cor, tipografia, espaçamento, raio, sombra, motion, breakpoints
+├── components.md          ← biblioteca de componentes (mapeada para widgets Flutter sempre que possível)
 ├── patterns.md            ← padrões compostos (form, listagem, wizard, vazio, erro)
 └── voice-and-tone.md      ← tom, microcopy, vocabulário
 ```
@@ -22,18 +22,19 @@ A seguir, esqueleto sugerido para cada arquivo.
 ```markdown
 # Design System Turni
 
-Vocabulário visual e de interação compartilhado pelas telas do Turni. Stack-agnóstico — descreve **comportamento e visual em termos de tokens e estados**, não em código de framework.
+Vocabulário visual e de interação compartilhado pelas telas do Turni (Flutter — Android, iOS, Web). Descreve **comportamento e visual em termos de tokens e estados**, com a forma que mapeia direto para `ThemeData` + `ColorScheme` + `TextTheme` do Flutter. Designer **não escreve Dart**; Programador **não inventa token**.
 
 ## Como usar
 
 - Antes de desenhar uma tela nova, leia este DS — provavelmente o que você precisa já existe.
+- Antes de criar componente novo, confirme que **o widget Material 3 (ou Cupertino quando justificado) não cobre**. Reaproveite Flutter primeiro.
 - Componente novo entra por **DDR** primeiro (ver `docs/skills/designer/templates/ddr.md`), não direto.
 - Spec de tela referencia componentes pelo id (`ds_components_used` no frontmatter do spec).
 
 ## Navegação
 
-- `tokens.md` — fundações (cor, tipografia, espaçamento, raio, sombra, motion).
-- `components.md` — biblioteca de componentes.
+- `tokens.md` — fundações (cor, tipografia, espaçamento, raio, sombra, motion, breakpoints).
+- `components.md` — biblioteca de componentes (com widget Flutter equivalente quando aplicável).
 - `patterns.md` — padrões compostos recorrentes.
 - `voice-and-tone.md` — tom de voz e vocabulário.
 
@@ -50,100 +51,114 @@ Versão: 0.1 — esqueleto inicial.
 ```markdown
 # Tokens
 
-> Tokens são as fundações. Toda decisão visual sai daqui. **Não use valor cru** em spec — use token.
+> Tokens são as fundações. Toda decisão visual sai daqui. **Não use valor cru** em spec — use token. O Programador mapeia tokens para `ThemeData` no Flutter.
 
-## Cor
+## Cor (ponto de partida — do `manifest.json` do protótipo)
 
-Valores canônicos vêm de `especificacao/design-system.md`. Tabela espelhada aqui para conveniência:
+| Token | Valor de partida | Mapeamento Flutter sugerido | Uso |
+|---|---|---|---|
+| `brand.seed` | `#00A868` (verde do `theme_color`) | `seed` em `ColorScheme.fromSeed(seedColor: ...)` | Geração da paleta Material 3 |
+| `surface.page` | `#F7F4EC` (off-white do `background_color`) | `ColorScheme.background` | Fundo da página/Scaffold |
+| `surface.elevated` | `#FFFFFF` | `ColorScheme.surface` | Cards, sheets, dialogs |
+| `primary` | derivado do seed | `ColorScheme.primary` | CTA primário, indicador ativo |
+| `on-primary` | derivado do seed | `ColorScheme.onPrimary` | Texto/ícone sobre `primary` |
+| `secondary` | derivado do seed | `ColorScheme.secondary` | Acento secundário (raríssimo) |
+| `outline` | derivado do seed | `ColorScheme.outline` | Bordas de input, divisores |
+| `error` | Material 3 default | `ColorScheme.error` | Erro, validação negativa, ação irreversível |
+| `on-error` | Material 3 default | `ColorScheme.onError` | Texto sobre `error` |
 
-| Token | Valor | Uso |
-|---|---|---|
-| `primary` | `#0A2540` | headlines e texto core |
-| `secondary` | `#425466` | bordas, captions, metadata |
-| `tertiary` | `#635BFF` | **único** acento interativo — CTA primário, link ativo, focus ring |
-| `neutral` | `#F6F9FC` | background da página |
-| `surface` | `#FFFFFF` | cards, popovers, inputs |
-| `on-primary` | `#FFFFFF` | texto sobre `tertiary` |
-| `destructive` | `#E11D48` | erro, validação negativa, ação irreversível |
-| `border` / `input` | `#E3E8EE` | bordas neutras / borda de input default |
-| `ring` | `hsla(243,100%,67%,0.4)` | focus ring acessível (Tertiary 40% alpha) |
+**Regras de uso (regras de ouro do DS):**
 
-**Restrições de uso (regras de ouro do DS):**
+- O verde `brand.seed` é o **único condutor de interação**. Reserve para **um** CTA primário por tela e indicadores de estado positivo (match confirmado, sucesso). Não use em decoração, ícones genéricos, nem em duas ações por tela.
+- A paleta Material 3 inteira deriva do seed — não introduza cor adicional sem DDR.
+- **Flat por design.** Sem gradientes. Sem segundo acento concorrente. Elevation Material em níveis baixos (0–2 padrão; 3 em casos especiais).
+- Cor de feedback **nunca é o único canal** — sempre acompanha ícone + texto (acessibilidade e usuário não-técnico).
 
-- `tertiary` é o **único** condutor de interação. Reserve para **um** CTA principal por tela. Não use em decoração nem em mais de uma ação por tela.
-- `neutral` (`#F6F9FC`) é base da página; `surface` (`#FFFFFF`) flutua sobre ela com sombra mínima.
-- **Flat por design.** Sem gradientes. Sem segundo acento concorrente. Sem sombras pesadas.
-- Cor de feedback nunca é o único canal de informação (sempre acompanha ícone ou texto — acessibilidade).
-
-> Qualquer adição/alteração a esta paleta exige DDR **e** atualização coordenada de `especificacao/design-system.md` (ou supersede formal).
+> Qualquer adição/alteração à paleta exige DDR.
 
 ## Tipografia
 
-- **Família única:** Inter (300, 400, 500, 600). Code: JetBrains Mono ou `ui-monospace`.
-- **Regra de peso:** nunca usar 700+. Contraste sai de tamanho e cor, não de peso bold.
-- Escala canônica (de `especificacao/design-system.md` — espelhada aqui):
+- **Família:** definir no DDR-001 do DS (sugestões: Inter / Roboto / Plus Jakarta Sans / System default do Flutter — `Theme.of(context).textTheme`). **Uma família única** para texto; mono opcional só para códigos/PIN se realmente precisar.
+- **Regra de peso:** preferir `w400` (regular) e `w500` (medium). Evitar `w700+` em texto comum — contraste sai de tamanho e cor, não de bold. Headings podem usar `w600`.
+- **Escala mapeada para `TextTheme` Material 3:**
 
-| Nível | Size | Weight | Letter-spacing | Line-height |
-|---|---:|---:|---:|---:|
-| `display` | 5rem (80px) | 300 | -0.04em | 1.05 |
-| `h1` | 2.5rem (40px) | 500 | -0.02em | 1.15 |
-| `h2` | 1.75rem (28px) | 500 | -0.01em | 1.2 |
-| `h3` | 1.25rem (20px) | 500 | 0 | 1.3 |
-| `body` | 0.98rem (~15.7px) | 400 | 0 | 1.6 |
-| `body-sm` | 0.875rem (14px) | 400 | 0 | 1.55 |
-| `label` | 0.72rem (~11.5px) | 600 | 0.02em | 1.4 |
-| `code` | 0.875rem | 400 | 0 | 1.55 |
+| Token (DS) | Flutter `TextTheme` | Tamanho sugerido | Weight |
+|---|---|---:|---:|
+| `display` | `displaySmall` | 36sp | 400 |
+| `headline` | `headlineMedium` | 28sp | 500 |
+| `title` | `titleLarge` | 22sp | 500 |
+| `subtitle` | `titleMedium` | 16sp | 500 |
+| `body` | `bodyLarge` | 16sp | 400 |
+| `body-sm` | `bodyMedium` | 14sp | 400 |
+| `label` | `labelLarge` | 14sp | 500 |
+| `caption` | `bodySmall` | 12sp | 400 |
 
-## Espaçamento
+> O usuário não-técnico precisa **ler sem esforço**. Não desça body abaixo de 14sp em produção. Web pode subir para 17–18sp em corpo de texto.
 
-Escala compacta canônica (de `especificacao/design-system.md`):
+## Espaçamento (em `dp`/`logical px` do Flutter)
 
 | Token | Valor |
 |---|---:|
-| `xs` | 4px |
-| `sm` | 8px |
-| `md` | 16px |
-| `lg` | 32px |
-| `xl` | 64px |
-| `2xl` | 96px |
+| `xs` | 4 |
+| `sm` | 8 |
+| `md` | 16 |
+| `lg` | 24 |
+| `xl` | 32 |
+| `2xl` | 48 |
+| `3xl` | 64 |
 
-## Raio (border-radius)
+Use múltiplos de 4. `EdgeInsets.all(16)` ≡ `space.md`.
+
+## Raio (`ShapeBorder` / `BorderRadius`)
 
 | Token | Valor | Uso |
 |---|---:|---|
-| `radius.sm` | 6px | inputs, badges, chips |
-| `radius.md` | 10px | botões, dropdowns |
-| `radius.lg` | 16px | cards, modals, popovers grandes |
-| `radius.full` | 9999px | avatares, dots de status |
+| `radius.sm` | 8 | Chips, badges, `Chip`, `InputDecoration` densa |
+| `radius.md` | 12 | Botões (`FilledButton`, `OutlinedButton`), inputs (`TextFormField`), `BottomSheet` superior |
+| `radius.lg` | 16 | `Card`, `Dialog`, `Sheet` |
+| `radius.xl` | 24 | `BottomSheet` modais grandes, hero containers |
+| `radius.full` | 9999 | Avatares, dots de status, FAB |
 
-## Sombra
+## Elevação (Material 3 — `ThemeData.elevation`)
 
-Sutis. Nunca pretas saturadas. Sombra com parcimônia — tom sério não combina com profundidade exagerada.
+Use níveis baixos. Material 3 já desenha sombra suave nesses níveis.
 
-| Token | Valor |
-|---|---|
-| `shadow-sm` | `0 1px 2px rgba(10, 37, 64, 0.04)` |
-| `shadow-md` | `0 4px 12px rgba(10, 37, 64, 0.06)` |
-| `shadow-lg` | `0 12px 32px rgba(10, 37, 64, 0.08)` |
+| Token | Nível Material | Uso |
+|---|---:|---|
+| `elev.0` | 0 | Background da página, área "plana" |
+| `elev.1` | 1 | Card padrão, AppBar |
+| `elev.2` | 2 | Sheet modal, snackbar |
+| `elev.3` | 3 | Dialog, drawer aberto |
 
-## Motion (transições)
+Acima de `elev.3` → erro de design (sinal de hierarquia confusa).
 
-| Token | Duração | Easing | Uso |
+## Motion (durações + curvas Flutter)
+
+| Token | Duração | Curva (`Curves`) | Uso |
+|---|---:|---|---|
+| `motion.fast` | 100ms | `Curves.easeOut` | Feedback imediato (press, hover web) |
+| `motion.base` | 200ms | `Curves.easeInOut` | Mudanças de estado, abrir/fechar inline |
+| `motion.slow` | 300ms | `Curves.easeInOutCubic` | Transição entre telas, drawers |
+
+> Transições têm propósito (orientar atenção), nunca decoração. Acima de 300ms → erro de design (exceto onboarding deliberado).
+
+## Breakpoints (alinhados com Material 3 + uso Flutter)
+
+| Token | Min-width (`dp`) | Apelido | Uso típico no Flutter |
 |---|---|---|---|
-| `motion.fast` | 100ms | ease-out | feedback imediato (hover, press) |
-| `motion.base` | 200ms | ease-in-out | mudanças de estado, abrir/fechar |
-| `motion.slow` | 300ms | ease-in-out | transição entre telas, drawers |
+| `bp.compact` | 0 | mobile (base — mobile-first) | `NavigationBar` inferior, layout em coluna única |
+| `bp.medium` | 600 | tablet vertical | `NavigationRail` lateral, master-detail leve |
+| `bp.expanded` | 840 | tablet horizontal / web pequena | `NavigationRail` extendida, 2 colunas |
+| `bp.large` | 1200 | web/desktop | `NavigationDrawer` ou rail extendida, 2–3 colunas |
+| `bp.extraLarge` | 1600 | desktop largo | Limitar largura útil — não estique conteúdo |
 
-> Transições têm propósito (orientar atenção), nunca decoração. Acima de 300ms → erro de design.
+Use `LayoutBuilder` / `MediaQuery.sizeOf(context)` ou `AdaptiveScaffold` para alternar entre eles.
 
-## Breakpoints
+## Toque e acessibilidade (pisos)
 
-| Token | Min-width | Apelido |
-|---|---|---|
-| `bp.mobile` | 360px | mobile (base — mobile-first) |
-| `bp.tablet` | 768px | tablet |
-| `bp.desktop` | 1024px | desktop |
-| `bp.wide` | 1440px | desktop largo |
+- **Alvo mínimo de toque: 48×48 dp** (Material). Itens densos em web podem ser menores, mas em mobile **nunca**.
+- Contraste WCAG AA: 4.5:1 para texto normal, 3:1 para texto grande/ícone.
+- Foco visível **sempre** (`FocusableActionDetector` / `Focus` default do Material já entrega).
 ```
 
 ---
@@ -153,12 +168,13 @@ Sutis. Nunca pretas saturadas. Sombra com parcimônia — tom sério não combin
 ```markdown
 # Componentes
 
-> Cada componente: id, descrição, anatomia, variantes, estados, regras de uso, exemplo visual.
+> Cada componente do DS mapeia, sempre que possível, para um **widget Flutter Material 3** existente. Componente custom só existe quando o Flutter realmente não cobre — e entra por DDR.
 
 ## Como ler
 
 - **id** é o que o spec de tela referencia em `ds_components_used`.
-- **Estados** cobrem `default`, `hover`, `focus`, `active`, `disabled`, `loading`, `error` quando aplicáveis.
+- **Widget Flutter equivalente** é a referência de implementação (Programador segue, exceto se ADR disser outra coisa).
+- **Estados** cobrem `default`, `hover` (web), `focus`, `pressed`, `disabled`, `loading`, `error` quando aplicáveis.
 - **Não usar quando** é tão importante quanto **usar quando** — restringe.
 
 ---
@@ -167,74 +183,78 @@ Sutis. Nunca pretas saturadas. Sombra com parcimônia — tom sério não combin
 
 **Descrição:** ação principal de uma tela ou bloco. Existe **no máximo uma por contexto**.
 
-**Anatomia:** label (obrigatório), ícone opcional à esquerda, padding `space.3 space.5`, raio `radius.md`, cor `brand.primary`, texto `text.body.strong` em branco.
+**Widget Flutter:** `FilledButton` (Material 3). Para CTA muito alto-impacto em mobile (ex: "Aceitar match"), `FilledButton.icon` com ícone à esquerda.
 
-**Variantes:** tamanho `md` (padrão), `lg` (CTA principal de tela em mobile — toque ≥ 48px).
+**Anatomia:** label (obrigatório, verbo no infinitivo curto), ícone opcional à esquerda, padding interno horizontal `space.lg`, altura ≥48 em mobile, raio `radius.md`, cor `primary`, texto `label` em `on-primary`.
 
 **Estados:**
 
-| Estado | Descrição |
+| Estado | Comportamento |
 |---|---|
-| default | `brand.primary` |
-| hover | `brand.primary.hover` |
-| focus | anel `border.focus` 2px |
-| active | escurece 4% adicional |
-| disabled | opacidade 50%, `cursor: not-allowed` |
-| loading | spinner inline à esquerda do label; clique bloqueado |
+| default | `primary` + `on-primary` |
+| hover (web) | overlay 8% sobre `primary` |
+| focus | indicador de foco Material default |
+| pressed | overlay 12% sobre `primary` |
+| disabled | opacidade 38%, `MouseCursor.basic` |
+| loading | `CircularProgressIndicator` inline no lugar do label; toque bloqueado |
 
-**Usar quando:** ação principal e única da tela ou seção.
+**Usar quando:** ação principal e única do contexto (tela, sheet, dialog).
 
-**Não usar quando:** ação destrutiva (usar `button.danger`); ação secundária (usar `button.secondary`).
+**Não usar quando:** ação destrutiva (`button.danger`); ação secundária (`button.secondary`).
 
 ```
-+-------------------------+
-|   Salvar diagnóstico    |
-+-------------------------+
++-------------------------------+
+|   Aceitar match               |
++-------------------------------+
 ```
 
 ---
 
 ### `button.secondary`
 
-(mesmo formato — descrever brevemente)
+**Widget Flutter:** `OutlinedButton` ou `TextButton`. (Descrever brevemente.)
 
 ---
 
 ### `input.text`
 
-**Anatomia:** label acima (obrigatório, exceto em busca), input, hint opcional abaixo, mensagem de erro abaixo quando aplicável.
+**Widget Flutter:** `TextFormField` com `InputDecoration` (Material 3, outlined).
+
+**Anatomia:** label flutuante (obrigatório), input, `helperText` opcional abaixo, `errorText` quando aplicável.
 
 **Estados:** default / focus / disabled / error / readonly.
 
-**Acessibilidade:** label sempre associado (`for`/`id`), erro associado via `aria-describedby`, foco visível obrigatório.
+**Acessibilidade:** label sempre associado (default do `TextFormField`), erro associado e anunciado por leitor de tela, foco visível obrigatório.
 
-(mesmo formato)
+**Microcopy para não-técnico:** label diz **o que é**, placeholder dá **exemplo concreto** ("Ex.: João da Silva"), helper explica **por que pedimos** se necessário ("Para o contratante saber quem pegou o turno").
 
 ---
 
-### `card`
+### `card.vaga`
 
-(mesmo formato)
+**Widget Flutter:** `Card` com `ListTile` ou conteúdo custom interno.
+
+(mesmo formato — descrever)
 
 ---
 
 ### `empty-state`
 
-**Anatomia:** ilustração opcional (apenas se comunica algo — não decorativa), título curto, instrução, CTA primário.
+**Anatomia:** ícone Material leve (não ilustração elaborada), título curto em `title`, instrução em `body` em linguagem simples, CTA primário (`FilledButton`).
 
-**Regra:** estado vazio **sempre** instrui o próximo passo. "Nenhum dado" sozinho é proibido.
-
-(mesmo formato)
+**Regra:** estado vazio **sempre** instrui o próximo passo, em linguagem que o não-técnico entende. "Sem dados" sozinho é proibido. **Bom:** "Nenhuma vaga por aqui ainda. Publique a primeira."
 
 ---
 
-### `toast` / `alert`
+### `snackbar` (toast)
 
-(mesmo formato — incluir variantes success/warning/danger/info)
+**Widget Flutter:** `SnackBar` exibida via `ScaffoldMessenger`.
+
+(descrever variantes success/warning/danger/info)
 
 ---
 
-> **Lista inicial mínima a cobrir até EPIC-001:** `button.primary`, `button.secondary`, `button.danger`, `input.text`, `input.select`, `input.checkbox`, `input.radio`, `card`, `empty-state`, `toast`, `modal`, `table`, `nav.sidebar` (desktop) + `nav.bottom` (mobile), `breadcrumb`, `pagination`, `skeleton`, `badge`, `tag`.
+> **Lista inicial mínima a cobrir até EPIC-001:** `button.primary` (`FilledButton`), `button.secondary` (`OutlinedButton`), `button.danger`, `button.text` (`TextButton`), `input.text` (`TextFormField`), `input.select` (`DropdownMenu`), `input.checkbox`, `input.radio`, `input.switch`, `chip` (`FilterChip`/`InputChip`), `segmented` (`SegmentedButton`), `card.vaga`, `card.turno`, `list.tile` (`ListTile`), `empty-state`, `snackbar`, `bottom-sheet` (`showModalBottomSheet`), `dialog` (`AlertDialog`/`Dialog`), `nav.bar` (`NavigationBar` mobile) + `nav.rail` (`NavigationRail` tablet/web), `app.bar` (`AppBar`/`SliverAppBar`), `stepper` (`Stepper`), `skeleton` (`Shimmer` / Material `placeholder`), `badge` (`Badge`).
 ```
 
 ---
@@ -244,51 +264,52 @@ Sutis. Nunca pretas saturadas. Sombra com parcimônia — tom sério não combin
 ```markdown
 # Padrões compostos
 
-> Combinações recorrentes de componentes para resolver problemas frequentes. Cada padrão evita reinventar a roda.
+> Combinações recorrentes de widgets/componentes para resolver problemas frequentes. Cada padrão evita reinventar a roda e baixa a carga cognitiva do usuário não-técnico.
 
 ## `pattern.form`
 
-Composição: campos verticalmente empilhados, label acima, mensagem de erro associada, CTA primário ao final.
+Composição: campos verticalmente empilhados (`Column` + `Form`), label flutuante, mensagem de erro associada, CTA primário no rodapé.
 
 **Regras:**
 
-- Form longo (>5 campos) é candidato a `pattern.wizard`.
-- Validação inline preferida (no blur do campo).
-- Mensagem de erro nunca é só cor — sempre texto associado.
+- Form longo (>5 campos) é candidato a `pattern.wizard` (`Stepper` do Flutter).
+- Validação inline no `validator` do `TextFormField`, disparada no blur (`onEditingComplete`) — não a cada keystroke.
+- Mensagem de erro nunca é só cor — sempre texto associado e legível.
+- Linguagem do erro **explica o que fazer**: "Use um e-mail com `@` e domínio." > "E-mail inválido".
 
 (sketch inline)
 
 ## `pattern.wizard`
 
-Composição: passos numerados visíveis, navegação anterior/próximo, possibilidade de salvar rascunho.
+Composição: `Stepper` Flutter (horizontal em web, vertical em mobile), navegação anterior/próximo, possibilidade de salvar rascunho.
 
 **Regras:**
 
-- Use para fluxos com >5 campos ou decisão em estágios.
-- Sempre mostre progresso ("Passo 2 de 4").
+- Use para fluxos com >5 campos ou decisão em estágios — quebra reduz carga cognitiva.
+- Mostre progresso ("Passo 2 de 4") e o que **ainda falta**.
 - Permita voltar sem perder dado preenchido.
 
 (sketch inline)
 
 ## `pattern.listing`
 
-Composição: filtros (drawer/colapsado em mobile, lateral em desktop), lista/tabela, paginação, estado vazio, ordenação.
+Composição: filtros (`BottomSheet` em mobile, `Drawer` lateral em tablet/web), lista (`ListView.builder` com paginação infinita) ou cards, estado vazio, ordenação.
 
 **Regras:**
 
-- Tabela com >7 colunas vira lista de cards no mobile (não scroll horizontal infinito).
+- Tabela com >5 colunas vira lista de cards no mobile — não scroll horizontal.
 - Sempre tem estado vazio próprio.
-- Filtros mantêm-se entre navegações (URL ou sessão).
+- Filtros mantêm-se entre navegações (URL/route params em web, restore em mobile).
 
 (sketch inline)
 
 ## `pattern.empty`
 
-Composição: empty-state padronizado (`empty-state` componente) com CTA contextual.
+Composição: `empty-state` padronizado com CTA contextual.
 
 ## `pattern.error`
 
-Composição: erro recuperável (toast + retry) vs erro de tela (página dedicada com instrução e caminho).
+Composição: erro recuperável (`SnackBar` com action "Tentar de novo") vs erro de tela (página dedicada com instrução clara + caminho de saída).
 ```
 
 ---
@@ -302,25 +323,26 @@ Composição: erro recuperável (toast + retry) vs erro de tela (página dedicad
 
 ## Tom
 
-- **Profissional, direto, respeitoso.** O usuário é profissional ocupado — você não fala como amigo.
-- **Sem entusiasmo performático.** "Tudo certo!" > "Uhuu! Foi! 🎉"
-- **Sem culpar o usuário.** "Não encontramos esse CNPJ" > "CNPJ inválido — verifique."
-- **Sem jargão técnico em microcopy.** "Não conseguimos salvar agora" > "Erro 500 — falha no servidor."
+- **Direto, simples, respeitoso.** O usuário típico é profissional de hospitalidade ou gestor de operações — **não-técnico**. Fale como um colega prestativo, não como sistema.
+- **Sem entusiasmo performático.** "Tudo certo." > "Uhuu! Foi! 🎉"
+- **Sem culpar o usuário.** "Não encontramos esse CPF." > "CPF inválido — verifique."
+- **Sem jargão técnico em microcopy.** "Não conseguimos salvar agora. Tente novamente em alguns minutos." > "Erro 500 — falha no servidor."
+- **Frase curta vence frase elegante.** Usuário lendo no celular em pé não terá paciência para parágrafo.
 
 ## Vocabulário
 
-Use o `glossary.md` do PO. Termos do negócio: `Vaga`, `Turno`, `Profissional`, `Contratante`, `Match`. **Não rebatize.**
+Use o `glossary.md` do PO. Termos do domínio Turni: `Vaga`, `Turno`, `Profissional`, `Contratante`, `Match`, `PIN`, `Pix`, `Estabelecimento`. **Não rebatize.**
 
 ## Padrões de microcopy
 
 | Situação | Padrão | Exemplo |
 |---|---|---|
-| CTA primário | verbo no infinitivo | "Salvar diagnóstico" |
+| CTA primário | verbo no infinitivo curto | "Aceitar match" |
 | CTA secundário | verbo no infinitivo, neutro | "Cancelar" |
-| Confirmação destrutiva | nomeia o objeto | "Excluir Estabelecimento?" |
-| Sucesso | curto, sem emoji | "Diagnóstico salvo." |
-| Erro recuperável | o que aconteceu + o que fazer | "Não foi possível salvar. Tentar novamente." |
-| Vazio | o que falta + como conseguir | "Você ainda não cadastrou Empresas. Cadastrar a primeira." |
-| Loading | (preferir skeleton — sem texto) | — |
-| Placeholder | exemplo, não instrução | `Ex.: 00.000.000/0000-00` (CNPJ) |
+| Confirmação destrutiva | nomeia o objeto | "Recusar este match?" |
+| Sucesso | curto, sem emoji | "Match confirmado." |
+| Erro recuperável | o que aconteceu + o que fazer | "Não foi possível confirmar. Tentar de novo." |
+| Vazio | o que falta + como conseguir | "Você ainda não publicou vagas. Publicar a primeira." |
+| Loading | preferir skeleton — sem texto | — |
+| Placeholder | exemplo, não instrução | `Ex.: 11912345678` (telefone) |
 ```

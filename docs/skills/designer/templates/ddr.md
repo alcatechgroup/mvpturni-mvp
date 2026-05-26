@@ -106,7 +106,7 @@ Justificativa em 2–5 linhas. Cite a(s) força(s) decisiva(s) e por que as outr
 
 ## Implementação sugerida (notas para o Programador)
 
-Notas opcionais sobre o que facilita a implementação — sem ditar código. Ex.: identificadores `data-testid` sugeridos, componentes do DS a reutilizar, ordem natural de implementação.
+Notas opcionais sobre o que facilita a implementação — sem ditar código Dart. Ex.: identificadores lógicos sugeridos (que viram `Key('...')`/`ValueKey('...')` no widget Flutter), widget Material 3/Cupertino equivalente, componentes do DS a reutilizar, ordem natural de implementação.
 
 ## Critérios para revisitar
 

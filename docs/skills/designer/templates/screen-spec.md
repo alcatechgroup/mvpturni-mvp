@@ -154,16 +154,17 @@ Vocabulário: `docs/skills/po/references/glossary.md`. Tom: `references/tone-and
 
 Além do piso geral (`references/accessibility-basics.md`):
 
-- Ordem de tab: ...
+- Ordem de foco (tab em web / leitor de tela em mobile): ...
 - Foco inicial ao abrir a tela: ...
-- Labels acessíveis para ícones-ação: ...
-- Mensagens de erro associadas a campos via `aria-describedby` (ou equivalente).
-- Live regions para mensagens dinâmicas (toast, erro assíncrono): ...
-- Contraste verificado para todos os tokens usados: ✅/❌ (anexar evidência se ❌ com justificativa).
+- Labels semânticos para ícones-ação (envolver em `Semantics(label: '...')` ou usar `tooltip`): ...
+- Mensagens de erro vinculadas ao campo (`TextFormField.validator` + `errorText`, anunciadas por leitor de tela).
+- Live regions para mensagens dinâmicas (toast/`SnackBar`, erro assíncrono): usar `Semantics(liveRegion: true, ...)`.
+- Contraste verificado para todos os tokens usados (WCAG AA): ✅/❌ (anexar evidência se ❌ com justificativa).
+- Alvos de toque ≥48dp: ✅/❌.
 
-## 7. Identificadores estáveis sugeridos para E2E
+## 7. Identificadores estáveis sugeridos para teste
 
-Para o teste de browser ancorar sem fragilidade. **Atributo concreto é decisão idiomática do Programador** conforme stack (em Laravel Dusk: atributo `dusk="..."`; em outros frameworks: `data-testid` ou equivalente). Sugestões abaixo são **nomes lógicos** — o Programador escolhe o atributo:
+Para widget tests e integration tests do Flutter ancorarem sem fragilidade. Sugestões abaixo são **nomes lógicos** — o Programador aplica como `Key('...')` / `ValueKey('...')` no widget correspondente:
 
 | Elemento | Identificador lógico sugerido |
 |---|---|
@@ -173,7 +174,7 @@ Para o teste de browser ancorar sem fragilidade. **Atributo concreto é decisão
 | Lista de itens | `screen-<slug>-list` |
 | Item da lista | `screen-<slug>-item-<id>` |
 
-> Esses identificadores facilitam o E2E em browser real que o PO já exige (`quality-standards.md`) — não criam exigência nova.
+> Esses identificadores facilitam os testes automatizados que o PO já exige (`quality-standards.md`) — não criam exigência nova.
 
 ## 8. Exceções ao Design System
 

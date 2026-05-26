@@ -30,97 +30,99 @@ Acessibilidade insuficiente não é trade-off — é bug.
 
 ### 2. Foco sempre visível
 
-- Todo elemento interativo (botão, link, input, checkbox, item de menu) tem **anel de foco visível** quando recebe foco.
-- Token `color.border.focus` é o anel padrão (2px sólido).
-- **`outline: none` sem substituto é bug.** Se remover o outline padrão, substitua por algo claramente visível.
-- Foco precisa ser visível em **todos os contextos** — fundo claro, fundo escuro, fundo colorido.
+- Todo elemento interativo (`FilledButton`, `OutlinedButton`, `TextButton`, `TextFormField`, `Checkbox`, `Switch`, `RadioListTile`, `InkWell` custom, item de menu) tem **indicador de foco visível** quando recebe foco.
+- Material 3 do Flutter já entrega o indicador por padrão. Você **não desliga** isso por estética.
+- Em Flutter Web, foco aparece quando o usuário usa teclado; em mobile, aparece com switch control / focus assistivo.
 
-**Sinal de erro:** "removi o outline porque ficou feio." → falhou.
+**Sinal de erro:** "removi o overlay de foco do `InkWell` porque ficou feio." → falhou.
 
-### 3. Navegação por teclado completa
+### 3. Navegação por teclado completa (Flutter Web)
 
-- **Tab** percorre todos os interativos na ordem visual (top→bottom, left→right em LTR).
+- **Tab** percorre todos os interativos na ordem visual (top→bottom, left→right em LTR). Flutter Web faz isso por padrão para widgets Material; widget custom precisa de `Focus`/`FocusableActionDetector`.
 - **Shift+Tab** percorre para trás.
 - **Enter / Space** ativam botões.
-- **Setas** navegam dentro de listas, menus, abas, radio groups.
-- **Esc** fecha modal, popover, drawer.
-- **Modal tem foco-trap**: tab dentro do modal cicla; foco volta para o gatilho ao fechar.
-- **Skip link** ("Pular para conteúdo principal") em telas com navegação extensa.
+- **Setas** navegam dentro de listas (`ListView` aceita scroll por teclado), menus (`DropdownMenu`), `SegmentedButton`, `RadioListTile` em grupo.
+- **Esc** fecha `Dialog` / `BottomSheet` modal / `Drawer`. Flutter já faz isso para os widgets padrão.
+- **Foco-trap em `Dialog`/`BottomSheet`** vem por padrão; widget custom precisa de `FocusScope`.
+- **Skip link** ("Pular para conteúdo principal") em telas com navegação extensa em Flutter Web — sugira o nome lógico no spec.
 
-**Como verificar:** desplugue o mouse. Consegue fazer a tarefa? Se não, falhou.
+**Como verificar:** rode em Flutter Web, desplugue o mouse. Consegue fazer a tarefa? Se não, falhou.
 
-### 4. Semântica HTML correta (recomendação ao Programador)
+### 4. Semântica via widgets Material + `Semantics`
 
 Você desenha — Programador implementa. Mas você sugere no spec:
 
-- Botão de ação = `<button>` (não `<div>` com `onClick`).
-- Link de navegação = `<a href>` (não `<button>`).
-- Label de campo = `<label for>` associado ao input.
-- Cabeçalho de seção = `<h1>`–`<h6>` com hierarquia coerente.
-- Lista = `<ul>` / `<ol>` (não `<div>` em sequência).
-- Tabela tabular = `<table>` com `<th scope>` (não layout em tabela).
+- Botão de ação = `FilledButton` / `OutlinedButton` / `TextButton` / `IconButton` (já semânticos). Nunca `GestureDetector` cru para botão visual.
+- Link de navegação (Flutter Web) = `InkWell` envolvendo um `Text`, com roteamento via `go_router` ou equivalente; em widget custom, envolver em `Semantics(link: true, ...)` ou usar `Link` widget do Flutter Web.
+- Label de campo = `TextFormField` com `decoration.labelText` (já associa label ao input).
+- Cabeçalho de seção = `Text` envolvido em `Semantics(header: true, ...)` para que leitores de tela anunciem como título.
+- Lista = `ListView` / `ListView.builder` (já tem semântica de lista).
+- Tabela tabular = `DataTable` / `PaginatedDataTable` (já anuncia cabeçalho/linhas).
+
+No Flutter Web, esses widgets exportam ARIA correto automaticamente. Em mobile, viram nós da árvore de acessibilidade nativa (TalkBack/VoiceOver).
 
 Semântica correta = leitor de tela funciona, busca do browser funciona, comportamento padrão (atalhos, foco) funciona.
 
 ### 5. Erros não são só cor
 
 - Borda vermelha sozinha **não basta** — daltonismo é comum.
-- Mensagem de erro **textual** associada ao campo via `aria-describedby` (ou equivalente).
-- Ícone de erro **com label acessível** (não só visual).
-- Resumo de erros no topo do form (para form longo) com link para cada campo com erro.
+- Mensagem de erro **textual** vinculada ao campo via `TextFormField.validator` retornando `errorText` (Material 3 já anuncia para leitor de tela).
+- Ícone de erro com `Semantics(label: '...')` quando não acompanhar texto visível.
+- Resumo de erros no topo do form (form longo) com foco que pula para cada campo com erro.
 
-**Sinal de erro:** "campo fica vermelho quando dá erro" — sem texto associado, daltônico não sabe.
+**Sinal de erro:** "campo fica vermelho quando dá erro" — sem `errorText`, daltônico não sabe.
 
 ### 6. Ícone sozinho como ação tem label
 
-- Botão com **só ícone** (ex.: lupa, lixeira, três pontos) tem `aria-label` descritivo.
-- Em mobile, considerar **label visível** (texto curto abaixo do ícone) para clareza.
-- Tooltip **não substitui** label acessível (tooltip não roda em mobile, não roda em teclado).
+- `IconButton` com **`tooltip:`** descritivo (Flutter já transforma em label de acessibilidade para leitor de tela; em web vira `aria-label`).
+- Em mobile, considerar **label visível** (texto curto abaixo do ícone) para clareza — ajuda usuário não-técnico mesmo que enxergue bem.
+- Tooltip **não substitui** label semântico — Flutter já cuida, mas se você usar `GestureDetector` custom em vez de `IconButton`, **envolva em `Semantics(label: 'Verbo + objeto', button: true)`**.
 
-**Convenção sugerida ao Programador:** `aria-label` com verbo + objeto: `aria-label="Excluir empresa"`.
+**Convenção sugerida ao Programador:** `tooltip` / `Semantics.label` com verbo + objeto: `tooltip: 'Recusar match'`.
 
 ### 7. Alvo de toque adequado
 
-- Mínimo **44×44px** em mobile (WCAG AA recomendação).
-- 48×48px preferível.
-- Alvos próximos ≥ 8px de distância para evitar toque errado.
-- Botões de ação primária maiores que secundários.
+- Mínimo **48×48 dp** em mobile (Material 3 default; WCAG aceita ≥44).
+- Alvos próximos ≥ 8dp de distância para evitar toque errado.
+- Em Flutter, `MaterialTapTargetSize.padded` (default) garante o piso de 48 em widgets Material.
+- Botões de ação primária visualmente maiores que secundários.
 
-**Sinal de erro:** ícone de 24px sem padding ao redor → área de toque insuficiente.
+**Sinal de erro:** `IconButton` com `iconSize: 16` sem padding → área de toque insuficiente.
 
 ## Heurísticas extras (boas práticas além do piso)
 
-- **Live regions** (`aria-live="polite"` ou `assertive`) para mensagens dinâmicas — toast de sucesso, erro assíncrono, contagem regressiva.
-- **Modal aria** correto: `role="dialog"`, `aria-modal="true"`, `aria-labelledby` apontando para o título.
-- **Form com `<fieldset>` + `<legend>`** quando agrupa campos relacionados.
-- **Imagem decorativa com `alt=""`** explícito (vazio mesmo) para leitor de tela pular.
-- **Imagem com conteúdo com `alt`** descritivo.
-- **Vídeo com legendas** (CC) e transcrição.
-- **Animação respeitando `prefers-reduced-motion`** — usuário que pediu menos movimento, recebe menos.
+- **Live regions** — `Semantics(liveRegion: true, ...)` envolvendo `SnackBar`/banner que muda dinamicamente. Em Flutter Web vira `aria-live="polite"`.
+- **`Dialog` / `BottomSheet` modais** já trazem semântica correta (foco-trap, anúncio como dialog). Não desligar.
+- **Form com agrupamento** — use `Semantics(container: true, label: 'Endereço')` envolvendo `Column` de campos relacionados.
+- **Imagem decorativa** — `ExcludeSemantics` em `Image` decorativa, ou `excludeFromSemantics: true`.
+- **Imagem com conteúdo** — `Image(semanticLabel: '...')`.
+- **Animação respeitando `MediaQuery.disableAnimations`** — usuário que pediu menos movimento recebe menos. Sugira no spec que animações importantes consultem isso.
 
 ## Como o Designer verifica (antes do merge)
 
 Checklist rápido na revisão do que o Programador implementou:
 
-- [ ] Contraste de cada combinação cor texto/fundo verificado em browser/ferramenta.
-- [ ] Tab percorre na ordem visual; foco visível em todo elemento.
-- [ ] Desplugar mouse: consegue completar a tarefa principal só com teclado?
-- [ ] Botões com só ícone têm `aria-label`?
-- [ ] Erros de form têm texto associado ao campo?
-- [ ] Alvos de toque ≥ 44px em mobile?
-- [ ] Modal fecha com Esc; foco volta para o gatilho?
-- [ ] Live regions onde aplicável (toast, erro assíncrono)?
-- [ ] Esquema de cor não é o único canal de informação?
+- [ ] Contraste de cada combinação cor texto/fundo verificado (ex: Material Theme Builder + ferramenta de contraste).
+- [ ] Tab percorre na ordem visual em Flutter Web; foco visível em todo elemento.
+- [ ] Mouse desconectado em Flutter Web: consegue completar a tarefa principal só com teclado?
+- [ ] `IconButton` tem `tooltip`? Widget custom com gesto tem `Semantics(label:)`?
+- [ ] Erros de form têm `errorText` associado ao campo?
+- [ ] Alvos de toque ≥ 48dp em mobile?
+- [ ] `Dialog`/`BottomSheet` modal fecha com Esc (web) e volta foco ao gatilho?
+- [ ] `Semantics(liveRegion:)` onde aplicável (SnackBar, banner dinâmico)?
+- [ ] Esquema de cor não é o único canal de informação (sempre tem ícone + texto)?
+- [ ] Funciona com TalkBack (Android) e VoiceOver (iOS) lendo a tela em ordem coerente?
 
 Se algum ❌, é bloqueio do PR.
 
 ## Ferramentas úteis
 
-- **axe DevTools** (extensão de browser) — varre violações automáticas. Boa para piso, não para tudo.
-- **Lighthouse** (no Chrome) — auditoria de acessibilidade junto com performance.
-- **WebAIM Contrast Checker** — verificação manual de contraste.
-- **Leitor de tela** (VoiceOver no Mac/iOS, TalkBack no Android, NVDA no Windows) — teste real ocasional vale ouro.
-- **Teclado sozinho** — o teste mais simples e mais revelador.
+- **Material Theme Builder** + **WebAIM Contrast Checker** — verificação de contraste do `ColorScheme` antes mesmo de virar tema do Flutter.
+- **Flutter DevTools — aba "Widget Inspector" + "Accessibility"** — mostra a árvore de semântica que o Flutter está expondo.
+- **Flutter Web rodando + axe DevTools / Lighthouse** — confere ARIA gerado pelo Flutter no DOM. Bom para piso, não para tudo.
+- **TalkBack (Android)** e **VoiceOver (iOS)** — teste real ocasional, principalmente em fluxos críticos (cadastro, match, Pix). Vale ouro.
+- **Teclado sozinho em Flutter Web** — o teste mais simples e mais revelador.
+- **Modo "Acessibilidade > Tamanho de fonte: maior" no SO** — verifique se a tela respira com fonte aumentada (Flutter respeita `textScaleFactor` por default).
 
 ## O que NÃO é desculpa
 

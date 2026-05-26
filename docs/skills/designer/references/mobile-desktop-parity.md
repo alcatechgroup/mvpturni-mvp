@@ -11,16 +11,19 @@ A inversão (desenhar desktop primeiro e "adaptar" para mobile depois) gera dois
 - Mobile fica com 80% do conteúdo escondido ou rolando excessivamente.
 - Desktop fica com 80% do conteúdo cabendo apenas porque tem mais espaço — mas com hierarquia confusa, porque foi pensado para superfície que não existe no mobile.
 
-## Os 3 viewports do Turni
+## Os viewports do Turni (alinhados com Material 3 + Flutter)
 
-| Viewport | Min-width | Quando aplicar |
-|---|---|---|
-| Mobile | 360px | Sempre — é o ponto de partida |
-| Tablet | 768px | **Só** quando comportamento muda relevantemente em relação a mobile/desktop |
-| Desktop | 1024px | Sempre — é o ponto de destino |
-| Desktop largo | 1440px | Raramente — quando faz sentido usar espaço extra (ex.: lista + detalhe lado a lado mais painel) |
+| Viewport | Min-width (dp) | Material 3 class | Quando aplicar |
+|---|---|---|---|
+| Mobile | 0–599 | `compact` | Sempre — é o ponto de partida (Android, iOS, Web em telefone) |
+| Tablet vertical | 600–839 | `medium` | **Só** quando comportamento muda relevantemente (ex.: `NavigationBar` vira `NavigationRail`) |
+| Tablet horizontal / web pequena | 840–1199 | `expanded` | Quase sempre tem layout próprio — começa a aparecer master-detail |
+| Web/desktop | 1200–1599 | `large` | Sempre — é o ponto de destino quando a tela existe em web |
+| Desktop largo | ≥1600 | `extra-large` | Raramente — limitar largura útil ou usar para painel adicional |
 
-**Tablet só ganha layout próprio quando justificado.** Caso contrário, escala do mobile (até 1023px) ou do desktop (a partir de 768px se a transição cabe). Spec sem tablet é o padrão; tablet aparece como exceção.
+No Flutter, prefira `AdaptiveScaffold` (de `flutter_adaptive_scaffold`) ou `LayoutBuilder` + `MediaQuery.sizeOf(context)` para alternar entre eles. Não chame breakpoint cru no spec — referencie por nome (`compact`, `medium`, `expanded`, `large`).
+
+**Tablet vertical (`medium`) só ganha layout próprio quando justificado.** Caso contrário, escala do mobile ou do `expanded`. Spec sem tablet vertical é aceitável; mencione apenas se houver mudança.
 
 ## Estratégias de transição mobile → desktop
 

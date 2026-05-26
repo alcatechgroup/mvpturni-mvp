@@ -128,7 +128,7 @@ A escala é informal — chat/issue/comentário. Não vira `blocked` da sua part
 - **Estado nunca esquecido.** Listar estados no rabisco já filtra surpresas.
 - **DS antes de tela.** Reusar componente do DS evita 80% da divergência possível.
 - **Microcopy no spec, não no chat.** Combinado no chat se perde; combinado no spec, fica.
-- **Revisão em browser real, não monitor.** "Ficou bem no meu monitor de 27" não vale para mobile.
+- **Revisão em device/browser real, não emulador parado.** "Ficou bem no meu monitor de 27" não vale para mobile. Em Flutter, abra no Android e iOS reais (ou pelo menos emulador) e no Flutter Web — não confie só no preview do macOS/Linux.
 - **Acessibilidade conferida antes do merge.** Refatorar acessibilidade depois é o tipo de retrabalho mais caro.
 
 ## O que NUNCA fazer (especificamente neste workflow)

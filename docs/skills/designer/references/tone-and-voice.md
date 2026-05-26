@@ -15,17 +15,17 @@ Essa persona molda tudo. Cada decisão de tom passa por: **isso ajuda esse profi
 - **Respeitoso.** Não condescendente, não infantilizado, não culpando o usuário.
 - **Calmo.** Sem urgência fabricada ("ATENÇÃO!"). Urgência real merece urgência; o resto, não.
 - **Honesto.** Não esconde o que aconteceu. Não promete o que não pode.
-- **Sóbrio, mas não árido.** "Diagnóstico salvo" — não "Diagnóstico salvo!! 🎉" nem "Operação efetivada com sucesso conforme parâmetros previamente estabelecidos."
+- **Sóbrio, mas não árido.** "Match confirmado" — não "Match confirmado!! 🎉" nem "Operação efetivada com sucesso conforme parâmetros previamente estabelecidos."
 
 ## O que evitar (sempre)
 
 | Categoria | Exemplo a evitar |
 |---|---|
-| Emojis em microcopy | "Diagnóstico salvo! 🎉" |
+| Emojis em microcopy | "Match confirmado! 🎉" |
 | Exclamação fabricada | "Tudo certo!!!" |
 | Gírias / infantilizado | "Ops, deu ruim!", "Eita, errou!", "Bora começar!" |
 | Mascotes / personagens | "Diga oi para a Defi, sua assistente!" |
-| Frase culpando o usuário | "CNPJ inválido. Você digitou errado." |
+| Frase culpando o usuário | "Telefone inválido. Você digitou errado." |
 | Jargão técnico em microcopy | "Erro 500", "Timeout", "Null pointer", "Cache miss" |
 | Vagueza | "Ocorreu um erro." (qual erro? o que faço?) |
 | Urgência fabricada | "ATENÇÃO! Última chance!" |
@@ -36,53 +36,53 @@ Essa persona molda tudo. Cada decisão de tom passa por: **isso ajuda esse profi
 
 ### CTAs (call to action)
 
-- **Primário:** verbo no infinitivo + objeto. "Salvar diagnóstico", "Iniciar análise", "Cadastrar empresa".
+- **Primário:** verbo no infinitivo + objeto. "Aceitar match", "Publicar vaga", "Cadastrar estabelecimento".
 - **Secundário:** verbo neutro. "Cancelar", "Voltar", "Fechar".
-- **Destrutivo:** verbo destrutivo + objeto. "Excluir empresa", "Descartar alterações" — sempre confirmar antes de executar.
+- **Destrutivo:** verbo destrutivo + objeto. "Recusar match", "Descartar alterações" — sempre confirmar antes de executar.
 
 Evite: "OK", "Confirmar" sozinho (confirmar o quê?), "Enviar" genérico sem objeto, "Clique aqui".
 
 ### Labels de campo
 
-- Substantivo curto e claro: "CNPJ", "Razão social", "E-mail".
+- Substantivo curto e claro: "Telefone", "CPF", "E-mail".
 - Não termine com `:` (visual já indica que é label).
 - Indique obrigatório com `*` ou texto "obrigatório" associado ao label, não só com cor.
 
 ### Placeholders
 
 - **Exemplo** do formato esperado, não instrução.
-- ✅ `Ex.: 00.000.000/0000-00`
-- ❌ `Digite o CNPJ da empresa`
+- ✅ `Ex.: 11912345678`
+- ❌ `Digite seu telefone`
 - Placeholder **não substitui** label (acessibilidade).
 
 ### Hint (texto auxiliar abaixo do campo)
 
 - Quando ajuda, descreve restrição ou contexto curto.
-- ✅ "Use o CNPJ da matriz."
-- ❌ "Por favor, insira o CNPJ da empresa que será analisada no diagnóstico, sem pontos ou traços."
+- ✅ "Use o telefone com DDD que recebe WhatsApp."
+- ❌ "Por favor, insira o número de telefone com DDD, somente dígitos, para que possamos confirmar sua candidatura via SMS."
 
 ### Mensagens de sucesso
 
 - Curta, sem emoji, sem exclamação dupla.
-- ✅ "Diagnóstico salvo."
-- ✅ "Empresa cadastrada."
-- ❌ "🎉 Tudo certo!! Diagnóstico salvo com sucesso!!"
+- ✅ "Match confirmado."
+- ✅ "Vaga publicada."
+- ❌ "🎉 Tudo certo!! Match confirmado com sucesso!!"
 
 ### Mensagens de erro
 
 Estrutura: **o que aconteceu** + **o que fazer**. Específico, acionável, não culpa o usuário.
 
-- ✅ "Não encontramos esse CNPJ. Confira os números e tente novamente."
+- ✅ "Não encontramos esse telefone. Confira os números e tente novamente."
 - ✅ "Não conseguimos salvar agora. Tentar novamente."
 - ✅ "Sua sessão expirou. Faça login para continuar."
 - ❌ "Erro 500."
 - ❌ "Algo deu errado."
-- ❌ "CNPJ inválido. Você digitou errado."
+- ❌ "Telefone inválido. Você digitou errado."
 
 Para erro de campo (validação):
 
 - Específico ao campo, associado a ele (não global).
-- ✅ "CNPJ deve ter 14 dígitos."
+- ✅ "Telefone deve ter DDD + 9 dígitos."
 - ✅ "E-mail no formato `nome@dominio.com`."
 - ❌ "Campo inválido."
 
@@ -90,8 +90,8 @@ Para erro de campo (validação):
 
 Estrutura: **o que está faltando** + **como conseguir**.
 
-- ✅ "Você ainda não cadastrou Empresas. Cadastrar a primeira."
-- ✅ "Nenhuma Empresa corresponde a esse filtro. Limpar filtros."
+- ✅ "Você ainda não publicou vagas. Publicar a primeira."
+- ✅ "Nenhuma vaga corresponde a esse filtro. Limpar filtros."
 - ❌ "Nenhum resultado."
 - ❌ "Lista vazia."
 
@@ -106,7 +106,7 @@ Nomeia o objeto. Sem cor sozinha — sempre texto.
 
 - Preferir **skeleton** (sem texto) — comunica visualmente.
 - Quando texto for necessário: específico, sem `...` redundante se já há skeleton.
-- ✅ "Carregando diagnóstico" (em ação demorada e justificada)
+- ✅ "Carregando vagas" (em ação demorada e justificada)
 - ❌ "Carregando..." sozinho em tela branca
 
 ### Tooltip
@@ -118,7 +118,7 @@ Nomeia o objeto. Sem cor sozinha — sempre texto.
 
 **Use o `glossary.md` do PO.** Termos do domínio têm forma canônica:
 
-- `Diagnóstico` (não "Análise", "Avaliação", "Relatório")
+- `Vaga` (não "Anúncio", "Oferta")
 - `Estabelecimento` (não "Cliente", "Entidade")
 - `Turno` (não "Plantão", "Escala" — a não ser que seja decisão do PO)
 - Use sempre os termos do domínio Turni — sem abreviações ambíguas em telas
@@ -139,12 +139,12 @@ Nomeia o objeto. Sem cor sozinha — sempre texto.
 A diferença entre tom profissional respeitoso e tom técnico árido aparece aqui:
 
 ❌ Árido / culpa:
-- "CNPJ inválido. Digite corretamente."
+- "Telefone inválido. Digite corretamente."
 - "Campo obrigatório."
 - "Acesso negado."
 
 ✅ Profissional / acolhe:
-- "Não encontramos esse CNPJ. Confira os números."
+- "Não encontramos esse telefone. Confira os números."
 - "Este campo é obrigatório."
 - "Você não tem acesso a esta área. Fale com o administrador da sua conta."
 
@@ -169,7 +169,7 @@ O Turni pode ganhar i18n no futuro. Hábitos que ajudam desde já:
 - **Microcopy em tabela única no spec** facilita extração futura.
 - **Frase curta** traduz melhor que frase longa.
 - **Evite trocadilho e expressão idiomática** — não viaja.
-- **Use placeholders nomeados** (`{empresa}` em vez de concatenação): "Diagnóstico de {empresa} salvo."
+- **Use placeholders nomeados** (`{empresa}` em vez de concatenação): "Match de {profissional} confirmado."
 
 ## Checklist de revisão de tom
 

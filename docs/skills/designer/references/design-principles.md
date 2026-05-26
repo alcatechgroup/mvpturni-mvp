@@ -37,7 +37,7 @@ Diante de qualquer tela, faça três perguntas em ordem:
 
 **❌ Errado:** Home com 8 cards equiprioritários ("Vagas abertas", "Turnos confirmados", "Match recente", "Avisos", "Atalhos", "Tutoriais", "Notícias", "Promoções").
 
-**✅ Certo:** Home com 1 ação primária ("Iniciar novo Diagnóstico") + 1 lista contextual ("Em andamento") + acesso secundário no menu.
+**✅ Certo:** Home com 1 ação primária ("Aceitar match") + 1 lista contextual ("Em andamento") + acesso secundário no menu.
 
 ---
 
@@ -73,7 +73,7 @@ Detalhe em `mobile-desktop-parity.md`.
 - **Tipografia legível, densidade média-alta.** A persona lê muito texto profissional — fonte pequena demais cansa, grande demais infantiliza.
 - **Paleta sóbria com 1–2 cores de acento.** Cor primária usada **com parcimônia** (CTA, navegação ativa). Fundo de tela em escala de cinza/branco. Cor saturada em área grande = produto parece de consumo, não profissional.
 - **Ilustração comunica ou não existe.** Empty state com instrução visual: ok. Banner decorativo de "pessoas com laptops": não.
-- **Microcopy direto e respeitoso.** Sem "Ops!", sem "Uhuu!", sem emoji. Sucesso celebra com discrição: "Diagnóstico salvo." não "Yay! 🎉".
+- **Microcopy direto e respeitoso.** Sem "Ops!", sem "Uhuu!", sem emoji. Sucesso celebra com discrição: "Match confirmado." não "Yay! 🎉".
 - **Sem gamificação sem propósito.** Barras de progresso para passo de wizard: ok. Badges de "Você cadastrou 5 empresas!" sem função: não.
 
 Detalhe em `tone-and-voice.md`.
@@ -123,25 +123,25 @@ Mesmo princípio do "DRY com bom senso" do Programador: variação que aparece p
 
 ### Como aplicar (piso obrigatório)
 
-- **Contraste WCAG AA:** texto normal ≥ 4.5:1; texto grande (≥18pt) ou ícone significativo ≥ 3:1. Verifique todas as combinações usadas.
-- **Foco sempre visível.** Anel de foco (`color.border.focus`) sobrevive em todo elemento interativo. `outline:none` sem substituto é bug.
-- **Navegação por teclado completa.** Tab percorre na ordem visual. Enter/Space ativam. Esc fecha modal. Setas em lista/menu.
-- **Semântica HTML correta** (recomendação ao Programador). Botão é `<button>`, link é `<a>`, label é `<label for>`. Tag certa = leitor de tela funciona.
-- **Erro nunca é só cor.** Borda vermelha + texto associado ao campo. Daltonismo é frequente; daltônico que perde sua mensagem é falha de design.
-- **Ícone sozinho como ação** tem label acessível (`aria-label` ou tooltip + texto associado).
-- **Alvo de toque ≥ 44×44px** em mobile (recomendação WCAG; 48px é melhor).
-- **Live regions** para mensagens dinâmicas (toast de sucesso/erro assíncrono).
+- **Contraste WCAG AA:** texto normal ≥ 4.5:1; texto grande (≥18pt) ou ícone significativo ≥ 3:1. Verifique todas as combinações usadas no `ColorScheme`.
+- **Foco sempre visível.** Indicador de foco do Material 3 sobrevive em todo elemento interativo (Flutter já entrega isso por padrão em `FilledButton`/`OutlinedButton`/`TextFormField`/`InkWell`). Remover foco sem substituto é bug — vale tanto em Flutter Web (atalho via teclado) quanto em mobile (acessibilidade via switch control).
+- **Navegação por teclado completa (Flutter Web).** Tab percorre na ordem visual. Enter/Space ativam. Esc fecha `Dialog`/`BottomSheet`. Setas em lista/menu. Em mobile, equivalente é leitor de tela percorrendo na ordem semântica.
+- **Semântica via `Semantics`** (recomendação ao Programador). Botões usam widgets de botão Material/Cupertino (já trazem semântica correta). Quando algo custom for criado, envolve em `Semantics(label: '...', button: true, ...)`. No Flutter Web, isso vira `aria-*` automaticamente.
+- **Erro nunca é só cor.** Borda do `TextFormField` em erro + `errorText` + ícone se ajudar. Daltonismo é frequente; daltônico que perde sua mensagem é falha de design.
+- **Ícone sozinho como ação** tem label acessível — use `IconButton` com `tooltip:` (Flutter já anuncia via `Semantics`) ou envolva em `Semantics(label: 'Verbo + objeto')`.
+- **Alvo de toque ≥ 48×48 dp** em mobile (Material recomenda 48; WCAG aceita 44).
+- **Live regions** para mensagens dinâmicas (ex.: `Semantics(liveRegion: true, ...)` envolvendo o conteúdo do `SnackBar`/banner que muda).
 
 Detalhe em `accessibility-basics.md`.
 
 ### Sinais de alerta
 
-- Texto cinza claro (`#C0C0C0` em fundo branco) — falha de contraste.
-- Foco removido com `outline:none` sem substituto.
-- Erro indicado só por borda vermelha.
-- Botão sem label textual nem `aria-label` (ex.: só ícone).
-- Alvo de toque <44px em mobile.
-- Modal sem foco-trap.
+- Texto cinza claro sobre fundo claro — falha de contraste.
+- Foco removido sem substituto (ex.: `FocusableActionDetector` sem indicador custom).
+- Erro indicado só por borda vermelha, sem `errorText`.
+- `IconButton` sem `tooltip` nem `Semantics(label:)`.
+- Alvo de toque <48dp em mobile.
+- `Dialog`/`BottomSheet` sem foco-trap (Flutter já trapeia por default — só vira problema se você criar overlay custom).
 
 ---
 

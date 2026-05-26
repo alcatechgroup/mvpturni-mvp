@@ -6,15 +6,16 @@ Como construir e evoluir o Design System do Turni. Use junto com `templates/desi
 
 **É:**
 
-- Vocabulário visual e de interação **compartilhado** pelas telas.
+- Vocabulário visual e de interação **compartilhado** pelas telas (Android, iOS, Web — tudo Flutter).
 - Fonte de verdade para tokens, componentes e padrões.
-- Stack-agnóstico: descreve comportamento e visual em termos de tokens e estados, não em código de framework.
+- Descrito em **tokens e comportamento**, com forma que mapeia direto para `ThemeData` + `ColorScheme` + `TextTheme` + `ShapeBorder` + Material elevation/motion do Flutter — Programador não traduz, só aplica.
 - Documento **vivo**, versionado em git, evoluído via DDR.
 
 **Não é:**
 
 - Catálogo de componentes "que talvez sejam úteis" — só vive no DS o que é usado.
-- Implementação técnica em React/Vue/qualquer — isso é trabalho do Programador, restringido por ADR.
+- Código Dart de produção — você define tokens/widgets equivalentes; Programador implementa o `ThemeData` e os `StatelessWidget`/`StatefulWidget` no app.
+- Reinvenção do Material 3 — antes de propor componente custom, confirme que o widget Flutter (Material ou Cupertino) **não** cobre. Reusar o catálogo do Flutter é regra, não exceção.
 - Substituto do spec de tela — DS dá os blocos; spec monta o quebra-cabeças.
 - Lugar para experimentos visuais — experimento vive em DDR `proposed`; só vai pro DS quando `accepted`.
 

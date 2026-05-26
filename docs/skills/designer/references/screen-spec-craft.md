@@ -61,9 +61,9 @@ Em ordem: vazio → erro → loading → sem permissão → parcial. Cada um com
 
 Toda copy visível listada **em um só lugar** (Seção 5 do template). Revisar tom usando `tone-and-voice.md`.
 
-### 8. Identificadores estáveis para E2E
+### 8. Identificadores estáveis para teste
 
-Sugira `data-testid` para os elementos que o teste vai precisar ancorar. Convenção sugerida no template — Programador pode renomear se houver padrão do framework.
+Sugira **nomes lógicos** (ex: `vaga-card-aceitar-btn`) para os elementos que o widget test / integration test do Flutter vai precisar ancorar. O Programador aplica como `Key('...')` / `ValueKey('...')` no widget correspondente. Convenção sugerida no template.
 
 ### 9. Notas de acessibilidade específicas
 
@@ -85,7 +85,7 @@ Uma frase. Se você precisa de duas, a tela está complexa demais (Princípio #1
 
 ✅ "Permitir ao contratante abrir uma nova Vaga para um Estabelecimento já cadastrado."
 
-❌ "Tela de início de Diagnóstico, mostrando empresas cadastradas, com possibilidade de filtrar, ordenar, criar nova empresa, ver histórico de diagnósticos anteriores e iniciar um novo, além de exportar histórico."
+❌ "Tela de Vagas, mostrando estabelecimentos cadastrados, com possibilidade de filtrar, ordenar, criar nova vaga, ver histórico de matches anteriores e iniciar um novo, além de exportar histórico."
 
 (Esta última é 5 telas em uma.)
 
@@ -109,46 +109,45 @@ Sketches simples. Não precisa ser bonito; precisa ser preciso quanto a:
 Exemplo de sketch ASCII funcional:
 
 ```
-Mobile (≥360px)
+Mobile (compact ≤599dp) — Flutter: Scaffold + NavigationBar inferior
 +----------------------------------+
-| ← Voltar       Diagnóstico        |
+| ← Voltar       Nova Vaga          |
 +----------------------------------+
 |                                  |
-| Escolha o Estabelecimento      |
+| Escolha o Estabelecimento        |
 |                                  |
-| [ ▾ Buscar...                  ] |
+| [ 🔍  Buscar...                ] |
 |                                  |
 | ┌────────────────────────────┐  |
-| │ • Empresa Alpha LTDA       │  |
-| │   CNPJ 00.000.000/0000-00  │  |
+| │ • Bar do João              │  |
+| │   Centro, SP               │  |
 | └────────────────────────────┘  |
 | ┌────────────────────────────┐  |
-| │ • Empresa Beta ME          │  |
-| │   CNPJ 11.111.111/1111-11  │  |
+| │ • Hotel Beira-Mar          │  |
+| │   Copacabana, RJ           │  |
 | └────────────────────────────┘  |
 |                                  |
 +----------------------------------+
-| [ Iniciar Diagnóstico         ]  |
+| [ Publicar Vaga               ]  |
 +----------------------------------+
 ```
 
 ```
-Desktop (≥1024px)
+Web/Desktop (large ≥1200dp) — Flutter: Scaffold + NavigationRail lateral
 +--------+-----------------------------------------------------+
-|        | Diagnóstico — Nova análise                          |
+|        | Nova Vaga                                           |
 | nav    +-----------------------------------------------------+
-| lateral|                                                     |
-|        |  Escolha o Estabelecimento                        |
+| rail   |                                                     |
+|        |  Escolha o Estabelecimento                          |
 |        |                                                     |
-|        |  [ ▾ Buscar...                                    ] |
+|        |  [ 🔍  Buscar...                                  ] |
 |        |                                                     |
 |        |  +------------------+ +------------------+         |
-|        |  | Empresa Alpha    | | Empresa Beta ME  |         |
-|        |  | LTDA             | | CNPJ 11.../11    |         |
-|        |  | CNPJ 00.../00    | |                  |         |
+|        |  | Bar do João      | | Hotel Beira-Mar  |         |
+|        |  | Centro, SP       | | Copacabana, RJ   |         |
 |        |  +------------------+ +------------------+         |
 |        |                                                     |
-|        |                            [ Iniciar Diagnóstico ]  |
+|        |                              [ Publicar Vaga    ]   |
 +--------+-----------------------------------------------------+
 ```
 
