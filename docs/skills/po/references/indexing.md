@@ -19,9 +19,9 @@
   "waves": [
     {
       "id": "WAVE-2026-01",
-      "title": "MVP de diagnóstico",
+      "title": "MVP ciclo completo do turno",
       "status": "active",            // planned | active | closed
-      "goal": "Validar que contratantes conseguem abrir vagas e profissionais conseguem se candidatar",
+      "goal": "Contratante publica vaga, recebe candidatura, aprova, profissional executa o turno e recebe Pix em homologação ponta a ponta",
       "start_date": "2026-05-20",
       "epic_ids": ["EPIC-000", "EPIC-001", "EPIC-002"]
     }
@@ -30,11 +30,11 @@
   "epics": [
     {
       "id": "EPIC-001",
-      "slug": "cadastro-empresa",
-      "title": "Cadastro de empresa",
+      "slug": "cadastro-e-aprovacao",
+      "title": "Cadastro e aprovação de contratante e profissional",
       "wave": "WAVE-2026-01",
       "status": "in_progress",        // draft | ready | in_progress | in_review | done | abandoned
-      "path": "epics/EPIC-001-cadastro-empresa/epic.md",
+      "path": "epics/EPIC-001-cadastro-e-aprovacao/epic.md",
       "story_ids": ["STORY-001", "STORY-002", "STORY-003"],
       "validation_report": null,      // preenchido pelo validador quando aprovar
       "created_at": "2026-05-20",
@@ -46,15 +46,15 @@
     {
       "id": "STORY-001",
       "epic_id": "EPIC-001",
-      "title": "Cadastro mínimo: nome e CNPJ",
+      "title": "Cadastro mínimo de contratante: nome do estabelecimento e responsável",
       "type": "implementation",
       "target_role": "programador",      // programador | arquiteto | validador | designer
       "requires_design": true,           // adicionado em schema v2 — sinaliza paralelismo Designer↔Programador
-      "design_screen_id": "SCREEN-STORY-001-cadastro-minimo", // opcional — preenchido quando há spec de tela
+      "design_screen_id": "SCREEN-STORY-001-cadastro-contratante-minimo", // opcional — preenchido quando há spec de tela
       "status": "in_progress",
       "owner_agent": "claude-session-abc",
       "sprint_id": "SPRINT-2026-W21",
-      "path": "epics/EPIC-001-cadastro-empresa/stories/STORY-001-cadastro-minimo.md",
+      "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-001-cadastro-contratante-minimo.md",
       "blocked_by": [],
       "blocks": ["STORY-002"],
       "created_at": "2026-05-20",
@@ -77,10 +77,10 @@
     "pdr": [
       {
         "id": "PDR-001",
-        "title": "Escopo do MVP é diagnóstico só, sem dashboard",
+        "title": "Profissional pode ser PF, MEI ou PJ; sem validação automática Receita",
         "status": "accepted",
-        "path": "decisions/pdr/PDR-001-mvp-matching.md",
-        "decided_at": "2026-05-20"
+        "path": "decisions/pdr/PDR-001-tipos-de-pessoa-aceitos.md",
+        "decided_at": "2026-05-26"
       }
     ],
     "adr": [],

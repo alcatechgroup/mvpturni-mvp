@@ -30,7 +30,7 @@ Essa persona molda tudo. Cada decisão de tom passa por: **isso ajuda esse profi
 | Vagueza | "Ocorreu um erro." (qual erro? o que faço?) |
 | Urgência fabricada | "ATENÇÃO! Última chance!" |
 | Burocratês | "Solicitamos que o usuário providencie a inserção dos dados." |
-| Gamificação sem propósito | "🏆 Você cadastrou 5 empresas! Continue assim!" |
+| Gamificação sem propósito | "🏆 Você concluiu 5 turnos! Continue assim!" (a trilha de níveis do Turni já gamifica de forma funcional — adicionar selo decorativo no topo dela é ruído) |
 
 ## Padrões de microcopy
 
@@ -169,7 +169,7 @@ O Turni pode ganhar i18n no futuro. Hábitos que ajudam desde já:
 - **Microcopy em tabela única no spec** facilita extração futura.
 - **Frase curta** traduz melhor que frase longa.
 - **Evite trocadilho e expressão idiomática** — não viaja.
-- **Use placeholders nomeados** (`{empresa}` em vez de concatenação): "Match de {profissional} confirmado."
+- **Use placeholders nomeados** (`{estabelecimento}` em vez de concatenação): "Match de {profissional} confirmado em {estabelecimento}."
 
 ## Checklist de revisão de tom
 

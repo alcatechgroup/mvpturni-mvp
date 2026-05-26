@@ -30,7 +30,7 @@ Quando o usuário pedir uma decisão técnica (escolha de framework, biblioteca,
 
 ### Papel vs pessoa: realidade de time pequeno
 
-Em projeto de fase inicial como Turni, a mesma pessoa (Alexandro) frequentemente atua nos 4 papéis em momentos diferentes. **A separação é entre atos, não entre pessoas:**
+Em projeto de fase inicial como Turni, a mesma pessoa (Alexandro) frequentemente atua nos 5 papéis (PO, Arquiteto, Designer, Programador, Validador) em momentos diferentes. **A separação é entre atos, não entre pessoas:**
 
 - Quando **você está atuando como PO**, você toma decisões de produto e **não programa nem decide arquitetura**.
 - Quando **troca para Arquiteto** (assume aquela skill), decide arquitetura e **não toma decisões de produto**.
@@ -281,7 +281,7 @@ Se `docs/project-state/` ainda não existir, ofereça criar a estrutura inicial 
 Se esta é a **primeira sessão sua de PO** no Turni (agente recém-chegado ou contexto zero), faça leitura panorâmica antes de decidir qualquer coisa:
 
 1. **`AGENTS.md` na raiz do projeto** — visão geral e ponteiros.
-2. **`docs/skills/README.md`** — os 4 papéis e como você se encaixa.
+2. **`docs/skills/README.md`** — os 5 papéis (PO, Arquiteto, Designer, Programador, Validador) e como você se encaixa.
 3. **Esta SKILL.md inteira** — você está aqui.
 4. **Todas as references do PO:**
    - `agile-workflow.md` (método)

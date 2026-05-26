@@ -46,8 +46,8 @@ Toda estória que você manda para sprint deveria atender, na medida do possíve
 **Valuable — valiosa**
 - Sinal de problema: estória cuja única justificativa é "destrava a próxima". Isso é estória de **enablement** — válida, mas precisa ser nomeada como tal (`type: enablement`).
 - Como melhorar: para estórias de funcionalidade, articule valor concreto para o usuário. Para estórias de enablement, articule **o que destrava** e **por que destravar isso importa**.
-- Exemplo bom: "usuário consegue salvar diagnóstico parcial e voltar depois" → valor claro.
-- Exemplo ruim: "implementar mecanismo de persistência intermediária" → o quê, sem o por quê.
+- Exemplo bom: "profissional consegue ver o breakdown do match na vaga antes de candidatar-se" → valor claro.
+- Exemplo ruim: "implementar componente reutilizável de score" → o quê, sem o por quê.
 
 **Estimable — estimável**
 - Sinal de problema: agente não consegue dizer se é S, M ou L porque a estória deixa zonas escuras.
@@ -75,16 +75,16 @@ AC são o coração da estória. Eles viram testes. Eles viram o critério de va
 Bom quando o comportamento é **uma transição de estado** ou **uma operação com pré-condições**:
 
 ```
-CA-1 — Cadastro de empresa com dados válidos persiste a empresa.
-- Dado que estou autenticado como usuário sem empresa cadastrada,
-- Quando envio formulário de cadastro com CNPJ válido (com 14 dígitos) e nome,
-- Então a empresa é persistida e fica visível na minha lista.
+CA-1 — Profissional candidata-se a vaga aberta com sucesso.
+- Dado que sou profissional ativo, sem turno finalizado pendente de avaliação,
+- Quando aciono "Candidatar-me" em uma vaga aberta dentro do meu raio e função,
+- Então a candidatura é registrada como pendente e o contratante é notificado.
 
-CA-2 — Cadastro de empresa com CNPJ inválido retorna erro específico.
-- Dado que estou autenticado,
-- Quando envio CNPJ malformado (12 dígitos, letras, ou dígitos verificadores incorretos),
-- Então o sistema retorna mensagem "CNPJ inválido — verifique e tente novamente",
-  e a empresa não é persistida.
+CA-2 — Candidatura é bloqueada quando há avaliação pendente.
+- Dado que sou profissional com turno finalizado ainda não avaliado,
+- Quando tento candidatar-me a qualquer vaga,
+- Então o sistema bloqueia a ação e me leva para o turno pendente
+  com mensagem "Avalie o último turno antes de se candidatar a outra vaga".
 ```
 
 ### Padrão 2 — Declarativo
@@ -92,9 +92,9 @@ CA-2 — Cadastro de empresa com CNPJ inválido retorna erro específico.
 Bom para comportamentos sem transição clara ou propriedades do sistema:
 
 ```
-CA-3 — A listagem de empresas paginada com 20 itens por página.
+CA-3 — A listagem de vagas no feed do profissional paginada com 20 itens por página.
 CA-4 — A senha do usuário nunca aparece em log nem em response da API.
-CA-5 — A consulta de diagnóstico responde em menos de 800ms em p95 com dataset de 1k empresas.
+CA-5 — A consulta de match responde em p95 < 800ms com 1k vagas abertas no banco.
 ```
 
 Use o padrão que mais cabe — **misturar é OK** dentro da mesma estória, desde que cada CA fique claro.
@@ -103,7 +103,7 @@ Use o padrão que mais cabe — **misturar é OK** dentro da mesma estória, des
 
 - **Cada CA é observável.** Posso escrever um teste que verifica? Posso, manualmente, ver isso acontecendo em homologação?
 - **Cobre o caminho feliz E pelo menos 2 desvios.** Casos inválidos, exceções, bordas — não delegue para "o programador vai pensar em casos".
-- **Não detalhe implementação.** "CA: a tabela `empresas` tem coluna `cnpj`" é errado — implementação é do Programador.
+- **Não detalhe implementação.** "CA: a tabela `contratantes` tem coluna `cnpj`" é errado — implementação é do Programador.
 - **Use linguagem do domínio.** "Vaga", "Turno", "Profissional", "Contratante", "Match" — não "registro", "entidade", "objeto".
 
 ---
@@ -116,14 +116,14 @@ Estória estimada **L** ou maior deve ser dividida. Técnicas:
 
 Você tem fluxo do início ao fim. Divida em passos sequenciais.
 
-> **Antes:** Cadastro completo da empresa (formulário com 15 campos, validação, salvar, listar, editar, deletar).
+> **Antes:** Cadastro completo de contratante (formulário com 15 campos do pré-cadastro + completar cadastro com dados sensíveis).
 >
 > **Depois:**
-> - STORY-A: Cadastro mínimo (nome + CNPJ) com listagem básica.
-> - STORY-B: Adicionar endereço ao cadastro.
-> - STORY-C: Adicionar dados financeiros básicos.
-> - STORY-D: Editar empresa existente.
-> - STORY-E: Deletar empresa (com soft delete).
+> - STORY-A: Cadastro mínimo público (nome do responsável, e-mail, telefone, nome do estabelecimento, cidade) — gera registro `pendente_aprovacao`.
+> - STORY-B: Aprovação manual no backoffice (admin libera; usuário recebe e-mail e cai no funil welcome).
+> - STORY-C: Completar cadastro pós-aprovação parte 1 (CNPJ + endereço completo).
+> - STORY-D: Completar cadastro pós-aprovação parte 2 (segmento, cultura, contatos adicionais, logo).
+> - STORY-E: Edição posterior do perfil do estabelecimento.
 
 Cada uma é deployável em homologação. Cada uma entrega algo observável.
 
@@ -131,34 +131,34 @@ Cada uma é deployável em homologação. Cada uma entrega algo observável.
 
 Você tem uma feature com regras de validação complexas. Divida pelo nível de validação.
 
-> **Antes:** Validar CNPJ na criação de empresa.
+> **Antes:** Aplicar regra de habitualidade (PDR-002) ao aprovar candidatura.
 >
 > **Depois:**
-> - STORY-A: Validar formato (14 dígitos numéricos).
-> - STORY-B: Validar dígitos verificadores (algoritmo Receita).
-> - STORY-C: Validar contra base externa (consulta Receita) — caso decidamos integrar.
+> - STORY-A: Consultar histórico de alocações do par profissional × estabelecimento na semana corrente.
+> - STORY-B: Bloquear aprovação na 3ª alocação semanal quando o profissional é PF.
+> - STORY-C: Alertar e exigir override explícito do contratante na 3ª alocação semanal quando o profissional é MEI ou PJ (override anexado ao aceite eletrônico).
 
 ### Por variação de dado
 
 Você suporta múltiplos tipos do mesmo dado. Comece com um.
 
-> **Antes:** Importação de planilha (xlsx, csv, ods).
+> **Antes:** Notificações ao profissional ao longo do ciclo de turno (push web, e-mail, in-app banner).
 >
 > **Depois:**
-> - STORY-A: Importação de xlsx (formato mais comum).
-> - STORY-B: Importação de csv.
-> - STORY-C: Importação de ods.
+> - STORY-A: Notificação in-app (banner na tela) — caminho principal, funciona com app aberto.
+> - STORY-B: Notificação por e-mail — eventos críticos quando o app está fechado.
+> - STORY-C: Notificação push web (PWA) — quando a permissão estiver concedida.
 
 ### Por interface
 
 Mesma feature, múltiplas formas de invocar. Comece com a principal.
 
-> **Antes:** Diagnóstico via app, API e CLI.
+> **Antes:** Gestão de vaga em WebApp, Backoffice (admin) e API (Enterprise futuro).
 >
 > **Depois:**
-> - STORY-A: Diagnóstico via app web (caminho principal).
-> - STORY-B: Diagnóstico via API (clientes terceiros — depois).
-> - STORY-C: Diagnóstico via CLI (interno — depois).
+> - STORY-A: Gestão de vaga no WebApp (caminho principal — contratante publica, edita, fecha).
+> - STORY-B: Intervenção excepcional via Backoffice (admin cancela vaga em nome do contratante quando necessário).
+> - STORY-C: API pública para clientes Enterprise (fora do MVP — vira épico próprio depois).
 
 ### Por caminho feliz vs erros
 
@@ -190,7 +190,7 @@ ADRs **fortemente correlatas** são as que decidem o mesmo subsistema e cuja dec
 ADRs **heterogêneas** são as que decidem subsistemas diferentes e podem rodar em paralelo:
 
 - ❌ "stack principal" + "CI/CD" + "observabilidade" + "testes" — quatro subsistemas, quatro spikes.
-- ❌ "autenticação" + "e-mail transacional" + "consulta CNPJ" — três áreas, três spikes.
+- ❌ "autenticação" + "e-mail transacional" + "integração Pagar.me" — três áreas, três spikes.
 
 ADRs heterogêneas viram **estórias de spike separadas**, executáveis em paralelo. Concentrá-las viola o princípio "tarefa autocontida em uma sessão" e cria gargalo artificial: tudo que depende da spike espera **todas** as ADRs em vez de só a sua.
 
@@ -264,7 +264,7 @@ Para essas, **vertical slicing é exceção justificada**, não regra. O que imp
 "As a user" sem persona específica e benefício real é só estrutura cosmética. Use quando há persona genuína e valor concreto.
 
 ```
-✅ Cadastro mínimo de empresa (nome + CNPJ válido) para que o usuário possa iniciar uso da plataforma sem ter que preencher todo o cadastro.
+✅ Cadastro mínimo de contratante (nome do responsável + nome do estabelecimento + cidade + e-mail) para que o usuário possa enviar pré-cadastro sem precisar preencher CNPJ, endereço completo e demais dados sensíveis antes da aprovação manual da equipe Turni.
 ```
 
 ### Estória técnica disfarçada de user story
@@ -284,26 +284,26 @@ Postgres é decisão arquitetural — ADR. Persistência confiável é NFR — n
 "Rápido" e "amigável" não testam. Quantifique:
 
 ```
-✅ CA: A listagem responde em p95 < 500ms com 1k empresas.
+✅ CA: O feed do profissional responde em p95 < 500ms com 1k vagas abertas no banco.
 ✅ CA: Mensagens de erro citam o campo problemático e sugerem correção.
 ```
 
 ### Estória que prescreve implementação
 
 ```
-❌ Criar tabela `empresa` com colunas id (UUID), nome (varchar), cnpj (char 14 unique), criada_em (timestamp).
+❌ Criar tabela `contratantes` com colunas id (UUID), nome (varchar), cnpj (char 14 unique), criada_em (timestamp).
 ```
 
 Isso é decisão do Programador (com IDR se virar padrão transversal). A estória diz **o quê**:
 
 ```
-✅ Persistir cadastro de empresa (nome + CNPJ) com CNPJ único por sistema, com timestamp de criação.
+✅ Persistir cadastro de contratante (nome + CNPJ) com CNPJ único por sistema, com timestamp de criação.
 ```
 
 ### "Tudo ou nada"
 
 ```
-❌ Cadastro completo de empresa com 15 campos, validações, edição, deleção, listagem, busca.
+❌ Cadastro completo de contratante com 15 campos, validações, edição, deleção, listagem, busca.
 ```
 
 Divida (próxima seção). Estória grande é estória que **não entra em sprint**.

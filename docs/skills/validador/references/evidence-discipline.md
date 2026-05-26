@@ -77,7 +77,7 @@ Screenshot de tela contém UI, configuração, valor de campo. Quando usar:
 - **Timestamp visível** na captura (relógio do sistema ou metadado).
 - **URL visível** quando aplicável.
 - **Contexto suficiente** — não corte parte importante.
-- **Nome de arquivo** descritivo: `epic-007-homolog-cadastro-empresa-sucesso-2026-05-20.png`.
+- **Nome de arquivo** descritivo: `epic-001-homolog-cadastro-contratante-sucesso-2026-05-20.png`.
 - **Anexado ao relatório** com link relativo (em `validation/evidence/<filename>`).
 
 **Por que é menos forte**: pode ser editado, perdido, ou interpretado fora de contexto. Use quando os tipos 1-3 não cobrem.
@@ -87,7 +87,7 @@ Screenshot de tela contém UI, configuração, valor de campo. Quando usar:
 Trecho de log com timestamp e contexto:
 
 ```
-2026-05-20T14:32:08.123Z INFO http_request request_id=abc-123 method=POST path=/api/v1/empresas status=201 duration_ms=142
+2026-05-20T14:32:08.123Z INFO http_request request_id=abc-123 method=POST path=/api/v1/vagas status=201 duration_ms=142
 ```
 
 **Para ser bom**:
@@ -100,10 +100,12 @@ Trecho de log com timestamp e contexto:
 Quando nenhum dos anteriores se aplica — geralmente para **smoke manual** em situações sem outra evidência:
 
 ```
-"Em 2026-05-20 14:35, percorri manualmente o fluxo de cadastro de empresa
-em https://homolog.turni.com.br. Login funcionou, cadastrei empresa
-'Teste Validação' com CNPJ válido. Empresa apareceu na listagem em <2s.
-Fluxo completo sem erro de UI ou backend visível."
+"Em 2026-05-20 14:35, percorri manualmente o fluxo de pré-cadastro de
+contratante em https://app.homolog.turni.com.br. Login funcionou,
+preenchi pré-cadastro com nome do responsável, e-mail, telefone, nome do
+estabelecimento e cidade. Registro foi criado como 'pendente_aprovacao'
+e apareceu na fila do backoffice (https://admin.homolog.turni.com.br/aprovacoes)
+em <2s. Fluxo completo sem erro de UI ou backend visível."
 ```
 
 **Para ser bom**:

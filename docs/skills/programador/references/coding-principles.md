@@ -21,14 +21,18 @@ Em conflito, princípios arquiteturais ganham. Mas a maior parte do tempo eles c
 
 ```python
 # ❌ Esperto — "configurável"
-def calcular_match(vaga, tipo, opts=None):
+def calcular_match(profissional, vaga, tipo=None, opts=None):
     opts = opts or {}
     strategy = STRATEGIES.get(tipo, opts.get('default_strategy', strategy_padrao))
-    return strategy.execute(empresa, **opts)
+    return strategy.execute(profissional, vaga, **opts)
 
 # ✅ Simples — resolve o que pediram
-def calcular_liquidez_corrente(empresa):
-    return empresa.ativo_circulante / empresa.passivo_circulante
+def calcular_match(profissional, vaga):
+    score = pontos_funcao(profissional, vaga)
+    score += pontos_distancia(profissional, vaga)
+    score += pontos_historico(profissional)
+    score += pontos_nivel(profissional)
+    return min(100, score)
 ```
 
 Quando aparecer um segundo indicador, você acha um padrão. Quando aparecer o terceiro, talvez você abstraia (ver "regra de três" abaixo). Antes disso, é especulação.
@@ -57,7 +61,7 @@ DRY (Don't Repeat Yourself) é frequentemente mal aplicado. A leitura simplista 
 A razão é simples: com só 2 exemplos, você ainda não vê o padrão real. Você vê coisas que **parecem** iguais mas mudam no terceiro caso. Abstrair com 2 dados leva a abstração que precisa ser reescrita no terceiro.
 
 **Duplicação que é OK:**
-- Código que **parece** igual mas representa intenções diferentes (validação de CNPJ no cadastro vs validação de CNPJ em consulta — talvez tenham regras diferentes amanhã).
+- Código que **parece** igual mas representa intenções diferentes (validação de CNPJ no cadastro do contratante vs validação de CNPJ em edição do perfil — talvez tenham regras diferentes amanhã).
 - Estruturas paralelas de teste (cada teste é independente, repetir setup curto é mais legível que helper genérico).
 - Strings de configuração (uma constante explícita é mais clara que importar de outro lugar).
 
@@ -118,7 +122,7 @@ Cleverness é satisfatório de escrever e doloroso de manter. Código sênior é
 **Heurísticas:**
 
 - **Funções com responsabilidade única — com bom senso.** SRP (Single Responsibility Principle) é diretriz, não imperativo cego. Funções pequenas costumam ser boas; mas **levado ao extremo, SRP vira fragmentação** — 50 funções de 3 linhas cada, função-A chama função-B chama função-C, e ninguém entende o todo. **Legibilidade do conjunto importa mais que pureza individual.** Critério prático: se você consegue ler a função inteira em uma tela e entender o que ela faz, está OK — mesmo que ela faça "duas coisas relacionadas".
-- **Nomes longos > nomes curtos com mistério.** `calcular_liquidez_corrente()` ganha de `calc()`.
+- **Nomes longos > nomes curtos com mistério.** `calcular_score_match()` ganha de `calc()`.
 - **Variáveis intermediárias com nome** ganham de expressões aninhadas em uma linha.
 - **Early return** ganha de aninhar 4 níveis de `if`.
 - **Comentário onde o "por quê" não está óbvio do código.** Comentário não é tradução do código pra português — é o **motivo** quando ele não dá pra inferir.
@@ -229,7 +233,7 @@ Tratamento de erro é onde código fica realmente sênior ou realmente amador. *
 Commit é histórico do projeto. Bons commits ajudam você de amanhã, o revisor de hoje, e quem investiga incidente daqui a 1 ano. Bons hábitos:
 
 - **Mensagem explica o porquê, não só o quê.** O `git diff` mostra o quê — você não precisa repetir. O contexto e a motivação **só vivem na mensagem**.
-- **Imperativo, presente.** "Add validação de CNPJ", não "Added" nem "Adding".
+- **Imperativo, presente.** "Add validação de habitualidade", não "Added" nem "Adding".
 - **Linha 1 curta** (até ~72 caracteres) — é o que aparece em `git log --oneline`.
 - **Corpo explica contexto** quando necessário — separado por linha em branco.
 - **Referencie a estória** ou ADR/PDR/IDR quando aplicável.
@@ -251,23 +255,26 @@ remove bug
 feat(cadastro): valida CNPJ contra dígitos verificadores
 
 Inclui módulo de validação que verifica os dois dígitos verificadores
-do CNPJ além do formato. Estória: STORY-005. Conforme regra em
-especificacao-funcional.md seção 3.2.
+do CNPJ além do formato (somente quando tipo_pessoa é MEI ou PJ).
+Estória: STORY-005. Conforme regra em
+docs/especificacao/domain/usuario.md.
 ```
 
 ```
-fix(matching): trata profissional sem skills retornando erro de domínio
+fix(matching): trata profissional sem função primária retornando erro de domínio
 
-Antes calcular_liquidez levantava ZeroDivisionError sem contexto.
-Agora retorna ProfissionalSemSkillsError com mensagem específica.
+Antes calcular_match levantava AttributeError sem contexto quando
+profissional não tinha função primária preenchida. Agora retorna
+ProfissionalSemFuncaoError com mensagem específica.
 Cobre CA-3 da STORY-008.
 ```
 
 ```
-refactor(empresa): extrai validação de CNPJ para módulo dedicado
+refactor(contratante): extrai validação de CNPJ para módulo dedicado
 
-Reaproveitada por cadastro, consulta e importação de planilha
-(terceira ocorrência — segue regra de três em coding-principles.md).
+Reaproveitada por cadastro inicial, completar cadastro pós-aprovação
+e edição de perfil (terceira ocorrência — segue regra de três em
+coding-principles.md).
 ```
 
 ```

@@ -21,11 +21,13 @@ Padrão mínimo de log estruturado:
 {
   "timestamp": "2026-05-20T14:32:08.123Z",
   "level": "info",
-  "message": "match realizado",
-  "service": "matching-service",
+  "message": "candidatura aprovada",
+  "service": "candidatura-service",
   "request_id": "abc-123",
   "user_id": "u-987",
-  "empresa_id": "e-456",
+  "contratante_id": "c-456",
+  "vaga_id": "v-321",
+  "turno_id": "t-654",
   "duration_ms": 142
 }
 ```

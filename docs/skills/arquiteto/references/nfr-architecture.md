@@ -67,9 +67,9 @@ Latência é p**ercentual**, não média. Use percentis:
 
 **Diferenças importantes entre endpoints:**
 
-- **API interativa** (FE chama, usuário espera resposta): p95 < 500ms é razoável para SaaS. < 200ms é ótimo.
-- **Operação assíncrona** (job de processamento, importação de planilha): latência fim-a-fim pode ser segundos a minutos — usuário não espera no FE.
-- **Webhook entrante**: precisa ser **muito rápido** (< 1s) — fornecedor pode timeoutar se você demora.
+- **API interativa** (FE chama, usuário espera resposta): p95 < 500ms é razoável para SaaS. < 200ms é ótimo. No Turni, atenção especial ao **feed do profissional** (rua, 3G ruim) e à **validação de PIN** (operação em pé no local — ver `non-functional.md`).
+- **Operação assíncrona** (worker de cálculo de match, captura Pagar.me, envio de notificações): latência fim-a-fim pode ser segundos a minutos — usuário não espera no FE.
+- **Webhook entrante** (eventos Pagar.me): precisa ser **muito rápido** (< 1s) — fornecedor pode timeoutar se você demora.
 - **Endpoint de health check**: muito rápido (< 100ms) — não causa falso alarme.
 
 ### O que o ADR de latência define
@@ -85,11 +85,11 @@ Latência é p**ercentual**, não média. Use percentis:
 
 **Pergunta arquitetural:** quantos requests por unidade de tempo o sistema precisa atender? Como cresce?
 
-Para marketplace de turnos no início, throughput não é problema — você tem dezenas, talvez centenas de empresas. Mas **estime explicitamente** para não ser pego de surpresa:
+Para marketplace de turnos no início, throughput não é problema — você tem dezenas, talvez centenas de contratantes e profissionais cadastrados. Mas **estime explicitamente** para não ser pego de surpresa:
 
-- Quantas empresas ativas previstas em 6 meses? 12 meses?
-- Quantos requests/segundo por empresa típica?
-- Picos? (Final de mês para empresas faz mais cálculo? Ano fiscal?)
+- Quantos contratantes e quantos profissionais ativos previstos em 6 meses? 12 meses?
+- Quantas vagas publicadas por semana por contratante típico? Quantas candidaturas por profissional?
+- Picos? (Sexta noite e sábado para hospitalidade; dezembro, carnaval, feriados; eventos pontuais.)
 
 ### Capacity planning leve
 

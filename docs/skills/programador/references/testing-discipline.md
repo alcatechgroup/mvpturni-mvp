@@ -72,8 +72,8 @@ Esta é a parte que define se você é sênior. Para cada funcionalidade você e
 
 ### 1. Caminho feliz
 O óbvio. O comportamento esperado quando tudo está certo.
-- Cadastro com dados válidos → empresa cadastrada.
-- Cálculo de liquidez com valores positivos → resultado correto.
+- Pré-cadastro de contratante com dados válidos → registro em `pendente_aprovacao`.
+- Cálculo de match com profissional dentro do raio e função compatível → score esperado.
 
 ### 2. Casos inválidos
 Input que não atende as regras. **Cada validação merece pelo menos um teste**.
@@ -87,7 +87,7 @@ Input que não atende as regras. **Cada validação merece pelo menos um teste**
 ### 3. Exceções esperadas
 Erros que vão acontecer em produção. Você testa que o sistema se comporta **bem** quando acontecem.
 - Banco indisponível durante uma chamada → erro retornado com sinalização correta, não 500 silencioso.
-- Serviço externo (gateway de pagamento, Receita) timeout → retry/fallback apropriado.
+- Pagar.me timeout durante pré-autorização → erro tratado e candidatura não fica em estado fantasma.
 - Conflict (versão otimista, ex: dois usuários editando ao mesmo tempo) → erro tratado.
 - Tentativa de operar em recurso inexistente ou não autorizado.
 - Limite de quota/rate excedido.
@@ -102,17 +102,17 @@ Casos limite onde implementação simples costuma quebrar.
 
 ### Padrão prático
 
-Para uma estória de cadastro de empresa, isso significa, **no mínimo**:
+Para uma estória de candidatura de profissional a uma vaga, isso significa, **no mínimo**:
 
 ```
-✅ test_cadastro_com_dados_validos_persiste_empresa            (feliz)
-✅ test_cadastro_falha_com_cnpj_invalido                       (inválido)
-✅ test_cadastro_falha_com_cnpj_ja_existente                   (inválido / conflito)
-✅ test_cadastro_falha_com_email_invalido                      (inválido)
-✅ test_cadastro_falha_com_nome_vazio                          (inválido)
-✅ test_cadastro_retorna_erro_amigavel_se_banco_indisponivel   (exceção)
-✅ test_cadastro_aceita_caracteres_acentuados_no_nome          (borda)
-✅ test_cadastro_normaliza_cnpj_com_pontuacao_e_sem            (borda)
+✅ test_candidatura_com_dados_validos_fica_pendente              (feliz)
+✅ test_candidatura_bloqueia_se_avaliacao_pendente               (regra PDR-005)
+✅ test_candidatura_bloqueia_se_conflito_de_horario              (regra de domínio)
+✅ test_candidatura_bloqueia_pf_na_3a_alocacao_semanal           (regra PDR-002)
+✅ test_candidatura_alerta_pj_na_3a_alocacao_sem_bloquear        (regra PDR-002)
+✅ test_candidatura_retorna_erro_amigavel_se_banco_indisponivel  (exceção)
+✅ test_candidatura_idempotente_em_clique_duplo                  (borda)
+✅ test_candidatura_falha_em_vaga_ja_fechada                     (borda)
 ```
 
 8 testes para uma funcionalidade aparentemente simples — e ainda é o mínimo razoável. Se sua estória de cadastro tem só `test_cadastro_funciona`, **a estória não está testada**.
@@ -138,7 +138,7 @@ Frameworks tipo jsdom rodam JavaScript fora de um browser real. Eles são úteis
 - Validação visual de feedback (mensagem de erro aparece, loading aparece).
 - Estados intermediários (botão fica desabilitado durante submit).
 - Acessibilidade básica (todo input tem label, foco por teclado funciona).
-- **Casos inválidos do ponto de vista do usuário** (submete form vazio, vê erro; CNPJ ruim, vê erro específico).
+- **Casos inválidos do ponto de vista do usuário** (submete form vazio, vê erro; tenta candidatar-se com avaliação pendente, vê mensagem com link para o turno pendente).
 
 Não é necessário um E2E para cada caso minúsculo — os casos inválidos detalhados ficam no unit/integração da camada lógica. Mas o **fluxo principal de erro** (usuário tenta algo errado, sistema responde) deve estar coberto em E2E.
 
@@ -149,7 +149,7 @@ Não é necessário um E2E para cada caso minúsculo — os casos inválidos det
 Mock é útil **e** perigoso. Útil para isolar testes de dependências externas (rede, serviços de terceiros, tempo). Perigoso quando vira muleta para esconder que seu código tem acoplamento ruim.
 
 **Quando mock é apropriado:**
-- Serviço externo via rede (gateway de pagamento, API da Receita).
+- Serviço externo via rede (Pagar.me, provedor de e-mail transacional, push notification).
 - Tempo (`Date.now()`, `time.now()`) — para testar comportamento em data específica.
 - Aleatoriedade (`Math.random()`, UUIDs) — para resultado determinístico.
 - Coisas caras (envio real de e-mail, escrita em S3 real).

@@ -260,7 +260,7 @@ Resumo — método completo em `references/ddr-lifecycle.md`:
 ## Convenções de escrita
 
 - **Encoding UTF-8 com acentuação portuguesa padrão.** Igual às demais skills — `ção`, `ã`, `é`, `ç`. Não substitua por ASCII.
-- **Linguagem do domínio.** Use os termos da especificação ("Vaga", "Turno", "Profissional", "Contratante", "Match"). Microcopy usa o vocabulário do usuário, não jargão técnico ("Salvar" não "Persistir", "Empresa" não "Entidade").
+- **Linguagem do domínio.** Use os termos da especificação ("Vaga", "Turno", "Profissional", "Contratante", "Match", "Estabelecimento"). Microcopy usa o vocabulário do usuário, não jargão técnico ("Salvar" não "Persistir", "Contratante" não "Entidade dono").
 - **Mockup ASCII/SVG inline** quando ajudar — não dependa de ferramenta externa. Sketch grosseiro versionável > Figma fora do git.
 - **Prosa curta + listas onde estrutura ajuda.** Spec de tela é técnico, não literário.
 

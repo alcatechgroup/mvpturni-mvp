@@ -38,7 +38,7 @@ created_at: YYYY-MM-DD
 
 - [ ] Nenhum aviso crítico de segurança aberto introduzido pelo épico (scanner do CI).
 - [ ] Migrações de banco são reversíveis e foram testadas em homologação.
-- [ ] LGPD: tratamento de dados pessoais respeita o que está em `requisitos-nao-funcionais-e-juridicos.md`.
+- [ ] LGPD: tratamento de dados pessoais respeita o que está em `docs/especificacao/non-functional.md` (seção LGPD/Segurança).
 
 ## 6. Documentação
 

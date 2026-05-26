@@ -67,20 +67,22 @@ Usar quando a ordem das ações importa — autenticação, processamento de eve
 
 ```mermaid
 sequenceDiagram
-    actor U as Usuário
+    actor C as Contratante
     participant A as App
+    participant P as Pagar.me
     participant DB as PostgreSQL
     participant Q as Worker
 
-    U->>A: POST /upload (planilha)
-    A->>DB: INSERT job (status=queued)
-    A-->>U: 202 Accepted
+    C->>A: POST /vagas/{id}/aprovar-candidato
+    A->>DB: BEGIN; INSERT turno (status=confirmado)
+    A->>P: pré-autoriza valor + taxa_turni
+    P-->>A: pre_auth_id
+    A->>DB: UPDATE turno SET pagarme_pre_auth_id; COMMIT
+    A->>Q: ENQUEUE notify (candidato aprovado)
+    A-->>C: 200 (turno confirmado)
     Q->>DB: SELECT ... FOR UPDATE SKIP LOCKED
-    Q->>Q: processa planilha
-    Q->>DB: UPDATE job (status=done, resultado)
-    U->>A: GET /jobs/{id}
-    A->>DB: SELECT job
-    A-->>U: 200 (resultado)
+    Q->>Q: envia notificação ao profissional
+    Q->>DB: UPDATE job (status=done)
 ```
 
 Dicas:
@@ -109,24 +111,51 @@ Usar quando a ADR define agregados/entidades principais e como se relacionam. N�
 
 ```mermaid
 erDiagram
-    CONTRATANTE ||--o{ VAGA : possui
-    EMPRESA {
+    CONTRATANTE ||--o{ VAGA : publica
+    CONTRATANTE {
         uuid id PK
         string cnpj UK
-        string nome
+        string nome_estabelecimento
+        string plano
     }
+    VAGA {
+        uuid id PK
+        uuid contratante_id FK
+        string funcao
+        timestamp data_inicio
+        timestamp data_fim
+        decimal valor
+        int posicoes
+        string status
+    }
+    PROFISSIONAL ||--o{ CANDIDATURA : envia
+    PROFISSIONAL {
+        uuid id PK
+        string tipo_pessoa
+        string documento
+        string funcao_primaria
+        int raio_km
+        decimal preco_hora
+        decimal score
+        string nivel
+    }
+    VAGA ||--o{ CANDIDATURA : recebe
+    CANDIDATURA {
+        uuid id PK
+        uuid vaga_id FK
+        uuid profissional_id FK
+        string status
+    }
+    CANDIDATURA ||--o| TURNO : "(aprovada) gera"
     TURNO {
         uuid id PK
-        uuid empresa_id FK
-        date data_referencia
-        jsonb resultado
-    }
-    VAGA ||--|{ TURNO : contem
-    TURNO_DETALHE {
-        uuid id PK
-        uuid turno_id FK
-        string nome
+        uuid candidatura_id FK
+        string status
+        timestamp check_in
+        timestamp check_out
         decimal valor
+        decimal taxa_turni
+        string pagarme_pre_auth_id
     }
 ```
 

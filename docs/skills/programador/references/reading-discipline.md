@@ -42,7 +42,7 @@ Não confie no resumo na estória. **Vá nos documentos:**
 - PDRs relacionados.
 - IDRs anteriores que afetam este código.
 
-Se a estória cita `docs/especificacao/especificacao-funcional.md` seção 4.2, você abre o arquivo, lê a 4.2 **e dá uma olhada na 4.1 e 4.3 também**. Geralmente o contexto da seção adjacente esclarece nuances.
+Se a estória cita `docs/especificacao/domain/turno.md` seção "Máquina de estados", você abre o arquivo, lê a seção citada **e dá uma olhada nas seções vizinhas (regras críticas, lacunas conhecidas)**. Geralmente o contexto da seção adjacente esclarece nuances. O mesmo vale para `flows/`, `non-functional.md` e `business-rules.md`.
 
 ### 3. As skills e suas referências
 
@@ -206,7 +206,7 @@ Pular este passo é receita garantida para refazer trabalho ou tomar decisão co
 Se essa é sua **primeira estória do Turni** (você é um agente recém-chegado ou é uma sessão nova com contexto zero), você precisa de uma **leitura mais larga** antes da estória específica:
 
 1. **`AGENTS.md` na raiz do projeto** — visão geral do projeto e ponteiros para skills.
-2. **`docs/skills/README.md`** — entenda os 4 papéis e como você se encaixa.
+2. **`docs/skills/README.md`** — entenda os 5 papéis (PO, Arquiteto, Designer, Programador, Validador) e como você se encaixa.
 3. **Sua skill (Programador) e todas as references dela** — você precisa internalizar:
    - `reading-discipline.md` (este)
    - `coding-principles.md`
@@ -221,14 +221,14 @@ Se essa é sua **primeira estória do Turni** (você é um agente recém-chegado
 4. **Skill do PO e references aplicáveis** — `agent-task-format.md` (protocolo) e `quality-standards.md` (padrões transversais) são leitura obrigatória.
 5. **Princípios arquiteturais do projeto** — `docs/skills/arquiteto/references/architecture-principles.md`. Você precisa entender o "por quê" das ADRs para não propor coisas que contrariam o estilo do projeto.
 6. **ADRs vigentes** em `docs/project-state/decisions/adr/` — pelo menos os títulos e estados. Você não precisa decorar cada uma, mas saber o que existe.
-7. **Especificação funcional** em `docs/especificacao/especificacao-funcional.md` — leitura panorâmica para entender o domínio (marketplace de hospitalidade on-demand do domínio Turni).
+7. **Especificação do produto** em `docs/especificacao/` — leitura panorâmica do `README.md`, do `glossary.md`, dos arquivos de `domain/` (`usuario.md`, `vaga.md`, `candidatura.md`, `turno.md`, `pagamento.md`, `match.md`, `niveis-e-score.md`, `compliance.md`, `disputa.md`) e do `non-functional.md` para entender o domínio (marketplace de hospitalidade on-demand do Turni).
 8. **Estrutura do código** — depois que o EPIC-000 (Foundation) existir, percorra a estrutura de pastas para entender a organização.
 
 Esse onboarding custa uma sessão. Faça **uma vez**, não toda estória.
 
 **Heurística**: se você consegue, ao fim dessa leitura, explicar em 5 minutos:
 - O que o Turni faz para o usuário.
-- Quais os 4 papéis e suas fronteiras.
+- Quais os 5 papéis (PO, Arquiteto, Designer, Programador, Validador) e suas fronteiras.
 - Os 6 princípios arquiteturais centrais.
 - O que é PDR/ADR/IDR e quem cria cada um.
 - O que você nunca faz como Programador.

@@ -199,7 +199,7 @@ Além disso:
 **Como aplicar.**
 
 - **Tudo que é interno** (banco, app, workers, frontend, observabilidade básica) sobe via **Docker Compose** (ou equivalente). Versões idênticas a produção quando possível.
-- **Serviços externos verdadeiros** (gateway de pagamento, API de gateway de pagamento (Pix), e-mail transacional, provedor de SMS, cloud-specifics) são **simulados localmente** via:
+- **Serviços externos verdadeiros** (Pagar.me — pré-autorização, captura, Pix —, provedor de e-mail transacional, push notification web, geolocalização, cloud-specifics) são **simulados localmente** via:
   - **Mock dedicado** rodando como container, mantido pelo time. Preferido quando o contrato é estável e o uso é intenso. Mais fiel e controlável.
   - **Biblioteca de stub** integrada ao app, quando o uso é simples e o mock dedicado seria exagero.
   - **Sandbox público do fornecedor** apenas quando o fornecedor oferece sandbox 100% confiável e o time aceita a dependência (registre o risco no ADR de integração).

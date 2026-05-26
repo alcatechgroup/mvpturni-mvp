@@ -132,7 +132,7 @@ Aqui você **vai a homologação** e **usa o sistema**:
 
 - [ ] **Scanner de segurança** do CI: sem alerta crítico aberto introduzido pelo épico.
 - [ ] **Migrações de banco**: reversíveis e testadas (no mínimo, declaração de que foram testadas em ambiente de homologação).
-- [ ] **LGPD**: dados pessoais novos coletados respeitam o que está em `requisitos-nao-funcionais-e-juridicos.md` e foi alinhado com PO (PR comment ou PDR registra).
+- [ ] **LGPD**: dados pessoais novos coletados respeitam o que está em `docs/especificacao/non-functional.md` (seção LGPD/Segurança) e foi alinhado com PO (PR comment ou PDR registra).
 - [ ] **Segredos**: nenhum no código (scanner de pre-commit / CI confirma).
 - [ ] **Logs**: nenhum dado sensível em log (PII, token, senha — `security-discipline.md`).
 

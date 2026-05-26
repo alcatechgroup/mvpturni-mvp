@@ -1,6 +1,6 @@
 # Arquitetura de integrações externas
 
-Turni vai integrar com sistemas externos: gateway de pagamento (Pix), gateways de pagamento, e-mail transacional, possivelmente CRMs, ERPs, OCR para planilhas, IA. **Cada integração é decisão arquitetural** — não é "só fazer chamada HTTP".
+Turni vai integrar com sistemas externos: **Pagar.me** (pré-autorização, captura, Pix split — única integração financeira do MVP, ver PDR-004), provedor de e-mail transacional, push notifications web (PWA), geolocalização (browser API + eventualmente serviço dedicado), e futuramente WhatsApp/SMS e API pública para Enterprise. **Cada integração é decisão arquitetural** — não é "só fazer chamada HTTP".
 
 Esta reference cobre como pensar uma integração de modo durável: encapsular o externo, manter testabilidade local, lidar com falhas graciosamente, evoluir contratos.
 
@@ -58,7 +58,7 @@ Com ACL:
 - **Tradução**: campo `cnpj` do externo é `documento` para você? ACL traduz.
 - **Retry**: lógica de retry com backoff (cruza com `error-handling.md` do Programador).
 - **Timeout**: definido na ACL, não nas chamadas internas.
-- **Tratamento de erro**: erros do externo viram exceções **do seu domínio** (ex: `EmpresaNaoEncontradaNaReceitaError` em vez de `HTTP 404`).
+- **Tratamento de erro**: erros do externo viram exceções **do seu domínio** (ex: `PreAutorizacaoNegadaError` em vez de `HTTP 402` do Pagar.me).
 - **Idempotência**: se aplicável (pagamento, etc).
 - **Observabilidade**: métricas e log específicos da integração.
 
@@ -201,7 +201,7 @@ Quando o externo está fora, **o seu sistema continua útil**? ADR responde.
 
 - **Fail fast com erro claro ao usuário**: "Não conseguimos validar seu CNPJ no momento. Tente novamente em alguns minutos." Melhor que tela genérica.
 - **Cache de resultado anterior**: se a resposta é válida por X tempo, cache reduz dependência.
-- **Modo degradado**: o sistema funciona com funcionalidade reduzida (sem validação de Receita, por exemplo) e completa depois quando volta.
+- **Modo degradado**: o sistema funciona com funcionalidade reduzida (ex: notificação por push fora do ar → cai em e-mail) e completa depois quando o canal principal volta.
 - **Filaeamento**: operação não-crítica fica esperando externo voltar.
 
 ### O que NÃO fazer
@@ -268,7 +268,7 @@ Lista nominal das integrações que o produto já tem (ou terá no MVP) — para
 - **E-mail transacional**: aceite eletrônico (PDR-001), aprovação de cadastro, notificação ao candidato quando vaga muda (PDR-009), recuperação de senha, comunicados ao admin. Provedor a decidir em ADR; templates dinâmicos por `tipo_pessoa`.
 - **Push notification web (PWA)**: cronograma de turno, alertas de candidatura, notificação de vaga editada (PDR-009). Decisão cruza com a ADR de Frontend/PWA (Web Push API + VAPID, ou serviço terceiro). Identidade do device (subscription) armazenada por usuário.
 - **Geo / mapas** (PDR-008 — geofencing alerta-e-registra): cálculo de distância profissional×estabelecimento no check-in. Decisão a tomar em ADR de **Persistência**: PostGIS no Postgres (princípio #3) ou Haversine simples no app? Para o MVP, com poucas leituras simultâneas e raio fixo, Haversine pode bastar — mas PostGIS abre porta para match geo no futuro.
-- **(Futuro, não-MVP)** WhatsApp/SMS, OCR de planilhas, integração com Receita para validação de CNPJ. Cada um vira ADR quando entrar em escopo. **Sem antecipação** — princípio #1.
+- **(Futuro, não-MVP)** WhatsApp/SMS para notificação de turnos críticos, API pública para clientes Enterprise (com OAuth e versionamento), integração com POS dos contratantes Enterprise (Stone, principalmente). Cada um vira ADR quando entrar em escopo. **Sem antecipação** — princípio #1. Note que PDR-001 exclui validação automática contra Receita no MVP — manual pela equipe Turni.
 
 ADRs específicas de cada integração herdam o checklist abaixo.
 

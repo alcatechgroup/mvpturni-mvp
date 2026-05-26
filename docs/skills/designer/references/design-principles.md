@@ -74,7 +74,7 @@ Detalhe em `mobile-desktop-parity.md`.
 - **Paleta sóbria com 1–2 cores de acento.** Cor primária usada **com parcimônia** (CTA, navegação ativa). Fundo de tela em escala de cinza/branco. Cor saturada em área grande = produto parece de consumo, não profissional.
 - **Ilustração comunica ou não existe.** Empty state com instrução visual: ok. Banner decorativo de "pessoas com laptops": não.
 - **Microcopy direto e respeitoso.** Sem "Ops!", sem "Uhuu!", sem emoji. Sucesso celebra com discrição: "Match confirmado." não "Yay! 🎉".
-- **Sem gamificação sem propósito.** Barras de progresso para passo de wizard: ok. Badges de "Você cadastrou 5 empresas!" sem função: não.
+- **Sem gamificação sem propósito.** Barras de progresso para passo de wizard: ok. Trilha de níveis do profissional (Iniciante → Confiável → Destaque → Elite) com perks reais: ok — é mecânica de produto. Badges decorativos sem função adicional ("Você concluiu 5 turnos!"): não.
 
 Detalhe em `tone-and-voice.md`.
 

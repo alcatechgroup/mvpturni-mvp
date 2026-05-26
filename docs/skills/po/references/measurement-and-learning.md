@@ -19,9 +19,9 @@ Esta reference cobre: como definir métrica que importa, como medir, quando vali
 
 | Tipo | Significa | Exemplo |
 |---|---|---|
-| **Output** | O que o time **produziu** | "Entregamos cadastro com validação de CNPJ" |
-| **Outcome** | O que **mudou no comportamento** do usuário | "75% dos usuários completam o cadastro" |
-| **Impact** | O que **mudou no resultado do negócio** | "Empresas ativas crescem 20% no mês" |
+| **Output** | O que o time **produziu** | "Entregamos publicação de vaga com checklist Core FHP" |
+| **Outcome** | O que **mudou no comportamento** do usuário | "75% das vagas publicadas recebem candidatura em até 2h" |
+| **Impact** | O que **mudou no resultado do negócio** | "Turnos completos/mês crescem 20% mês a mês" |
 
 **O erro clássico:** time celebra output ("entregamos!") e nunca olha outcome ou impact. Métricas de épico devem ser **outcome ou impact**, não output.
 
@@ -53,17 +53,17 @@ O template de épico tem campo "Métrica de sucesso". Boa métrica:
 > "Métrica de sucesso: usuários gostam mais da tela."
 
 **OK:**
-> "Métrica de sucesso: NPS médio sobre a tela de diagnóstico sobe de 30 (atual) para 40+ em pesquisa após 30 dias."
+> "Métrica de sucesso: CSAT médio do contratante após primeiro turno finalizado sobe de baseline 6.5 para 8.0+ em pesquisa pós-turno, janela 30 dias."
 
 **Bom:**
-> "Métrica de sucesso primária: 60%+ dos usuários que iniciam o fluxo de candidatura concluem o match, medido por evento `match_confirmado` / `vaga_visualizada`, janela 14 dias após deploy. Métrica secundária: latência p95 da tela de resultado ≤ 800ms."
+> "Métrica de sucesso primária: 60%+ das vagas publicadas recebem ao menos uma candidatura aprovada dentro do SLA de 2h, medido por `vaga_publicada` → `candidatura_aprovada` (delta ≤ 2h), janela 14 dias após deploy. Métrica secundária: latência p95 do feed do profissional ≤ 800ms."
 
 ### Tipos comuns de métrica útil
 
-- **Funil**: % de usuários que avançam em cada passo (cadastro → primeiro diagnóstico → segundo uso).
+- **Funil**: % de usuários que avançam em cada passo (pré-cadastro → aprovado → completou cadastro → primeira candidatura/vaga → primeiro turno completo).
 - **Adoção**: usuários ativos que usam a feature nova / usuários ativos totais.
 - **Retenção**: usuários que voltam em D7, D30 após primeiro uso.
-- **Tempo até valor**: minutos entre cadastro e primeiro diagnóstico concluído.
+- **Tempo até valor**: para o profissional, dias entre aprovação do cadastro e primeiro turno finalizado; para o contratante, dias entre aprovação e primeira vaga preenchida.
 - **Qualidade percebida**: NPS, CSAT (cuidado — caro de coletar com volume baixo).
 - **Erro / abandono**: % de tentativas que falham, % de fluxos abandonados no meio.
 

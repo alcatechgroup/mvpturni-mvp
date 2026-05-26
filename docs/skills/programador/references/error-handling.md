@@ -31,19 +31,23 @@ Input inválido deve falhar **no primeiro ponto** onde é detectado, não a 4 ch
 
 ```python
 # ❌ tarde demais
-def calcular_liquidez(empresa):
+def calcular_total_contratante(turno):
     # ... processa ...
     # ... mais processamento ...
-    return empresa.ativo_circulante / empresa.passivo_circulante
-    # KABOOM, ZeroDivisionError, sem contexto
+    return turno.valor * (1 + turno.taxa_turni_pct / 100)
+    # KABOOM, TypeError se taxa_turni_pct vier None, sem contexto
 
 # ✅ falha cedo
-def calcular_liquidez(empresa):
-    if empresa.passivo_circulante == 0:
+def calcular_total_contratante(turno):
+    if turno.valor is None or turno.valor <= 0:
         raise ValueError(
-            f"Não dá pra calcular liquidez com passivo zero (empresa {empresa.id})"
+            f"Não dá pra calcular total com valor inválido (turno {turno.id}, valor={turno.valor})"
         )
-    return empresa.ativo_circulante / empresa.passivo_circulante
+    if turno.taxa_turni_pct is None:
+        raise ValueError(
+            f"Taxa Turni não definida no turno (turno {turno.id})"
+        )
+    return turno.valor * (1 + turno.taxa_turni_pct / 100)
 ```
 
 Falhar cedo poupa investigação. O erro aponta para a **causa**, não para o sintoma.
@@ -204,7 +208,7 @@ if cnpj_invalido:
     raise ValidationError(...)
 
 # Assertion — não deveria acontecer; se acontece, código está bugado
-assert empresa.id is not None, "empresa.id virou None inesperadamente"
+assert turno.id is not None, "turno.id virou None inesperadamente"
 ```
 
 Asserções servem para documentar invariantes do código — "esse ponto do fluxo X é sempre verdade". Quando falham, você descobriu bug. Em produção, asserções podem ou não estar habilitadas (depende da linguagem) — não use assertion para validar input externo.

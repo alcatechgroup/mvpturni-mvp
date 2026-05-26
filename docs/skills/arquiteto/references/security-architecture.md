@@ -2,7 +2,7 @@
 
 Esta reference cobre as decisões **estruturais** de segurança que são do Arquiteto. O Programador tem `docs/skills/programador/references/security-discipline.md` com os hábitos diários (validação, segredos no código, autz por recurso). **Aqui** estão as decisões que **viram ADR** e que enquadram o que o Programador faz no dia a dia.
 
-Turni é marketplace de hospitalidade on-demand — dados de balanço, faturamento, possíveis integrações com gateway de pagamento (Pix) e gateways de pagamento. A régua de segurança é alta. **Segurança não é fase no fim do projeto — é decisão arquitetural cedo, e cedo significa nos primeiros ADRs do EPIC-000.**
+Turni é marketplace de hospitalidade on-demand — lida com **CPF, CNPJ, chave Pix, dados bancários, geolocalização, contrato eletrônico timestampado e trilha de auditoria de cada turno**, com integração financeira via Pagar.me (PDR-004). A régua de segurança é alta. **Segurança não é fase no fim do projeto — é decisão arquitetural cedo, e cedo significa nos primeiros ADRs do EPIC-000.**
 
 ---
 
@@ -62,7 +62,7 @@ Distinto de autenticação. **Quem você é** ≠ **o que pode fazer**.
 - Auditoria: operações sensíveis viram audit log (cruza com `nfr-architecture.md` e `security-discipline.md`).
 - Como permissões evoluem (migração quando adicionar papel ou permissão).
 
-### Multi-tenancy (separação por empresa/dono)
+### Multi-tenancy (separação por contratante/dono)
 
 Turni tem múltiplos donos. Decisão arquitetural: como **isolar** dados entre tenants.
 
@@ -89,12 +89,13 @@ Nem todo dado tem mesma sensibilidade. Decisão arquitetural: classificar e trat
 
 | Classe | Exemplos | Tratamento |
 |---|---|---|
-| **Público** | Logo da empresa, descrição pública do produto | Sem restrição |
-| **Interno** | Dados operacionais do app (status de job, contador, etc) | Acesso autenticado |
-| **Pessoal (LGPD)** | Nome, e-mail, telefone, endereço, CNPJ pleno | Acesso autorizado, mascaramento em log, retenção definida |
+| **Público** | Logo do estabelecimento, descrição pública do contratante, score público do profissional | Sem restrição |
+| **Interno** | Dados operacionais do app (status de job, contador, evento de match) | Acesso autenticado |
+| **Pessoal (LGPD)** | Nome, e-mail, telefone, endereço, CPF (PF), CNPJ pleno (MEI/PJ), foto, geolocalização do check-in | Acesso autorizado, mascaramento em log, retenção definida |
 | **Pessoal sensível (LGPD)** | Saúde, religião, opinião política — provável que **não tenhamos** | Restrição forte, base legal específica, criptografia at-rest, audit log obrigatório |
-| **Financeiro** | Balanço, faturamento, transação, scoring | Igual a pessoal + audit log de leitura, considerar criptografia at-rest |
-| **Credencial** | Senha (hash), token, chave API | Hash apropriado (bcrypt/argon2), nunca em log, não retornado em API |
+| **Financeiro** | Chave Pix, dados bancários, valor pago/recebido por turno, taxa Turni, IDs Pagar.me (pré-autorização, captura, transação) | Igual a pessoal + audit log de leitura, considerar criptografia at-rest |
+| **Contratual** | Aceite eletrônico do turno (PF autônomo ou B2B PJ↔PJ), justificativa de override de habitualidade (PDR-002), justificativa de disputa (PDR-006) | Imutável após criação; trilha de auditoria obrigatória; retenção longa por exigência jurídica |
+| **Credencial** | Senha (hash), token, chave API, segredos de webhook (HMAC Pagar.me) | Hash apropriado (bcrypt/argon2), nunca em log, não retornado em API |
 
 ADR classifica os tipos de dado do domínio e define tratamento.
 
@@ -131,7 +132,7 @@ ADR define infraestrutura de segredos. Opções:
 Para features que envolvem **input externo, dado sensível, dinheiro, ou superfície nova de ataque**, o ADR deve incluir um **threat model leve**. Não precisa ser STRIDE completo formal — basta perguntar e responder:
 
 1. **Quem é o adversário?** Curioso, criminoso oportunista, ex-funcionário, scraper, ataque coordenado.
-2. **O que ele quer?** Acessar dado de outra empresa, fraudar pagamento, derrubar serviço, vazar PII, modificar dado.
+2. **O que ele quer?** Acessar vagas/turnos de outro contratante, forjar check-in remoto, manipular avaliação alheia, fraudar pré-autorização Pagar.me, vazar PII (CPF, dados bancários, geolocalização), modificar valor de turno em andamento.
 3. **Como ele tenta?** SQL injection, abuso de API, força bruta, social engineering, exploit de dependência.
 4. **Como o impedimos?** Cite o mecanismo concreto.
 5. **Como sabemos se ele teve sucesso?** (audit log, alerta, métrica).

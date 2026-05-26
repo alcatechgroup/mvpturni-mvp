@@ -104,14 +104,14 @@ Lista dedicada para PO escanear rapidamente:
 ### Bloqueantes (épico não deve fechar até resolver)
 
 1. **CA-3 da STORY-007 sem teste cobrindo** (Bloco 1.3)
-   - Função `validar_tamanho_arquivo` em `importacao/validators.py` com 0% de cobertura.
-   - Validação funciona manualmente em homologação mas não está sob teste.
-   - **Sugestão**: estória nova com testes para CA-3 cobrindo: arquivo no limite (5MB), arquivo acima (5.01MB, 100MB), arquivo abaixo (0 bytes, 1MB).
+   - Função `bloquear_terceira_alocacao_pf` em `candidatura/habitualidade.py` com 0% de cobertura.
+   - Regra do PDR-002 funciona manualmente em homologação mas não está sob teste automatizado.
+   - **Sugestão**: estória nova com testes para CA-3 cobrindo: profissional PF com 0, 1, 2 e 3 alocações na semana corrente no mesmo estabelecimento; transição entre semanas; profissional PJ com 3 alocações (alerta + override, não bloqueio).
    - Evidência: apêndice A.3.
 
 ### Não-bloqueantes (podem virar pendência)
 
-1. **README do módulo `importacao` desatualizado** (Bloco 6.1)
+1. **README do módulo `candidatura` desatualizado** (Bloco 6.1)
    - Mudanças do épico não refletidas no README.
    - **Sugestão**: estória pequena (S) para atualizar README.
    - Evidência: apêndice A.6.
@@ -138,8 +138,8 @@ Esta seção é onde você **traduz fails em ação possível** — sem decidir 
 - Sugiro **não fechar o épico** até esse fail virar correção. Não-bloqueante pode entrar como estória da próxima sprint.
 
 **Sobre estórias de correção sugeridas**:
-- STORY-XXX-correcao: adicionar testes para CA-3 da STORY-007. Tamanho estimado S.
-- STORY-YYY-correcao: atualizar README do módulo `importacao`. Tamanho estimado S.
+- STORY-XXX-correcao: adicionar testes para CA-3 da STORY-007 (regra de habitualidade PF). Tamanho estimado S.
+- STORY-YYY-correcao: atualizar README do módulo `candidatura`. Tamanho estimado S.
 
 **Observações que merecem atenção** (não fails, mas vale notar):
 - Cobertura geral em 84.3% — atende mínimo de 80%, mas próxima do limite. Considere meta interna de 85% para manter folga.
@@ -163,30 +163,30 @@ Para cada fail e para `pass com ressalva` significativo, expanda no apêndice:
 ### A.3 — CA-3 da STORY-007 sem teste (FAIL bloqueante)
 
 **Critério esperado** (CA-3 da estória):
-> "Quando o usuário tenta enviar planilha > 5MB, o sistema rejeita com mensagem 'Arquivo excede limite de 5MB — selecione arquivo menor'."
+> "Quando profissional PF tenta candidatar-se à 3ª alocação na mesma semana no mesmo estabelecimento, o sistema bloqueia com mensagem 'Você já tem 2 alocações nesta semana em <Estabelecimento> — para cumprir o uso eventual, esta candidatura está bloqueada' e não persiste a candidatura."
 
 **O que verifiquei**:
 1. Busca por teste relacionado:
    ```
-   $ grep -r "5MB\|tamanho_arquivo\|limite_tamanho" tests/
+   $ grep -r "habitualidade\|terceira_alocacao\|bloquear_pf" tests/
    (nenhum resultado)
    ```
-2. Cobertura da função `validar_tamanho_arquivo`:
+2. Cobertura da função `bloquear_terceira_alocacao_pf`:
    ```
-   importacao/validators.py:
-   - linha 45: 0% (função `validar_tamanho_arquivo` declarada)
-   - linhas 46-52: 0% (lógica do limite)
+   candidatura/habitualidade.py:
+   - linha 42: 0% (função `bloquear_terceira_alocacao_pf` declarada)
+   - linhas 43-58: 0% (lógica de contagem semanal + bloqueio)
    ```
-3. Verificação manual em homologação: subi planilha de 6MB → vi mensagem correta. Funcionalidade existe mas não está coberta.
+3. Verificação manual em homologação: criei profissional PF, registrei 2 turnos finalizados na semana corrente no mesmo estabelecimento, tentei candidatar à 3ª vaga do mesmo contratante → vi mensagem correta de bloqueio. Funcionalidade existe mas não está coberta.
 
 **Reprodução**:
 - Commit hash em validação: `abc123def`
 - Branch: `main`
-- Comando: `npm run test:coverage -- importacao/`
+- Comando: `npm run test:coverage -- candidatura/`
 
-**Impacto**: regressão pode acontecer sem detecção.
+**Impacto**: regressão de regra de compliance (PDR-002) pode acontecer sem detecção — quebra promessa de governança documentada.
 
-**Sugestão**: estória nova com testes cobrindo limite (5MB), acima (5.01MB, 100MB), abaixo (1MB).
+**Sugestão**: estória nova com testes cobrindo: PF com 0, 1, 2 alocações (libera); PF com 2 alocações já realizadas + 3ª tentativa (bloqueia); PJ com 3 alocações (alerta + override); transição de semana (segunda-feira reseta contagem).
 ```
 
 Apêndice é o lugar para **detalhe extenso**. Quem quer entender em profundidade vem aqui.

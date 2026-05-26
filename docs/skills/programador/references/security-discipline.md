@@ -1,6 +1,6 @@
 # Disciplina de segurança
 
-O Turni lida com **dados financeiros de empresas reais**: CNPJ, faturamento, balanços, e potencialmente integrações com Receita, gateways de pagamento, emissores. Erro de segurança aqui custa confiança de pequenas empresas que têm pouco a perder. **A régua é alta porque o domínio cobra alto.**
+O Turni lida com **dados pessoais e financeiros sensíveis de profissionais e contratantes reais**: CPF, CNPJ, chave Pix, dados bancários, geolocalização, integração com Pagar.me, contratos eletrônicos timestampados e trilha de auditoria de cada turno. Erro de segurança aqui custa confiança de gente que vive de cada Pix recebido e de operadores de hospitalidade que assumem risco trabalhista zerado pela governança documentada. **A régua é alta porque o domínio cobra alto.**
 
 Segurança não é uma fase no fim do projeto. É **hábito diário do código que você escreve**. Esta reference define os hábitos.
 
@@ -63,13 +63,13 @@ São coisas diferentes. Confundir é fonte de bug e brecha:
 
 Hábitos:
 
-- **Sempre verifique autorização**, não só autenticação. Usuário X logado **não significa** que ele pode editar empresa Y.
+- **Sempre verifique autorização**, não só autenticação. Usuário X logado **não significa** que ele pode editar a vaga do contratante Y, nem ver o turno do profissional Z.
 - **Verifique no servidor**, sempre. Esconder botão no FE é UX — não é segurança.
 - **Verifique no endpoint que faz a ação**, não no que carrega a tela.
 - **Princípio do menor privilégio:** se uma operação só precisa ler, não dê permissão de escrita.
-- **Verificação de propriedade:** ao editar/visualizar/deletar um recurso, verifique se o usuário **dono** é o que está pedindo (`empresa.user_id == request.user.id`).
+- **Verificação de propriedade:** ao editar/visualizar/deletar um recurso, verifique se o usuário **dono** é o que está pedindo (`vaga.contratante_id == request.user.contratante_id`; `turno.profissional_id == request.user.id` no caminho do profissional).
 
-Anti-padrão clássico: endpoint `GET /api/empresas/{id}` que **autentica** mas não **autoriza** — qualquer logado vê empresa de qualquer outro.
+Anti-padrão clássico: endpoint `GET /api/vagas/{id}` que **autentica** mas não **autoriza** — qualquer contratante vê vaga de qualquer outro.
 
 ## Gestão de segredos
 
@@ -111,7 +111,7 @@ Não confunda **audit log** com **log de aplicação**: audit é fonte da verdad
 
 ## LGPD aplicada — hábitos do programador
 
-Lei Geral de Proteção de Dados é restrição funcional concreta. O detalhe fica em `docs/especificacao/requisitos-nao-funcionais-e-juridicos.md`. Hábitos do dia a dia:
+Lei Geral de Proteção de Dados é restrição funcional concreta. O detalhe fica em `docs/especificacao/non-functional.md` (seção Segurança/LGPD) e em ADRs específicos do Arquiteto. Hábitos do dia a dia:
 
 - **Minimização:** colete só o que vai usar. Cada campo novo no formulário é dado pessoal a justificar.
 - **Propósito:** se um endpoint coleta CPF para candidatura, ele não usa CNPJ para envio de marketing — propósitos diferentes precisam de bases diferentes.

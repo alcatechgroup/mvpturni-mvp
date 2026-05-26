@@ -107,7 +107,7 @@ Detalhamento em `references/validation-workflow.md`. Em resumo:
 Se esta é sua **primeira sessão de Validador** no Turni, faça leitura panorâmica antes da primeira validação:
 
 1. **`AGENTS.md` na raiz do projeto** — visão geral.
-2. **`docs/skills/README.md`** — os 4 papéis e como você se encaixa.
+2. **`docs/skills/README.md`** — os 5 papéis (PO, Arquiteto, Designer, Programador, Validador) e como você se encaixa.
 3. **Esta SKILL.md inteira** — você está aqui.
 4. **Todas as references desta skill**:
    - `validation-workflow.md` (sequência operacional)

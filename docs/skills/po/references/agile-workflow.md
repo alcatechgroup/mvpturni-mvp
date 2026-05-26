@@ -68,9 +68,9 @@ Esta é a regra que mais separa um plano que funciona de um que trava.
 Resultado: nada visível até a STORY-003. Bug encontrado lá vira retrabalho gigante. Usuário não viu nada por semanas.
 
 **Certo (vertical):**
-- STORY-001: cadastro de empresa — UI + API + banco — só com nome e CNPJ — visível em homologação
-- STORY-002: cadastro de empresa — adicionar endereço — UI + API + banco — visível
-- STORY-003: cadastro de empresa — validação de CNPJ contra Receita — visível
+- STORY-001: pré-cadastro de contratante — UI + API + banco — só com nome, e-mail e estabelecimento — visível em homologação
+- STORY-002: aprovação manual no backoffice — admin aprova e usuário entra no funil welcome — visível
+- STORY-003: completar cadastro pós-aprovação — CNPJ + endereço — visível
 
 Cada estória atravessa o stack inteiro, entrega um pedaço pequeno mas observável, e fica deployada em homologação ao final.
 
@@ -172,7 +172,7 @@ O fluxo padrão é reativo: se uma estória precisa de decisão arquitetural, ab
 
 **Conversa breve no chat ajuda mais que estória formal** quando a dúvida é direcional:
 
-> "Estou planejando o EPIC-007 (Importação de Planilha). Vejo possível dependência arquitetural sobre processamento assíncrono — temos ADR cobrindo, ou precisamos abrir spike antes?"
+> "Estou planejando o EPIC-005 (Pagamento — pré-autorização e captura Pagar.me). Vejo possível dependência arquitetural sobre captura assíncrona, idempotência e tratamento de falha — temos ADR cobrindo, ou precisamos abrir spike antes?"
 
 O Arquiteto responde, e você sabe se precisa de spike ou pode prosseguir.
 

@@ -29,8 +29,8 @@ target_completion: YYYY-MM-DD  # estimativa, não compromisso rígido
 
 <O que estará disponível em homologação/produção ao final. Tem que ser observável por um humano.>
 
-- [ ] <ex: tela de login funcional acessível em https://homolog.turni.com.br>
-- [ ] <ex: usuário cadastrado consegue subir uma planilha exemplo e ver o diagnóstico>
+- [ ] <ex: tela de login funcional acessível em https://app.homolog.turni.com.br>
+- [ ] <ex: contratante consegue publicar vaga em homologação e receber candidatura de profissional aprovado>
 
 ## Fora de escopo (explicitamente)
 
@@ -40,8 +40,11 @@ target_completion: YYYY-MM-DD  # estimativa, não compromisso rígido
 
 ## Referências da especificação
 
-- `docs/especificacao/especificacao-funcional.md` — seções <X.Y>, <X.Z>
-- `docs/especificacao/requisitos-nao-funcionais-e-juridicos.md` — seções aplicáveis
+- `docs/especificacao/glossary.md` — termos canônicos usados neste épico
+- `docs/especificacao/domain/<entidade>.md` — entidades relevantes (ex: `vaga`, `candidatura`, `turno`, `pagamento`)
+- `docs/especificacao/flows/<fluxo>.md` — fluxo ponta a ponta relacionado
+- `docs/especificacao/non-functional.md` — NFRs aplicáveis (SLA, segurança, performance)
+- `docs/especificacao/business-rules.md` — números e parâmetros relevantes
 - <outros documentos>
 
 ## Dependências

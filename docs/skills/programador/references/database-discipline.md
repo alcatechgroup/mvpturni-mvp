@@ -40,15 +40,15 @@ Exemplo conceitual:
 
 ```python
 # ❌ N+1
-empresas = Empresa.objects.all()                   # 1 query
-for e in empresas:
-    print(p.turnos.count())                  # N queries, uma por empresa
+vagas = Vaga.objects.filter(status='aberta')       # 1 query
+for v in vagas:
+    print(v.candidatos.count())                    # N queries, uma por vaga
 # total: 1 + N
 
 # ✅ Com prefetch / eager loading
-profissionais = Profissional.objects.prefetch_related('turnos')  # 2 queries no total
-for e in empresas:
-    print(len(p.turnos.all()))               # nenhuma query adicional
+vagas = Vaga.objects.filter(status='aberta').prefetch_related('candidatos')  # 2 queries no total
+for v in vagas:
+    print(len(v.candidatos.all()))                 # nenhuma query adicional
 ```
 
 Cada ORM tem seu jeito (`prefetch_related`/`select_related` em Django, `includes` em Rails, `with` em Laravel, `preload` em Ecto, `include` em Prisma, `joinedload` em SQLAlchemy).
@@ -89,9 +89,9 @@ Operação que envolve múltiplas escritas relacionadas: **transação**. ORMs f
 ```python
 # Conceitual — exato depende do framework/ORM
 with transaction.atomic():
-    empresa = Empresa.create(...)
-    turno = Turno.create(vaga=vaga, ...)
-    Pagamento.create(empresa=empresa, ...)
+    turno = Turno.create(vaga=vaga, profissional=pro, status='confirmado', ...)
+    Vaga.objects.filter(id=vaga.id).update(posicoes_restantes=F('posicoes_restantes') - 1)
+    Pagamento.create(turno=turno, pre_auth_id=pagarme_pre_auth_id, ...)
 # se qualquer um falhar, tudo é desfeito
 ```
 

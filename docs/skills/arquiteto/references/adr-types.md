@@ -151,7 +151,7 @@ Antes de escrever ADR, decida o nível certo. Três níveis:
 
 - Pular versionamento ("vamos resolver depois") — depois é tarde.
 - Não padronizar formato de erro — cada endpoint inventa o seu.
-- Misturar verbos no path (`/api/getEmpresa`) em vez de seguir REST corretamente.
+- Misturar verbos no path (`/api/getVaga`) em vez de seguir REST corretamente (`GET /api/vagas/{id}`).
 - Quebrar contrato publicado sem deprecation.
 - Aceitar campos extras silenciosamente (vulnerável) vs rejeitar com clareza.
 
@@ -186,7 +186,7 @@ Antes de escrever ADR, decida o nível certo. Três níveis:
 - Banco (Postgres já fixado — mas detalhes: versão, extensões adotadas).
 - Modelo macro: agregados, entidades principais, relações.
 - Estratégia de migrations (ferramenta, padrão).
-- Multi-tenancy (separação por empresa — ver `security-architecture.md`).
+- Multi-tenancy (separação por contratante — ver `security-architecture.md`).
 - Audit log (tabela, triggers, app-side).
 - Estratégia de backup e recovery (referência ao NFR-architecture).
 - Quando JSON / jsonb / vector / time-series.
