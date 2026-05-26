@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "generated_at": "2026-05-26T20:45:13Z",
+  "generated_at": "2026-05-26T22:09:38Z",
   "project": {
     "name": "Turni",
-    "current_wave": null,
+    "current_wave": "WAVE-2026-01",
     "current_sprint": null,
-    "phase": "fundacao-de-produto",
-    "notes": "Fluxo 0 concluído (vision, personas, north-star). Especificação inicial em docs/especificacao/. Próximo passo: planejar WAVE-2026-01 (Fluxo A) com EPIC-000 Foundation."
+    "phase": "wave-2026-01-aberta",
+    "notes": "WAVE-2026-01 planejada (Fluxo A concluído). 6 épicos no roadmap atual. EPIC-000 Foundation pronto para entrar em sprint — primeira estória é spike Arquiteto. Próximo passo: abertura da SPRINT-2026-W22 com STORY-001 a STORY-005 (spikes do Arquiteto)."
   },
   "product": {
     "vision": "product/vision.md",
@@ -32,8 +32,92 @@
     "flows_index": "../especificacao/flows/README.md",
     "screens_index": "../especificacao/screens/README.md"
   },
-  "waves": [],
-  "epics": [],
+  "waves": [
+    {
+      "id": "WAVE-2026-01",
+      "title": "Ciclo completo do turno em homologação",
+      "status": "active",
+      "goal": "Demonstrar que Match IA + PIN Bilateral + Pix em 15 min funcionam ponta a ponta no caminho feliz, em homologação, com Pagar.me em sandbox.",
+      "start_date": "2026-05-26",
+      "target_completion": "2026-08-31",
+      "epic_ids": ["EPIC-000", "EPIC-001", "EPIC-002", "EPIC-003", "EPIC-004", "EPIC-005"],
+      "path": "roadmap/current-wave.md"
+    }
+  ],
+  "epics": [
+    {
+      "id": "EPIC-000",
+      "slug": "foundation",
+      "title": "Foundation — stack decidida, pipelines duplos rodando, hello world em homologação",
+      "wave": "WAVE-2026-01",
+      "status": "ready",
+      "path": "epics/EPIC-000-foundation/epic.md",
+      "story_ids": [],
+      "validation_report": null,
+      "created_at": "2026-05-26",
+      "updated_at": "2026-05-26"
+    },
+    {
+      "id": "EPIC-001",
+      "slug": "cadastro-e-aprovacao",
+      "title": "Cadastro e aprovação de profissional e contratante",
+      "wave": "WAVE-2026-01",
+      "status": "draft",
+      "path": "epics/EPIC-001-cadastro-e-aprovacao/epic.md",
+      "story_ids": [],
+      "validation_report": null,
+      "created_at": "2026-05-26",
+      "updated_at": "2026-05-26"
+    },
+    {
+      "id": "EPIC-002",
+      "slug": "vaga-feed-e-candidatura",
+      "title": "Publicação de vaga, feed do profissional e candidatura",
+      "wave": "WAVE-2026-01",
+      "status": "draft",
+      "path": "epics/EPIC-002-vaga-feed-e-candidatura/epic.md",
+      "story_ids": [],
+      "validation_report": null,
+      "created_at": "2026-05-26",
+      "updated_at": "2026-05-26"
+    },
+    {
+      "id": "EPIC-003",
+      "slug": "aceite-pin-e-pix",
+      "title": "Aceite da candidatura, PIN bilateral e Pix via Pagar.me",
+      "wave": "WAVE-2026-01",
+      "status": "draft",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/epic.md",
+      "story_ids": [],
+      "validation_report": null,
+      "created_at": "2026-05-26",
+      "updated_at": "2026-05-26"
+    },
+    {
+      "id": "EPIC-004",
+      "slug": "avaliacao-reciproca",
+      "title": "Avaliação recíproca e fechamento do ciclo",
+      "wave": "WAVE-2026-01",
+      "status": "draft",
+      "path": "epics/EPIC-004-avaliacao-reciproca/epic.md",
+      "story_ids": [],
+      "validation_report": null,
+      "created_at": "2026-05-26",
+      "updated_at": "2026-05-26"
+    },
+    {
+      "id": "EPIC-005",
+      "slug": "disputa-minima",
+      "title": "Disputa mínima de check-out via backoffice",
+      "wave": "WAVE-2026-01",
+      "status": "draft",
+      "path": "epics/EPIC-005-disputa-minima/epic.md",
+      "story_ids": [],
+      "validation_report": null,
+      "created_at": "2026-05-26",
+      "updated_at": "2026-05-26"
+    }
+  ],
   "stories": [],
   "sprints": [],
   "decisions": {
@@ -107,6 +191,13 @@
         "status": "accepted",
         "path": "decisions/pdr/PDR-010-refresh-pix-fora-de-escopo-mvp.md",
         "decided_at": "2026-05-26"
+      },
+      {
+        "id": "PDR-011",
+        "title": "Escopo da WAVE-2026-01 — ciclo completo do turno em homologação",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-011-escopo-da-wave-2026-01.md",
+        "decided_at": "2026-05-26"
       }
     ],
     "adr": [],
@@ -128,6 +219,10 @@
     {
       "date": "2026-05-26",
       "path": "reports/status-2026-05-26.md"
+    },
+    {
+      "date": "2026-05-26-wave-open",
+      "path": "reports/status-2026-05-26-wave-open.md"
     }
   ]
 }
