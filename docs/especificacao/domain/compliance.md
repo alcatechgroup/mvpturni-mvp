@@ -1,6 +1,6 @@
 # Domínio · Compliance
 
-Decisão de referência: **PDR-002** (habitualidade), **PDR-001** (PF aceito), **PDR-008** (geofencing).
+Decisão de referência: **PDR-002** (habitualidade), **PDR-001** (PF aceito), **PDR-008** (geofencing), **PDR-012** (templates contratuais editáveis no backoffice).
 
 ## Princípio
 
@@ -56,7 +56,31 @@ A cada criação de turno (aprovação de candidatura), o sistema gera um **docu
 - IP e fingerprint da sessão de cada aceite.
 - Se for 3ª alocação semanal de PJ com override: cláusula adicional registrando o aceite de risco.
 
-Templates específicos (PF e MEI/PJ) precisam de spike jurídico antes do primeiro turno real — dependência forte do EPIC-000 ou do primeiro épico de cadastro.
+Templates específicos (PF e MEI/PJ) são **entidades de dados editáveis pelo admin no backoffice** (PDR-012), com versionamento append-only. Cada aceite eletrônico aponta para a **versão específica do template** que estava vigente no momento da aprovação da candidatura — mudanças posteriores criam nova versão mas **não afetam contratos passados**.
+
+### Estrutura do template no banco
+
+- `Template`: catálogo (`id`, `slug`: `pf_autonomo_eventual` | `mei_pj_b2b`, `nome_amigavel`).
+- `TemplateVersao`: cada edição cria nova versão (`id`, `template_id`, `versao` sequencial, `conteudo` com placeholders, `criado_por_admin`, `criado_em`, `ativa` boolean — apenas uma versão por template fica `ativa` de cada vez).
+- `AceiteEletronico` (campo do `Turno`): `{ template_versao_id, conteudo_renderizado, dados_renderizados: {...}, timestamp, ip, fingerprint }`. Imutável após criação.
+
+### Placeholders esperados nos templates
+
+Renderizados no momento do aceite a partir dos dados do usuário e do turno:
+
+- `{{contratante.razao_social}}`, `{{contratante.cnpj}}`, `{{contratante.endereco_completo}}`
+- `{{profissional.nome}}`, `{{profissional.documento}}` (CPF para PF; CNPJ para MEI/PJ), `{{profissional.endereco_completo}}`
+- `{{turno.funcao}}`, `{{turno.data_inicio}}`, `{{turno.data_fim}}`, `{{turno.valor}}`, `{{turno.taxa_turni}}`, `{{turno.total_contratante}}`
+- `{{aceite.timestamp}}`, `{{aceite.ip}}`, `{{aceite.fingerprint}}`
+- `{{habitualidade.override_aceito}}` (booleano — preenche cláusula adicional quando contratante aceita risco na 3ª alocação semanal de PJ).
+
+### Texto-seed inicial
+
+Versão 1 de cada template é escrita pelo PO com base em referências públicas (cláusulas materiais mínimas: natureza eventual, ausência de exclusividade, autonomia operacional, escopo do serviço, valor, prazo, responsabilidade tributária) e validada pelo Alexandro antes de subir em produção. Validação jurídica externa (advogado trabalhista contratado pela equipe Turni) acontece em qualquer momento posterior — a edição direta no backoffice substitui a necessidade de release.
+
+### Imutabilidade do aceite
+
+Uma vez gerado, o aceite **não pode ser editado nem apagado**. Mesmo se a versão do template for marcada como obsoleta no backoffice, o aceite anexado a um turno continua referenciando a versão original e renderizando exatamente o que foi mostrado e aceito no momento da aprovação. Esta é a garantia jurídica de prova de aceite.
 
 ## Trilha de auditoria
 

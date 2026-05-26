@@ -53,10 +53,10 @@ Foundation  Cadastro    Vaga e      Aceite,     Avaliação   Disputa
 
 ### EPIC-001 — Cadastro e aprovação
 
-- **Outcome**: profissional (PF, MEI ou PJ) e contratante completam o funil cadastro → aprovação manual da equipe Turni → welcome → completar cadastro → estado `ativo`.
-- **Entregável**: usuário leigo consegue se cadastrar pelo webapp; admin vê na fila do backoffice; aprova; usuário completa cadastro e fica `ativo`.
-- **Por que vem segundo**: sem usuários `ativo`, nada do resto acontece. Backoffice mínimo nasce aqui (fila de aprovação — PDR-003).
-- **Primeira estória obrigatória**: **spike jurídico/contábil** (templates de contrato eletrônico PF autônomo eventual + B2B PJ↔PJ, validação da regra de 2x/semana de PDR-002 com advogado trabalhista, mapa tributário do contratante ao contratar PF). Sem essa estória, o cadastro segue com contrato genérico que cria dívida.
+- **Outcome**: profissional (PF, MEI ou PJ) e contratante completam o funil cadastro → aprovação manual da equipe Turni → welcome → completar cadastro → estado `ativo`. Admin tem editor de templates contratuais no backoffice com versionamento (PDR-012).
+- **Entregável**: usuário leigo consegue se cadastrar pelo webapp; admin vê na fila do backoffice; aprova; usuário completa cadastro e fica `ativo`. Aceite eletrônico anexado ao usuário no momento da aprovação aponta para a versão vigente do template e fica imutável. Admin consegue editar templates a qualquer momento criando nova versão.
+- **Por que vem segundo**: sem usuários `ativo`, nada do resto acontece. Backoffice mínimo nasce aqui (fila de aprovação + editor de templates — PDR-003 + PDR-012).
+- **Sem dependência externa bloqueante**: por PDR-012, o spike jurídico/contábil sai do caminho crítico. O texto-seed inicial dos dois templates é escrito pelo PO durante o épico com base em referências públicas e validado pelo Alexandro antes de subir em produção. Validação por advogado externo é responsabilidade da equipe Turni e acontece **a qualquer momento posterior** — sem release.
 
 ### EPIC-002 — Vaga, feed e candidatura
 
@@ -108,7 +108,7 @@ Total: ~9-10 sprints semanais (≈ 2,5 meses), com folga para spike inicial e re
 ## Riscos abertos nesta onda
 
 1. **Integração Pagar.me em sandbox** — variabilidade do provedor pode atrasar EPIC-003. Mitigação: spike de Arquiteto deve cobrir Pagar.me antes do início do EPIC-001 (não esperar EPIC-003).
-2. **Templates de contrato eletrônico** — dependência externa (advogado + contador). Mitigação: spike é primeira estória do EPIC-001, executável em paralelo com setup técnico restante de EPIC-000.
+2. **Texto-seed dos templates contratuais não validado por advogado antes de produção** — risco rebaixado de "alto/dependência externa" para "médio/administrado" por PDR-012. Mitigação: texto-seed cobre cláusulas materiais com base em referências públicas; Alexandro valida antes de produção; ajustes pós-validação jurídica acontecem por edição direta no backoffice sem release. **Antes de o primeiro turno real rodar em produção, advogado externo precisa revisar e Alexandro precisa aplicar os ajustes via backoffice.**
 3. **Performance da consulta de habitualidade** (PDR-002) — pode virar gargalo. Mitigação: ADR específico no spike do EPIC-000 ou estória própria no início do EPIC-003.
 4. **Designer e Arquiteto compartilhando a mesma pessoa (Alexandro)** — risco de gargalo cognitivo. Mitigação: separação clara por sessão; ADR e DDR registrados explicitamente para preservar disciplina de papéis.
 
@@ -127,3 +127,8 @@ Total: ~9-10 sprints semanais (≈ 2,5 meses), com folga para spike inicial e re
 ## Próximo passo imediato
 
 Abrir o **EPIC-000 — Foundation** com a primeira estória de spike do Arquiteto. Designer também pode iniciar a fundação do Design System (DDR-001) em paralelo, já que a primeira estória de UI virá no EPIC-001.
+
+## Histórico de mudanças no roadmap
+
+- 2026-05-26 — criado por PO.
+- 2026-05-26 — ajustado por PO após PDR-012: EPIC-001 perde dependência externa bloqueante (spike jurídico fora do caminho crítico); ganha estória de editor de templates no backoffice + texto-seed inicial; risco "templates de contrato" rebaixado de alto para médio/administrado.

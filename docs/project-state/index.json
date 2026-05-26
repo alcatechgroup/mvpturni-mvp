@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "generated_at": "2026-05-26T22:09:38Z",
+  "generated_at": "2026-05-26T22:29:02Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
     "current_sprint": null,
     "phase": "wave-2026-01-aberta",
-    "notes": "WAVE-2026-01 planejada (Fluxo A concluído). 6 épicos no roadmap atual. EPIC-000 Foundation pronto para entrar em sprint — primeira estória é spike Arquiteto. Próximo passo: abertura da SPRINT-2026-W22 com STORY-001 a STORY-005 (spikes do Arquiteto)."
+    "notes": "WAVE-2026-01 planejada (Fluxo A concluído). 6 épicos no roadmap atual. EPIC-000 Foundation pronto para entrar em sprint — primeira estória é spike Arquiteto. PDR-012 (templates contratuais editáveis no backoffice) absorvido — EPIC-001 ajustado, sem dependência externa bloqueante. Próximo passo: nova sessão para Fluxo C — decompor EPIC-000 em estórias detalhadas (STORY-001 a STORY-011) antes de abrir SPRINT-2026-W22."
   },
   "product": {
     "vision": "product/vision.md",
@@ -197,6 +197,13 @@
         "title": "Escopo da WAVE-2026-01 — ciclo completo do turno em homologação",
         "status": "accepted",
         "path": "decisions/pdr/PDR-011-escopo-da-wave-2026-01.md",
+        "decided_at": "2026-05-26"
+      },
+      {
+        "id": "PDR-012",
+        "title": "Templates contratuais editáveis no backoffice; produto entrega texto-seed inicial",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-012-templates-contratuais-editaveis-no-backoffice.md",
         "decided_at": "2026-05-26"
       }
     ],

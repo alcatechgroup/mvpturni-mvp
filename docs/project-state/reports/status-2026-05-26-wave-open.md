@@ -60,6 +60,7 @@ Não aplicável ainda — primeira linha de código não foi escrita. Padrões h
 ## Decisões registradas no período
 
 - **PDR-011** — Escopo da WAVE-2026-01 (objetivo, sequência de épicos, fora de escopo, hipótese central, métrica-alvo).
+- **PDR-012** — Templates contratuais editáveis no backoffice (texto-seed inicial pelo produto; spike jurídico fora do caminho crítico; backoffice mínimo viável ganha editor de templates).
 - Roadmap atual versionado em `current-wave.md`; rascunho da próxima onda em `next-wave.md`.
 
 Nenhum ADR ou DDR ainda — primeiros virão como saída das estórias do EPIC-000 (spikes do Arquiteto + DDR-001 do Designer).
@@ -73,9 +74,9 @@ Nenhum bloqueio operacional (ainda não há sprint).
 1. **Integração Pagar.me em sandbox** — variabilidade do provedor pode atrasar EPIC-003.
    - **Probabilidade**: média. **Impacto**: alto.
    - **Mitigação**: spike de Arquiteto cobre Pagar.me no EPIC-000 (ADR-005, alto nível), antes de implementar. Em paralelo, manter mock dedicado em container que permite seguir mesmo se sandbox cair.
-2. **Templates de contrato eletrônico (dependência externa)** — calendário de advogado/contador pode estourar.
-   - **Probabilidade**: média. **Impacto**: alto (bloqueia EPIC-001 se atrasar).
-   - **Mitigação**: spike jurídico é primeira estória do EPIC-001, executável em paralelo com setup técnico restante do EPIC-000. Iniciar contato com advogado/contador **agora**, durante o EPIC-000.
+2. **Texto-seed dos templates contratuais não validado por advogado antes de produção** — risco **rebaixado por PDR-012**.
+   - **Probabilidade**: média. **Impacto**: médio (antes era alto/bloqueante).
+   - **Mitigação**: por PDR-012, templates ficam editáveis pelo admin no backoffice; texto-seed inicial é escrito pelo PO com referências públicas e validado pelo Alexandro antes de produção; advogado externo entra **quando a equipe Turni quiser**, sem release — basta editar no backoffice. **Pré-requisito antes do primeiro turno real em produção (não da onda)**: advogado revisar texto-seed e Alexandro aplicar ajustes via backoffice.
 3. **Performance da consulta de habitualidade (PDR-002)** — pode virar gargalo se base crescer.
    - **Probabilidade**: baixa no MVP (volume pequeno). **Impacto**: médio.
    - **Mitigação**: ADR-006 (estratégia de habitualidade) decidido no spike do EPIC-000.
@@ -88,7 +89,7 @@ Nenhum bloqueio operacional (ainda não há sprint).
 ### Próximos 7-14 dias
 
 - **Abrir SPRINT-2026-W22** com 4-5 estórias do EPIC-000 (spikes do Arquiteto: stack, hospedagem, monorepo, Pagar.me alto nível, habitualidade, autenticação, observabilidade, ADR-000 retroativo do PostgreSQL).
-- **Iniciar contato externo** com advogado trabalhista e contador para destravar o spike jurídico que vira primeira estória do EPIC-001.
+- **Iniciar contato externo** com advogado trabalhista e contador — agora **sem urgência de caminho crítico** (PDR-012). Quando vier o parecer, Alexandro edita o template direto no backoffice.
 - **Designer começa DDR-001** em paralelo: fundação do Design System (tokens, tipografia, paleta) que será aplicada no EPIC-001.
 - **Aprovar 9 ADRs** propostos pelo Arquiteto ao longo da SPRINT-2026-W22 (Alexandro como aprovador).
 
