@@ -4,26 +4,26 @@ Este documento é referenciado por toda estória. Ele descreve o que o PO **exig
 
 ## Por que estes padrões
 
-Turni lida com diagnóstico financeiro de empresas reais. Um erro de cálculo, vazamento de dado ou indisponibilidade prolongada custa a confiança de uma micro/pequena empresa que tem pouco a perder. Por isso a régua é alta — e é o PO que paga o preço de a baixar, então não baixe.
+O Turni intermedia trabalho real entre profissionais e contratantes, envolvendo identidade, presença, escala e pagamento via Pix. Um bug que confirma o profissional errado, uma falha que perde um match no fim de semana, um vazamento de dado pessoal ou uma instabilidade no fluxo de Pix custa diretamente confiança de gente que tem pouco a perder. Por isso a régua é alta — e é o PO que paga o preço de a baixar, então não baixe.
 
 ## 1. Testes automatizados
 
 ### 1.1 Cobertura unitária
 
 - **Mínimo geral:** 80% de cobertura de linhas e branches no código novo de cada estória.
-- **Núcleo e regras de negócio:** 98% de cobertura — isso inclui cálculos de diagnóstico, validações de regras, lógica de scoring, transformação de dados financeiros.
+- **Núcleo e regras de negócio:** 98% de cobertura — inclui lógica de matching, regras de elegibilidade de profissional/vaga, confirmação de PIN bilateral, repasse Pix, cálculo de comissão e qualquer transformação de dado pessoal/financeiro.
 - Cobertura é medida no PR. Se cair abaixo da meta, o PR não merge.
 
-### 1.2 Testes E2E
+### 1.2 Testes ponta-a-ponta (E2E)
 
 - Todo fluxo de usuário visível ao usuário final tem **pelo menos um cenário E2E** automatizado.
-- **Frontend web:** os E2E rodam em browser real via automação (não simulação por unit). Não importa qual ferramenta — importa que o teste exerça o DOM real.
-- **APIs sem frontend:** E2E é via cliente HTTP real chamando o serviço deployado em ambiente equivalente ao produtivo.
+- **Interface (mobile e web):** os E2E rodam em **app/browser real** via automação (não simulação por unit), exercendo a UI como o usuário exerce. **Ferramenta concreta é decisão de ADR do Arquiteto** — o PO exige só o resultado.
+- **APIs sem interface:** E2E é via cliente HTTP real chamando o serviço deployado em ambiente equivalente ao produtivo.
 - Cenários cobrem caminho feliz + ao menos um caminho de erro relevante.
 
 ### 1.3 Disciplina de TDD
 
-- Estórias de funcionalidade nova: o agente escreve teste primeiro, vê falhar, implementa, vê passar. Este é um requisito herdado e ratificado (ver `requisitos-nao-funcionais-e-juridicos.md`).
+- Estórias de funcionalidade nova: o agente escreve teste primeiro, vê falhar, implementa, vê passar. Este é um requisito herdado e ratificado (ver requisitos não-funcionais e jurídicos em `docs/especificacao/` conforme forem sendo consolidados pelo PO).
 - Não é fetichismo: o sinal de TDD bem feito é que o histórico de commits mostra testes acompanhando ou precedendo o código.
 
 ### 1.4 Sem código não testado em produção
@@ -42,12 +42,12 @@ O princípio: **se um humano precisa lembrar de fazer algo manualmente, o proces
 
 ### 2.2 CI/CD
 
-> Política detalhada em [ADR-006](../../../project-state/decisions/adr/ADR-006-cicd.md) (`accepted` 2026-05-21).
+> Política detalhada vive em ADR do Arquiteto quando for formalizada (`docs/project-state/decisions/adr/`). O texto abaixo descreve **o resultado exigido pelo PO** — ferramentas concretas são decisão do Arquiteto/Programador.
 
-- **Antes do push (laptop do dev/agente):** git pre-push hook versionado (instalado por `composer install`) roda testes unitários + testes Feature com Postgres real + testes E2E em browser real (Dusk) + análise de cobertura (gate 80% geral / 98% núcleo `app/Domain/**`). Hook falha = `git push` abortado.
-- **Todo push para branch de feature dispara (CI no GitHub Actions, leve):** lint (pint, larastan, ansible-lint, commitlint), análise de dependências (`composer audit`), análise de imagem (`trivy fs`), detecção de segredos (`gitleaks`), build da imagem Docker. **Não** sobe Postgres nem Chromium no runner — testes pesados já foram cobrados localmente pelo hook.
-- **Promoção é tag-based explícita**: criação da tag `vX.Y.Z-rc.N` dispara deploy automático em homologação (sem gate); criação da tag `vX.Y.Z` (sem `-rc`) dispara deploy em produção com gate humano de 1 clique via GitHub Environment.
-- Deploy é sempre automatizado — execução nunca é manual. Gate humano em produção é o único ato humano no fluxo; tudo o que ele aciona é Ansible playbook versionado.
+- **Antes do push (laptop do dev/agente):** git hook versionado (instalado por comando padrão do projeto) roda testes unitários + testes de integração contra **banco de dados real local** + testes E2E em **app/browser real** + medição de cobertura (gate 80% geral / 98% no núcleo de regras de negócio). Hook falha = `git push` abortado.
+- **Todo push para branch de feature dispara CI leve:** lint da linguagem/framework escolhido, lint de commit messages, análise de dependências vulneráveis, análise estática de imagens de container (quando aplicável), detecção de segredos commitados, build do artefato de deploy. **Não** sobe banco nem browser/emulador no runner — testes pesados já foram cobrados localmente pelo hook.
+- **Promoção é tag-based explícita:** criação da tag `vX.Y.Z-rc.N` dispara deploy automático em homologação (sem gate humano); criação da tag `vX.Y.Z` (sem `-rc`) dispara deploy em produção com **gate humano de 1 clique** via mecanismo de aprovação do CI escolhido.
+- Deploy é sempre automatizado — execução nunca é manual. Gate humano em produção é o único ato humano no fluxo; tudo o que ele aciona é script/playbook versionado em git.
 
 ### 2.3 Infraestrutura
 
@@ -74,30 +74,35 @@ Isso é exigência por estória que entrega serviço novo, não opcional.
 
 - Análise de dependências vulneráveis no pipeline.
 - Segredos nunca no código — sempre em cofre/variável injetada.
-- Dados pessoais tratados conforme `docs/especificacao/requisitos-nao-funcionais-e-juridicos.md`.
+- Dados pessoais tratados conforme requisitos não-funcionais e jurídicos consolidados em `docs/especificacao/` pelo PO (LGPD aplicável). Enquanto a spec não estiver pronta, a referência canônica é o protótipo (`docs/prototipo/`) — qualquer dúvida sobre tratamento de dado, escale ao PO.
 - PRs que adicionam coleta de novo dado pessoal são bloqueados até o PO confirmar que está coberto pelo aviso de privacidade.
 
-## 5. Acessibilidade (frontend)
+## 5. Acessibilidade (interface)
 
-- Componentes interativos novos têm rótulos acessíveis e funcionam por teclado.
-- Contraste mínimo respeitado conforme `docs/especificacao/design-system.md`.
+- Piso obrigatório: **WCAG 2.1 nível AA**.
+- Componentes interativos novos têm **rótulos acessíveis** com semântica adequada à plataforma escolhida e funcionam por **entrada alternativa** (teclado em web, leitor de tela / switch control em mobile).
+- Contraste mínimo WCAG AA respeitado conforme tokens do Design System em `docs/project-state/design/system/`.
+- O Designer detalha o piso e o método de verificação na sua skill — o PO exige aqui apenas o resultado.
 
 ## 6. O que NÃO é exigência transversal (e portanto é decisão técnica do time)
 
 Para deixar claro o que NÃO entra aqui:
 
+- Linguagem ou framework (backend, frontend, mobile).
 - Qual framework de teste usar.
-- Qual ferramenta de E2E (Playwright, Cypress, Puppeteer, etc).
-- Qual provedor de cloud.
-- Qual ferramenta de IaC (Terraform, Pulumi, etc).
+- Qual ferramenta de E2E.
+- Qual provedor de CI (e qual mecanismo concreto de aprovação humana em produção).
+- Qual provedor de cloud / qual ferramenta de IaC.
+- Qual banco de dados específico.
 - Qual padrão arquitetural (monolito, microsserviços, etc).
+- Qual padrão de versionamento semântico exato (desde que cumpra o resultado: promoção tag-based, RC em homologação, gate em produção).
 
-Tudo isso é o Arquiteto/Programador que decide. O PO só fala em **resultado** ("o pipeline tem que ser verde", "o ambiente tem que recriar do zero") — não em ferramenta.
+Tudo isso é o Arquiteto/Programador que decide via ADRs/IDRs. O PO só fala em **resultado** ("o pipeline tem que ser verde", "o ambiente tem que recriar do zero", "o gate humano existe e é 1 clique") — não em ferramenta.
 
 ## 7. Como o PO escreve isso em estórias
 
 Não copie este documento. Em cada estória, escreva:
 
-> Esta estória segue os padrões em `docs/skills/po/references/quality-standards.md`. Em particular: [destacar o que for específico desta estória, ex: cobertura 98% no módulo de scoring, E2E cobrindo o fluxo de cadastro].
+> Esta estória segue os padrões em `docs/skills/po/references/quality-standards.md`. Em particular: [destacar o que for específico desta estória, ex.: cobertura 98% no módulo de matching, E2E cobrindo o fluxo de confirmação de PIN bilateral em mobile e web].
 
 Se algum padrão NÃO se aplica (ex: estória de spike arquitetural não precisa de E2E), declare a exceção explicitamente na estória.
