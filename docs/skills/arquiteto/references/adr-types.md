@@ -214,6 +214,8 @@ Antes de escrever ADR, decida o nível certo. Três níveis:
 - **Plano de migração**: ferramenta, processo, estratégia para volume.
 - **Justificativa Postgres-first** quando extensões/recursos forem usados — não é desvio, é uso pleno.
 
+**Nota sobre geo no Turni:** o **geofencing** (PDR-008 — alerta-e-registra no check-in) e o cálculo de distância profissional×estabelecimento (algoritmo de match) podem ser implementados com Haversine simples no app **ou** com **PostGIS** no banco. Vale pesar em ADR de Persistência: PostGIS abre porta para queries geo eficientes ("vagas a menos de 5 km" indexado via GiST), buffer/área para geofence, distância em metros sem aproximação. Custo: extensão a habilitar e operar. Para o MVP com raio fixo e baixa cardinalidade, Haversine pode bastar; para volume real, PostGIS é o caminho consistente com princípio #3.
+
 **Mini-checklist:**
 - [ ] Agregados identificados pela razão de negócio.
 - [ ] Diagrama ER ou equivalente.
@@ -317,7 +319,67 @@ Antes de escrever ADR, decida o nível certo. Três níveis:
 
 ---
 
-## Tipo 7 — Política de evolução
+## Tipo 7 — Frontend / PWA
+
+> Decisões estruturais do(s) cliente(s) web — framework de FE, estratégia PWA, render, dados em tempo real no cliente, performance mobile.
+
+Esta decisão é **separada da de Stack** porque o Turni tem duas interfaces (PDR-003) e operação majoritariamente mobile, em rua, com 3G ruim. Tratar o FE como apêndice do BE leva a escolhas erradas (SSR pesado para um app que vai rodar offline; framework sem service worker maduro; etc.). Esta ADR pertence ao Arquiteto; a UX/UI dentro do framework escolhido é do Designer.
+
+**O que essa ADR cobre:**
+
+- Framework de FE (React, Vue, Svelte, Solid, Lit, etc) — para WebApp e para Backoffice (podem ser diferentes).
+- Estratégia de render: SPA pura, SSR, SSG, ilhas (Astro/Qwik), hidratação.
+- **Estratégia PWA**: manifest, instalabilidade, service worker (cache, offline, atualização), notificação push web.
+- **Offline-first vs online-first**: o quanto o WebApp continua funcional sem rede. (PDR-008 geofencing + uso em campo torna isto não-trivial.)
+- **Tempo real**: como o cliente recebe eventos vindos do servidor — polling, SSE, WebSocket, push. O turno tem cronômetro bilateral e eventos cruzados (candidato chegou, contratante validou) — não é decoração.
+- **Estado no cliente**: padrão (Redux/Zustand/signals/nada — só estado local), cache de servidor (React Query/SWR/etc).
+- **Build e bundle**: tooling (Vite, esbuild, etc), code-splitting, performance budget.
+- **Compatibilidade móvel**: viewport mínimo suportado, browsers alvo, dispositivos com pouca RAM.
+
+**Perguntas centrais:**
+
+- Quantas interfaces? (PDR-003 fixa duas — WebApp e Backoffice.) Mesmo framework para ambos ou diferente, com qual justificativa?
+- O WebApp **precisa** funcionar offline ou só "tolerar" rede ruim? Diferença grande na complexidade do service worker.
+- Push notification web é exigência do produto ou nice-to-have? (Impacta auth/identidade do device, integração com servidor.)
+- Tempo real é exigência forte (cronômetro vivo de turno) ou aceitável via polling curto?
+- Como o E2E rola? (Princípio #10.) Playwright/Cypress contra o que sobe local?
+- Como o ambiente local sobe (princípio #6)? Mesmo `docker compose up` que o backend?
+- Performance budget mobile: qual o LCP/INP/CLS alvo no 3G ruim?
+
+**Armadilhas comuns:**
+
+- Escolher framework "moderno" sem PWA maduro (manifest, SW, push) e descobrir depois que precisa.
+- Service worker complexo desde o dia 1 sem necessidade — vira fonte de bugs invisíveis ("por que a versão velha apareceu pro usuário?").
+- Estado global elaborado quando o problema era cache de servidor.
+- Bundle gigante sem code-splitting — mobile 3G sofre.
+- Ignorar atualização do service worker — usuário fica preso em versão antiga.
+- Decidir UX/UI nesta ADR (não é seu papel — é do Designer).
+
+**Exigências adicionais:**
+
+- **Performance budget explícito** (LCP, INP, CLS, bundle size por rota) — princípio #11 (custo) + UX em rua.
+- **Estratégia de atualização do service worker** documentada (skipWaiting, prompt ao usuário, etc).
+- **Como mocks/dev local funcionam** com PWA habilitado (SW pode atrapalhar HMR — ADR diz como tratar).
+- **Spike de "hello world PWA instalável + push"** quando push for exigência — não basta papel.
+
+**Mini-checklist:**
+
+- [ ] Framework de FE escolhido para cada interface (PDR-003) — com alternativas rejeitadas.
+- [ ] Estratégia de render definida (SPA/SSR/etc) e por quê.
+- [ ] PWA: manifest, service worker, política de cache, política de update.
+- [ ] Offline strategy: o que funciona offline, o que degrada, o que falha.
+- [ ] Tempo real: protocolo (polling/SSE/WebSocket/push) por caso de uso.
+- [ ] Push notification: usado? Como o device se registra? Como o servidor envia?
+- [ ] Performance budget mobile (números, não adjetivos).
+- [ ] Como ambiente local sobe + como E2E roda contra ele.
+
+**Exemplo ilustrativo (não real do projeto):**
+
+> "Frontend WebApp em **React + Vite**, PWA instalável com Workbox gerenciando cache (precaching de shell, runtime caching com `StaleWhileRevalidate` para `/api/vagas`). Atualização do SW com prompt explícito ("Nova versão disponível — atualizar?"). Offline degradado: lista de vagas e turnos em andamento ficam disponíveis em modo leitura; ações que mudam estado pedem rede. Tempo real: SSE para cronômetro de turno e eventos de contraparte; fallback para polling 10s quando SSE falha. Push notification via Web Push API + VAPID (registro de subscription por usuário, armazenado no Postgres). Performance budget: LCP < 2.5s no 3G simulado, bundle inicial < 180kB gzipped. Backoffice em **React + Vite separado**, sem PWA, com bundle maior aceitável (uso interno em desktop)."
+
+---
+
+## Tipo 8 — Política de evolução
 
 > Como o código e o sistema evoluem ao longo do tempo — branching, releases, feature flags.
 
@@ -371,8 +433,9 @@ Tipos são guia, não camisa de força. Se sua decisão não cabe limpa em um ti
 | Que linguagem/framework/runtime usar | Stack |
 | Quantos processos, monolito vs separação, sync vs async | Topológico |
 | Formato de API, protocolo, payload, versionamento | Contrato |
-| Modelo de dados, multi-tenancy, migrations, extensões Postgres | Persistência |
+| Modelo de dados, multi-tenancy, migrations, extensões Postgres (PostGIS, pgvector, etc.) | Persistência |
 | Provedor cloud, IaC, ambientes, rede | Infra |
 | Logs, métricas, alertas, tracing | Observabilidade |
+| Framework de FE, PWA, service worker, offline, tempo real no cliente, performance mobile | Frontend / PWA |
 | Branching, deploy, feature flags, releases | Política de evolução |
 | Revisar este próprio documento ou um princípio | `type: meta` |

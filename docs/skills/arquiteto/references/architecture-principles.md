@@ -242,6 +242,8 @@ Além disso:
 - **Caro:** escolha de linguagem principal.
 - **Quase irreversível na prática:** modelo de dados público para clientes (eles dependem do shape).
 
+**Exemplo no Turni.** PDR-007 (cancelamento permitido, motor de penalidade como evolução futura) é aplicação direta deste princípio: o modelo de dados de turno deve ser **extensível** para receber o motor de penalidade depois, sem reescrever a base. Decisão reversível no curto prazo, decisão preparada para evoluir no longo prazo.
+
 ---
 
 ## 8. Observabilidade é requisito
@@ -254,6 +256,8 @@ Além disso:
 - Toda ADR que adiciona componente novo descreve: que logs ele emite, que métricas expõe, se participa de trace distribuído.
 - Padrão mínimo (cruza com `quality-standards.md` do PO): health check, logs estruturados, métricas RED (Rate, Errors, Duration).
 - Custo de observabilidade entra no orçamento da decisão, não como adendo.
+
+**Exemplo no Turni.** PDR-010 (Pix > 15 min fora de escopo) só é aceitável **com observabilidade boa** — alerta no backoffice quando o caso ocorrer, log do evento, tempo até alguém ver. Sem isso, o "fora de escopo" vira "ninguém sabe que aconteceu". Mesmo raciocínio para PDR-008 (geofencing alerta-e-registra): "registra" só funciona se o registro é observável.
 
 ---
 
@@ -268,6 +272,8 @@ Além disso:
 - Aceite documentação só quando a automação é impraticável.
 - Linters arquiteturais (ArchUnit, deptrac, scripts próprios) são bem-vindos e cruzam diretamente com o princípio #5 (coesão/acoplamento).
 
+**Exemplo no Turni.** PDR-005 (avaliação recíproca obrigatória e bloqueante) é "gate de ação" repetido em vários endpoints. Em vez de pedir que cada PR lembre de checar, vale **um middleware/policy** que verifica e um teste arquitetural que falha se algum endpoint que cria candidatura não passar pela policy. Regra de produto virou regra automatizada.
+
 ---
 
 ## 10. Compatibilidade com TDD e E2E
@@ -280,6 +286,8 @@ Além disso:
 - ADR de stack ou framework descreve **como a estratégia de testes funciona naquela stack** (ferramentas, padrão de teste por camada, suporte a TDD).
 - ADR que introduz integração externa descreve estratégia de stub/mock — cruza com princípio #6 (funcionamento local).
 - Veto silencioso para tecnologias famosamente difíceis de testar.
+
+**Exemplo no Turni.** Pagar.me (PDR-004) é a integração crítica do MVP — pré-autorização, captura assíncrona, Pix, webhook entrante. A ADR de pagamento precisa descrever **como o E2E roda sem internet**: mock dedicado em container, contract test contra o sandbox real periodicamente em CI noturno. Sem isso, todo PR que toca pagamento vira heroísmo manual.
 
 ---
 
@@ -294,6 +302,8 @@ Além disso:
 - Soluções "grátis até X" são marcadas com o custo após X.
 - Lembre que custo zero hoje pode ser custo alto amanhã (lock-in, dependência).
 
+**Exemplo no Turni.** PDR-004 cobra a taxa do contratante; profissional recebe valor integral. Isso significa que a **margem do Turni vem da taxa**, e cada R$/mês de custo recorrente come margem direta. Decisão de observabilidade, push, e-mail transacional — todas têm que respeitar este limite. Não há "vamos resolver no Series A".
+
 ---
 
 ## 12. Restrições são informação
@@ -306,6 +316,8 @@ Além disso:
 - Toda ADR enumera pelo menos 1 alternativa rejeitada com motivo.
 - Toda ADR diz explicitamente **o que está fora do escopo dela** ("esta decisão não cobre Z; isso é matéria de outra ADR").
 - Quando um princípio é violado pela decisão escolhida, isso é nomeado como trade-off aceito — não escondido.
+
+**Exemplo no Turni.** PDR-010 ("Pix > 15 min fora do escopo do MVP") é o uso modelo deste princípio: a decisão **nomeia o que não vamos resolver agora** e o que fica para depois (sem retry automático, sem fluxo de reembolso, sem reconciliação). Isso ancora o trabalho do Arquiteto — você não precisa desenhar arquitetura para um caso que o PO disse que está fora; mas precisa do alerta no admin para tornar a restrição operável.
 
 ---
 

@@ -2,7 +2,7 @@
 
 NFRs (Non-Functional Requirements) são frequentemente tratados como "depois que escalarmos" — o que é uma armadilha. Para um marketplace de turnos como Turni, **NFRs moldam decisão estrutural cedo**. Disponibilidade, latência, recovery, custo, capacidade — cada um vira ou ADR dedicada ou seção em ADRs maiores.
 
-Esta reference cobre **como tratar NFRs no nível arquitetural**: definir, quantificar, expressar em ADR, validar. O PO especifica requisitos no nível de produto (`docs/especificacao/requisitos-nao-funcionais-e-juridicos.md`); o Arquiteto **decide arquitetura** para atendê-los.
+Esta reference cobre **como tratar NFRs no nível arquitetural**: definir, quantificar, expressar em ADR, validar. O PO especifica requisitos no nível de produto (`docs/especificacao/non-functional.md`); o Arquiteto **decide arquitetura** para atendê-los.
 
 ---
 
@@ -234,6 +234,22 @@ Cada ADR que adiciona componente / mexe em estrutura **deve responder** aos NFRs
 ```
 
 Não é seção decorativa — é o que torna o ADR **verificável**.
+
+---
+
+## NFRs específicos de cliente (PWA, mobile-first)
+
+O WebApp do Turni roda **majoritariamente em celular, em rua, em pé, com rede 3G ou pior** — o que vira NFR estrutural, não cosmética. Estes NFRs cabem em ADR `type: Frontend / PWA` (ver `adr-types.md`) e devem ser quantificados:
+
+- **Performance budget mobile** (Core Web Vitals): LCP, INP, CLS com **números alvo** em rede 3G simulada (ex: LCP < 2.5s p75, INP < 200ms p75, CLS < 0.1). Sem números, "rápido no celular" vira ficção.
+- **Bundle size por rota**: alvo em kB gzipped para JS inicial e para CSS crítico. Acima do alvo, build falha em CI.
+- **Offline strategy**: o que continua funcionando sem rede e o que degrada. Política de cache do service worker (precaching de shell, runtime caching de leituras, fila de escritas para sincronizar depois).
+- **Atualização do service worker**: como o usuário sai da versão antiga (prompt explícito, `skipWaiting`, etc.).
+- **Push notification entrega** (se usado): qual a janela aceitável entre evento no servidor e notificação chegar no device (ex: p95 < 30s)? Como medimos isso na prática?
+- **Tempo real**: latência aceitável de propagação de evento servidor → cliente (cronômetro de turno, "candidato chegou"). Define se polling 10s basta ou se precisa de SSE/WebSocket.
+- **Suporte de browser e dispositivo**: lista nominal mínima (ex: iOS Safari 15+, Chrome 100+). Dispositivos com pouca RAM (telefones de entrada) entram no perfil de teste.
+
+Esses números viram **plano de verificação** das ADRs de Frontend e são medidos em CI (Lighthouse budget) + observabilidade real (Real User Monitoring quando o produto existir).
 
 ---
 

@@ -260,6 +260,50 @@ Pasta `docs/project-state/integrations/` (a criar) pode reunir esses runbooks po
 
 ---
 
+## Integrações conhecidas do Turni
+
+Lista nominal das integrações que o produto já tem (ou terá no MVP) — para evitar redescoberta. Cada uma vira ADR própria quando entrar em escopo.
+
+- **Pagar.me** (única integração financeira do MVP — PDR-004): pré-autorização no aceite do candidato, captura assíncrona na conclusão do turno, **Pix com janela de até 15 min** para repasse, **captura parcial / estorno parcial** para suportar disputa (PDR-006). Webhook entrante para eventos de pagamento — segurança via HMAC, idempotência via event id. Fora do MVP: tratamento de Pix > 15 min (PDR-010) — apenas alerta no backoffice, sem retry automático.
+- **E-mail transacional**: aceite eletrônico (PDR-001), aprovação de cadastro, notificação ao candidato quando vaga muda (PDR-009), recuperação de senha, comunicados ao admin. Provedor a decidir em ADR; templates dinâmicos por `tipo_pessoa`.
+- **Push notification web (PWA)**: cronograma de turno, alertas de candidatura, notificação de vaga editada (PDR-009). Decisão cruza com a ADR de Frontend/PWA (Web Push API + VAPID, ou serviço terceiro). Identidade do device (subscription) armazenada por usuário.
+- **Geo / mapas** (PDR-008 — geofencing alerta-e-registra): cálculo de distância profissional×estabelecimento no check-in. Decisão a tomar em ADR de **Persistência**: PostGIS no Postgres (princípio #3) ou Haversine simples no app? Para o MVP, com poucas leituras simultâneas e raio fixo, Haversine pode bastar — mas PostGIS abre porta para match geo no futuro.
+- **(Futuro, não-MVP)** WhatsApp/SMS, OCR de planilhas, integração com Receita para validação de CNPJ. Cada um vira ADR quando entrar em escopo. **Sem antecipação** — princípio #1.
+
+ADRs específicas de cada integração herdam o checklist abaixo.
+
+---
+
+## Tempo real entre servidor e cliente
+
+Caso particular de "integração" — mas com o **próprio frontend** como contraparte. No Turni o turno tem **cronômetro bilateral vivo** (lados profissional e contratante veem o mesmo tempo correr) e **eventos cruzados** ("candidato chegou", "contratante validou check-out"). O protótipo simula com `localStorage` storage events; em produção, é decisão arquitetural com 4 opções típicas:
+
+| Mecanismo | Quando faz sentido | Trade-offs |
+|---|---|---|
+| **Polling curto (5–10s)** | Eventos toleram latência de segundos; baixo volume | Simples, sem servidor especial; tráfego desnecessário em horas mortas |
+| **Long polling** | Compatibilidade ampla, sem WebSocket | Conexão segurada — pressão em conexões HTTP |
+| **Server-Sent Events (SSE)** | Fluxo um-sentido (servidor → cliente), nativo no browser, sobre HTTP/1.1 ou HTTP/2 | Não bidirecional; precisa keep-alive bem desenhado |
+| **WebSocket** | Bidirecional, baixa latência | Outra superfície de servidor; auth/reconexão a tratar; mais complexo |
+| **Web Push** (browser push) | Notificação **com app fechado** | Não é tempo real "dentro do app"; UX intrusiva; latência de delivery variável |
+
+**Sugestão default para Turni (sujeita a ADR formal):** SSE para o cronômetro vivo dentro do app + Web Push para notificações com app fechado. WebSocket apenas se aparecer caso bidirecional real (chat ao vivo, etc.). A decisão é do Arquiteto em ADR `type: Frontend / PWA` ou `type: Contrato` (quando o foco é o protocolo). Tem que considerar: como E2E testa, como mock local funciona, como reconecta, como autoriza por usuário.
+
+---
+
+## Stack de notificações (multi-canal)
+
+Conforme PDR-009 (edição de vaga notifica candidatos) e outros fluxos, o Turni precisa enviar notificações em **múltiplos canais**: in-app (badge/lista), push web, e-mail transacional, possivelmente WhatsApp/SMS no futuro. Tratar cada canal isoladamente leva a duplicação. Padrão recomendado:
+
+- **Domínio emite evento** (`VagaEditada`, `CandidaturaAceita`, etc.).
+- **Camada de notificação** (`notification` module) decide **quais canais** disparar para qual destinatário, com **preferências do usuário** respeitadas.
+- **Adapters** por canal (e-mail, push, in-app) implementam a entrega — cada um com ACL próprio quando o canal envolve externo (e-mail provider, push service).
+- **Persistência da notificação** (in-app) é tabela no Postgres com status (não-lida, lida, descartada).
+- **Idempotência por evento** — duplicar `VagaEditada` para o mesmo candidato é silenciado.
+
+A ADR específica deve cobrir: matriz **evento × canal × default**, estrutura de preferências do usuário, retenção, política de retry por canal (push falha silenciosamente; e-mail pode ter bounce; etc.), e como o admin debug uma notificação que "sumiu".
+
+---
+
 ## Resumo operacional — ADR de integração externa
 
 Para cada integração externa relevante, o ADR responde:

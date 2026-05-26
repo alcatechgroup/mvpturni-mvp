@@ -19,7 +19,7 @@ updated_at: YYYY-MM-DD
 
 ## Contexto
 
-<2–4 parágrafos. Qual é a situação? Que forças/restrições estão em jogo? Por que precisamos decidir agora? Inclua restrições funcionais (referência à `especificacao-funcional.md`), não-funcionais (`requisitos-nao-funcionais-e-juridicos.md`), de time (tamanho, skill), de orçamento, e de prazo. Não proponha solução ainda.>
+<2–4 parágrafos. Qual é a situação? Que forças/restrições estão em jogo? Por que precisamos decidir agora? Inclua restrições funcionais (referência aos arquivos relevantes em `docs/especificacao/` — `glossary.md`, `business-rules.md`, `domain/<agregado>.md`, `flows/`), não-funcionais (`docs/especificacao/non-functional.md`), PDRs aplicáveis (`docs/project-state/decisions/pdr/`), de time (tamanho, skill), de orçamento, e de prazo. Não proponha solução ainda.>
 
 ## Forças (drivers) da decisão
 

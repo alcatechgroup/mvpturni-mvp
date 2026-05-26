@@ -186,7 +186,7 @@ ADR de cada integração inclui seção de segurança.
 
 ## LGPD na arquitetura
 
-LGPD é restrição funcional concreta (`requisitos-nao-funcionais-e-juridicos.md`). No nível arquitetural:
+LGPD é restrição funcional concreta (`docs/especificacao/non-functional.md` + `docs/especificacao/domain/compliance.md`). No nível arquitetural:
 
 ### Direitos do titular (Art. 18 LGPD) — implementáveis por design
 
@@ -224,6 +224,43 @@ Audit log **não é** log de aplicação (`observability-discipline.md` faz a di
 ADR de **persistência** inclui modelo de audit log. ADR de **autorização** inclui o que vira audit log e o que não.
 
 **Operações que típica viram audit:** login, criação/alteração/deleção de dado de negócio, mudança de permissão, exportação de dado, acesso a dado sensível, falha de autenticação.
+
+---
+
+## Segregação de interface administrativa (WebApp vs Backoffice)
+
+Decidido em **PDR-003** (Duas interfaces — WebApp e Backoffice): há **duas superfícies de entrada** no Turni com perfis e riscos distintos. Tratá-las como uma única "app com /admin protegido" é o erro a evitar — admin tem trauma maior se for comprometido.
+
+### Por que segregar
+
+- **Público × privado.** WebApp é internet aberta (contratante e profissional). Backoffice é uso interno do time Turni — público restrito, IPs e dispositivos controláveis.
+- **Risco assimétrico.** Comprometer um contratante atinge **uma conta**. Comprometer admin atinge **todas**.
+- **Carga de auditoria diferente.** Ação de admin geralmente precisa de log mais rico (motivo, evidência, contraparte).
+- **Velocidade de mudança diferente.** Backoffice evolui com o time interno; WebApp evolui com o produto.
+
+### Decisões derivadas que ADRs específicas precisam responder
+
+- **Subdomínio dedicado:** `app.turni...` vs `admin.turni...` (ou path-based — mais fraco). Subdomínio separado permite CSP, cookies e WAF distintos.
+- **Sessões e cookies isolados:** cookie de admin **não** é o mesmo cookie de WebApp; SameSite estrito; domínio do cookie escopado.
+- **Auth potencialmente mais forte no admin:** MFA obrigatório, lista de e-mails permitida, possível restrição de IP/VPN. WebApp pode ter MFA opcional.
+- **Modelo de autorização específico para admin:** papéis de admin (`admin_financeiro`, `admin_suporte`, `admin_compliance`) com permissões granulares — distintos dos papéis de WebApp.
+- **Audit log mais rico no admin:** toda ação destrutiva ou financeira registra **motivo textual + evidência**, não só "quem/quando/o quê" (ver PDR-006 disputa, PDR-009 edição de vaga, PDR-007 cancelamento).
+- **Pipeline e deploy podem ser independentes** (a discutir em ADR Topológica/Infra): mesmo monolito servindo dois hosts, ou builds separados a partir do mesmo monorepo. PDR-003 não fixa o how.
+- **CSP, headers de segurança e rate-limit calibrados por interface.** Admin pode aceitar regras mais paranoicas; WebApp precisa equilibrar UX.
+- **Erro fail-secure no roteamento:** se uma requisição WebApp chega no host admin (ou vice-versa), **bloqueia** — não tenta servir.
+
+### ADRs que tocam essa segregação
+
+- **ADR Topológica** sobre como o backoffice se materializa: monolito único servindo dois hosts? Bundle web separado? Aplicação Django/Rails admin built-in (princípio #4) vs admin custom?
+- **ADR de Autenticação:** sessão única ou duas separadas?
+- **ADR de Autorização:** RBAC unificado com papéis admin + WebApp, ou dois sistemas?
+- **ADR de Infra:** dois subdomínios, certificados, WAF por host.
+- **ADR de Política de evolução:** deploys casados ou independentes; feature flags por superfície.
+
+### Anti-padrão a evitar
+
+- "Já que é monolito, deixa /admin no mesmo host com middleware de permissão". Funciona — até alguém esquecer o middleware em **uma rota**. Segregar por host elimina classes inteiras de erro.
+- Reusar regras de RBAC do WebApp no admin sem revisão. Papéis de admin existem **para fazer coisas que usuário comum não pode** — herdar permissões silenciosamente é convite para escalonamento de privilégio.
 
 ---
 
