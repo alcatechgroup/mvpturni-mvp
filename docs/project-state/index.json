@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "generated_at": "2026-05-27T20:30:00Z",
+  "generated_at": "2026-05-27T22:00:00Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
-    "current_sprint": "SPRINT-2026-W22",
-    "phase": "wave-2026-01-sprint-w22-aberta",
-    "notes": "WAVE-2026-01 ativa. EPIC-000 Foundation decomposto via Fluxo C em 2026-05-26 (11 estórias). SPRINT-2026-W22 aberta em 2026-05-27 e CONCLUÍDA: todas as 6 estórias do sprint done. STORY-001 (ADR-001/002/003 aceitas), STORY-002 (ADR-004 aceita), STORY-005 (ADR-000 aceita), STORY-004 (ADR-007 auth Sanctum + ADR-008 observabilidade mínima aceitas), STORY-010 (designer, DDR-001 fundação do Design System aceito — dual-theme PDR-013 + cor por perfil) e STORY-003 (ADR-005 integração Pagar.me alto nível + ADR-006 estratégia de habitualidade — ambas aceitas por Alexandro em 2026-05-27, commit direto na main). Fundação documental do EPIC-000 fechada: 9 ADRs aceitas (ADR-000 a ADR-008) + DDR-001 + 13 PDRs. Restam apenas as estórias de implementação do EPIC-000 (STORY-006/007/008/009 + validação STORY-011), prontas para SPRINT-2026-W23."
+    "current_sprint": "SPRINT-2026-W23",
+    "last_closed_sprint": "SPRINT-2026-W22",
+    "phase": "wave-2026-01-sprint-w23-aberta",
+    "notes": "WAVE-2026-01 ativa. SPRINT-2026-W22 fechada em 2026-05-27 com goal 100% atingido (9 ADRs + DDR-001 + PDR-013 aceitos; Design System vivo; screen spec STORY-008 ready). SPRINT-2026-W23 aberta em 2026-05-27, escopo cheio para fechar o EPIC-000: 5 estórias (006 setup, 007 pipeline CI/CD, 008 hello world WebApp, 009 hello world Backoffice, 011 validação). Duração aberta com fechamento por goal-atingido (precedente cunhado na W22) e soft-cap em 2026-06-14 só como gatilho de reavaliação. Primeira sprint com código de produção do projeto — régua de qualidade herdada (cobertura ≥ 80%/98%, E2E em browser real, automação por padrão) ativa sem exceção. Disciplinas novas vindas das lições da W22: (1) sprint_id no frontmatter já aplicado nas 5 estórias na abertura; (2) marcação de CA obrigatória para status done; (3) verdade de corredor vira PDR/ADR/DDR antes de absorver na estória; (4) sync designer↔programador ≤15 min em STORY-008 antes de qualquer linha de UI."
   },
   "product": {
     "vision": "product/vision.md",
@@ -260,9 +261,9 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
-      "sprint_id": null,
+      "status": "in_review",
+      "owner_agent": "programador-claude",
+      "sprint_id": "SPRINT-2026-W23",
       "path": "epics/EPIC-000-foundation/stories/STORY-006-setup-repo-e-ambiente-local-1-comando.md",
       "blocked_by": [
         "STORY-001",
@@ -276,7 +277,7 @@
         "STORY-011"
       ],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-05-27"
     },
     {
       "id": "STORY-007",
@@ -288,7 +289,7 @@
       "design_screen_id": null,
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W23",
       "path": "epics/EPIC-000-foundation/stories/STORY-007-pipeline-cicd-deploy-automatico-homologacao.md",
       "blocked_by": [
         "STORY-006",
@@ -300,7 +301,7 @@
         "STORY-011"
       ],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-05-27"
     },
     {
       "id": "STORY-008",
@@ -309,10 +310,10 @@
       "type": "implementation",
       "target_role": "programador",
       "requires_design": true,
-      "design_screen_id": null,
+      "design_screen_id": "SCREEN-STORY-008-hello-world-webapp",
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W23",
       "path": "epics/EPIC-000-foundation/stories/STORY-008-hello-world-webapp.md",
       "blocked_by": [
         "STORY-007",
@@ -323,7 +324,7 @@
         "STORY-011"
       ],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-05-27"
     },
     {
       "id": "STORY-009",
@@ -335,7 +336,7 @@
       "design_screen_id": null,
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W23",
       "path": "epics/EPIC-000-foundation/stories/STORY-009-hello-world-backoffice.md",
       "blocked_by": [
         "STORY-007",
@@ -346,7 +347,7 @@
         "STORY-011"
       ],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-05-27"
     },
     {
       "id": "STORY-010",
@@ -379,7 +380,7 @@
       "design_screen_id": null,
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W23",
       "path": "epics/EPIC-000-foundation/stories/STORY-011-validacao-final-epic-000.md",
       "blocked_by": [
         "STORY-001",
@@ -395,17 +396,20 @@
       ],
       "blocks": [],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-05-27"
     }
   ],
   "sprints": [
     {
       "id": "SPRINT-2026-W22",
       "wave": "WAVE-2026-01",
-      "status": "active",
+      "status": "closed",
       "start_date": "2026-05-27",
       "end_date": "2026-06-07",
+      "closed_at": "2026-05-27",
+      "closed_by": "Alexandro (PO)",
       "goal": "Fundação documental do EPIC-000 fechada: 9 ADRs aceitas (ADR-000 a ADR-008) + DDR-001 aceito; estórias de implementação prontas para SPRINT-2026-W23.",
+      "goal_outcome": "achieved",
       "path": "sprints/SPRINT-2026-W22.md",
       "story_ids": [
         "STORY-001",
@@ -414,7 +418,37 @@
         "STORY-004",
         "STORY-005",
         "STORY-010"
-      ]
+      ],
+      "delivered_story_ids": [
+        "STORY-001",
+        "STORY-002",
+        "STORY-003",
+        "STORY-004",
+        "STORY-005",
+        "STORY-010"
+      ],
+      "carried_over_story_ids": []
+    },
+    {
+      "id": "SPRINT-2026-W23",
+      "wave": "WAVE-2026-01",
+      "status": "active",
+      "start_date": "2026-05-27",
+      "end_date": "open",
+      "soft_cap_date": "2026-06-14",
+      "closure_rule": "goal-atingido (encerra quando STORY-011 entregar veredito approved); soft-cap em 2026-06-14 é gatilho de reavaliação, não prazo de entrega",
+      "goal": "EPIC-000 fechado: hello world em ambas as homologações (WebApp + Backoffice) deployado por tag, pipelines verdes, e veredito approved da STORY-011 (Validador).",
+      "goal_outcome": "pending",
+      "path": "sprints/SPRINT-2026-W23.md",
+      "story_ids": [
+        "STORY-006",
+        "STORY-007",
+        "STORY-008",
+        "STORY-009",
+        "STORY-011"
+      ],
+      "delivered_story_ids": [],
+      "carried_over_story_ids": []
     }
   ],
   "decisions": {
@@ -689,6 +723,10 @@
     {
       "date": "2026-05-27-sprint-w22-aberto",
       "path": "reports/status-2026-05-27-sprint-w22-aberto.md"
+    },
+    {
+      "date": "2026-05-27-sprint-w23-aberto",
+      "path": "reports/status-2026-05-27-sprint-w23-aberto.md"
     }
   ]
 }

@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Hook de pré-push do Turni (quality-standards.md 2.2).
+# Falha aqui = `git push` abortado. Instalado por `make hooks` (core.hooksPath).
+#
+# Roda, nesta ordem (barato → caro):
+#   1) detector de segredos mínimo (segredos nunca commitados — secção 4)
+#   2) suíte de testes: unit + integração contra Postgres + cobertura (`make test`)
+#
+# Os testes E2E em browser real entram em STORY-008/009 (aqui o aparato apenas existe).
+set -uo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+red()  { printf '\033[31m%s\033[0m\n' "$*"; }
+grn()  { printf '\033[32m%s\033[0m\n' "$*"; }
+
+echo "── pré-push: detector de segredos ──"
+
+# Bloqueia arquivos .env (que não sejam .env.example) versionados.
+if git ls-files | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example$' >/dev/null 2>&1; then
+  red "ABORTADO: arquivo .env versionado detectado. Segredos não vão para o git (ADR-004 / quality-standards 4)."
+  git ls-files | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example$'
+  exit 1
+fi
+
+# Procura padrões óbvios de segredo nos arquivos rastreados (heurística mínima).
+SECRET_PATTERN='(-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|AWS_SECRET_ACCESS_KEY=.+|PAGARME_(SECRET|API)_KEY=sk_[a-zA-Z0-9]+)'
+if git grep -nIE "$SECRET_PATTERN" -- ':!*.env.example' ':!scripts/hooks/pre-push' >/dev/null 2>&1; then
+  red "ABORTADO: possível segredo encontrado no código rastreado:"
+  git grep -nIE "$SECRET_PATTERN" -- ':!*.env.example' ':!scripts/hooks/pre-push'
+  exit 1
+fi
+grn "ok: nenhum segredo detectado"
+
+echo "── pré-push: suíte de testes (unit + integração + cobertura) ──"
+if ! make test; then
+  red "ABORTADO: a suíte de testes falhou. Push cancelado."
+  exit 1
+fi
+
+grn "pré-push ok — push liberado"
+exit 0

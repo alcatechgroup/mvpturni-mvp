@@ -1,4 +1,33 @@
 .DS_Store
+
+# Segredos / ambiente — .env NUNCA é versionado; .env.example SIM (ADR-004)
 .env
 .env.*
+!.env.example
+apps/*/.env
 
+# PHP / Laravel
+/apps/*/vendor/
+/packages/*/vendor/
+/apps/*/storage/*.key
+/apps/*/storage/logs/*
+/apps/*/storage/framework/cache/data/*
+/apps/*/storage/framework/sessions/*
+/apps/*/storage/framework/views/*
+/apps/*/bootstrap/cache/*.php
+.phpunit.result.cache
+.phpunit.cache/
+
+# Flutter / Dart (WebApp)
+/apps/webapp/.dart_tool/
+/apps/webapp/build/
+/apps/webapp/.flutter-plugins
+/apps/webapp/.flutter-plugins-dependencies
+
+# Node (tooling eventual)
+node_modules/
+
+# Cobertura
+coverage/
+clover.xml
+coverage.xml

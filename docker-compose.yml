@@ -1,0 +1,110 @@
+# Orquestração local do Turni — sobe o sistema inteiro em 1 comando (princípio #6).
+# Topologia conforme ADR-002: domínio compartilhado (packages/domain) +
+# duas camadas de entrega (api, admin) + worker, todos sobre um único Postgres.
+# Pagar.me é mockado em container (ADR-005). Variáveis vêm do .env da raiz
+# (criado a partir de .env.example pelo `make setup`).
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-turni}
+      POSTGRES_USER: ${POSTGRES_USER:-turni}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-turni}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # postgres:18+ guarda os dados em subpasta versionada; o mount é em
+      # /var/lib/postgresql (não /data) — convenção nova da imagem oficial.
+      - pgdata:/var/lib/postgresql
+      # cria o banco de testes (turni_test) na inicialização do volume
+      - ./infra/docker/postgres/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-turni} -d ${POSTGRES_DB:-turni}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # API JSON pública — cliente é o WebApp Flutter (ADR-002). Constrói a imagem
+  # PHP compartilhada (turni/php:dev) que admin e worker reutilizam.
+  api:
+    build:
+      context: ./infra/docker/php
+    image: turni/php:dev
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    env_file:
+      - ./apps/api/.env
+    volumes:
+      - ./apps/api:/app
+      # vendor em volume nomeado: composer extrai na fs nativa da VM (não no
+      # bind mount) — evita corrida de extração e é muito mais rápido no macOS.
+      - api_vendor:/app/vendor
+      - ./packages/domain:/packages/domain
+    ports:
+      - "${API_PORT:-8001}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      pagarme-mock:
+        condition: service_started
+
+  # Backoffice Livewire — rede restrita em prod (ADR-002/004); local exposto p/ dev.
+  admin:
+    image: turni/php:dev
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    env_file:
+      - ./apps/admin/.env
+    volumes:
+      - ./apps/admin:/app
+      - admin_vendor:/app/vendor
+      - ./packages/domain:/packages/domain
+    ports:
+      - "${ADMIN_PORT:-8002}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_started
+
+  # Worker — mesmo código do api rodando a fila `database` (ADR-002), sem porta.
+  worker:
+    image: turni/php:dev
+    command: php artisan queue:work --tries=3 --sleep=2
+    env_file:
+      - ./apps/api/.env
+    volumes:
+      - ./apps/api:/app
+      - api_vendor:/app/vendor
+      - ./packages/domain:/packages/domain
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_started
+
+  # Mock do Pagar.me (ADR-005) — apenas de pé nesta estória; rotas funcionais
+  # entram no EPIC-003. PAGARME_DRIVER=mock aponta os apps para cá.
+  pagarme-mock:
+    build:
+      context: ./infra/docker/pagarme-mock
+    image: turni/pagarme-mock:dev
+    ports:
+      - "${PAGARME_MOCK_PORT:-8090}:8080"
+
+  # WebApp Flutter (web) — serve o build estático (apps/webapp/build/web).
+  # `make setup` roda `flutter build web` no host (Flutter é pré-requisito).
+  webapp:
+    image: turni/php:dev
+    command: php -S 0.0.0.0:8000 -t /app/build/web
+    volumes:
+      - ./apps/webapp:/app
+    ports:
+      - "${WEBAPP_PORT:-8003}:8000"
+    depends_on:
+      api:
+        condition: service_started
+
+volumes:
+  pgdata:
+  api_vendor:
+  admin_vendor:

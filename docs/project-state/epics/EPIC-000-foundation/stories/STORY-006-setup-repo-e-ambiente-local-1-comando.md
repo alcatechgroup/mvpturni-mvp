@@ -3,14 +3,14 @@ story_id: STORY-006
 slug: setup-repo-e-ambiente-local-1-comando
 title: Setup do repositório e ambiente local em 1 comando
 epic_id: EPIC-000
-sprint_id: null
+sprint_id: SPRINT-2026-W23
 type: enablement
 target_role: programador
 requires_design: false
-status: ready
-owner_agent: null
+status: in_review
+owner_agent: programador-claude
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-05-27
 estimated_session_size: M
 ---
 
@@ -58,16 +58,16 @@ Indiretamente, é também a primeira evidência de que as ADRs propostas pelo Ar
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Repositório(s) criado(s) e estruturado(s) conforme ADR-003 (monorepo ou polirepo). README na raiz contém: visão de uma frase do Turni, link para `AGENTS.md`, link para `docs/project-state/`, pré-requisitos para rodar local (versão mínima de runtime, Docker, etc — lista curta) e a frase exata do comando único.
-- [ ] **CA-2:** Em máquina limpa com os pré-requisitos instalados, executar o comando único da raiz sobe **WebApp + Backoffice + PostgreSQL + mock Pagar.me** em estado saudável (cada processo aceita conexão na porta configurada) em ≤ 5 minutos no primeiro `setup` e ≤ 1 minuto em runs subsequentes (`up` apenas, sem rebuild).
-- [ ] **CA-3:** PostgreSQL local sobe com schema inicial aplicado via **migração automatizada e idempotente** (rodar o comando duas vezes não quebra — `quality-standards.md` seção 2.4). A migração inicial pode ser vazia (ou só com a tabela de controle de migrações) — não cria modelo de domínio ainda.
-- [ ] **CA-4:** O ambiente local **não** chama Pagar.me real — usa o mock em container. Variável de ambiente / arquivo de configuração local aponta para o mock.
-- [ ] **CA-5:** Segredos (mesmo de mock/dev) **não** ficam commitados em texto — usa `.env.example` versionado + `.env` no `.gitignore`. README explica como criar o `.env` a partir do `.env.example` (idealmente o comando de setup faz isso quando ausente).
-- [ ] **CA-6:** **Hook de pré-push** instalado por um comando padrão do projeto (`quality-standards.md` seção 2.2), rodando: testes unitários + testes de integração contra PostgreSQL local + medição de cobertura. Hook falha = `git push` abortado. **Para esta estória**, basta o aparato existir e rodar 1 teste trivial (smoke) — testes E2E em browser real ficam em STORY-008/009.
-- [ ] **CA-7:** Dados de seed mínimos: pelo menos um usuário admin de teste (sem login funcional — só presença no banco para próximas estórias consumirem). Seed é executado pelo comando de setup; rodar duas vezes é idempotente.
+- [x] **CA-1:** Repositório(s) criado(s) e estruturado(s) conforme ADR-003 (monorepo ou polirepo). README na raiz contém: visão de uma frase do Turni, link para `AGENTS.md`, link para `docs/project-state/`, pré-requisitos para rodar local (versão mínima de runtime, Docker, etc — lista curta) e a frase exata do comando único.
+- [x] **CA-2:** Em máquina limpa com os pré-requisitos instalados, executar o comando único da raiz sobe **WebApp + Backoffice + PostgreSQL + mock Pagar.me** em estado saudável (cada processo aceita conexão na porta configurada) em ≤ 5 minutos no primeiro `setup` e ≤ 1 minuto em runs subsequentes (`up` apenas, sem rebuild).
+- [x] **CA-3:** PostgreSQL local sobe com schema inicial aplicado via **migração automatizada e idempotente** (rodar o comando duas vezes não quebra — `quality-standards.md` seção 2.4). A migração inicial pode ser vazia (ou só com a tabela de controle de migrações) — não cria modelo de domínio ainda.
+- [x] **CA-4:** O ambiente local **não** chama Pagar.me real — usa o mock em container. Variável de ambiente / arquivo de configuração local aponta para o mock.
+- [x] **CA-5:** Segredos (mesmo de mock/dev) **não** ficam commitados em texto — usa `.env.example` versionado + `.env` no `.gitignore`. README explica como criar o `.env` a partir do `.env.example` (idealmente o comando de setup faz isso quando ausente).
+- [x] **CA-6:** **Hook de pré-push** instalado por um comando padrão do projeto (`quality-standards.md` seção 2.2), rodando: testes unitários + testes de integração contra PostgreSQL local + medição de cobertura. Hook falha = `git push` abortado. **Para esta estória**, basta o aparato existir e rodar 1 teste trivial (smoke) — testes E2E em browser real ficam em STORY-008/009.
+- [x] **CA-7:** Dados de seed mínimos: pelo menos um usuário admin de teste (sem login funcional — só presença no banco para próximas estórias consumirem). Seed é executado pelo comando de setup; rodar duas vezes é idempotente.
 - [ ] **CA-8:** Comando de setup é **testado em CI periodicamente** (job de CI ou script agendado) para não apodrecer — `quality-standards.md` seção 2.1. Pode ser apenas um workflow que `clones em runner limpo + executa setup + faz curl nas portas`. Pode ser feito junto com STORY-007 se o pipeline ainda não existe; aqui basta o trabalho estar previsto no PR ou criar a tarefa para STORY-007 absorver.
-- [ ] **CA-9:** README de cada interface (WebApp, Backoffice) e do repositório raiz documenta: comando único, comandos auxiliares (rodar testes, rodar lint, parar tudo, limpar), e estrutura de pastas em alto nível.
-- [ ] **CA-10:** **Teste smoke unitário** existe em pelo menos um dos componentes (mesmo que trivial — "1 + 1 == 2" no framework de teste de ADR-001), rodando no pré-push, **só para garantir que o aparato de teste está plugado** desde a primeira estória.
+- [x] **CA-9:** README de cada interface (WebApp, Backoffice) e do repositório raiz documenta: comando único, comandos auxiliares (rodar testes, rodar lint, parar tudo, limpar), e estrutura de pastas em alto nível.
+- [x] **CA-10:** **Teste smoke unitário** existe em pelo menos um dos componentes (mesmo que trivial — "1 + 1 == 2" no framework de teste de ADR-001), rodando no pré-push, **só para garantir que o aparato de teste está plugado** desde a primeira estória.
 
 ## Fora de escopo
 
@@ -152,23 +152,64 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 
 ## Notas do agente (preenchido durante/após execução)
 
+### Entrada inicial — 2026-05-27 (programador-claude)
+
+**Documentos lidos (inteiros, não resumo):** esta estória; `docs/skills/programador/SKILL.md`; ADR-000 (PostgreSQL), ADR-001 (stack), ADR-002 (topologia), ADR-003 (monorepo), ADR-004 (hospedagem — env/segredos/portas), ADR-005 (Pagar.me/mock), ADR-008 (observabilidade/log); `quality-standards.md` seções 1, 2.1, 2.2, 2.4, 4; README e AGENTS.md da raiz; `.gitignore`; `index.json`.
+
+**Entendimento consolidado (minhas palavras):**
+- Stack (ADR-001): backend PHP 8.4+/Laravel 13.x; Backoffice Livewire 4.x; WebApp Flutter Web. Eloquent, migrations nativas, fila driver `database` (sem Redis), Pest, Telescope/Pulse, Sanctum/Dusk.
+- Topologia (ADR-002): monolito modular. Domínio num **package interno compartilhado** (`packages/domain`, PHP). Duas camadas finas de entrega: `apps/api` (JSON, pública) e `apps/admin` (Livewire, restrita) + um `worker` (`queue:work` sobre o mesmo código). Um único Postgres (dados + fila).
+- Repo (ADR-003): **monorepo poliglota único**. `apps/{api,admin,webapp}`, `packages/{domain,design-tokens}`, `contracts/`, `docker-compose.yml` na raiz. Domínio compartilhado via **Composer path repository** (sem publicar). WebApp Dart liga ao resto por contrato + tokens, não por runtime.
+- Pagar.me (ADR-005): `pagarme-mock` em container no compose; env `PAGARME_DRIVER=mock|sandbox|live` (default `mock` local). Nesta estória basta o mock estar **de pé** (sem rotas funcionais).
+- Env/segredos (ADR-004): dev local usa `.env` **não versionado** (Secret Manager é prod). Portas/domínios homolog: `api.`/`admin.`/`app.homolog.turni.com.br`. Postgres gerenciado em prod (Cloud SQL); local em container.
+- Observabilidade (ADR-008): log JSON em stdout; `/health` é STORY-008/009 (fora daqui). Telescope/Pulse local.
+
+**Comando único escolhido:** `make setup` (máquina limpa → ambiente de pé, alvo ≤5 min) e `make up` (runs subsequentes, ≤1 min). Orquestração: **Docker Compose**. Imagens: `php:8.5-cli-alpine` (cacheada localmente, casa com alvo PHP 8.5 do ADR-001) + `postgres:18-alpine`.
+
+**Plano (bullets):**
+1. Esqueleto do monorepo + `docker-compose.yml` (api+admin+worker+postgres+pagarme-mock) + Dockerfiles + Makefile + `.env.example` + `.gitignore`.
+2. `packages/domain` como Composer path package; `apps/api` (Laravel) e `apps/admin` (Laravel+Livewire) consumindo-o; `worker` reusa imagem do api com `queue:work`.
+3. Migração inicial idempotente (defaults do framework: tabela `jobs` p/ fila `database` — exigida por ADR-002; tabela `users` p/ o seed). Seed idempotente de 1 admin de teste.
+4. `pagarme-mock` de pé + `PAGARME_DRIVER=mock`.
+5. WebApp Flutter: rota raiz 200 com placeholder mínimo.
+6. Hook de pré-push (comando padrão do projeto) rodando unit + integração contra Postgres + cobertura + detector de segredos mínimo; smoke test `1+1`.
+7. READMEs (raiz + por interface), IDR (versão Postgres, organização de migrações, estrutura de testes), finalizar Notas, PR, `index.json`.
+
+**Testes que pretendo escrever:** smoke unitário (Pest) em `api`/`domain` garantindo o aparato plugado; teste de migração idempotente (rodar 2x não quebra); teste do seed idempotente (2x → 1 admin). E2E não se aplica (declarado — entra em STORY-008/009).
+
+**Dúvidas/ambiguidades:** nenhuma bloqueante. Decisão de borda registrada: CA-3 diz "migração inicial pode ser vazia"; mas a fila `database` (ADR-002) **exige** a tabela `jobs` e o seed do admin (CA-7) **exige** `users`. Tratei `jobs`/`users`/`cache` como **defaults do framework** (não modelagem de domínio Turni, que é EPIC-001) — será justificado em IDR.
+
 ### Decisões tomadas
-- <data> — <decisão local>
+- 2026-05-27 — Comando único = `make setup` / `make up` (Docker Compose). Imagem base `php:8.5-cli-alpine`, `postgres:18-alpine`.
+- 2026-05-27 — Manter migrações default do Laravel (`users`, `cache`, `jobs`) como base do schema; `jobs` é requisito da fila `database` (ADR-002), `users` é base do seed admin (CA-7). Sem tabelas de domínio Turni (EPIC-001). Detalhe → IDR.
 
 ### Descobertas
-- <data> — <surpresa / gotcha>
+- 2026-05-27 — PHP/Composer não estão no host; por desenho (ADR) rodam em container. `php:8.5-cli-alpine` e `postgres:18-alpine` já em cache local; egress de rede OK (pub.dev/dockerhub/packagist alcançáveis).
 
 ### Bloqueios encontrados
-- <data> — <bloqueio>
+- (nenhum até agora)
 
 ### IDRs criados
-- IDR-XXX — <título> — `decisions/idr/IDR-XXX-<slug>.md`
+- IDR-001 — Padrões de fundação do monorepo e do ambiente local — `decisions/idr/IDR-001-fundacao-ambiente-local.md`
 
 ### Cobertura final
-- Unitários: <%>
-- E2E: N/A nesta estória
+- **api**: 100% (`app` + `database/seeders`), gate `--min=80` no pré-push. 7 testes Pest (smoke, wiring de domínio, conexão Postgres, migrações, rota raiz, criação + idempotência do seed).
+- **admin**: 5 testes Pest (smoke, wiring de domínio, conexão Postgres, rota raiz, Livewire presente). Sem gate de cobertura (sem lógica de negócio ainda).
+- **webapp**: 1 teste de widget Flutter (placeholder renderiza).
+- **E2E**: N/A nesta estória — aparato E2E em browser real entra em STORY-008/009 (declarado).
+
+### Resultado final / evidência (verificado localmente em 2026-05-27)
+- `make clean && make setup` (máquina já com imagens) → tudo de pé em ~34s (alvo ≤5min folgado).
+- Endpoints saudáveis: API :8001 → 200, Backoffice :8002 → 200, WebApp :8003 → 200, mock Pagar.me :8090 → 200; Postgres healthy; worker `queue:work` up.
+- Migração idempotente (rodar 2x: "Nothing to migrate"); seed idempotente (2x → 1 admin `admin@turni.local`).
+- Banco `turni` (dev) + `turni_test` (integração) criados; testes de integração contra Postgres real.
+- Hook de pré-push: `core.hooksPath=scripts/hooks`; rodada manual passou (detector de segredos + api/admin/webapp verdes) → "push liberado".
+
+### Pendências para fechar (in_review → done)
+- **CA-8** (setup testado em CI periódico) **fica para STORY-007** — não há pipeline ainda (a própria estória permite). STORY-007 deve absorver: workflow que clona em runner limpo, roda `make setup` e faz curl nas portas.
+- "CI verde no PR" e "deploy em homologação" do DoD dependem do pipeline (STORY-007).
 
 ### Links de evidência
-- PR: <url>
-- Pipeline: <url>
-- Comando único em ação (asciinema / vídeo / log): <link>
+- Commit: direto na `main` (sem PR — decisão de Alexandro, time pequeno).
+- Pipeline: N/A (STORY-007). `done` quando STORY-007 fechar CI verde + deploy em homologação verificado.
+- Comando único em ação (log): ver saída de `make setup` acima
