@@ -1,0 +1,55 @@
+name: Setup local test (scheduled)
+
+# CA-14: job agendado que clona em runner limpo, executa o comando único de
+# STORY-006, e verifica que cada porta responde com curl.
+# Falha dispara o mesmo canal de alerta (e-mail para Alexandro).
+on:
+  schedule:
+    - cron: "0 3 * * *"   # 03:00 UTC diariamente
+  workflow_dispatch:       # execução manual para testes
+
+jobs:
+  setup-test:
+    name: Testar setup local em runner limpo
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.x"
+          cache: false   # runner limpo — sem cache
+
+      - name: Instalar PHP 8.5 + Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          tools: composer:v2
+
+      - name: Executar make setup (único comando, ≤ 5 min)
+        run: make setup
+        timeout-minutes: 10
+
+      - name: Verificar portas com curl
+        run: |
+          fail=0
+          check() {
+            local name=$1 url=$2
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$url" || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✓ $name ($url) → $STATUS"
+            else
+              echo "✗ $name ($url) → $STATUS"
+              fail=1
+            fi
+          }
+          check "API"        "http://localhost:8001"
+          check "Backoffice" "http://localhost:8002"
+          check "WebApp"     "http://localhost:8003"
+          exit $fail
+
+      - name: Teardown
+        if: always()
+        run: make down

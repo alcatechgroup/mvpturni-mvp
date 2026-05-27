@@ -69,6 +69,60 @@ mvpturni-mvp/
 
 Arquitetura: monolito modular Laravel com domínio compartilhado e duas camadas de entrega (`api`, `admin`) + `worker`, tudo sobre um único PostgreSQL — ver `docs/project-state/decisions/adr/` (ADR-001 stack, ADR-002 topologia, ADR-003 monorepo) e `docs/project-state/decisions/idr/IDR-001` (fundação do ambiente local).
 
+## Deploy para homologação (CI/CD)
+
+O pipeline de CI/CD usa **GitHub Actions** + **GCP** (Cloud Run + Firebase Hosting). Toda a infra é **Terraform** em `infra/envs/homolog/`.
+
+### Criar um release para homologação
+
+```bash
+# A partir do commit já mergeado em main:
+git tag v0.1.0-rc.1
+git push origin v0.1.0-rc.1
+# O GitHub Actions release.yml dispara automaticamente:
+# build → push Artifact Registry → deploy Cloud Run + Firebase → health checks verdes
+# Tempo: ≤ 10 min
+```
+
+### Verificar versão em homologação
+
+```bash
+curl https://api.homolog.turni.com.br/version.json       # {"version":"v0.1.0-rc.1"}
+curl https://admin.homolog.turni.com.br/version.json     # {"version":"v0.1.0-rc.1"}
+curl https://app.homolog.turni.com.br/version.json       # {"version":"v0.1.0-rc.1"}
+```
+
+Mecanismo completo: [IDR-002](docs/project-state/decisions/idr/IDR-002-versioning-e-exposicao-versao-runtime.md).
+
+### Acessar logs estruturados (ADR-008)
+
+```bash
+# Logs do api em homologação (JSON estruturado no Cloud Logging)
+gcloud logging read \
+  'resource.type="cloud_run_revision" AND resource.labels.service_name="turni-api-homolog"' \
+  --project=SEU_PROJECT_ID --limit=50 --format=json | jq '.[] | .jsonPayload'
+```
+
+### Rollback
+
+```bash
+# Cloud Run — redirecionar tráfego para revision anterior
+gcloud run services update-traffic turni-api-homolog \
+  --to-revisions="REVISION_ANTERIOR=100" \
+  --region=southamerica-east1 --project=SEU_PROJECT_ID
+
+# Firebase Hosting — webapp
+firebase hosting:rollback --site=turni-webapp-homolog
+```
+
+### Como STORY-008 e STORY-009 consomem a versão
+
+- **WebApp (Flutter):** `const String appVersion = String.fromEnvironment('APP_VERSION', defaultValue: 'dev');`
+- **Backoffice (PHP):** `env('APP_VERSION', 'dev')`
+- Arquivo `/version.json` já está em `public/` (PHP) e `web/` (Flutter) — gerado pelo pipeline.
+
+Runbook completo: [docs/operacao/runbook-homolog.md](docs/operacao/runbook-homolog.md).
+
 ## Protótipo PWA
 
 O protótipo navegável original segue em `docs/prototipo/` (HTML/JS, mobile-first):

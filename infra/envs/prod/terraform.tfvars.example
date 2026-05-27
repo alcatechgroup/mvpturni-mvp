@@ -1,0 +1,11 @@
+# PRODUÇÃO — não aplicar antes do EPIC-006.
+# Copie para terraform.tfvars e preencha os valores reais.
+# NUNCA commite terraform.tfvars.
+
+project_id  = "SEU_PROJECT_ID_GCP"
+github_repo = "seu-usuario/mvpturni-mvp"
+alert_email = "xandroalmeida@gmail.com"
+
+app_key_api   = "base64:GERE_COM_PHP_ARTISAN"
+app_key_admin = "base64:GERE_COM_PHP_ARTISAN"
+db_password   = "SENHA_FORTE_PROD_AQUI"

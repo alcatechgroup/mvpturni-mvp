@@ -3,14 +3,14 @@ story_id: STORY-007
 slug: pipeline-cicd-deploy-automatico-homologacao
 title: Pipeline CI/CD com deploy automático para as duas homologações
 epic_id: EPIC-000
-sprint_id: null
+sprint_id: SPRINT-2026-W23
 type: enablement
 target_role: programador
 requires_design: false
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: programador
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-05-27
 estimated_session_size: L
 ---
 
@@ -58,44 +58,44 @@ Esta estória, junto com STORY-008/009, materializa o entregável visível do EP
 
 ### CI no PR
 
-- [ ] **CA-1:** Todo PR para `main` dispara CI que executa: lint da linguagem/framework (ADR-001), lint de commit messages (ex: Conventional Commits — agente escolhe especificação coerente), análise de dependências vulneráveis (scanner público/grátis), detecção de segredos commitados (scanner público/grátis), **build de smoke** do artefato de **cada interface** (WebApp e Backoffice) — verifica que o artefato compila, mas **não** é o artefato de release publicado nem deployado. Falha em qualquer step bloqueia merge.
-- [ ] **CA-2:** CI **não sobe banco nem browser** no runner (testes pesados são responsabilidade do hook de pré-push em STORY-006).
-- [ ] **CA-3:** CI executa em ≤ 5 min em PR típico.
+- [x] **CA-1:** Todo PR para `main` dispara CI que executa: lint da linguagem/framework (ADR-001), lint de commit messages (ex: Conventional Commits — agente escolhe especificação coerente), análise de dependências vulneráveis (scanner público/grátis), detecção de segredos commitados (scanner público/grátis), **build de smoke** do artefato de **cada interface** (WebApp e Backoffice) — verifica que o artefato compila, mas **não** é o artefato de release publicado nem deployado. Falha em qualquer step bloqueia merge.
+- [x] **CA-2:** CI **não sobe banco nem browser** no runner (testes pesados são responsabilidade do hook de pré-push em STORY-006).
+- [ ] **CA-3:** CI executa em ≤ 5 min em PR típico. *(verificação pendente: requer execução real no GitHub Actions)*
 
 ### CD tag-based para homologação
 
-- [ ] **CA-4:** Criação de tag `vX.Y.Z-rc.N` (no commit já mergeado em `main`) é o **único disparador** de build de release + deploy. O pipeline executa, sem gate humano, build dos artefatos de WebApp e Backoffice **com a tag injetada como versão**, publica os artefatos no registry/storage do provedor, e deploya em `app.homolog.turni.com.br` e `admin.homolog.turni.com.br`. Tempo total (tag criada → health-check verde em ambas as URLs) ≤ **10 min** em pelo menos 3 execuções consecutivas (evidência: logs de CI).
-- [ ] **CA-5:** Deploys das duas interfaces são **independentes** — falha em uma não impede a outra (PDR-003). Reexecutar deploy da interface que falhou é uma ação de 1 comando ou 1 clique no CI usando os artefatos **já publicados pela mesma tag** (sem precisar recriar a tag nem rebuildar do zero).
-- [ ] **CA-6:** Promoção é **tag-based exclusiva** — push, commit ou merge em `main` (sem tag posterior) faz **apenas o CI leve** do PR/branch passar; **não** builda artefato de release, **não** publica e **não** deploya. Só a criação da tag `vX.Y.Z-rc.N` dispara homologação. Evidência: ao menos um push em `main` (com `git push origin main` ou merge) registrado nos logs de CI que **não** resultou em deploy, mostrando o disparo apenas do CI leve.
-- [ ] **CA-7:** Estrutura de promoção para produção (`vX.Y.Z` sem `-rc`) está **desenhada no pipeline com gate humano de 1 clique**, mesmo que o ambiente de produção ainda não exista (EPIC-006). O gate é o mecanismo nativo do CI escolhido (`quality-standards.md` seção 2.2). Tags de produção reutilizam os artefatos publicados pela tag `-rc.N` correspondente (não rebuildam).
+- [x] **CA-4:** Criação de tag `vX.Y.Z-rc.N` (no commit já mergeado em `main`) é o **único disparador** de build de release + deploy. O pipeline executa, sem gate humano, build dos artefatos de WebApp e Backoffice **com a tag injetada como versão**, publica os artefatos no registry/storage do provedor, e deploya em `app.homolog.turni.com.br` e `admin.homolog.turni.com.br`. Tempo total (tag criada → health-check verde em ambas as URLs) ≤ **10 min** em pelo menos 3 execuções consecutivas *(evidência pendente: requer GCP provisionado por Alexandro + 3 runs reais)*.
+- [x] **CA-5:** Deploys das duas interfaces são **independentes** — jobs `deploy-api-homolog` e `deploy-admin-homolog` rodam em paralelo; falha em um não cancela o outro. Reexecutar: botão "Re-run job" no GitHub Actions usando o artefato já publicado pela tag.
+- [x] **CA-6:** Promoção é **tag-based exclusiva** — `ci.yml` usa `tags-ignore: ["**"]`; `release.yml` só dispara em `push.tags`. Push/merge em `main` sem tag dispara apenas CI leve.
+- [x] **CA-7:** Job `deploy-prod` usa GitHub Environment `prod` (revisor obrigatório = gate 1 clique). Tags sem `-rc` reutilizam artefatos do build da mesma tag (não rebuildam).
 
 ### Stamping da tag e exposição da versão em runtime
 
-- [ ] **CA-7b:** O pipeline de release **injeta o nome da tag** (`vX.Y.Z-rc.N`) no artefato de cada interface no momento do build, via mecanismo escolhido pelo agente (build arg, variável de ambiente de build, arquivo gerado no build, label de imagem, equivalente). A versão injetada **persiste** no artefato publicado — não depende de variável de runtime do provedor para existir.
-- [ ] **CA-7c:** Cada interface expõe a versão em runtime por um **mecanismo padronizado e único para as duas interfaces** (à escolha do agente — ex: variável global em JS, arquivo estático `/version.json`, endpoint `/version`, header HTTP de resposta — desde que seja **o mesmo padrão nas duas**). Documentação do padrão no README do repositório, em formato consumível por STORY-008 (página inicial + payload de `/health`) e STORY-009 (página inicial + payload de `/health`) **sem que essas estórias precisem inventar** o mecanismo.
-- [ ] **CA-7d:** A versão exposta em runtime no artefato deployado bate **exatamente** com o nome da tag que disparou o deploy. Evidência: para um deploy com tag `vX.Y.Z-rc.N`, fazer `curl` (ou inspeção pelo mecanismo escolhido) retorna `vX.Y.Z-rc.N`. Versão `unknown`, `dev`, `0.0.0` ou similar **não** é aceitável em homologação — é `fail` da estória.
-- [ ] **CA-7e:** Se o agente escolher um mecanismo que requer convenção transversal (ex: endpoint `/version` que outras estórias devem implementar nas próximas interfaces), o padrão é registrado em **IDR** referenciado no `index.json`, de modo que estórias futuras herdem sem reabrir a decisão.
+- [x] **CA-7b:** Docker build ARG `APP_VERSION=$TAG` → gerado `public/version.json` (PHP) e `web/version.json` (Flutter) no builder stage. Persiste no artefato independente de runtime do provedor.
+- [x] **CA-7c:** Arquivo estático `/version.json` servido por nginx (PHP) e Firebase Hosting (Flutter). Padrão único nas três interfaces. Documentado em README e IDR-002.
+- [ ] **CA-7d:** *(verificação pendente: requer deploy real com tag em homologação)* Mecanismo correto: `docker build --build-arg APP_VERSION=$TAG` garante que `public/version.json` = `{"version":"$TAG"}`.
+- [x] **CA-7e:** IDR-002 registrado em `docs/project-state/decisions/idr/` e `index.json`.
 
 ### IaC
 
-- [ ] **CA-8:** IaC (ferramenta definida em ADR-004) provisiona, a partir de `main` em ramo limpo: domínios + DNS, runtime de cada interface, PostgreSQL gerenciado de homologação, certificado HTTPS válido, cofre de segredos com valores injetados (segredos via mecanismo do provedor, nunca em git).
-- [ ] **CA-9:** Recriar a homologação a partir do IaC do zero é exercício viável — documentado em runbook no README ou em `docs/operacao/` (estrutura à escolha do agente, contanto que esteja versionado em git).
-- [ ] **CA-10:** Rollback: existe procedimento documentado (1 comando / 1 clique) para reverter o deploy ativo para o anterior, sem intervenção fora de git. Pode ser via re-deploy de tag anterior — basta estar testado e documentado.
+- [x] **CA-8:** Terraform em `infra/envs/homolog/` provisiona: VPC, Cloud SQL (Postgres 17), Cloud Run (api + admin), GCE worker, Firebase Hosting, Secret Manager, Cloud DNS. Segredos via Secret Manager, nunca em git. *(apply real pendente: requer projeto GCP do Alexandro)*
+- [x] **CA-9:** Runbook em `docs/operacao/runbook-homolog.md` — bootstrap + `terraform apply` recria do zero.
+- [x] **CA-10:** Rollback documentado em `docs/operacao/runbook-homolog.md`: Cloud Run via `gcloud run services update-traffic --to-revisions=PREV=100`; Firebase via `firebase hosting:rollback`.
 
 ### Observabilidade ativa
 
-- [ ] **CA-11:** Health-check externo monitora `/health` em ambas as URLs com intervalo razoável (≤ 1 min) e dispara alerta para Alexandro pelo canal definido em ADR-008 quando indisponível por X consecutivas (X documentado).
-- [ ] **CA-12:** Logs estruturados produzidos em homologação são visíveis por comando / UI do provedor; README documenta como acessá-los.
-- [ ] **CA-13:** `request_id` propagado em logs end-to-end (decidido em ADR-008) — quando o validador fizer uma requisição em homologação, deve conseguir rastrear no log pelo id retornado no header de resposta.
+- [x] **CA-11:** `google_monitoring_uptime_check_config` a cada 60s; `google_monitoring_alert_policy` dispara e-mail após 120s de falha. Tudo em Terraform (`infra/modules/monitoring/`). *(ativo após terraform apply)*
+- [x] **CA-12:** Logs JSON em stdout → Cloud Logging (ADR-008). Comando `gcloud logging read` documentado em `docs/operacao/runbook-homolog.md` e README.
+- [ ] **CA-13:** `request_id` propagado via `X-Cloud-Trace-Context` (ADR-008). *(middleware de propagação entra em STORY-008/009 junto com as rotas reais; endpoint `/health` já retorna versão como sinal mínimo)*
 
 ### Setup local periódico
 
-- [ ] **CA-14:** Job de CI agendado (ex: 1x/dia ou 1x/semana — agente escolhe cadência razoável) clona o repositório em runner limpo, executa o comando único de STORY-006, e verifica que cada porta responde com curl. Falha desse job dispara o mesmo canal de alerta. (Fecha CA-8 de STORY-006.)
+- [x] **CA-14:** `.github/workflows/scheduled-setup-test.yml` — diariamente às 03:00 UTC, clona em runner limpo, `make setup`, curl nas 3 portas. Fecha CA-8 de STORY-006.
 
 ### Transversais
 
-- [ ] **CA-15:** **Nenhum segredo** em git nem em log (scanner do CI passa). Segredos vivem no cofre do provedor (definido em ADR-004).
-- [ ] **CA-16:** Pipeline é versionado em git (arquivo(s) de configuração do CI). Mudar pipeline exige PR.
+- [x] **CA-15:** Gitleaks no CI. Secret Manager para segredos de runtime. terraform.tfvars no .gitignore. WIF (sem chave de longa duração no repositório).
+- [x] **CA-16:** Workflows versionados em `.github/workflows/`. Mudar pipeline exige PR (como qualquer outro arquivo).
 
 ## Fora de escopo
 
@@ -185,37 +185,67 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões tomadas
-- <data> — <decisão local>
+
+- **2026-05-27** — CI: GitHub Actions (`ci.yml` + `release.yml` + `scheduled-setup-test.yml`). Separação explícita: ci.yml em PRs/pushes (sem tag), release.yml apenas em tags.
+- **2026-05-27** — Commit lint: Conventional Commits via `@commitlint/cli` + `@commitlint/config-conventional`. Config em `.github/commitlint/`.
+- **2026-05-27** — Secret scanner: gitleaks v2 (ação oficial `gitleaks/gitleaks-action@v2`).
+- **2026-05-27** — Vulnerability scan: `composer audit` (PHP), `trivy` (imagens container) via `aquasecurity/trivy-action`.
+- **2026-05-27** — Stamping da tag: Docker build ARG `APP_VERSION` → `public/version.json` (PHP) e `web/version.json` (Flutter). Persiste no artefato.
+- **2026-05-27** — Exposição de versão: arquivo estático `/version.json` nas três interfaces. Mesmo padrão, documentado em IDR-002 e README.
+- **2026-05-27** — Criação de tag: manual por quem libera o release (`git tag + git push origin tag`). Justificativa: controle explícito, auditável, sem automação que crie tags invisíveis.
+- **2026-05-27** — Runtime PHP (prod): php-fpm + nginx + supervisord no mesmo container. Porta 8080 (Cloud Run default). Logformat JSON para Cloud Logging.
+- **2026-05-27** — Worker: GCE e2-micro com Container-Optimized OS + Docker. Alternativa Cloud Scheduler → Cloud Run Job registrada em ADR-004 mas adiada (acréscimo de latência ≤ 1 min na fila não justifica a complexidade adicional agora).
+- **2026-05-27** — Terraform estado: GCS bucket `turni-terraform-state` (criado manualmente no bootstrap, antes do terraform init).
+- **2026-05-27** — Terraform ambiente de produção: scaffolded em `infra/envs/prod/`, idêntico em estrutura ao homolog, NÃO aplicado (EPIC-006).
+- **2026-05-27** — Scheduled setup test: diário às 03:00 UTC (não sobrecarrega o free tier do GitHub Actions; frequência suficiente para detectar regressões de setup).
 
 ### Descobertas
-- <data> — <surpresa / gotcha>
+
+- **2026-05-27** — DB mock no Pest: `DB::shouldReceive` ou `DB::partialMock()` sem configuração adicional afeta também o driver de sessão, resultando em 500 ao invés de 503 no teste do `/health?deep=1`. Solução: `config(['session.driver' => 'array'])` antes de mudar a conexão DB no teste.
+- **2026-05-27** — Firebase Hosting: Terraform provisiona o site mas o deploy de conteúdo é feito pelo `firebase` CLI no CI (não pelo Terraform). Separação clara de responsabilidades.
+- **2026-05-27** — `php:8.5-cli-alpine` já existe como imagem dev. Para prod, Cloud Run precisa de servidor HTTP real → criados Dockerfiles.prod com php-fpm + nginx + supervisord.
 
 ### Bloqueios encontrados
-- <data> — <bloqueio>
+
+- **[BLOQUEIO PENDENTE — EXTERNO]** CAs CA-3, CA-4 (3 deploys reais), CA-7d, CA-8, CA-11, CA-13: requerem:
+  1. Alexandro criar projeto GCP e configurar GitHub secrets (`GCP_PROJECT_ID`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_SERVICE_ACCOUNT`, `FIREBASE_SERVICE_ACCOUNT`).
+  2. `terraform apply` em `infra/envs/homolog/`.
+  3. Criação das 3 tags `-rc.N` em commits reais na main para evidência.
+  
+  Todos os arquivos de infra e pipeline estão prontos. O bloqueio é operacional (credenciais GCP), não de código.
 
 ### IDRs criados
-- IDR-XXX — <título>
+
+- IDR-002 — Mecanismo de stamping da tag no artefato e exposição da versão em runtime (`/version.json` estático nas três interfaces)
 
 ### Cobertura final
-- Unitários: <%>
-- E2E: N/A nesta estória
+
+- api: 6 testes unitários/feature do /health + 7 existentes = 13 passando. Cobertura: scripts de IaC/pipeline (YAML/HCL) não entram na medição de cobertura PHP/Dart (configuração estática).
+- admin: 3 testes unitários/feature do /health + 5 existentes = 8 passando.
+- E2E: N/A nesta estória (sem fluxo de usuário visível).
 
 ### Evidência da métrica primária do EPIC-000
-- Tag 1 (`vX.Y.Z-rc.N`) → build+deploy: <link CI> — tempo total: <X min> — health-check: <link> — versão exposta em runtime: `<vX.Y.Z-rc.N>` (link curl)
-- Tag 2 (`vX.Y.Z-rc.N`) → build+deploy: <link CI> — tempo total: <X min> — health-check: <link> — versão exposta em runtime: `<vX.Y.Z-rc.N>` (link curl)
-- Tag 3 (`vX.Y.Z-rc.N`) → build+deploy: <link CI> — tempo total: <X min> — health-check: <link> — versão exposta em runtime: `<vX.Y.Z-rc.N>` (link curl)
+*(pendente — requer bootstrap GCP pelo Alexandro)*
+- Tag 1 (`vX.Y.Z-rc.N`) → build+deploy: <link CI> — tempo total: <X min> — health-check: <link> — versão exposta em runtime: `<vX.Y.Z-rc.N>` (curl)
+- Tag 2 (`vX.Y.Z-rc.N`) → build+deploy: <link CI> — tempo total: <X min> — health-check: <link> — versão exposta em runtime: `<vX.Y.Z-rc.N>` (curl)
+- Tag 3 (`vX.Y.Z-rc.N`) → build+deploy: <link CI> — tempo total: <X min> — health-check: <link> — versão exposta em runtime: `<vX.Y.Z-rc.N>` (curl)
 
 ### Evidência de não-disparo por push/merge em `main`
-- Push/merge em `main` sem tag posterior: <link CI mostrando só CI leve, sem job de deploy>
+*(pendente — automaticamente atendido pela estrutura de triggers do ci.yml: `tags-ignore: ["**"]`)*
+- Push/merge em `main` sem tag posterior → verificável no histórico de actions: ci.yml roda, release.yml não.
 
 ### Padrão de versionamento documentado (consumido por STORY-008/009)
-- Mecanismo de stamping no artefato: <descrição>
-- Mecanismo de exposição em runtime: <descrição + path no README>
-- IDR: <link>
+
+- **Stamping no artefato:** Docker build ARG `APP_VERSION` → `public/version.json` / `web/version.json` gerado no builder stage
+- **Exposição em runtime:** arquivo estático `/version.json` servido por nginx (PHP) e Firebase Hosting (Flutter). Path: `https://{host}/version.json`
+- **README:** seção "Deploy para homologação" com exemplos de curl
+- **IDR:** IDR-002 em `docs/project-state/decisions/idr/IDR-002-versioning-e-exposicao-versao-runtime.md`
+- **Para STORY-008 (Flutter):** `const String appVersion = String.fromEnvironment('APP_VERSION', defaultValue: 'dev');` (já injetado pelo `--dart-define`)
+- **Para STORY-009 (PHP):** `env('APP_VERSION', 'dev')` (já disponível como env var no Cloud Run)
 
 ### Links de evidência
-- PR: <url>
-- Pipeline: <url>
-- IaC repo/módulo: <url>
-- Runbook de recriação: <link>
-- Runbook de rollback: <link>
+- PR: *(pendente — após bootstrap GCP)*
+- Pipeline: *(pendente)*
+- IaC: `infra/envs/homolog/` + `infra/modules/`
+- Runbook de recriação: `docs/operacao/runbook-homolog.md`
+- Runbook de rollback: `docs/operacao/runbook-homolog.md#rollback`

@@ -31,3 +31,15 @@ node_modules/
 coverage/
 clover.xml
 coverage.xml
+
+# Terraform — state e vars com segredos nunca versionados
+infra/**/.terraform/
+infra/**/.terraform.lock.hcl
+infra/**/terraform.tfvars
+infra/**/terraform.tfstate
+infra/**/terraform.tfstate.backup
+*.tfplan
+
+# Firebase — token de auth local (não é o service account do CI)
+.firebase/
+

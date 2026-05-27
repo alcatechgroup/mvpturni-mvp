@@ -287,8 +287,8 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_progress",
+      "owner_agent": "programador",
       "sprint_id": "SPRINT-2026-W23",
       "path": "epics/EPIC-000-foundation/stories/STORY-007-pipeline-cicd-deploy-automatico-homologacao.md",
       "blocked_by": [
@@ -655,7 +655,17 @@
         "source_story": "STORY-003"
       }
     ],
-    "idr": [],
+    "idr": [
+      {
+        "id": "IDR-002",
+        "title": "Mecanismo de stamping da tag no artefato e exposição da versão em runtime",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-002-versioning-e-exposicao-versao-runtime.md",
+        "decided_at": "2026-05-27",
+        "decided_by": "programador",
+        "source_story": "STORY-007"
+      }
+    ],
     "ddr": [
       {
         "id": "DDR-001",

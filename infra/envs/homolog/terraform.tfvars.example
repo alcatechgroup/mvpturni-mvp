@@ -1,0 +1,13 @@
+# Copie para terraform.tfvars e preencha com os valores reais.
+# NUNCA commite terraform.tfvars — está no .gitignore.
+
+project_id  = "SEU_PROJECT_ID_GCP"
+github_repo = "seu-usuario/mvpturni-mvp"
+alert_email = "xandroalmeida@gmail.com"
+
+# Gerar com: php artisan key:generate --show
+app_key_api   = "base64:GERE_COM_PHP_ARTISAN"
+app_key_admin = "base64:GERE_COM_PHP_ARTISAN"
+
+# Senha forte para o banco PostgreSQL de homologação
+db_password = "SENHA_FORTE_AQUI"
