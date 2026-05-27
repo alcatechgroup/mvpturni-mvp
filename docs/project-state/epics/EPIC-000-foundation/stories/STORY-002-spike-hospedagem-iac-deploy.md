@@ -7,10 +7,10 @@ sprint_id: null
 type: spike
 target_role: arquiteto
 requires_design: false
-status: ready
-owner_agent: null
+status: done
+owner_agent: claude-opus-arquiteto-2026-05-27
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-05-27
 estimated_session_size: M
 ---
 
@@ -127,22 +127,27 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões tomadas
-- <data> — <decisão local / opção descartada>
+- 2026-05-27 — **Provedor: GCP** (Cloud Run + Cloud SQL + Firebase Hosting), região `southamerica-east1`. Decidido com Alexandro na sessão, motivado pelos ~US$2K de crédito da parceria Google + presença no Brasil + provider Terraform madura. **AWS (ECS Fargate + RDS + CloudFront, sa-east-1) registrada como alternativa de primeira classe.**
+- 2026-05-27 — **IaC: Terraform** (provider Google), state remoto em GCS, organizado multi-ambiente (homolog + prod escritos juntos; prod só aplicado no EPIC-006).
+- 2026-05-27 — **CI/CD: GitHub Actions** + Workload Identity Federation (OIDC, sem chave de service account). Promoção tag-based: `vX.Y.Z-rc.N` → homolog sem gate; `vX.Y.Z` → prod com gate de 1 clique via GitHub Environments.
+- 2026-05-27 — **DNS: Cloud DNS**; **segredos: Secret Manager**; **logs: JSON em stdout → Cloud Logging** (detalhe fino fica para ADR-008/STORY-004); **admin restrito via `ingress=internal` + IAP**.
+- 2026-05-27 — Fly.io (GRU) avaliada e descartada como escolha (deixaria os créditos Google na mesa), mantida como alternativa de menor footprint.
 
 ### Descobertas
-- <data> — <surpresa relevante>
+- 2026-05-27 — Diferença de custo em **homologação** vem de dois fatores estruturais: scale-to-zero do Cloud Run vs. Fargate always-on, e a **taxa fixa de ALB (~US$16-18/mês)** da AWS. GCP fica ~US$20-30/mês sem créditos vs. ~US$60-80/mês na AWS — e ~US$0 com os créditos.
+- 2026-05-27 — Único ponto em que a AWS é genuinamente melhor neste cenário: **fit do `worker`** (`queue:work`). Fargate roda processo long-running limpo; no Cloud Run (que exige HTTP) o caminho limpo é uma VM `e2-micro` à parte. Asterisco aceito; alternativa managed (Cloud Scheduler + Cloud Run job) registrada na ADR.
 
 ### Bloqueios encontrados
-- <data> — <bloqueio>
+- Nenhum.
 
 ### ADRs criados
-- ADR-004 — Hospedagem, IaC e estratégia de deploy — `decisions/adr/ADR-004-hospedagem-iac-deploy.md` — status: <proposed/accepted>
+- ADR-004 — Hospedagem, IaC e estratégia de deploy — `decisions/adr/ADR-004-hospedagem-iac-deploy.md` — status: **accepted** (aprovada por Alexandro em 2026-05-27).
 
 ### Cobertura final
 - Unitários: N/A (spike)
 - E2E: N/A (spike)
 
 ### Links de evidência
-- PR: <url>
-- ADR proposta: <link>
-- Aprovação registrada: <link>
+- PR: commit direto na `main` (autorizado por Alexandro em 2026-05-27).
+- ADR aceita: `docs/project-state/decisions/adr/ADR-004-hospedagem-iac-deploy.md`
+- Aprovação registrada: chat de 2026-05-27 (seção "Aprovação humana" da ADR-004 + `index.json`).

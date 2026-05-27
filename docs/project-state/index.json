@@ -169,8 +169,8 @@
       "target_role": "arquiteto",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-arquiteto-2026-05-27",
       "sprint_id": "SPRINT-2026-W22",
       "path": "epics/EPIC-000-foundation/stories/STORY-002-spike-hospedagem-iac-deploy.md",
       "blocked_by": [
@@ -544,6 +544,16 @@
         "decided_by": "arquiteto",
         "approved_by": "Alexandro",
         "related_pdrs": ["PDR-003"]
+      },
+      {
+        "id": "ADR-004",
+        "title": "Hospedagem, Infra-as-Code e estratégia de deploy — GCP (Cloud Run + Cloud SQL + Firebase Hosting), Terraform, promoção tag-based",
+        "status": "accepted",
+        "path": "decisions/adr/ADR-004-hospedagem-iac-deploy.md",
+        "decided_at": "2026-05-27",
+        "decided_by": "arquiteto",
+        "approved_by": "Alexandro",
+        "related_pdrs": ["PDR-003", "PDR-004", "PDR-011"]
       }
     ],
     "idr": [],
