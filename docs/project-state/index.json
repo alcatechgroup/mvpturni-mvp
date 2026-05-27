@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "generated_at": "2026-05-26T23:55:00Z",
+  "generated_at": "2026-05-27T13:00:00Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
-    "current_sprint": null,
-    "phase": "wave-2026-01-aberta-epic-000-decomposto",
-    "notes": "WAVE-2026-01 ativa (Fluxo A concluído em 2026-05-26). EPIC-000 Foundation decomposto via Fluxo C em 2026-05-26: 11 estórias detalhadas escritas (5 spikes Arquiteto, 2 enablement + 2 implementation Programador, 1 implementation Designer com DDR-001, 1 validation Validador), todas em status `ready` com dependências, CAs testáveis e protocolo do agente. Pronto para abrir SPRINT-2026-W22. Demais épicos (EPIC-001 a EPIC-005) permanecem `draft` — serão decompostos via Fluxo C mais tarde, conforme EPIC-000 for fechando."
+    "current_sprint": "SPRINT-2026-W22",
+    "phase": "wave-2026-01-sprint-w22-aberta",
+    "notes": "WAVE-2026-01 ativa. EPIC-000 Foundation decomposto via Fluxo C em 2026-05-26 (11 estórias). SPRINT-2026-W22 aberta em 2026-05-27 (escopo médio: 5 spikes Arquiteto + DDR-001 do Designer = 6 estórias, todas paralelizáveis em boa parte). Goal: fundação documental do EPIC-000 fechada (9 ADRs aceitas + DDR-001 aceito). Próxima sprint (W23) absorverá STORY-006/007/008/009/011. Demais épicos (EPIC-001 a EPIC-005) permanecem `draft` até EPIC-000 fechar."
   },
   "product": {
     "vision": "product/vision.md",
@@ -40,7 +40,14 @@
       "goal": "Demonstrar que Match IA + PIN Bilateral + Pix em 15 min funcionam ponta a ponta no caminho feliz, em homologação, com Pagar.me em sandbox.",
       "start_date": "2026-05-26",
       "target_completion": "2026-08-31",
-      "epic_ids": ["EPIC-000", "EPIC-001", "EPIC-002", "EPIC-003", "EPIC-004", "EPIC-005"],
+      "epic_ids": [
+        "EPIC-000",
+        "EPIC-001",
+        "EPIC-002",
+        "EPIC-003",
+        "EPIC-004",
+        "EPIC-005"
+      ],
       "path": "roadmap/current-wave.md"
     }
   ],
@@ -141,12 +148,18 @@
       "design_screen_id": null,
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W22",
       "path": "epics/EPIC-000-foundation/stories/STORY-001-spike-stack-topologia-monorepo.md",
       "blocked_by": [],
-      "blocks": ["STORY-002", "STORY-003", "STORY-004", "STORY-006", "STORY-011"],
+      "blocks": [
+        "STORY-002",
+        "STORY-003",
+        "STORY-004",
+        "STORY-006",
+        "STORY-011"
+      ],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-05-27"
     },
     {
       "id": "STORY-002",
@@ -158,12 +171,18 @@
       "design_screen_id": null,
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W22",
       "path": "epics/EPIC-000-foundation/stories/STORY-002-spike-hospedagem-iac-deploy.md",
-      "blocked_by": ["STORY-001"],
-      "blocks": ["STORY-004", "STORY-006", "STORY-011"],
+      "blocked_by": [
+        "STORY-001"
+      ],
+      "blocks": [
+        "STORY-004",
+        "STORY-006",
+        "STORY-011"
+      ],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-05-27"
     },
     {
       "id": "STORY-003",
@@ -175,12 +194,17 @@
       "design_screen_id": null,
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W22",
       "path": "epics/EPIC-000-foundation/stories/STORY-003-spike-pagarme-e-habitualidade.md",
-      "blocked_by": ["STORY-001"],
-      "blocks": ["STORY-006", "STORY-011"],
+      "blocked_by": [
+        "STORY-001"
+      ],
+      "blocks": [
+        "STORY-006",
+        "STORY-011"
+      ],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-05-27"
     },
     {
       "id": "STORY-004",
@@ -192,12 +216,21 @@
       "design_screen_id": null,
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W22",
       "path": "epics/EPIC-000-foundation/stories/STORY-004-spike-auth-e-observabilidade.md",
-      "blocked_by": ["STORY-001", "STORY-002"],
-      "blocks": ["STORY-006", "STORY-007", "STORY-008", "STORY-009", "STORY-011"],
+      "blocked_by": [
+        "STORY-001",
+        "STORY-002"
+      ],
+      "blocks": [
+        "STORY-006",
+        "STORY-007",
+        "STORY-008",
+        "STORY-009",
+        "STORY-011"
+      ],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-05-27"
     },
     {
       "id": "STORY-005",
@@ -209,12 +242,15 @@
       "design_screen_id": null,
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W22",
       "path": "epics/EPIC-000-foundation/stories/STORY-005-spike-adr-000-postgresql-retroativo.md",
       "blocked_by": [],
-      "blocks": ["STORY-006", "STORY-011"],
+      "blocks": [
+        "STORY-006",
+        "STORY-011"
+      ],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-05-27"
     },
     {
       "id": "STORY-006",
@@ -228,8 +264,17 @@
       "owner_agent": null,
       "sprint_id": null,
       "path": "epics/EPIC-000-foundation/stories/STORY-006-setup-repo-e-ambiente-local-1-comando.md",
-      "blocked_by": ["STORY-001", "STORY-002", "STORY-003", "STORY-004", "STORY-005"],
-      "blocks": ["STORY-007", "STORY-011"],
+      "blocked_by": [
+        "STORY-001",
+        "STORY-002",
+        "STORY-003",
+        "STORY-004",
+        "STORY-005"
+      ],
+      "blocks": [
+        "STORY-007",
+        "STORY-011"
+      ],
       "created_at": "2026-05-26",
       "updated_at": "2026-05-26"
     },
@@ -245,8 +290,15 @@
       "owner_agent": null,
       "sprint_id": null,
       "path": "epics/EPIC-000-foundation/stories/STORY-007-pipeline-cicd-deploy-automatico-homologacao.md",
-      "blocked_by": ["STORY-006", "STORY-004"],
-      "blocks": ["STORY-008", "STORY-009", "STORY-011"],
+      "blocked_by": [
+        "STORY-006",
+        "STORY-004"
+      ],
+      "blocks": [
+        "STORY-008",
+        "STORY-009",
+        "STORY-011"
+      ],
       "created_at": "2026-05-26",
       "updated_at": "2026-05-26"
     },
@@ -262,8 +314,14 @@
       "owner_agent": null,
       "sprint_id": null,
       "path": "epics/EPIC-000-foundation/stories/STORY-008-hello-world-webapp.md",
-      "blocked_by": ["STORY-007", "STORY-004", "STORY-010"],
-      "blocks": ["STORY-011"],
+      "blocked_by": [
+        "STORY-007",
+        "STORY-004",
+        "STORY-010"
+      ],
+      "blocks": [
+        "STORY-011"
+      ],
       "created_at": "2026-05-26",
       "updated_at": "2026-05-26"
     },
@@ -279,8 +337,14 @@
       "owner_agent": null,
       "sprint_id": null,
       "path": "epics/EPIC-000-foundation/stories/STORY-009-hello-world-backoffice.md",
-      "blocked_by": ["STORY-007", "STORY-004", "STORY-010"],
-      "blocks": ["STORY-011"],
+      "blocked_by": [
+        "STORY-007",
+        "STORY-004",
+        "STORY-010"
+      ],
+      "blocks": [
+        "STORY-011"
+      ],
       "created_at": "2026-05-26",
       "updated_at": "2026-05-26"
     },
@@ -294,12 +358,16 @@
       "design_screen_id": null,
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W22",
       "path": "epics/EPIC-000-foundation/stories/STORY-010-ddr-001-fundacao-design-system.md",
       "blocked_by": [],
-      "blocks": ["STORY-008", "STORY-009", "STORY-011"],
+      "blocks": [
+        "STORY-008",
+        "STORY-009",
+        "STORY-011"
+      ],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-05-27"
     },
     {
       "id": "STORY-011",
@@ -313,13 +381,42 @@
       "owner_agent": null,
       "sprint_id": null,
       "path": "epics/EPIC-000-foundation/stories/STORY-011-validacao-final-epic-000.md",
-      "blocked_by": ["STORY-001", "STORY-002", "STORY-003", "STORY-004", "STORY-005", "STORY-006", "STORY-007", "STORY-008", "STORY-009", "STORY-010"],
+      "blocked_by": [
+        "STORY-001",
+        "STORY-002",
+        "STORY-003",
+        "STORY-004",
+        "STORY-005",
+        "STORY-006",
+        "STORY-007",
+        "STORY-008",
+        "STORY-009",
+        "STORY-010"
+      ],
       "blocks": [],
       "created_at": "2026-05-26",
       "updated_at": "2026-05-26"
     }
   ],
-  "sprints": [],
+  "sprints": [
+    {
+      "id": "SPRINT-2026-W22",
+      "wave": "WAVE-2026-01",
+      "status": "active",
+      "start_date": "2026-05-27",
+      "end_date": "2026-06-07",
+      "goal": "Fundação documental do EPIC-000 fechada: 9 ADRs aceitas (ADR-000 a ADR-008) + DDR-001 aceito; estórias de implementação prontas para SPRINT-2026-W23.",
+      "path": "sprints/SPRINT-2026-W22.md",
+      "story_ids": [
+        "STORY-001",
+        "STORY-002",
+        "STORY-003",
+        "STORY-004",
+        "STORY-005",
+        "STORY-010"
+      ]
+    }
+  ],
   "decisions": {
     "pdr": [
       {
@@ -434,6 +531,10 @@
     {
       "date": "2026-05-26-epic-000-decomposto",
       "path": "reports/status-2026-05-26-epic-000-decomposto.md"
+    },
+    {
+      "date": "2026-05-27-sprint-w22-aberto",
+      "path": "reports/status-2026-05-27-sprint-w22-aberto.md"
     }
   ]
 }
