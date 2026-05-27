@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "generated_at": "2026-05-27T19:30:00Z",
+  "generated_at": "2026-05-28T00:45:00Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W22",
     "phase": "wave-2026-01-sprint-w22-aberta",
-    "notes": "WAVE-2026-01 ativa. EPIC-000 Foundation decomposto via Fluxo C em 2026-05-26 (11 estórias). SPRINT-2026-W22 aberta em 2026-05-27. Progresso (2026-05-27): 4 de 6 estórias do sprint done — STORY-001 (ADR-001/002/003 aceitas), STORY-002 (ADR-004 aceita), STORY-005 (ADR-000 aceita) e STORY-004 (ADR-007 auth Sanctum + ADR-008 observabilidade mínima aceitas). Restam STORY-003 (Pagar.me+habitualidade) e STORY-010 (DDR-001 designer). 7 ADRs aceitas (ADR-000 a 004, 007, 008). Próxima sprint (W23) já tem fundação técnica para abrir STORY-006/007/008/009/011."
+    "notes": "WAVE-2026-01 ativa. EPIC-000 Foundation decomposto via Fluxo C em 2026-05-26 (11 estórias). SPRINT-2026-W22 aberta em 2026-05-27. Progresso (2026-05-27): 4 de 6 estórias do sprint done — STORY-001 (ADR-001/002/003 aceitas), STORY-002 (ADR-004 aceita), STORY-005 (ADR-000 aceita) e STORY-004 (ADR-007 auth Sanctum + ADR-008 observabilidade mínima aceitas). STORY-010 done (designer): DDR-001 fundação do Design System aceito por Alexandro em 2026-05-27 — dual-theme (claro padrão + escuro, PDR-013) e esquema de cor por perfil (profissional verde, contratante mostarda, admin azul-navy; vermelho reservado a erro). Fundação viva em design/system/ (tokens+contraste AA, README, components, patterns, voice-and-tone, 2 previews) e screen spec SCREEN-STORY-008 em ready. Resta STORY-003 (Pagar.me+habitualidade). 7 ADRs + 13 PDRs + DDR-001 aceitos. Próxima sprint (W23) já tem fundação técnica e visual para abrir STORY-006/007/008/009/011."
   },
   "product": {
     "vision": "product/vision.md",
@@ -356,8 +356,8 @@
       "target_role": "designer",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-designer-2026-05-27",
       "sprint_id": "SPRINT-2026-W22",
       "path": "epics/EPIC-000-foundation/stories/STORY-010-ddr-001-fundacao-design-system.md",
       "blocked_by": [],
@@ -502,6 +502,13 @@
         "status": "accepted",
         "path": "decisions/pdr/PDR-012-templates-contratuais-editaveis-no-backoffice.md",
         "decided_at": "2026-05-26"
+      },
+      {
+        "id": "PDR-013",
+        "title": "Dual-theme (claro + escuro) suportado; tema padrão do MVP = claro",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-013-dual-theme-claro-escuro.md",
+        "decided_at": "2026-05-27"
       }
     ],
     "adr": [
@@ -591,16 +598,54 @@
       }
     ],
     "idr": [],
-    "ddr": []
+    "ddr": [
+      {
+        "id": "DDR-001",
+        "title": "Fundação do Design System — temas claro/escuro e esquema de cor por perfil",
+        "status": "accepted",
+        "path": "decisions/ddr/DDR-001-fundacao-do-design-system.md",
+        "decided_at": "2026-05-27",
+        "decided_by": "designer",
+        "approved_by": "Alexandro",
+        "scope": "transversal",
+        "affects_screens": [
+          "SCREEN-STORY-008-hello-world-webapp"
+        ],
+        "source_story": "STORY-010"
+      }
+    ]
   },
   "design": {
-    "screens": [],
+    "screens": [
+      {
+        "id": "SCREEN-STORY-008-hello-world-webapp",
+        "story": "STORY-008",
+        "epic": "EPIC-000",
+        "status": "ready",
+        "path": "design/screens/STORY-008-hello-world-webapp.md",
+        "viewports": [
+          "mobile",
+          "desktop"
+        ],
+        "related_ddrs": [
+          "DDR-001"
+        ],
+        "ds_components_used": [
+          "brand.logo",
+          "surface.card",
+          "link.text"
+        ],
+        "owner_designer": "claude-opus-designer-2026-05-27",
+        "created_at": "2026-05-27",
+        "updated_at": "2026-05-27"
+      }
+    ],
     "system": {
       "root_path": "design/system/",
-      "tokens": null,
-      "components": null,
-      "patterns": null,
-      "voice_and_tone": null,
+      "tokens": "design/system/tokens.md",
+      "components": "design/system/components.md",
+      "patterns": "design/system/patterns.md",
+      "voice_and_tone": "design/system/voice-and-tone.md",
       "canonical_reference": "../especificacao/design-system.md"
     }
   },

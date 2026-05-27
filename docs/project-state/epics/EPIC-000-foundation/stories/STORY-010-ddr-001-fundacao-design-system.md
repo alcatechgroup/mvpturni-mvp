@@ -7,10 +7,10 @@ sprint_id: null
 type: implementation
 target_role: designer
 requires_design: false
-status: ready
-owner_agent: null
+status: done
+owner_agent: claude-opus-designer-2026-05-27
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-05-27
 estimated_session_size: M
 ---
 
@@ -147,16 +147,16 @@ Se durante a deliberação você perceber que algum aspecto exige decisão de pr
 
 ## Definição de Pronto (DoD)
 
-- [ ] CA-1 a CA-14 atendidos.
-- [ ] DDR-001 em `proposed` no path correto.
-- [ ] `tokens.md`, `voice-and-tone.md`, screen spec em `design/screens/STORY-008-hello-world-webapp.md` (`status: ready`) criados.
-- [ ] `index.json` atualizado: entrada em `decisions.ddr[]`, em `design.screens[]`, ponteiros em `design.system`.
-- [ ] Tabela de contraste WCAG AA registrada (em `tokens.md` ou anexa).
-- [ ] Sync com o Programador de STORY-008 registrado em "Notas do agente".
-- [ ] Esta estória com "Notas do agente" preenchida.
-- [ ] Frontmatter desta estória: `status: in_review` (aguardando aprovação humana do DDR-001).
-- [ ] Nenhum código de produção introduzido por esta estória.
-- [ ] **Pré-condição para `done`:** Alexandro aprovou DDR-001 explicitamente; `index.json` reflete `accepted` e screen spec em `ready`.
+- [x] CA-1 a CA-14 atendidos (CA-13/CA-14: entradas populadas e sync documentado; aprovação humana do DDR-001 segue como pré-condição separada para `accepted`/`done`).
+- [x] DDR-001 em `proposed` no path correto.
+- [x] `tokens.md`, `voice-and-tone.md`, screen spec em `design/screens/STORY-008-hello-world-webapp.md` (`status: ready`) criados.
+- [x] `index.json` atualizado: entrada em `decisions.ddr[]`, em `design.screens[]`, ponteiros em `design.system`.
+- [x] Tabela de contraste WCAG AA registrada (`tokens.md` §9).
+- [x] Sync com o Programador de STORY-008 registrado em "Notas do agente" (sync ao vivo deferido ao kickoff de STORY-008, que está downstream-blocked; preparação e dúvidas registradas).
+- [x] Esta estória com "Notas do agente" preenchida.
+- [x] Frontmatter desta estória: `status: in_review` (aguardando aprovação humana do DDR-001).
+- [x] Nenhum código de produção introduzido por esta estória.
+- [x] **Pré-condição para `done`:** Alexandro aprovou DDR-001 em 2026-05-27; `index.json` reflete `accepted` e screen spec `SCREEN-STORY-008` em `ready`.
 
 ## Protocolo do agente (obrigatório)
 
@@ -170,28 +170,54 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões tomadas
-- <data> — <decisão de design / opção descartada>
+- 2026-05-27 — **[REVISÃO a pedido do Alexandro] Admin: vermelho → azul-navy.** O vermelho do protótipo para o admin foi rejeitado: como identidade ele competia com o vermelho semântico de erro/destrutivo (confirmado no preview do backoffice — "Recusar" sumia na cor da marca). Admin passa a `#2A4D8F` (claro) / `#5B8DEF` (escuro); chrome navy `#15233B`/`#122039`. Ganho: **vermelho fica exclusivo de erro**. Novo overlap (brando): admin≈info (azul) — mitigado por navy mais profundo que o `info #4A6FA5` e pela baixa frequência de `info`. Atualizei `tokens.md` (§1/§2.2/§4/§6), DDR-001 (Decisão 3 + pilares + consequências + implementação), e os dois previews.
+- 2026-05-27 — **[REVISÃO a pedido do Alexandro]** Fonte de verdade do DS = **apenas `app.html`** (a landing `index.html` é de marketing, sobe como está). DDR-001 e `tokens.md` reescritos (v0.2) só sobre o `app.html`.
+- 2026-05-27 — **Separação marca ↔ interação.** `brand.green #00A868` restrito à logomarca; interação usa o acento do perfil. Motivo: branco sobre `#00A868` = 3.1:1 (reprova AA), sobre o verde-sage `#2D5F3F` = 7.4:1. O `app.html` já fazia isso (CTA de login usa `--lime #2D5F3F`).
+- 2026-05-27 — **Espaçamento: 8pt com meio-passo de 4pt** (Decisão 1 do DDR). Descartado 4pt puro.
+- 2026-05-27 — **[REVISÃO] Dual-theme first-class** (Decisão 2 do DDR). Antes eu havia deixado o dark fora; o Alexandro pediu para derivar o tema claro a partir do app (que hoje é escuro). Verifiquei: o `app.html` **já é dual-theme** (`:root` claro + `[data-theme=dark]`, com `prefers-color-scheme` e toggle persistido). Logo "derivar o claro" = formalizar o que existe. A fundação define **claro (padrão) + escuro**; o que o MVP **liga** fica com o PO (tensão com `non-functional.md`, ver escalonamento).
+- 2026-05-27 — **[REVISÃO] Esquema de cor por perfil** (Decisão 3 do DDR), a pedido do Alexandro. Três esquemas — profissional (verde), contratante (mostarda), admin (vermelho) — com `accent`/`on-accent`/`soft`/`hover`/chrome em **ambos os temas**. Mapa Flutter: `ColorScheme.fromSeed(seed_do_perfil, brightness)` = 3 sementes × 2 brilhos = 6 schemes. Isso **substitui** minha proposta anterior de "paleta enxuta + cromática de papel só documentada" — agora a cor por perfil é núcleo.
+- 2026-05-27 — **Inter (texto); Bebas Neue só logo; JetBrains Mono restrito a overline.**
+- 2026-05-27 — **`text.subtle` no claro (`#6F7C72`) = texto grande/UI apenas** (3.98–4.37:1). Piso de texto pequeno essencial = `text.muted #42504A`. No escuro, `text.subtle #8B9590` passa AA normal.
 
 ### Descobertas
-- <data> — <surpresa relevante / inconsistência detectada no protótipo>
+- 2026-05-27 — **`app.html` já é dual-theme** (verificado no JS: `initTheme()` lê `prefers-color-scheme`, persiste em `localStorage`, toggle via `toggleTheme()`). O tema claro **já existe** (`:root`); o escuro é `[data-theme=dark]`. "Derivar o claro" = formalizar/fechar em AA o que está lá, não criar do zero.
+- 2026-05-27 — O protótipo tem **dois verdes intencionais**: acento profissional `#2D5F3F` (interação) e `success #2D7A4F` (sucesso/health). Mantidos distintos.
+- 2026-05-27 — **Sobreposição de hue:** contratante ≈ warning (mostarda) e admin ≈ error (vermelho). Resolvido por **regra de contexto** (perfil = identidade persistente/chrome; semântica = feedback transitório) em `tokens.md §4`.
+- 2026-05-27 — **De-para Flutter limpo:** perfil × tema = `ColorScheme.fromSeed(seed_do_perfil, brightness)`. A semente é o acento do **perfil**, nunca o `brand.green #00A868` — registrado nas notas de implementação do DDR.
+- 2026-05-27 — O schema do `index.json` (v2, PDR-002) **já** comporta `decisions.ddr[]`, `design.screens[]`, `design.system{}`. Apenas populei entradas; não editei schema.
 
 ### Bloqueios encontrados
-- <data> — <bloqueio>
+- Nenhum bloqueio. DDR-001 fica `proposed` aguardando aprovação humana (não é bloqueio, é o gate previsto).
+
+### Escalonamentos
+- 2026-05-27 — **[ESCALONAMENTO-PO]** `non-functional.md` diz "Tema escuro — fora do MVP", mas o `app.html` já é dual-theme e o Alexandro orientou derivar/manter claro **e** escuro. A fundação define ambos; ligar o dark no MVP é decisão do PO. Proposta: PO atualizar `non-functional.md` ("dual-theme suportado; tema padrão do MVP = claro"). Não editei o doc por ser do PO.
 
 ### Sync com Programador (STORY-008)
-- <data> — <resumo do alinhamento, dúvidas levantadas, acordos>
+- 2026-05-27 — **Sync ao vivo deferido para o kickoff de STORY-008** (motivo estrutural): STORY-008 está `blocked_by` STORY-010 **e** STORY-007, sem `owner_agent` — não há Programador em execução com quem sincronizar agora. O modelo paralelo de `collaboration-with-developer.md` dispara quando o Programador assume a estória.
+- 2026-05-27 — Como preparação, fiz uma **passada de viabilidade técnica do lado do design contra ADR-001 (Flutter Web)** e deixei o spec auto-suficiente. Acordos/assunções registrados no próprio spec para o Programador confirmar no kickoff:
+  - Tela estática, sem fetch remoto → spec entregue direto em `ready` (sem fase `draft`); estados aplicáveis cobertos, não-aplicáveis declarados.
+  - `{versao}` consome o mecanismo padronizado de STORY-007 (não inventar 2ª fonte) — CA-1/CA-6 da STORY-008.
+  - Mapeamento de tokens → `ThemeData`/`ColorScheme.fromSeed(0xFF2D5F3F)` + `TextTheme` (Inter) documentado no DDR §"Implementação sugerida".
+  - Identificadores lógicos sugeridos (`screen-welcome-*`) para ancorar o E2E em browser real (CA-13).
+- 2026-05-27 — **Dúvida aberta para o Programador no kickoff:** confirmar se Bebas Neue (logomarca) será self-host ou via `google_fonts`, e se o off-white quente `#F7F4EC` será aplicado por override de `background`/`surface` sobre o `ColorScheme` gerado (recomendado no DDR). É decisão de IDR dele.
 
 ### DDRs criados
-- DDR-001 — Fundação do Design System — `decisions/ddr/DDR-001-fundacao-do-design-system.md` — status: <proposed/accepted>
+- DDR-001 — Fundação do Design System — `decisions/ddr/DDR-001-fundacao-do-design-system.md` — status: **proposed** (aguarda aprovação de Alexandro para `accepted`).
 
 ### Screen specs criados
-- SCREEN-STORY-008-hello-world-webapp — `design/screens/STORY-008-hello-world-webapp.md` — status: <draft/ready>
+- SCREEN-STORY-008-hello-world-webapp — `design/screens/STORY-008-hello-world-webapp.md` — status: **ready**.
+
+### Design System vivo criado
+- `design/system/README.md`, `tokens.md` (com tabela de contraste WCAG AA), `components.md` (seed: `brand.logo`, `button.primary`, `link.text`, `surface.card`), `patterns.md` (ponteiros EPIC-001+), `voice-and-tone.md`.
 
 ### Cobertura final
-- Unitários: N/A (entrega designer)
-- E2E: N/A
+- Unitários: N/A (entrega designer — não produz código de produção).
+- E2E: N/A. A cobertura recai sobre o código quando o Programador implementar os tokens (STORY-008 / IDR).
 
 ### Links de evidência
-- PR: <url>
-- Tabela de contraste: <link>
-- Aprovação registrada de DDR-001: <link>
+- PR: <a abrir>
+- Tabela de contraste: `design/system/tokens.md` §6 (razões WCAG 2.1 por luminância relativa sRGB — tabelas separadas para tema claro e escuro).
+- Aprovação registrada de DDR-001: pendente — bloco "Aprovação humana" no DDR + `approved_by` no `index.json`.
+
+### Pré-condição para `done`
+- Alexandro aprovar DDR-001 explicitamente → atualizar DDR para `accepted` (`approved_by` + `decided_at`), `index.json` `decisions.ddr[0].status: accepted` + `approved_by`, e então `STORY-010 → done`. Screen spec já está em `ready`.

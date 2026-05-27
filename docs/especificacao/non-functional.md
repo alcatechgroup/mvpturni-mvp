@@ -52,6 +52,18 @@ Promessas operacionais que viraram parte da identidade do produto. O contratante
 | Leitor de tela | Sim, nas principais interações. |
 | Texto base mínimo | 14px em mobile, 13px em desktop. |
 
+## Temas (aparência)
+
+Decisão registrada em **PDR-013**.
+
+| Aspecto | MVP |
+|---|---|
+| Temas suportados | **Claro e escuro**, em todas as interfaces (WebApp e Backoffice). |
+| Tema padrão | **Claro.** Melhor para a página pública/3G e coerente com `background_color` do manifest. |
+| Seleção | `prefers-color-scheme` do sistema + toggle persistido por usuário. |
+| Esquema de cor | Por perfil (profissional/contratante/admin), em ambos os temas — ver Design System (DDR-001, `docs/project-state/design/system/tokens.md`). |
+| Contraste | WCAG 2.1 AA verificado nos dois temas (tabela em `tokens.md §6`). |
+
 ## Internacionalização
 
 Idioma único no MVP: **Português Brasileiro (pt-BR)**. Sem multi-idioma.

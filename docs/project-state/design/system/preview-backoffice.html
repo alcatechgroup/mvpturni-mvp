@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turni · Preview Backoffice (desktop · perfil admin)</title>
+<!--
+  PREVIEW NÃO-NORMATIVO. Shell desktop-first do Backoffice (perfil admin), gerado de
+  design/system/tokens.md (DDR-001). Desktop-first (PDR-003); pensado para ≥1024px.
+  Não é UI de produto nem código Flutter — é validação visual. Toggle de tema no topo.
+-->
+<style>
+  :root{ --b:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --m:'JetBrains Mono',ui-monospace,monospace; }
+
+  /* Neutros + semânticas por tema */
+  [data-theme="light"]{
+    --page:#F7F4EC; --surface:#FFFFFF; --sunken:#F0EDE3; --muted-s:#E8E5DB;
+    --border:#E0DDD3; --border-strong:#C8C5BB;
+    --text:#0F1B2D; --text-muted:#42504A; --text-subtle:#6F7C72;
+    --shadow:0 1px 2px rgba(15,27,45,.04),0 8px 24px rgba(15,27,45,.06);
+    --success:#2D7A4F; --success-soft:#E2F0E5;
+    --warning:#9A6E25; --warning-soft:#FBEED1;
+    --error:#B83A3A;   --error-soft:#FBE2E2;
+    --info:#4A6FA5;    --info-soft:#E0E9F5;
+    --sem-on:#FFFFFF;
+    /* admin (light) · azul-navy */
+    --accent:#2A4D8F; --on-accent:#FFFFFF; --accent-soft:#E4EAF6; --accent-hover:#21407A; --accent-ink:#2A4D8F; --chrome:#15233B;
+    --main-tint:transparent;
+  }
+  [data-theme="dark"]{
+    --page:#0B1018; --surface:#141B26; --sunken:#1B2433; --muted-s:#26303F;
+    --border:#24324A; --border-strong:#34466A;
+    --text:#ECEDE5; --text-muted:#AFB8C6; --text-subtle:#8893A3;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+    --success:#5FA37C; --success-soft:rgba(95,163,124,.16);
+    --warning:#D4A95C; --warning-soft:rgba(212,169,92,.16);
+    --error:#D85A5A;   --error-soft:rgba(216,90,90,.16);
+    --info:#6A8FCC;    --info-soft:rgba(106,143,204,.16);
+    --sem-on:#0E1626;
+    /* admin (dark) · azul */
+    --accent:#5B8DEF; --on-accent:#0E1626; --accent-soft:rgba(91,141,239,.18); --accent-hover:#74A0F2; --accent-ink:#5B8DEF; --chrome:#122039;
+    --main-tint:radial-gradient(900px 500px at 100% 0,rgba(91,141,239,.12),transparent 60%);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--b);background:var(--page);color:var(--text);line-height:1.5}
+  .toolbar{position:fixed;top:14px;right:18px;z-index:50}
+  .toggle{font-family:var(--m);font-size:11px;letter-spacing:.5px;text-transform:uppercase;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:999px;padding:9px 16px;cursor:pointer;box-shadow:var(--shadow)}
+
+  /* Shell desktop-first: sidebar 260 + main (app.html) */
+  .shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+
+  /* ── Sidebar (chrome admin) ── */
+  .sidebar{background:var(--chrome);color:#ECEDE5;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.08)}
+  .sb-head{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .sb-logo{font-weight:700;letter-spacing:2px;font-size:22px}
+  .sb-logo .i{color:#00A868}
+  .sb-tag{font-family:var(--m);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(236,237,229,.55);margin-top:6px}
+  .sb-user{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .sb-av{width:36px;height:36px;border-radius:999px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px}
+  .sb-uname{font-size:14px;font-weight:500}
+  .sb-urole{font-family:var(--m);font-size:10px;letter-spacing:.5px;color:rgba(236,237,229,.6);margin-top:2px}
+  .sb-sec{font-family:var(--m);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(236,237,229,.45);padding:18px 20px 6px}
+  .sb-item{display:flex;align-items:center;gap:12px;margin:0 12px 2px;padding:10px 14px;border-radius:10px;color:rgba(236,237,229,.85);font-size:14px;font-weight:500;cursor:pointer}
+  .sb-item:hover{background:rgba(255,255,255,.06)}
+  .sb-item.active{background:rgba(91,141,239,.30);color:#fff}
+  .sb-item .ic{width:16px;height:16px;border-radius:5px;background:currentColor;opacity:.55;flex-shrink:0}
+  .sb-item.active .ic{opacity:1}
+  .sb-count{margin-left:auto;font-family:var(--m);font-size:11px;background:rgba(255,255,255,.1);padding:2px 8px;border-radius:999px;color:rgba(236,237,229,.7)}
+  .sb-item.active .sb-count{background:var(--accent);color:#fff}
+  .sb-foot{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.08)}
+  .logout{width:100%;border:1px solid rgba(255,255,255,.16);background:transparent;color:rgba(236,237,229,.75);border-radius:999px;padding:9px;font-family:var(--b);font-size:13px;cursor:pointer}
+  .logout:hover{background:rgba(255,255,255,.08);color:#fff}
+
+  /* ── Main ── */
+  .main{padding:32px 40px 64px;background-image:var(--main-tint);overflow:auto}
+  .crumb{font-family:var(--m);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-subtle)}
+  .main-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:6px 0 24px;flex-wrap:wrap}
+  .main-h{font-size:28px;font-weight:600;letter-spacing:-.4px}
+  .main-d{font-size:14px;color:var(--text-muted);margin-top:4px}
+  .head-actions{display:flex;gap:10px;align-items:center}
+
+  .search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:9px 16px;color:var(--text-subtle);font-size:13px;min-width:240px}
+  .btn{border-radius:999px;padding:11px 20px;font-family:var(--b);font-size:14px;font-weight:500;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px}
+  .btn-primary{background:var(--accent);color:var(--on-accent)} .btn-primary:hover{background:var(--accent-hover)}
+  .btn-outline{background:transparent;color:var(--text);border-color:var(--border-strong)} .btn-outline:hover{border-color:var(--text-muted)}
+  .btn-success{background:var(--success);color:var(--sem-on)}
+  .btn-danger{background:transparent;color:var(--error);border-color:var(--error)} .btn-danger:hover{background:var(--error-soft)}
+  .btn-sm{padding:7px 14px;font-size:13px}
+
+  /* Stat cards */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
+  .stat .k{font-family:var(--m);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text-subtle)}
+  .stat .v{font-size:30px;font-weight:600;margin-top:8px;letter-spacing:-.5px}
+  .stat .v small{font-size:13px;font-weight:500;color:var(--text-muted)}
+
+  .feedback{display:flex;align-items:center;gap:10px;border-radius:12px;padding:12px 16px;margin-bottom:20px;color:var(--text);font-size:13px;background:var(--info-soft)}
+  .feedback .ic{width:18px;height:18px;border-radius:999px;background:var(--info);flex-shrink:0}
+
+  /* Tabela desktop (DataTable) */
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+  .panel-h{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+  .panel-h h3{font-size:16px;font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-family:var(--m);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-subtle);font-weight:500;padding:12px 20px;border-bottom:1px solid var(--border)}
+  td{padding:14px 20px;border-bottom:1px solid var(--border);color:var(--text)}
+  tr:last-child td{border-bottom:0}
+  tr:hover td{background:var(--sunken)}
+  .cell-name{font-weight:500}
+  .cell-sub{font-size:12px;color:var(--text-subtle);margin-top:2px}
+  .chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 11px;font-size:12px;font-weight:500}
+  .chip .ic{width:7px;height:7px;border-radius:999px}
+  .chip-warn{background:var(--warning-soft);color:var(--text)} .chip-warn .ic{background:var(--warning)}
+  .chip-ok{background:var(--success-soft);color:var(--text)} .chip-ok .ic{background:var(--success)}
+  .row-actions{display:flex;gap:8px;justify-content:flex-end}
+
+  .note{margin:24px 0 0;background:var(--sunken);border:1px solid var(--border);border-radius:12px;padding:16px 18px;font-size:13px;color:var(--text-muted)}
+  .note b{color:var(--text)}
+  .note code{font-family:var(--m);font-size:12px}
+
+  @media(max-width:1023px){
+    .shell{grid-template-columns:1fr}
+    .sidebar{display:none}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .resp-warn{display:block}
+  }
+  .resp-warn{display:none;background:var(--warning-soft);color:var(--text);padding:10px 16px;font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+  <div class="toolbar"><button class="toggle" id="toggle">Alternar tema</button></div>
+  <div class="resp-warn">Backoffice é desktop-first (≥1024px). Alargue a janela para ver o shell completo.</div>
+
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sb-head">
+        <div class="sb-logo">TURN<span class="i">I</span>.</div>
+        <div class="sb-tag">Backoffice</div>
+      </div>
+      <div class="sb-user">
+        <div class="sb-av">R</div>
+        <div><div class="sb-uname">Rodolfo N.</div><div class="sb-urole">Super Admin</div></div>
+      </div>
+      <div class="sb-sec">Operação</div>
+      <div class="sb-item"><span class="ic"></span> Visão geral</div>
+      <div class="sb-item active"><span class="ic"></span> Cadastros pendentes <span class="sb-count">12</span></div>
+      <div class="sb-item"><span class="ic"></span> Disputas <span class="sb-count">2</span></div>
+      <div class="sb-sec">Cadastro</div>
+      <div class="sb-item"><span class="ic"></span> Profissionais</div>
+      <div class="sb-item"><span class="ic"></span> Contratantes</div>
+      <div class="sb-item"><span class="ic"></span> Configurações</div>
+      <div class="sb-foot"><button class="logout">Sair</button></div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="crumb">Backoffice · Admin</div>
+      <div class="main-head">
+        <div>
+          <div class="main-h">Cadastros pendentes</div>
+          <div class="main-d">12 aguardando análise · SLA público de 24h</div>
+        </div>
+        <div class="head-actions">
+          <div class="search">🔎 Buscar por nome ou CPF/CNPJ…</div>
+          <button class="btn btn-primary">Salvar filtros</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="k">Pendentes</div><div class="v">12</div></div>
+        <div class="stat"><div class="k">Aprovados hoje</div><div class="v">8</div></div>
+        <div class="stat"><div class="k">Disputas abertas</div><div class="v">2</div></div>
+        <div class="stat"><div class="k">SLA médio</div><div class="v">6<small>h</small></div></div>
+      </div>
+
+      <div class="feedback"><span class="ic"></span> 3 cadastros estão há mais de 18h na fila — priorize para não estourar o SLA.</div>
+
+      <div class="panel">
+        <div class="panel-h">
+          <h3>Fila de análise</h3>
+          <button class="btn btn-outline btn-sm">Exportar CSV</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Nome</th><th>Tipo</th><th>Enviado</th><th>Status</th><th style="text-align:right">Ações</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="cell-name">Carlos Henrique Silva</div><div class="cell-sub">MEI · Garçom</div></td>
+              <td>Profissional</td><td>há 19h</td>
+              <td><span class="chip chip-warn"><span class="ic"></span> Pendente</span></td>
+              <td><div class="row-actions"><button class="btn btn-success btn-sm">Aprovar</button><button class="btn btn-danger btn-sm">Recusar</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="cell-name">Pizzaria Mooca Ltda</div><div class="cell-sub">CNPJ · Restaurante</div></td>
+              <td>Contratante</td><td>há 12h</td>
+              <td><span class="chip chip-warn"><span class="ic"></span> Pendente</span></td>
+              <td><div class="row-actions"><button class="btn btn-success btn-sm">Aprovar</button><button class="btn btn-danger btn-sm">Recusar</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="cell-name">Diego Reis</div><div class="cell-sub">PF · Iniciante</div></td>
+              <td>Profissional</td><td>há 3h</td>
+              <td><span class="chip chip-ok"><span class="ic"></span> Pré-aprovado</span></td>
+              <td><div class="row-actions"><button class="btn btn-success btn-sm">Aprovar</button><button class="btn btn-danger btn-sm">Recusar</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <p><b>Admin agora é azul-navy (revisto do vermelho do protótipo — DDR-001).</b> A troca resolve o conflito que o vermelho criava: identidade e erro deixaram de disputar o mesmo hue. Os três usos ficam claramente distintos:</p>
+        <p>• <b>Acento de perfil (chrome):</b> sidebar, item ativo, primário neutro como <code>Salvar filtros</code> — azul-navy <code>#2A4D8F</code> (claro) / <code>#5B8DEF</code> (escuro).<br>
+        • <b>Ação positiva</b> (<code>Aprovar</code>) = <b>sucesso</b> (verde).<br>
+        • <b>Ação destrutiva</b> (<code>Recusar</code>) = <b>erro</b> (vermelho) — agora <i>destaca-se</i> contra o chrome azul, em vez de sumir nele.</p>
+        <p>Novo (e brando) overlap a checar: o azul do admin <code>#2A4D8F</code> vs. o azul de <code>info</code> <code>#4A6FA5</code>. Escolhi um navy mais profundo/saturado para o admin, e <code>info</code> é mensagem rara. Na sua leitura: o navy do admin se distingue bem do azul de info? Se quiser ainda mais separação, posso puxar o admin para um índigo/royal mais frio.</p>
+      </div>
+    </main>
+  </div>
+
+<script>
+  function initTheme(){
+    const sys = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('turni-bo-theme') || sys);
+  }
+  document.getElementById('toggle').addEventListener('click', ()=>{
+    const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('turni-bo-theme', next);
+  });
+  initTheme();
+</script>
+</body>
+</html>

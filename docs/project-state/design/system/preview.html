@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turni · Preview de tokens (DDR-001)</title>
+<!--
+  PREVIEW NÃO-NORMATIVO. Gerado a partir de design/system/tokens.md (DDR-001) para
+  validação visual dos esquemas tema × perfil. Não é a fonte de verdade (tokens.md é);
+  não é UI de produto. Abra no navegador e use o toggle de tema no topo.
+-->
+<style>
+  :root{ --b:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --m:'JetBrains Mono',ui-monospace,monospace; }
+
+  /* ── Neutros + semânticas por TEMA ── */
+  [data-theme="light"]{
+    --page:#F7F4EC; --surface:#FFFFFF; --sunken:#F0EDE3; --muted-s:#E8E5DB;
+    --border:#E0DDD3; --border-strong:#C8C5BB;
+    --text:#0F1B2D; --text-muted:#42504A; --text-subtle:#6F7C72;
+    --shadow:0 1px 2px rgba(15,27,45,.04),0 8px 24px rgba(15,27,45,.06);
+    --success:#2D7A4F; --success-soft:#E2F0E5;
+    --warning:#9A6E25; --warning-soft:#FBEED1;
+    --error:#B83A3A;   --error-soft:#FBE2E2;
+    --info:#4A6FA5;    --info-soft:#E0E9F5;
+    --sem-on:#FFFFFF;
+  }
+  [data-theme="dark"]{
+    --page:#0F1411; --surface:#1A2018; --sunken:#232A24; --muted-s:#2C342E;
+    --border:#2A322D; --border-strong:#3A4338;
+    --text:#ECEDE5; --text-muted:#A8B2A8; --text-subtle:#8B9590;
+    --shadow:0 1px 2px rgba(0,0,0,.2),0 8px 24px rgba(0,0,0,.2);
+    --success:#5FA37C; --success-soft:rgba(95,163,124,.16);
+    --warning:#D4A95C; --warning-soft:rgba(212,169,92,.16);
+    --error:#D85A5A;   --error-soft:rgba(216,90,90,.16);
+    --info:#6A8FCC;    --info-soft:rgba(106,143,204,.16);
+    --sem-on:#0F1411;
+  }
+
+  /* ── Acentos por PERFIL × TEMA ── */
+  [data-theme="light"] .scheme[data-profile="pro"]{ --accent:#2D5F3F; --on-accent:#FFFFFF; --accent-soft:#E5F0E8; --accent-hover:#3A7050; --accent-ink:#2D5F3F; --chrome:#1B2E1F; }
+  [data-theme="light"] .scheme[data-profile="emp"]{ --accent:#9A6E25; --on-accent:#FFFFFF; --accent-soft:#FBEED1; --accent-hover:#B8842F; --accent-ink:#6E4E12; --chrome:#3D2A0E; }
+  [data-theme="light"] .scheme[data-profile="adm"]{ --accent:#2A4D8F; --on-accent:#FFFFFF; --accent-soft:#E4EAF6; --accent-hover:#21407A; --accent-ink:#2A4D8F; --chrome:#15233B; }
+  [data-theme="dark"] .scheme[data-profile="pro"]{ --accent:#5FA37C; --on-accent:#0F1411; --accent-soft:rgba(95,163,124,.16); --accent-hover:#6CB089; --accent-ink:#5FA37C; --chrome:#1B2E1F; }
+  [data-theme="dark"] .scheme[data-profile="emp"]{ --accent:#D4A95C; --on-accent:#0F1411; --accent-soft:rgba(212,169,92,.16); --accent-hover:#E5B968; --accent-ink:#D4A95C; --chrome:#3D2A0E; }
+  [data-theme="dark"] .scheme[data-profile="adm"]{ --accent:#5B8DEF; --on-accent:#0E1626; --accent-soft:rgba(91,141,239,.16); --accent-hover:#74A0F2; --accent-ink:#5B8DEF; --chrome:#122039; }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--b);background:var(--page);color:var(--text);padding:24px;transition:background .2s,color .2s;line-height:1.5}
+  .topbar{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto 24px;flex-wrap:wrap;gap:12px}
+  .topbar h1{font-size:22px;font-weight:600;letter-spacing:-.3px}
+  .topbar .sub{font-size:13px;color:var(--text-muted);margin-top:2px}
+  .brand{font-weight:700;letter-spacing:1px}
+  .brand .i{color:#00A868}
+  .toggle{font-family:var(--m);font-size:12px;letter-spacing:.5px;text-transform:uppercase;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:999px;padding:10px 18px;cursor:pointer;box-shadow:var(--shadow)}
+  .grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:20px}
+
+  .scheme{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+  .scheme-head{display:flex;align-items:center;gap:12px;padding:16px 20px;background:var(--chrome);color:#ECEDE5}
+  .scheme-head .dot{width:12px;height:12px;border-radius:999px;background:var(--accent)}
+  .scheme-head h2{font-size:15px;font-weight:600}
+  .scheme-head .role{font-family:var(--m);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;opacity:.7;margin-top:2px}
+  .scheme-body{padding:20px}
+  .row{margin-bottom:18px}
+  .row:last-child{margin-bottom:0}
+  .lbl{font-family:var(--m);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-subtle);margin-bottom:8px}
+
+  /* CTA primário (accent + on-accent) */
+  .cta{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--on-accent);border:0;border-radius:999px;padding:12px 22px;font-family:var(--b);font-size:14px;font-weight:500;cursor:pointer}
+  .cta:hover{background:var(--accent-hover)}
+  .link{color:var(--accent-ink);font-weight:500;text-decoration:underline;text-underline-offset:3px;font-size:14px;margin-left:14px}
+
+  /* Texto: strong / muted / subtle */
+  .t-strong{color:var(--text);font-size:16px}
+  .t-muted{color:var(--text-muted);font-size:14px}
+  .t-subtle{color:var(--text-subtle);font-size:14px}
+
+  /* Chip de acento de perfil (soft) */
+  .chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:500}
+  .chip-accent{background:var(--accent-soft);color:var(--accent-ink)}
+  [data-theme="dark"] .chip-accent{color:var(--accent)}
+
+  /* Feedback semântico: soft bg + texto neutro alto-contraste + ícone colorido (regra §1.6/§4) */
+  .feedback{display:flex;align-items:center;gap:10px;border-radius:12px;padding:10px 14px;margin-bottom:8px;color:var(--text);font-size:13px}
+  .feedback .ic{width:18px;height:18px;border-radius:999px;flex-shrink:0}
+  .fb-success{background:var(--success-soft)} .fb-success .ic{background:var(--success)}
+  .fb-warning{background:var(--warning-soft)} .fb-warning .ic{background:var(--warning)}
+  .fb-error{background:var(--error-soft)}     .fb-error .ic{background:var(--error)}
+  .fb-info{background:var(--info-soft)}       .fb-info .ic{background:var(--info)}
+
+  /* Botão semântico sólido (para comparação visual com o acento de perfil) */
+  .sem-solid{display:inline-flex;gap:6px}
+  .sem-solid b{display:inline-block;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:500;color:var(--sem-on)}
+  .ss-success{background:var(--success)} .ss-warning{background:var(--warning)} .ss-error{background:var(--error)} .ss-info{background:var(--info)}
+
+  .ratio{font-family:var(--m);font-size:11px;color:var(--text-subtle);margin-top:6px}
+  .note{max-width:1200px;margin:24px auto 0;background:var(--sunken);border:1px solid var(--border);border-radius:12px;padding:16px 20px;font-size:13px;color:var(--text-muted)}
+  .note b{color:var(--text)}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div>
+      <h1><span class="brand">TURN<span class="i">I</span>.</span> · Preview de tokens</h1>
+      <div class="sub">DDR-001 · tema × perfil · não-normativo (fonte: <code>tokens.md</code>)</div>
+    </div>
+    <button class="toggle" id="toggle">Alternar tema</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="note">
+    <p><b>Teste do ponto #2 (sobreposição de hue).</b> Em cada cartão, o bloco <b>"Feedback semântico"</b> mostra atenção (mostarda), erro (vermelho), sucesso (verde) e info (azul) como feedback transitório (fundo suave + texto neutro + ícone colorido). Compare com o <b>CTA</b>/<b>chip de acento</b> do perfil: profissional = verde, contratante = mostarda, <b>admin = azul-navy</b> (revisto do vermelho). Agora o <b>vermelho é exclusivo de erro</b> — nenhum perfil disputa esse hue. Overlaps restantes (brandos): profissional≈sucesso, contratante≈atenção, admin≈info — resolvidos pela regra de contexto (perfil = chrome persistente · semântica = feedback). Na sua leitura, o admin (azul-navy) se distingue bem do azul de <i>info</i>?</p>
+  </div>
+
+<script>
+  const profiles = [
+    { id:'pro', name:'Profissional (contratado)', role:'verde-sage',
+      ctaRatio:{light:'on-accent/accent 7.4:1 ✅', dark:'on-accent/accent 6.1:1 ✅'} },
+    { id:'emp', name:'Contratante', role:'mostarda',
+      ctaRatio:{light:'on-accent/accent 4.5:1 ✅', dark:'on-accent/accent 8.3:1 ✅'} },
+    { id:'adm', name:'Admin (backoffice)', role:'azul-navy',
+      ctaRatio:{light:'on-accent/accent 8.2:1 ✅', dark:'on-accent/accent 5.8:1 ✅'} },
+  ];
+
+  function card(p){
+    const theme = document.documentElement.getAttribute('data-theme');
+    return `
+    <div class="scheme" data-profile="${p.id}">
+      <div class="scheme-head">
+        <span class="dot"></span>
+        <div><h2>${p.name}</h2><div class="role">esquema · ${p.role}</div></div>
+      </div>
+      <div class="scheme-body">
+        <div class="row">
+          <div class="lbl">Ação primária + link</div>
+          <button class="cta">Aceitar match</button>
+          <a href="#" class="link">Ver detalhes</a>
+          <div class="ratio">${p.ctaRatio[theme]}</div>
+        </div>
+        <div class="row">
+          <div class="lbl">Texto</div>
+          <div class="t-strong">Texto forte — título e corpo principal</div>
+          <div class="t-muted">Texto secundário — helper, legenda (piso de pequeno essencial)</div>
+          <div class="t-subtle">Texto sutil — ${theme==='light'?'só grande/UI (reprova AA pequeno)':'passa AA normal no escuro'}</div>
+        </div>
+        <div class="row">
+          <div class="lbl">Chip de acento (identidade do perfil)</div>
+          <span class="chip chip-accent">● em atividade</span>
+        </div>
+        <div class="row">
+          <div class="lbl">Feedback semântico (transitório · ícone+texto)</div>
+          <div class="feedback fb-success"><span class="ic"></span> Pix enviado. Tudo certo.</div>
+          <div class="feedback fb-warning"><span class="ic"></span> Cadastro pendente de análise.</div>
+          <div class="feedback fb-error"><span class="ic"></span> Não conseguimos confirmar. Tentar de novo.</div>
+          <div class="feedback fb-info"><span class="ic"></span> O turno começa em 2 horas.</div>
+        </div>
+        <div class="row">
+          <div class="lbl">Semântico sólido (texto branco/escuro)</div>
+          <div class="sem-solid"><b class="ss-success">sucesso</b><b class="ss-warning">atenção</b><b class="ss-error">erro</b><b class="ss-info">info</b></div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function render(){ document.getElementById('grid').innerHTML = profiles.map(card).join(''); }
+  function initTheme(){
+    const sys = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('turni-preview-theme') || sys);
+  }
+  document.getElementById('toggle').addEventListener('click', ()=>{
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('turni-preview-theme', next);
+    render();
+  });
+  initTheme(); render();
+</script>
+</body>
+</html>
