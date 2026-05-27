@@ -17,14 +17,16 @@ Antes de qualquer linha de código de produção, o EPIC-000 Foundation exige de
 
 | ID | Título | Épico | Tipo | Papel | Tamanho | Status atual |
 |---|---|---|---|---|---|---|
-| STORY-001 | Spike Arquiteto — stack principal, topologia e monorepo vs polirepo | EPIC-000 | spike | arquiteto | M | ready |
-| STORY-002 | Spike Arquiteto — hospedagem, IaC e estratégia de deploy | EPIC-000 | spike | arquiteto | M | ready |
-| STORY-003 | Spike Arquiteto — Pagar.me alto nível e estratégia de consulta de habitualidade | EPIC-000 | spike | arquiteto | M | ready |
-| STORY-004 | Spike Arquiteto — autenticação base e observabilidade mínima | EPIC-000 | spike | arquiteto | M | ready |
-| STORY-005 | Spike Arquiteto — ADR-000 retroativo formalizando PostgreSQL | EPIC-000 | spike | arquiteto | S | ready |
-| STORY-010 | DDR-001 — Fundação do Design System (tokens, tipografia, paleta) | EPIC-000 | implementation | designer | M | ready |
+| STORY-001 | Spike Arquiteto — stack principal, topologia e monorepo vs polirepo | EPIC-000 | spike | arquiteto | M | **done** (2026-05-27) — ADR-001, ADR-002, ADR-003 aceitas |
+| STORY-002 | Spike Arquiteto — hospedagem, IaC e estratégia de deploy | EPIC-000 | spike | arquiteto | M | **done** (2026-05-27) — ADR-004 aceita |
+| STORY-003 | Spike Arquiteto — Pagar.me alto nível e estratégia de consulta de habitualidade | EPIC-000 | spike | arquiteto | M | ready (única restante — todas as outras `done`) |
+| STORY-004 | Spike Arquiteto — autenticação base e observabilidade mínima | EPIC-000 | spike | arquiteto | M | **done** (2026-05-27) — ADR-007, ADR-008 aceitas |
+| STORY-005 | Spike Arquiteto — ADR-000 retroativo formalizando PostgreSQL | EPIC-000 | spike | arquiteto | S | **done** (2026-05-27) — ADR-000 aceita |
+| STORY-010 | DDR-001 — Fundação do Design System (tokens, tipografia, paleta) | EPIC-000 | implementation | designer | M | **done** (2026-05-27) — DDR-001 aceito; DS + screen spec de STORY-008 em `ready` |
 
-**Total**: 6 estórias (5 spikes + 1 designer). Saída esperada: 9 ADRs propostas → aceitas + 1 DDR proposto → aceito + tokens + voice-and-tone + screen spec de STORY-008 em `ready`.
+**Progresso**: 5 de 6 estórias `done` (STORY-001, 002, 004, 005, 010); resta **STORY-003** (`ready`). 7 ADRs aceitas pelo Alexandro (ADR-000 a 004, 007, 008) + **DDR-001 aceito**.
+
+**Saída esperada (atualizada)**: faltam apenas **ADR-005 e ADR-006** (STORY-003 — Pagar.me + habitualidade) para fechar as 9 ADRs do goal. DDR-001, tokens, voice-and-tone e screen spec de STORY-008 (`ready`) já entregues.
 
 ## Ordem de execução sugerida (paralelização)
 
@@ -42,6 +44,23 @@ Após STORY-001 fechar (ADRs aceitas pelo Alexandro):
 
 **Por que esta ordem:** STORY-001 destrava 002, 003, 004 (todas dependem de ADR-001). STORY-005 não tem dependência — pode rodar em qualquer momento. STORY-010 idem. Começar pelas três independentes (001/005/010) no dia 1 garante throughput desde o primeiro momento e cria material para validar o fluxo de "spike → ADR proposta → aprovação humana de Alexandro → `accepted`" antes da próxima onda de spikes.
 
+### Execução real — dia 1 (2026-05-27)
+
+O Arquiteto executou em rajada três spikes do plano original (STORY-001, STORY-002 e STORY-005) e Alexandro aprovou as 5 ADRs resultantes no mesmo dia. Ordem efetiva: 001 → 002 (puxada antes de 005 porque o agente já tinha contexto de stack) → 005. STORY-010 (Designer) e STORY-003/004 (Arquiteto) seguem `ready` para os próximos dias do sprint.
+
+**Frentes disponíveis a partir de 2026-05-28:**
+- STORY-003 (Pagar.me + habitualidade) — Arquiteto. **Única estória restante do sprint.**
+
+STORY-004 (auth/observabilidade) e STORY-010 (DDR-001) foram concluídas ainda em 2026-05-27 (ver atualização abaixo), restando só STORY-003 para fechar o goal.
+
+### Execução real — atualização 2026-05-27 (fim do dia)
+
+Além das três spikes da manhã (001/002/005), no mesmo dia fecharam:
+- **STORY-004** (Arquiteto) — ADR-007 (auth base Sanctum) e ADR-008 (observabilidade mínima) aceitas.
+- **STORY-010** (Designer) — DDR-001 (Fundação do Design System) aceito por Alexandro. Saiu o Design System vivo (`design/system/`: tokens com contraste AA, README, components, patterns, voice-and-tone + 2 previews HTML), o screen spec `SCREEN-STORY-008` em `ready`, e — como subproduto — **PDR-013** (dual-theme claro/escuro) com a seção "Temas" adicionada em `non-functional.md`.
+
+Resultado: **5 de 6 estórias `done` no dia 1**. Resta STORY-003.
+
 ## Compromisso visível ao fim do sprint
 
 Ao fim do sprint, **nada novo é visível ao usuário externo** — esta sprint é deliberação documental. O que estará observável:
@@ -55,8 +74,8 @@ Ao fim do sprint, **nada novo é visível ao usuário externo** — esta sprint 
 
 ## Decisões pendentes que podem afetar o sprint
 
-- **9 aprovações humanas de ADR** + **1 aprovação humana de DDR** dependem do Alexandro. Cadência sugerida: revisar e aprovar/comentar cada artefato proposto **em até 24h** após o agente marcar `status: in_review`. Sem isso, as estórias dependentes (002, 003, 004) ficam paradas esperando.
-- Nenhuma decisão de produto nova prevista para esta sprint — todos os PDRs aplicáveis já estão `accepted`.
+- **Aprovações humanas restantes**: só as 2 ADRs de STORY-003 (ADR-005, ADR-006) dependem do Alexandro. As demais (7 ADRs + DDR-001) já estão `accepted`.
+- **Decisão de produto nova surgida na sprint:** **PDR-013** (dual-theme claro/escuro; padrão do MVP = claro) — emergiu da fundação do Design System (DDR-001), aprovada pelo Alexandro e já `accepted`. Atualizou `non-functional.md` (seção "Temas"), que era silente sobre o tema.
 
 ## Riscos identificados na abertura
 
@@ -76,6 +95,17 @@ Ao fim do sprint, **nada novo é visível ao usuário externo** — esta sprint 
 | Data | O que mudou | Motivo | Custo (estória solta/movida) |
 |---|---|---|---|
 | — | (nenhuma até o momento) | — | — |
+
+## Aprendizados em curso (mid-sprint)
+
+Para registrar conforme acontecem; consolidados na seção "Fechamento do sprint" no fim.
+
+- **2026-05-27 — Throughput inicial muito acima do esperado.** 3 estórias `done` + 5 ADRs aceitas no dia 1. Indica que o tamanho estimado das spikes pode estar conservador, **ou** que o Arquiteto + aprovador estão muito sintonizados nesta fase (ainda 1 pessoa nos dois papéis). Sinal a vigiar: STORY-003 e STORY-004 envolvem mais incerteza técnica (Pagar.me, habitualidade, auth) — manter rigor de "mínimo 2 opções reais por ADR" mesmo no ritmo rápido.
+- **2026-05-27 — Inconsistência de processo nos arquivos `.md` de STORY-001 e STORY-002.** Frontmatter foi para `status: done` mas os CAs no corpo continuam `[ ]`. STORY-005 está correta (`[x]` em cada CA). Ação para o próximo sprint: agente deve marcar cada CA com `[x]` ao fechar a estória, junto da transição de status — está no template e na disciplina de "Notas do agente" do `agent-task-format.md`, mas precisa ser hábito. PO **não vai reprovar** STORY-001/002 retroativamente — ADRs aceitas pelo Alexandro são sinal forte de cumprimento — mas vale o ajuste daqui em diante.
+- **2026-05-27 — Cadência de aprovação humana funcionou.** 7 ADRs + DDR-001 aprovadas no mesmo dia em que foram propostas; risco "atraso na aprovação humana bloqueia estórias dependentes" não se materializou. Manter a janela diária dedicada.
+- **2026-05-27 — DDR-001 mostrou que iterar visualmente vale a pena.** O Design System passou por duas revisões guiadas pelo Alexandro antes do `accepted`: (1) fonte de verdade restrita ao `app.html` (landing é do marketing); (2) admin migrado de vermelho para azul-navy, liberando o vermelho para significar só erro/destrutivo. Previews HTML versionados (`design/system/preview*.html`) foram decisivos para esse julgamento — barato de produzir, alto valor de decisão. Replicar o hábito de "preview navegável" quando uma decisão de design for ambígua.
+- **2026-05-27 — `non-functional.md` estava silente sobre tema.** Estórias citavam "dark fora do MVP" atribuindo ao doc, sem lastro. Lição de processo: suposição repetida em estória não substitui decisão registrada — virou PDR-013. Vigiar outras "verdades de corredor" sem PDR/ADR/DDR.
+- **2026-05-27 — STORY-010 seguiu a disciplina de checklist** (CAs e DoD marcados ao fechar), corrigindo na prática a inconsistência notada em STORY-001/002.
 
 ## Acompanhamento contínuo (PO)
 
