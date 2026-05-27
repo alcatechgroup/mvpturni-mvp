@@ -19,14 +19,14 @@ Antes de qualquer linha de código de produção, o EPIC-000 Foundation exige de
 |---|---|---|---|---|---|---|
 | STORY-001 | Spike Arquiteto — stack principal, topologia e monorepo vs polirepo | EPIC-000 | spike | arquiteto | M | **done** (2026-05-27) — ADR-001, ADR-002, ADR-003 aceitas |
 | STORY-002 | Spike Arquiteto — hospedagem, IaC e estratégia de deploy | EPIC-000 | spike | arquiteto | M | **done** (2026-05-27) — ADR-004 aceita |
-| STORY-003 | Spike Arquiteto — Pagar.me alto nível e estratégia de consulta de habitualidade | EPIC-000 | spike | arquiteto | M | ready (única restante — todas as outras `done`) |
+| STORY-003 | Spike Arquiteto — Pagar.me alto nível e estratégia de consulta de habitualidade | EPIC-000 | spike | arquiteto | M | **done** (2026-05-27) — ADR-005, ADR-006 aceitas |
 | STORY-004 | Spike Arquiteto — autenticação base e observabilidade mínima | EPIC-000 | spike | arquiteto | M | **done** (2026-05-27) — ADR-007, ADR-008 aceitas |
 | STORY-005 | Spike Arquiteto — ADR-000 retroativo formalizando PostgreSQL | EPIC-000 | spike | arquiteto | S | **done** (2026-05-27) — ADR-000 aceita |
 | STORY-010 | DDR-001 — Fundação do Design System (tokens, tipografia, paleta) | EPIC-000 | implementation | designer | M | **done** (2026-05-27) — DDR-001 aceito; DS + screen spec de STORY-008 em `ready` |
 
-**Progresso**: 5 de 6 estórias `done` (STORY-001, 002, 004, 005, 010); resta **STORY-003** (`ready`). 7 ADRs aceitas pelo Alexandro (ADR-000 a 004, 007, 008) + **DDR-001 aceito**.
+**Progresso**: **6 de 6 estórias `done`** (STORY-001, 002, 003, 004, 005, 010). **9 ADRs aceitas** pelo Alexandro (ADR-000 a ADR-008) + **DDR-001 aceito**.
 
-**Saída esperada (atualizada)**: faltam apenas **ADR-005 e ADR-006** (STORY-003 — Pagar.me + habitualidade) para fechar as 9 ADRs do goal. DDR-001, tokens, voice-and-tone e screen spec de STORY-008 (`ready`) já entregues.
+**Saída esperada (atingida)**: as 9 ADRs do goal estão `accepted` (ADR-005 e ADR-006 fechadas em 2026-05-27 com STORY-003). DDR-001, tokens, voice-and-tone e screen spec de STORY-008 (`ready`) entregues. Goal documental do EPIC-000 cumprido; o "Fechamento do sprint" formal abaixo fica para o PO no encerramento.
 
 ## Ordem de execução sugerida (paralelização)
 

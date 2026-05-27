@@ -3,14 +3,14 @@ story_id: STORY-003
 slug: spike-pagarme-e-habitualidade
 title: Spike Arquiteto — Pagar.me alto nível e estratégia de consulta de habitualidade
 epic_id: EPIC-000
-sprint_id: null
+sprint_id: SPRINT-2026-W22
 type: spike
 target_role: arquiteto
 requires_design: false
-status: ready
-owner_agent: null
+status: done
+owner_agent: claude-opus-arquiteto-2026-05-27
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-05-27
 estimated_session_size: M
 ---
 
@@ -152,23 +152,26 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões tomadas
-- <data> — <decisão local / opção descartada>
+- 2026-05-27 — **ADR-005 (Pagar.me): Opção A escolhida** — ACL no módulo de domínio `Pagamento` (interface `GatewayPagamento` + adapter Pagar.me) + **mock dedicado em container** (Docker Compose, `PAGARME_DRIVER=mock|sandbox|live`) + **contract test consumer-driven contra o sandbox no CI noturno**. Descartadas: cliente direto sem ACL + `Http::fake()` (vaza provedor no domínio; `fake` não é runtime local — fura princípio #6); sandbox como ambiente local (depende de internet — fura princípio #6). O sandbox vira **alvo do contract test**, não o ambiente de dev.
+- 2026-05-27 — **ADR-005: idempotência por chave determinística** `(turno_id, operação)` (`preauth:/capture:/pix:{turno_id}`) enviada ao Pagar.me e registrada local; webhook idempotente por `event_id`. Modelo de erro recuperável (retry do worker com backoff) vs fatal (sem retry, marca falho). Falha de **Pix** segue **PDR-010**: 1 tentativa + alerta no backoffice + trilha de auditoria, sem motor de retry.
+- 2026-05-27 — **ADR-006 (habitualidade): Opção A escolhida** — **query direta com índice composto** `(estabelecimento_id, profissional_id, data_inicio)` sobre Postgres, **on-demand na transação do aceite** com **lock por par×semana** para correção sob concorrência. Descartadas por antecipação (princípio #1) e risco de staleness numa regra de **bloqueio**: materialized view (Opção B — evolução com gatilho de performance) e cache aplicacional (Opção C — tende a Redis, proibido no MVP por ADR-001).
+- 2026-05-27 — **ADR-006: semana corrida = seg 00:00 → dom 23:59:59.999 em `America/Sao_Paulo`**, timestamps em UTC (`timestamptz`), janela calculada no fuso de SP e convertida para UTC (evita virada de semana deslocada por fuso). Decisão PF×PJ separada da contagem: contagem única e agnóstica; decisão (bloqueio PF / alerta+override MEI-PJ por `tipo_pessoa`, PDR-001) no serviço de domínio. Override gravado **imutável** no aceite eletrônico (`{{habitualidade.override_aceito}}`) + trilha.
 
 ### Descobertas
-- <data> — <surpresa relevante>
+- 2026-05-27 — A semana de habitualidade ancora no **`data_inicio` do turno/vaga** (trabalho efetivo), não na data da candidatura — confirmado em `domain/turno.md` + `domain/candidatura.md`. Alocações canceladas antes de `ativo` e `no_show_pro` **não** contam (não é trabalho realizado); o conjunto exato de status é refinamento de schema do EPIC-001 (IDR).
+- 2026-05-27 — Ambas as ADRs encaixaram inteiramente nas ADRs já aceitas, sem reabrir nenhuma: ADR-002 (worker assíncrono executa as chamadas; webhook entra no `api`), ADR-004 (webhook público + Secret Manager), ADR-008 (mecanismo de log/trace/alerta já existe — estas ADRs só nomeiam os eventos: `pagamento.*`/`pix.*` e `habitualidade.*`), ADR-001/000 (Eloquent + Postgres, sem Redis). Nenhuma complexidade descoberta exigiu quebrar a spike em estórias próprias.
 
 ### Bloqueios encontrados
-- <data> — <bloqueio>
+- Nenhum. Nenhuma decisão de produto precisou ser escalada ao PO; nenhum conflito com PDR vigente.
 
 ### ADRs criados
-- ADR-005 — Estratégia de integração Pagar.me — `decisions/adr/ADR-005-integracao-pagarme.md` — status: <proposed/accepted>
-- ADR-006 — Estratégia de consulta de habitualidade — `decisions/adr/ADR-006-estrategia-habitualidade.md` — status: <proposed/accepted>
+- ADR-005 — Estratégia de integração Pagar.me em alto nível — `decisions/adr/ADR-005-integracao-pagarme.md` — status: **accepted** (Alexandro, 2026-05-27)
+- ADR-006 — Estratégia de consulta de habitualidade — `decisions/adr/ADR-006-estrategia-habitualidade.md` — status: **accepted** (Alexandro, 2026-05-27)
 
 ### Cobertura final
-- Unitários: N/A (spike)
+- Unitários: N/A (spike — sem código de produção)
 - E2E: N/A (spike)
 
 ### Links de evidência
-- PR: <url>
-- ADRs propostas: <links>
-- Aprovações registradas: <links>
+- ADRs aceitas: `decisions/adr/ADR-005-integracao-pagarme.md`, `decisions/adr/ADR-006-estrategia-habitualidade.md`
+- Aprovações registradas: Alexandro aprovou ambas em chat na sessão de 2026-05-27; commit direto na `main`. Estória `done`; SPRINT-2026-W22 concluída.

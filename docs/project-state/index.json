@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "generated_at": "2026-05-28T00:45:00Z",
+  "generated_at": "2026-05-27T20:30:00Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W22",
     "phase": "wave-2026-01-sprint-w22-aberta",
-    "notes": "WAVE-2026-01 ativa. EPIC-000 Foundation decomposto via Fluxo C em 2026-05-26 (11 estórias). SPRINT-2026-W22 aberta em 2026-05-27. Progresso (2026-05-27): 4 de 6 estórias do sprint done — STORY-001 (ADR-001/002/003 aceitas), STORY-002 (ADR-004 aceita), STORY-005 (ADR-000 aceita) e STORY-004 (ADR-007 auth Sanctum + ADR-008 observabilidade mínima aceitas). STORY-010 done (designer): DDR-001 fundação do Design System aceito por Alexandro em 2026-05-27 — dual-theme (claro padrão + escuro, PDR-013) e esquema de cor por perfil (profissional verde, contratante mostarda, admin azul-navy; vermelho reservado a erro). Fundação viva em design/system/ (tokens+contraste AA, README, components, patterns, voice-and-tone, 2 previews) e screen spec SCREEN-STORY-008 em ready. Resta STORY-003 (Pagar.me+habitualidade). 7 ADRs + 13 PDRs + DDR-001 aceitos. Próxima sprint (W23) já tem fundação técnica e visual para abrir STORY-006/007/008/009/011."
+    "notes": "WAVE-2026-01 ativa. EPIC-000 Foundation decomposto via Fluxo C em 2026-05-26 (11 estórias). SPRINT-2026-W22 aberta em 2026-05-27 e CONCLUÍDA: todas as 6 estórias do sprint done. STORY-001 (ADR-001/002/003 aceitas), STORY-002 (ADR-004 aceita), STORY-005 (ADR-000 aceita), STORY-004 (ADR-007 auth Sanctum + ADR-008 observabilidade mínima aceitas), STORY-010 (designer, DDR-001 fundação do Design System aceito — dual-theme PDR-013 + cor por perfil) e STORY-003 (ADR-005 integração Pagar.me alto nível + ADR-006 estratégia de habitualidade — ambas aceitas por Alexandro em 2026-05-27, commit direto na main). Fundação documental do EPIC-000 fechada: 9 ADRs aceitas (ADR-000 a ADR-008) + DDR-001 + 13 PDRs. Restam apenas as estórias de implementação do EPIC-000 (STORY-006/007/008/009 + validação STORY-011), prontas para SPRINT-2026-W23."
   },
   "product": {
     "vision": "product/vision.md",
@@ -192,8 +192,8 @@
       "target_role": "arquiteto",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-arquiteto-2026-05-27",
       "sprint_id": "SPRINT-2026-W22",
       "path": "epics/EPIC-000-foundation/stories/STORY-003-spike-pagarme-e-habitualidade.md",
       "blocked_by": [
@@ -595,6 +595,30 @@
         "supersedes": null,
         "superseded_by": null,
         "source_story": "STORY-004"
+      },
+      {
+        "id": "ADR-005",
+        "title": "Estratégia de integração Pagar.me em alto nível — ACL no módulo Pagamento, mock dedicado em container, idempotência por chave de operação, fluxo pré-autorização → captura → Pix com webhook entrante validado",
+        "status": "accepted",
+        "path": "decisions/adr/ADR-005-integracao-pagarme.md",
+        "decided_at": "2026-05-27",
+        "decided_by": "arquiteto",
+        "approved_by": "Alexandro",
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-003"
+      },
+      {
+        "id": "ADR-006",
+        "title": "Estratégia de consulta de habitualidade — query direta com índice composto sobre Postgres, janela de semana corrida em America/Sao_Paulo, decisão PF×PJ na mesma consulta",
+        "status": "accepted",
+        "path": "decisions/adr/ADR-006-estrategia-habitualidade.md",
+        "decided_at": "2026-05-27",
+        "decided_by": "arquiteto",
+        "approved_by": "Alexandro",
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-003"
       }
     ],
     "idr": [],
