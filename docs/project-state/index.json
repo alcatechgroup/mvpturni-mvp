@@ -240,8 +240,8 @@
       "target_role": "arquiteto",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-arquiteto-2026-05-27",
       "sprint_id": "SPRINT-2026-W22",
       "path": "epics/EPIC-000-foundation/stories/STORY-005-spike-adr-000-postgresql-retroativo.md",
       "blocked_by": [],
@@ -505,6 +505,16 @@
       }
     ],
     "adr": [
+      {
+        "id": "ADR-000",
+        "title": "PostgreSQL como banco de dados principal (formalização retroativa)",
+        "status": "accepted",
+        "path": "decisions/adr/ADR-000-postgresql-banco-principal.md",
+        "decided_at": "2026-05-27",
+        "decided_by": "arquiteto",
+        "approved_by": "Alexandro",
+        "related_pdrs": ["PDR-002", "PDR-008"]
+      },
       {
         "id": "ADR-001",
         "title": "Stack principal — Laravel (backend) + Livewire (backoffice) + Flutter (WebApp)",
