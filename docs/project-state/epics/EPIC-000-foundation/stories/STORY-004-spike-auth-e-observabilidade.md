@@ -3,14 +3,14 @@ story_id: STORY-004
 slug: spike-auth-e-observabilidade
 title: Spike Arquiteto — autenticação base e observabilidade mínima
 epic_id: EPIC-000
-sprint_id: null
+sprint_id: SPRINT-2026-W22
 type: spike
 target_role: arquiteto
 requires_design: false
-status: ready
-owner_agent: null
+status: done
+owner_agent: claude-opus-arquiteto-2026-05-27
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-05-27
 estimated_session_size: M
 ---
 
@@ -148,23 +148,26 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões tomadas
-- <data> — <decisão local>
+- 2026-05-27 — **ADR-007 (auth):** sessão **Sanctum SPA por cookie `httpOnly` same-site** para o WebApp Flutter Web (sem token exposto a XSS), com caminho para **token Bearer no app nativo futuro** — mesmo backend, só troca de modo. Backoffice Livewire usa sessão web padrão com cookie/host distintos do WebApp; admin em duas camadas (cookie/host + IAP da borda do ADR-004). Hash de senha **Argon2id** (64 MiB / 3 iterações / paralelismo 1; bcrypt cost ≥12 como fallback aceitável). RBAC por coluna `role` na tabela `users` única; papel `admin` nunca auto-atribuível. Reset de senha via Fortify (provedor de e-mail definido no EPIC-001). Audit log de admin existe e é **distinto** do log de observabilidade.
+- 2026-05-27 — **ADR-008 (observabilidade):** log **JSON em stdout → Cloud Logging** (já fixado por ADR-004), com campos canônicos + mascaramento automático de PII/credencial. **RED via log-based metrics** + dashboard do Cloud Monitoring (sem Prometheus/SaaS pago — atende CA-7). `/health` (liveness) + readiness com check de Postgres em `api`/`admin`; `webapp` checado pelo `version.json`. **Alerta de indisponibilidade** por uptime check (60s) + alert policy de erro/p95 → e-mail para Alexandro, tudo em Terraform. `request_id` (reusa `X-Cloud-Trace-Context` do Cloud Run, fallback ULID) propagado `api`→fila→`worker`. APM/trace distribuído/RUM fora de escopo (CA-8).
 
 ### Descobertas
-- <data> — <surpresa relevante>
+- 2026-05-27 — A tensão central de ADR-007 não estava na escolha "sessão vs token" em abstrato, mas no **cliente que muda de natureza**: Flutter **Web hoje** (onde cookie same-site é o seguro) vira **nativo amanhã** (onde Bearer é o natural). Sanctum suporta os dois modos no mesmo backend, o que dissolve o falso dilema — escolhe-se o modo seguro para o cliente atual sem fechar a porta do futuro.
+- 2026-05-27 — ADR-004 já havia **pré-fixado** destino e formato base de log (stdout JSON → Cloud Logging) e colocado o `admin` atrás de IAP, delegando explicitamente o detalhamento a esta estória. Isso tornou ADR-008 mais uma questão de "como produzir/consumir os sinais" do que "onde mandá-los", e deu a ADR-007 a camada de borda do admin de graça.
+- 2026-05-27 — `quality-standards.md` 3 (RED: RPS, p50/p95/p99, taxa de erro) é integralmente atingível **sem** sistema de métricas dedicado, via **log-based metrics** do Cloud Logging — o que mantém o princípio #1/#11 (nada novo a operar/pagar no MVP).
 
 ### Bloqueios encontrados
-- <data> — <bloqueio>
+- Nenhum. Todas as dependências (`STORY-001`/ADR-001 stack+Sanctum, `STORY-002`/ADR-004 destino de log + IAP) estavam `accepted`, destravando a spike.
 
 ### ADRs criados
-- ADR-007 — Modelo de autenticação base e roteamento por papel — `decisions/adr/ADR-007-auth-base-e-roteamento.md` — status: <proposed/accepted>
-- ADR-008 — Observabilidade mínima — `decisions/adr/ADR-008-observabilidade-minima.md` — status: <proposed/accepted>
+- ADR-007 — Modelo de autenticação base e roteamento por papel — `decisions/adr/ADR-007-auth-base-e-roteamento.md` — status: **proposed**
+- ADR-008 — Observabilidade mínima — `decisions/adr/ADR-008-observabilidade-minima.md` — status: **proposed**
 
 ### Cobertura final
-- Unitários: N/A (spike)
+- Unitários: N/A (spike — sem código de produção)
 - E2E: N/A (spike)
 
 ### Links de evidência
-- PR: <url>
-- ADRs propostas: <links>
-- Aprovações registradas: <links>
+- PR: <a abrir>
+- ADRs propostas: `decisions/adr/ADR-007-auth-base-e-roteamento.md`, `decisions/adr/ADR-008-observabilidade-minima.md`
+- Aprovações registradas: pendentes — aguardando aprovação humana de Alexandro (cada ADR aprovada independentemente; CA-10).

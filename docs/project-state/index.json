@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "generated_at": "2026-05-27T13:00:00Z",
+  "generated_at": "2026-05-27T19:30:00Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W22",
     "phase": "wave-2026-01-sprint-w22-aberta",
-    "notes": "WAVE-2026-01 ativa. EPIC-000 Foundation decomposto via Fluxo C em 2026-05-26 (11 estórias). SPRINT-2026-W22 aberta em 2026-05-27 (escopo médio: 5 spikes Arquiteto + DDR-001 do Designer = 6 estórias, todas paralelizáveis em boa parte). Goal: fundação documental do EPIC-000 fechada (9 ADRs aceitas + DDR-001 aceito). Próxima sprint (W23) absorverá STORY-006/007/008/009/011. Demais épicos (EPIC-001 a EPIC-005) permanecem `draft` até EPIC-000 fechar."
+    "notes": "WAVE-2026-01 ativa. EPIC-000 Foundation decomposto via Fluxo C em 2026-05-26 (11 estórias). SPRINT-2026-W22 aberta em 2026-05-27. Progresso (2026-05-27): 4 de 6 estórias do sprint done — STORY-001 (ADR-001/002/003 aceitas), STORY-002 (ADR-004 aceita), STORY-005 (ADR-000 aceita) e STORY-004 (ADR-007 auth Sanctum + ADR-008 observabilidade mínima aceitas). Restam STORY-003 (Pagar.me+habitualidade) e STORY-010 (DDR-001 designer). 7 ADRs aceitas (ADR-000 a 004, 007, 008). Próxima sprint (W23) já tem fundação técnica para abrir STORY-006/007/008/009/011."
   },
   "product": {
     "vision": "product/vision.md",
@@ -214,8 +214,8 @@
       "target_role": "arquiteto",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-arquiteto-2026-05-27",
       "sprint_id": "SPRINT-2026-W22",
       "path": "epics/EPIC-000-foundation/stories/STORY-004-spike-auth-e-observabilidade.md",
       "blocked_by": [
@@ -513,7 +513,9 @@
         "decided_at": "2026-05-27",
         "decided_by": "arquiteto",
         "approved_by": "Alexandro",
-        "related_pdrs": ["PDR-002", "PDR-008"]
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-005"
       },
       {
         "id": "ADR-001",
@@ -523,7 +525,9 @@
         "decided_at": "2026-05-27",
         "decided_by": "arquiteto",
         "approved_by": "Alexandro",
-        "related_pdrs": ["PDR-003", "PDR-004", "PDR-011"]
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-001"
       },
       {
         "id": "ADR-002",
@@ -533,7 +537,9 @@
         "decided_at": "2026-05-27",
         "decided_by": "arquiteto",
         "approved_by": "Alexandro",
-        "related_pdrs": ["PDR-003", "PDR-004"]
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-001"
       },
       {
         "id": "ADR-003",
@@ -543,7 +549,9 @@
         "decided_at": "2026-05-27",
         "decided_by": "arquiteto",
         "approved_by": "Alexandro",
-        "related_pdrs": ["PDR-003"]
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-001"
       },
       {
         "id": "ADR-004",
@@ -553,7 +561,33 @@
         "decided_at": "2026-05-27",
         "decided_by": "arquiteto",
         "approved_by": "Alexandro",
-        "related_pdrs": ["PDR-003", "PDR-004", "PDR-011"]
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-002"
+      },
+      {
+        "id": "ADR-007",
+        "title": "Modelo de autenticação base e roteamento por papel — Sanctum (sessão cookie SPA no WebApp + sessão web no Backoffice), Argon2id, RBAC por coluna de papel",
+        "status": "accepted",
+        "path": "decisions/adr/ADR-007-auth-base-e-roteamento.md",
+        "decided_at": "2026-05-27",
+        "decided_by": "arquiteto",
+        "approved_by": "Alexandro",
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-004"
+      },
+      {
+        "id": "ADR-008",
+        "title": "Observabilidade mínima — log JSON estruturado em stdout, health-check padrão, métricas RED via log-based metrics e alerta de indisponibilidade no Cloud Monitoring",
+        "status": "accepted",
+        "path": "decisions/adr/ADR-008-observabilidade-minima.md",
+        "decided_at": "2026-05-27",
+        "decided_by": "arquiteto",
+        "approved_by": "Alexandro",
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-004"
       }
     ],
     "idr": [],
