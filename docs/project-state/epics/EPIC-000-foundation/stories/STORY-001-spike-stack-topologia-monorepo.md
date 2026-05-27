@@ -7,10 +7,10 @@ sprint_id: null
 type: spike
 target_role: arquiteto
 requires_design: false
-status: ready
-owner_agent: null
+status: done
+owner_agent: claude-opus-arquiteto-2026-05-27
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-05-27
 estimated_session_size: M
 ---
 
@@ -125,24 +125,36 @@ Siga `docs/skills/po/references/agent-task-format.md`. Em resumo:
 > Esta seção é a memória da estória. Preencha conforme executa. Não apague o que você escreveu — adicione.
 
 ### Decisões tomadas
-- <data> — <decisão local / opção descartada com razão>
+- 2026-05-27 — **Direção de stack definida pela liderança técnica (Alexandro), não pelo agente.** Em sessão de deliberação, o agente apresentou 3 pacotes de stack (Laravel+Livewire+Flutter; TypeScript ponta a ponta NestJS+React; Django+React). Alexandro escolheu **Laravel (backend) + Livewire (backoffice) + Flutter (WebApp, web no MVP e nativo no futuro)**, com diretriz de **seguir o ecossistema/práticas Laravel sempre que possível** e usar **versões mais recentes**. → ADR-001.
+- 2026-05-27 — **Versões mais recentes verificadas via web (maio/2026):** PHP 8.5.6 (8.4 ainda em suporte ativo), Laravel 13.6, Livewire 4.3, Flutter 3.44 / Dart 3.12. Baseline a fixar em STORY-006.
+- 2026-05-27 — **Topologia (Q1 ao Alexandro):** escolhida **dois deploys Laravel** (`api` público + `admin` Livewire em rede restrita) sobre um **domínio modular compartilhado** + worker, honrando a segregação de superfície do PDR-003. Opção descartada: monolito Laravel único (api+admin no mesmo deploy) — relaxaria PDR-003; mantida como alternativa barata de retomar se o overhead de 2 deploys incomodar. → ADR-002.
+- 2026-05-27 — **Repositório:** **monorepo poliglota único** (apps/api, apps/admin, apps/webapp Flutter, packages/domain PHP, packages/design-tokens, contracts/OpenAPI). Opção descartada: polirepo — cerimônia de versionar/publicar pacotes internos é desproporcional para time de 1–3 pessoas. → ADR-003.
+- 2026-05-27 — **Topologia "dois deploys" ≠ microsserviços:** registrado explicitamente em ADR-002 que o domínio é único (um Postgres, um package), e api/admin são camadas finas de entrega (comunicação in-process, nunca por rede). Coerência CA-4 garantida.
 
 ### Descobertas
-- <data> — <surpresa técnica relevante para o PO/Programador>
+- 2026-05-27 — **Risco de RNF do Flutter Web (relevante para PO e Programador).** Flutter Web (CanvasKit/Skwasm) tem carga inicial pesada e acessibilidade baseada em canvas — ameaça os SLOs públicos `FCP em 3G ≤ 5s` e `leitor de tela nas principais interações` (`non-functional.md`). **Decisão de tratamento (Q2 ao Alexandro):** aceitar e documentar o trade-off com sinais de revisão; validação empírica no hello-world (STORY-008), **não** via spike prévio. Se o FCP 3G furar e a otimização não fechar o gap, ADR-001 prevê reabrir o renderer/abordagem (ex.: PWA leve em DOM para web, Flutter só no nativo futuro). **Programador da STORY-008 deve medir FCP 3G e a11y como parte do hello-world.**
+- 2026-05-27 — **Preocupação explícita do lead com "versão velha" do app web.** Tratada em ADR-001 (Plano de verificação): `index.html`+service worker com `Cache-Control: no-cache`, assets com hash imutável, endpoint `version.json` + aviso "nova versão disponível", e gate de versão mínima (`426 Upgrade Required`) nos fluxos de PIN/pagamento. Pode virar ADR Frontend/PWA dedicado depois.
+- 2026-05-27 — **Stack poliglota (PHP + Dart) limita o reuso entre interfaces.** WebApp (Dart) e Backoffice (PHP/Livewire) não compartilham código de runtime — só contrato de API (OpenAPI → cliente Dart) e design tokens (fonte única gerando tema Dart + CSS). O reuso forte de domínio fica entre `api` e `admin` (ambos PHP). Declarado em ADR-001 e ADR-003.
 
 ### Bloqueios encontrados
-- <data> — <bloqueio> — <como foi resolvido ou está aberto>
+- 2026-05-27 — Nenhum bloqueio. Direção de produto/stack estava no domínio da liderança técnica (Alexandro), que decidiu na sessão. Não houve necessidade de escalonar decisão de produto sem PDR.
 
 ### ADRs criados
-- ADR-001 — Stack principal — `decisions/adr/ADR-001-stack-principal.md` — status: <proposed/accepted>
-- ADR-002 — Topologia — `decisions/adr/ADR-002-topologia.md` — status: <proposed/accepted>
-- ADR-003 — Monorepo vs polirepo — `decisions/adr/ADR-003-monorepo-vs-polirepo.md` — status: <proposed/accepted>
+- ADR-001 — Stack principal (Laravel + Livewire + Flutter) — `decisions/adr/ADR-001-stack-principal.md` — status: **accepted** (Alexandro, 2026-05-27)
+- ADR-002 — Topologia (monolito modular, api + admin + worker, domínio compartilhado) — `decisions/adr/ADR-002-topologia.md` — status: **accepted** (Alexandro, 2026-05-27)
+- ADR-003 — Monorepo poliglota único — `decisions/adr/ADR-003-monorepo-vs-polirepo.md` — status: **accepted** (Alexandro, 2026-05-27)
 
 ### Cobertura final
 - Unitários: N/A (spike)
 - E2E: N/A (spike)
 
 ### Links de evidência
-- PR: <url>
-- ADRs propostas: <links>
-- Aprovações registradas: <links>
+- PR: <a abrir>
+- ADRs (todas `accepted`): `decisions/adr/ADR-001-stack-principal.md`, `decisions/adr/ADR-002-topologia.md`, `decisions/adr/ADR-003-monorepo-vs-polirepo.md`
+- Aprovações registradas: Alexandro aprovou as 3 ADRs em chat (sessão de 2026-05-27); `approved_by: Alexandro` em cada ADR e no `index.json`. Estória movida para `status: done`.
+
+### Riscos identificados (resumo para o PO/Programador)
+- **Alto:** Flutter Web pode furar FCP 3G ≤ 5s e/ou a11y de leitor de tela (SLO público). Mitigação: medir em STORY-008; sinais de revisão em ADR-001.
+- **Médio:** overhead de manter 2–3 deploys Laravel (api/admin/worker) e path filters de CI corretos (STORY-002/007).
+- **Médio:** disciplina de auto-atualização do WebApp para evitar "versão velha" — padrão definido, precisa ser implementado fielmente.
+- **Baixo:** duas linguagens (PHP + Dart) — dois toolchains/suítes de teste.
