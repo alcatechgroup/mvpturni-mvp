@@ -36,13 +36,16 @@
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
         <!-- Testes de integração rodam contra PostgreSQL real (CA-6 / quality-standards 2.4),
-             em banco isolado (turni_test) para não tocar os dados de dev. -->
-        <env name="DB_CONNECTION" value="pgsql"/>
-        <env name="DB_HOST" value="postgres"/>
-        <env name="DB_PORT" value="5432"/>
-        <env name="DB_DATABASE" value="turni_test"/>
-        <env name="DB_USERNAME" value="turni"/>
-        <env name="DB_PASSWORD" value="turni"/>
+             em banco isolado (turni_test) para não tocar os dados de dev.
+             force="true" é OBRIGATÓRIO: o docker-compose injeta DB_DATABASE=turni como
+             env var do container; sem force, o <env> não sobrescreve e o RefreshDatabase
+             apagaria o banco de dev (turni). -->
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_HOST" value="postgres" force="true"/>
+        <env name="DB_PORT" value="5432" force="true"/>
+        <env name="DB_DATABASE" value="turni_test" force="true"/>
+        <env name="DB_USERNAME" value="turni" force="true"/>
+        <env name="DB_PASSWORD" value="turni" force="true"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

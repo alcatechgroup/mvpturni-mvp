@@ -94,15 +94,18 @@ hooks: ## Instala o hook de pré-push (versionado em scripts/hooks)
 
 test: test-api test-admin test-webapp ## Roda a suíte completa (usada pelo pré-push)
 
+# -e DB_DATABASE=turni_test: força o banco de teste no AMBIENTE do container. O env
+# var do docker-compose (DB_DATABASE=turni) sobrepõe o <env> do phpunit.xml via
+# getenv(), então sem isto o RefreshDatabase apagaria o banco de dev (turni).
 test-api: ## Testes do app api (unit + integração contra Postgres + cobertura)
 	$(DC) up -d postgres
 	$(MAKE) _wait-db
-	$(COMPOSE_RUN) api ./vendor/bin/pest --colors=always --coverage --min=80
+	$(COMPOSE_RUN) -e DB_DATABASE=turni_test api ./vendor/bin/pest --colors=always --coverage --min=80
 
 test-admin: ## Testes do app admin (unit + integração contra Postgres)
 	$(DC) up -d postgres
 	$(MAKE) _wait-db
-	$(COMPOSE_RUN) admin ./vendor/bin/pest --colors=always
+	$(COMPOSE_RUN) -e DB_DATABASE=turni_test admin ./vendor/bin/pest --colors=always
 
 test-webapp: ## Testes de widget do WebApp Flutter (no host)
 	@if command -v flutter >/dev/null 2>&1; then cd apps/webapp && flutter test; \
