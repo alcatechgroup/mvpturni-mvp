@@ -41,15 +41,12 @@ jobs:
 
   # ── Build + push dos artefatos ───────────────────────────────────────────────
   build:
-    name: Build & push artefatos
+    name: Build & push ${{ matrix.app }}
     runs-on: ubuntu-latest
     needs: [detect-env]
     strategy:
       matrix:
         app: [api, admin]
-    outputs:
-      image-api: ${{ steps.meta-api.outputs.image }}
-      image-admin: ${{ steps.meta-admin.outputs.image }}
     steps:
       - uses: actions/checkout@v4
 
@@ -61,12 +58,6 @@ jobs:
 
       - name: Configurar Docker para Artifact Registry
         run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
-
-      - name: Metadados da imagem
-        id: meta-${{ matrix.app }}
-        run: |
-          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/${{ matrix.app }}"
-          echo "image=${IMAGE}:${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
 
       - name: Build + push imagem de release (${{ matrix.app }})
         run: |
