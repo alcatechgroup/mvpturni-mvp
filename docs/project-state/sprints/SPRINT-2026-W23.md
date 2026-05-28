@@ -27,7 +27,7 @@ A SPRINT-2026-W22 fechou a fundação documental do EPIC-000 (9 ADRs aceitas + D
 | ID | Título | Épico | Tipo | Papel | Tamanho | Status atual |
 |---|---|---|---|---|---|---|
 | STORY-006 | Setup do repositório e ambiente local em 1 comando | EPIC-000 | enablement | programador | M | ready |
-| STORY-007 | Pipeline CI/CD com deploy automático para as duas homologações | EPIC-000 | enablement | programador | **L** | ready |
+| STORY-007 | Pipeline CI/CD com deploy automático para as duas homologações | EPIC-000 | enablement | programador | **L** | done |
 | STORY-008 | "Hello world" no WebApp — rota raiz, health-check e identidade visual base | EPIC-000 | implementation | programador (+ designer em paralelo) | M | ready |
 | STORY-009 | "Hello world" no Backoffice — rota raiz e health-check | EPIC-000 | implementation | programador | S | ready |
 | STORY-011 | Validação final do EPIC-000 Foundation | EPIC-000 | validation | validador | M | ready |
