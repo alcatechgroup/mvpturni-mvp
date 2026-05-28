@@ -949,8 +949,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-028-em-breve",
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_progress",
+      "owner_agent": "claude-opus-4-8-programador-2026-05-28",
       "sprint_id": "SPRINT-2026-W24-LANDING",
       "path": "epics/EPIC-006-landing-institucional/stories/STORY-028-pagina-em-breve-com-identidade-visual.md",
       "blocked_by": [
@@ -972,8 +972,8 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-4-8-programador-029-2026-05-28",
       "sprint_id": "SPRINT-2026-W24-LANDING",
       "path": "epics/EPIC-006-landing-institucional/stories/STORY-029-terraform-firebase-multi-site-e-dns-apex-www-landing.md",
       "blocked_by": [
@@ -1518,7 +1518,27 @@
         "path": "decisions/idr/IDR-003-admin-homolog-ingress-all-para-e2e.md",
         "decided_at": "2026-05-28",
         "decided_by": "programador",
-        "source_story": "STORY-011"
+        "source_story": "STORY-011",
+        "to_revoke_on": "EPIC-001 (configuração de IAP no admin homolog)",
+        "note": "Justificativa original (runner externo do CI rodando Playwright) esvaziada por IDR-004; mantido enquanto IAP não entra para preservar acesso manual ao admin homolog."
+      },
+      {
+        "id": "IDR-004",
+        "title": "E2E em browser real é gate LOCAL antes da tag; pipeline pós-deploy faz apenas smoke curl",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-004-e2e-local-pipeline-smoke-curl.md",
+        "decided_at": "2026-05-28",
+        "decided_by": "programador",
+        "source_story": "EPIC-000 carry-over (rever política IDR-003/STORY-011)"
+      },
+      {
+        "id": "IDR-005",
+        "title": "Firebase multi-site via var.additional_sites (Opção A), não N chamadas do módulo (Opção B)",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-005-firebase-multi-site-additional-sites-vs-n-chamadas.md",
+        "decided_at": "2026-05-28",
+        "decided_by": "programador",
+        "source_story": "STORY-029"
       }
     ],
     "ddr": [
