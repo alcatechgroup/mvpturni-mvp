@@ -1188,6 +1188,18 @@
         "supersedes": null,
         "superseded_by": null,
         "source_story": "STORY-012"
+      },
+      {
+        "id": "ADR-011",
+        "title": "Provedor de e-mail transacional e Anti-Corruption Layer — Resend como provedor, interface EnviaEmailTransacional no domínio, Mailpit em container para dev/local",
+        "status": "proposed",
+        "path": "decisions/adr/ADR-011-provedor-email-transacional-e-acl.md",
+        "decided_at": null,
+        "decided_by": "arquiteto",
+        "approved_by": null,
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-014"
       }
     ],
     "idr": [

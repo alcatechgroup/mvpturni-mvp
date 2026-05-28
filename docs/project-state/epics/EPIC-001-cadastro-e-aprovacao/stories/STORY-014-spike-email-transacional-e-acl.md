@@ -7,8 +7,8 @@ sprint_id: SPRINT-2026-W24
 type: spike
 target_role: arquiteto
 requires_design: false
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: arquiteto
 created_at: 2026-05-28
 updated_at: 2026-05-28
 estimated_session_size: S
@@ -124,19 +124,26 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/arq
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+Lidos: STORY-014 completo, ADR-004 (GCP/Secret Manager), ADR-007 §f (Fortify/recuperação de senha), ADR-008 (log mascarado), integration-architecture.md (padrão ACL), non-functional.md §Segurança, docker-compose.yml (serviços existentes: pagarme-mock como referência), ADR-005 (padrão mock em container), ADR-009 (identidade). Template adr.md lido. Index.json estrutura verificada. Sem bloqueios de pré-requisito.
 
 ### Decisões tomadas
-(a preencher)
+- **Provedor:** Resend (resend.com) — free tier 3.000/mês, DKIM automático, pacote `resend/resend-laravel` oficial.
+- **ACL:** interface `EnviaEmailTransacional::enviar(EmailTransacional)` no domínio; `ResendAdapter` em homolog/prod; config SMTP para Mailpit em dev.
+- **Remetente:** `no-reply@mail.turni.com.br` (prod) / `no-reply@mail.homolog.turni.com.br` (homolog) — subdomínio dedicado, não contamina raiz.
+- **Inbox local:** Mailpit container (`:1025` SMTP / `:8025` UI) — coerente com padrão `pagarme-mock`.
+- **Falha crítica de aprovação:** alerta via log-based metric `event=email.aprovacao.falhou` → Cloud Monitoring → e-mail para Alexandro (mecanismo ADR-008).
 
 ### Descobertas
-(a preencher)
+- `integration-architecture.md` existe em `docs/skills/arquiteto/references/integration-architecture.md` — sem bloqueio de pré-requisito.
+- `docker-compose.yml` já tem `pagarme-mock` como serviço — padrão de mock local consolidado e confirmado.
+- ADR-009 aceita em 2026-05-28 (STORY-012 completa) — não há dependência técnica bloqueante para esta ADR.
+- Mailhog está depreciado; Mailpit é o substituto moderno e correto para o projeto.
 
 ### Bloqueios encontrados
-(a preencher)
+Nenhum. ADR-011 produzida sem bloqueio técnico. Aguarda aprovação humana de Alexandro.
 
 ### ADR proposta
-(a preencher — link após criação)
+`docs/project-state/decisions/adr/ADR-011-provedor-email-transacional-e-acl.md` — status `proposed`, aguardando aprovação de Alexandro.
 
 ### Resultado final / evidência
-(a preencher)
+ADR-011 criada em `proposed`. Aguarda aprovação humana para transicionar para `accepted` e marcar STORY-014 `done`. Nenhum código de produção criado.
