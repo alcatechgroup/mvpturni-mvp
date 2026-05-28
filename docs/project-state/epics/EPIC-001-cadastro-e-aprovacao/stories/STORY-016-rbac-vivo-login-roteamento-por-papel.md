@@ -250,6 +250,17 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
   mostrando a `WelcomeScreen` no lugar do login. Causa real do "login não abre".
 - Seed de dev (`turni`) é volátil entre sessões; `make e2e` agora seeda sozinho.
 
+**Correções adicionais (achadas verificando no browser, não em suíte):**
+- **Suíte apagava o banco de dev**: `make test` rodava o `RefreshDatabase` contra
+  `turni` (não `turni_test`) porque o env var do container vencia o `<env>` do
+  phpunit. Causava "credenciais inválidas" intermitente. Corrigido com
+  `-e DB_DATABASE=turni_test` nos targets + `force="true"` no phpunit.
+- **Mensagens em inglês**: locale `pt_BR` sem arquivos de tradução. Adicionado
+  `lang/pt_BR/` (auth/validation/passwords) em api e admin.
+- **403 cru em inglês** para não-admin no Backoffice → view `errors/403.blade.php`
+  branded pt-BR (status 403 mantido — CA-8).
+- **Link "Esqueci minha senha" do Backoffice dava 404** → rota + stub pt-BR (CA-5).
+
 ### Bloqueios encontrados
 
 - Nenhum bloqueio arquitetural. Não foi preciso reabrir ADR-007/009.
