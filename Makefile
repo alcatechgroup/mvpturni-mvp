@@ -108,8 +108,8 @@ test-webapp: ## Testes de widget do WebApp Flutter (no host)
 	else echo "AVISO: Flutter ausente no host — pulando testes do WebApp."; fi
 
 lint: ## Lint/format (Laravel Pint)
-	$(COMPOSE_RUN) api ./vendor/bin/pint --test || true
-	$(COMPOSE_RUN) admin ./vendor/bin/pint --test || true
+	$(COMPOSE_RUN) api ./vendor/bin/pint --test
+	$(COMPOSE_RUN) admin ./vendor/bin/pint --test
 
 _wait-db: # Aguarda o Postgres aceitar conexões
 	@echo -n "aguardando Postgres"; \

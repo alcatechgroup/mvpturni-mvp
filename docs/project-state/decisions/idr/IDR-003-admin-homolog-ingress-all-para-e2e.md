@@ -48,3 +48,21 @@ cada deploy garante que o ingress está no estado correto mesmo sem terraform ap
   `INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER` + `allow_unauthenticated = false`.
 - Quando IAP for configurado no EPIC-001 (via LB externo), este IDR será
   supersedido e o ingress do admin em homolog pode voltar a ser interno.
+
+## Refinamento 2026-05-28 — Terraform como fonte de verdade do binding allUsers
+
+**Contexto:** A service account do CI (`turni-github-ci`) tem apenas `roles/run.developer`,
+que **não inclui** `run.services.setIamPolicy`. Por isso `gcloud run deploy --allow-unauthenticated`
+emitia warning e **não criava** o binding `allUsers → roles/run.invoker`. Admin homolog
+retornava 403 em 100% das requisições.
+
+**Decisão (PO):** Terraform é a única source-of-truth do binding allUsers. A SA do CI não ganha
+`run.services.setIamPolicy`. O binding é criado via `terraform apply` (que usa credenciais com
+permissão suficiente) através do recurso `google_cloud_run_v2_service_iam_member.public` já
+existente em `infra/modules/cloud-run/main.tf` (ativado quando `allow_unauthenticated = true`,
+que já está em `infra/envs/homolog/main.tf` para o admin).
+
+**Impacto em release.yml:** `--allow-unauthenticated` removido do step "Deploy Cloud Run — admin
+(homolog)". O deploy apenas atualiza a imagem; o binding IAM é gerenciado exclusivamente pelo
+Terraform. Mantido `--ingress=all` (o deploy pode sobrescrever a propriedade de ingress, mas não
+o IAM binding).

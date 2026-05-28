@@ -140,13 +140,47 @@ gcloud run services update-traffic turni-api-homolog \
 
 ### Firebase Hosting (webapp)
 
+**Via Firebase CLI** (se autenticado com conta com acesso ao projeto):
 ```bash
-# Ver deployments anteriores
-firebase hosting:releases:list --site=turni-webapp-homolog
-
-# Rollback para o release anterior
-firebase hosting:rollback --site=turni-webapp-homolog
+firebase hosting:rollback --site=turni-webapp-homolog --project=turni-mvp
 ```
+
+**Via REST API** (sempre disponível com `gcloud auth`):
+```bash
+# 1. Listar releases para identificar a versão anterior
+ACCESS_TOKEN=$(gcloud auth print-access-token)
+curl -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "x-goog-user-project: turni-mvp" \
+  "https://firebasehosting.googleapis.com/v1beta1/projects/turni-mvp/sites/turni-webapp-homolog/releases?pageSize=5"
+
+# 2. Criar nova release apontando para a versão anterior
+PREV_VERSION="projects/turni-mvp/sites/turni-webapp-homolog/versions/XXXXXXXXXXXXXXXXX"
+curl -X POST \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "x-goog-user-project: turni-mvp" \
+  -H "Content-Type: application/json" \
+  -d '{}' \
+  "https://firebasehosting.googleapis.com/v1beta1/projects/turni-mvp/sites/turni-webapp-homolog/releases?versionName=${PREV_VERSION}"
+```
+
+### Evidência de execução — 2026-05-28
+
+**Cloud Run admin:**
+- **Revisão N** (boa): `turni-admin-homolog-00025-yuh` (v0.1.0-rc.9, curl /health → 200)
+- **Revisão N+1** (regressão simulada): `turni-admin-homolog-00017-tb2` (v0.1.0-rc.9-bad-deploy, versão incorreta no ar)
+- **Rollback executado** (2026-05-28 ~13:52 UTC):
+  ```
+  gcloud run services update-traffic turni-admin-homolog \
+    --to-revisions=turni-admin-homolog-00025-yuh=100 \
+    --region=southamerica-east1 --project=turni-mvp
+  ```
+- **Resultado**: curl /health → 200, `{"version":"v0.1.0-rc.9","service":"backoffice"}` ✅
+
+**Firebase Hosting webapp:**
+- **Antes do rollback**: versão `933d13e5bdcccc75` (v0.1.0-rc.9)
+- **Rollback para**: versão `1f7779c648c347d9` (v0.1.0-rc.8), release `1779976471313000` (type: ROLLBACK)
+- **Verificado** (2026-05-28 13:54 UTC): curl /health → `{"version":"v0.1.0-rc.8"}` ✅
+- **Restaurado** para rc.9 após teste: release `1779976494676000` (type: ROLLBACK, volta a rc.9)
 
 ### Banco de dados
 

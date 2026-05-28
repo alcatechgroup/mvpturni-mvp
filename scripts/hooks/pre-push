@@ -33,6 +33,27 @@ if git grep -nIE "$SECRET_PATTERN" -- ':!*.env.example' ':!scripts/hooks/pre-pus
 fi
 grn "ok: nenhum segredo detectado"
 
+echo "── pré-push: lint (dart format + pint) ──"
+if command -v dart >/dev/null 2>&1; then
+  (cd apps/webapp && dart format --output none --set-exit-if-changed lib/) \
+    || { red "ABORTADO: dart format reclamou em apps/webapp/lib/"; exit 1; }
+else
+  echo "AVISO: dart não está no PATH — pulando dart format check (CI vai pegar)."
+fi
+if command -v php >/dev/null 2>&1; then
+  for app in api admin; do
+    if [ -x "apps/$app/vendor/bin/pint" ]; then
+      (cd "apps/$app" && ./vendor/bin/pint --test) \
+        || { red "ABORTADO: pint reclamou em apps/$app"; exit 1; }
+    else
+      echo "AVISO: apps/$app/vendor/bin/pint ausente — pulando (rode composer install)."
+    fi
+  done
+else
+  echo "AVISO: php não está no PATH — pulando pint check (CI vai pegar)."
+fi
+grn "ok: lint sem regressões"
+
 echo "── pré-push: suíte de testes (unit + integração + cobertura) ──"
 if ! make test; then
   red "ABORTADO: a suíte de testes falhou. Push cancelado."

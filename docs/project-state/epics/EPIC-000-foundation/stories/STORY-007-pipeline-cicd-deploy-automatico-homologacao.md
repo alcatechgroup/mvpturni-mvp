@@ -7,8 +7,8 @@ sprint_id: SPRINT-2026-W23
 type: enablement
 target_role: programador
 requires_design: false
-status: done
-owner_agent: programador
+status: in_review
+owner_agent: claude-sonnet-4-6
 created_at: 2026-05-26
 updated_at: 2026-05-27
 estimated_session_size: L
@@ -241,11 +241,37 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 - **Para STORY-008 (Flutter):** `const String appVersion = String.fromEnvironment('APP_VERSION', defaultValue: 'dev');` (já injetado pelo `--dart-define`)
 - **Para STORY-009 (PHP):** `env('APP_VERSION', 'dev')` (já disponível como env var no Cloud Run)
 
+### Reabertura 2026-05-28 — correções pós-validação EPIC-000
+
+**7.A — IAM admin homolog (bloqueante)**
+- `terraform apply` executado: criado `google_cloud_run_v2_service_iam_member.public` para `turni-admin-homolog` (allUsers → roles/run.invoker).
+- Verificado: `curl .../health` → `{"status":"ok","version":"v0.1.0-rc.4","service":"backoffice"}` HTTP 200 ✅
+- `release.yml` atualizado: removida flag `--allow-unauthenticated` do deploy admin (Terraform é a source-of-truth do binding IAM — IDR-003 atualizado com nota sobre este refinamento).
+- `apps/admin/package-lock.json` gerado e commitado (job e2e-homolog falhava com "npm ci requires package-lock.json").
+- `apps/admin/playwright.config.ts` restringido a chromium (alinhado com webapp; firefox/webkit estavam sem instalação no CI).
+
+**7.B — pre-push hook + Makefile lint**
+- `scripts/hooks/pre-push`: bloco de lint adicionado antes dos testes (dart format check + pint check), com guard para `php` e `dart` ausentes do PATH.
+- `Makefile`: target `lint` sem `|| true` — falha corretamente agora.
+
+**7.C — rollback testado em homolog**
+- Cloud Run admin: rollback de `turni-admin-homolog-00017-tb2` (regressão simulada v0.1.0-rc.9-bad-deploy) para `turni-admin-homolog-00025-yuh` (rc.9). curl → 200 `v0.1.0-rc.9` ✅
+- Firebase webapp: rollback via REST API de rc.9 para rc.8 (release `1779976471313000`, type: ROLLBACK). curl → `v0.1.0-rc.8` ✅. Restaurado para rc.9 após teste.
+- Evidência anexada em `docs/operacao/runbook-homolog.md#rollback`.
+
+**Pipeline rc.9 — verificação end-to-end**
+- Run #26578734323, duração: 3 min 22 s (13:48:14 → 13:51:36 UTC)
+- API /health: `{"status":"ok","version":"v0.1.0-rc.9"}` HTTP 200 ✅
+- Admin /health: `{"status":"ok","version":"v0.1.0-rc.9","service":"backoffice"}` HTTP 200 ✅
+- Webapp /health: `{"status":"ok","version":"v0.1.0-rc.9","service":"webapp"}` HTTP 200 ✅
+- Job e2e-homolog: ✅ verde (chromium, webapp + admin)
+
 ### Links de evidência
 - [CI run principal](https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/26549040001) — CI verde (commitlint, gitleaks, pint, flutter, smoke builds, trivy)
 - [Release rc.1](https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/26548939383) — deploy completo
 - [Release rc.2](https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/26549114906) — deploy completo
 - [Release rc.3](https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/26549196329) — deploy completo
+- [Release rc.9](https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/26578734323) — deploy completo pós-correção (pipeline verde end-to-end)
 - IaC: `infra/envs/homolog/` + `infra/modules/`
 - Runbook de recriação: `docs/operacao/runbook-homolog.md`
-- Runbook de rollback: `docs/operacao/runbook-homolog.md#rollback`
+- Runbook de rollback: `docs/operacao/runbook-homolog.md#rollback` (com evidência de execução real)

@@ -167,14 +167,14 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
       - name: Deploy Cloud Run — admin (homolog)
         run: |
-          # IDR-003: homolog usa --ingress=all --allow-unauthenticated para E2E no CI.
+          # IDR-003: homolog usa ingress=all para E2E no CI.
+          # Binding allUsers → roles/run.invoker é gerenciado por Terraform (infra/modules/cloud-run). Aqui só fazemos deploy da imagem.
           # Prod continua com INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER + IAP.
           gcloud run deploy turni-admin-homolog \
             --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/admin:${{ github.ref_name }}" \
             --region ${{ env.GCP_REGION }} \
             --project ${{ secrets.GCP_PROJECT_ID }} \
             --ingress=all \
-            --allow-unauthenticated \
             --tag "v-$(echo ${{ github.ref_name }} | tr '.' '-' | tr '+' '-')" \
             --no-traffic \
             --quiet
