@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
-
 // Testes para o endpoint /health (ADR-008 + STORY-007 CA-11).
 
 test('health endpoint retorna 200 com campos obrigatórios', function () {

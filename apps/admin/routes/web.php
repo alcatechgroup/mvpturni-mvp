@@ -16,15 +16,15 @@ Route::get('/health', function () {
     if ($deep) {
         try {
             DB::select('SELECT 1');
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $status = 'degraded';
             $code = 503;
         }
     }
 
     return response()->json([
-        'status'    => $status,
-        'version'   => env('APP_VERSION', 'unknown'),
+        'status' => $status,
+        'version' => env('APP_VERSION', 'unknown'),
         'timestamp' => now()->toIso8601String(),
     ], $code);
 });

@@ -30,7 +30,10 @@ class _Placeholder extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Turni', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
+            Text(
+              'Turni',
+              style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+            ),
             SizedBox(height: 8),
             Text('Hospitalidade on-demand — WebApp (placeholder STORY-006)'),
           ],

@@ -177,18 +177,22 @@ jobs:
             --to-latest \
             --region ${{ env.GCP_REGION }} \
             --project ${{ secrets.GCP_PROJECT_ID }}
-      - name: Health check
+      - name: Verificar readiness (admin — ingress interno)
         run: |
-          URL=$(gcloud run services describe turni-admin-homolog \
-            --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
-            --format="value(status.url)" 2>/dev/null)
+          # Admin usa INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER; não é acessível externamente.
+          # Verifica readiness via gcloud em vez de curl.
           for i in $(seq 1 12); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${URL}/health")
-            if [ "$STATUS" = "200" ]; then echo "Health check ok: ${URL}/health"; exit 0; fi
-            echo "Aguardando... ($i/12) status=$STATUS"
+            READY=$(gcloud run services describe turni-admin-homolog \
+              --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
+              --format="value(status.conditions[0].status)" 2>/dev/null)
+            if [ "$READY" = "True" ]; then
+              echo "Admin service ready (revision serving traffic)"
+              exit 0
+            fi
+            echo "Aguardando readiness... ($i/12) status=$READY"
             sleep 10
           done
-          echo "Health check falhou após 120s" && exit 1
+          echo "Timeout aguardando admin service ficar ready" && exit 1
 
   # ── Deploy WebApp (Firebase Hosting) em homologação ─────────────────────────
   deploy-webapp-homolog:

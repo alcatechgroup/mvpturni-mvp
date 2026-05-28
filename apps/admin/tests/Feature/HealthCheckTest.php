@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
-
 test('health endpoint retorna 200 com campos obrigatórios', function () {
     $response = $this->getJson('/health');
 

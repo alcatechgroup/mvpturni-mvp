@@ -32,10 +32,13 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             npx --prefix .github/commitlint commitlint \
+              --config .github/commitlint/commitlint.config.js \
               --from "${{ github.event.pull_request.base.sha }}" \
               --to "${{ github.event.pull_request.head.sha }}"
           else
-            npx --prefix .github/commitlint commitlint --from HEAD~1 --to HEAD
+            npx --prefix .github/commitlint commitlint \
+              --config .github/commitlint/commitlint.config.js \
+              --from HEAD~1 --to HEAD
           fi
 
   # ── Secret detection ────────────────────────────────────────────────────────
@@ -46,9 +49,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install gitleaks
+        run: |
+          GITLEAKS_VERSION=8.24.3
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | tar -xz -C /usr/local/bin gitleaks
+      - name: Run gitleaks
+        run: gitleaks detect --source . --log-opts "HEAD^..HEAD" --verbose
 
   # ── PHP — lint + vuln scan ──────────────────────────────────────────────────
   php-lint:
@@ -61,7 +68,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.5"
+          php-version: "8.4"
           tools: composer:v2
           coverage: none
       - name: Cache Composer dependencies
@@ -116,7 +123,7 @@ jobs:
             --file infra/docker/${{ matrix.app }}/Dockerfile.prod \
             --build-arg APP_VERSION=smoke-${{ github.sha }} \
             --tag turni/${{ matrix.app }}:smoke \
-            apps/${{ matrix.app }}
+            .
 
   # ── Smoke build — Flutter web ────────────────────────────────────────────────
   smoke-build-flutter:
@@ -155,7 +162,7 @@ jobs:
             --file infra/docker/${{ matrix.app }}/Dockerfile.prod \
             --build-arg APP_VERSION=scan-${{ github.sha }} \
             --tag turni/${{ matrix.app }}:scan \
-            apps/${{ matrix.app }}
+            .
       - name: Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
