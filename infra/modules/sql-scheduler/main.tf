@@ -23,11 +23,11 @@ resource "google_project_iam_member" "sql_scheduler_admin" {
 
 # Permissão de start/stop na instância GCE específica (sem instanceAdmin no projeto inteiro)
 resource "google_compute_instance_iam_member" "scheduler_worker" {
-  project  = var.project_id
-  zone     = var.worker_zone
-  instance = var.worker_instance_name
-  role     = "roles/compute.instanceAdmin.v1"
-  member   = "serviceAccount:${google_service_account.sql_scheduler.email}"
+  project       = var.project_id
+  zone          = var.worker_zone
+  instance_name = var.worker_instance_name
+  role          = "roles/compute.instanceAdmin.v1"
+  member        = "serviceAccount:${google_service_account.sql_scheduler.email}"
 }
 
 # ── STOP: SQL às 22:00 BRT, worker junto ─────────────────────────────────────
