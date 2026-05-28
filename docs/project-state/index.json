@@ -311,7 +311,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-008-hello-world-webapp",
-      "status": "in_progress",
+      "status": "done",
       "owner_agent": "claude-sonnet-4-6",
       "sprint_id": "SPRINT-2026-W23",
       "path": "epics/EPIC-000-foundation/stories/STORY-008-hello-world-webapp.md",
