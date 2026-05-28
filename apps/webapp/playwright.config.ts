@@ -1,8 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * E2E do WebApp Flutter (CA-10 de STORY-008) — roda contra app.homolog.turni.com.br após deploy.
- * Localmente: BASE_URL=http://localhost:8003 npm run e2e
+ * E2E do WebApp Flutter — gate LOCAL antes de criar tag rc.N (IDR-004 / quality-standards.md §2.2).
+ * Pipeline de release NÃO roda Playwright; pós-deploy faz apenas smoke curl.
+ *
+ *   Default: http://localhost:8003 (docker-compose via `make setup`)
+ *   Contra homolog (debug manual): BASE_URL=https://app.homolog.turni.com.br npx playwright test
  */
 export default defineConfig({
     testDir: './tests/e2e',
@@ -12,7 +15,7 @@ export default defineConfig({
     reporter: [['list'], ['html', { open: 'never' }]],
 
     use: {
-        baseURL: process.env.BASE_URL ?? 'https://app.homolog.turni.com.br',
+        baseURL: process.env.BASE_URL ?? 'http://localhost:8003',
         viewport: { width: 390, height: 844 },
         screenshot: 'only-on-failure',
         trace: 'on-first-retry',

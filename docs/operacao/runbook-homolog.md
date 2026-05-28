@@ -81,21 +81,45 @@ viola a rastreabilidade. Se precisar de emergência, crie uma nova tag.
 
 ---
 
+## Antes de criar tag rc.N — checklist obrigatório (IDR-004)
+
+E2E em browser real é gate **local**. O pipeline pós-deploy faz apenas smoke curl,
+então quem cria a tag carrega a responsabilidade de ter rodado Playwright contra
+o ambiente local:
+
+```bash
+# 1. Ambiente local de pé (containers + WebApp + seed)
+make up
+
+# 2. E2E Playwright contra localhost:8002 + localhost:8003
+make e2e
+# Falha aqui = NÃO crie a tag. Corrija e re-rode.
+```
+
+Quem pula este passo está deployando regressão visual / interação para homolog
+sem rede de proteção automatizada. O smoke curl no pipeline pega 5xx/404, mas
+não pega CSS quebrado nem label faltando.
+
+---
+
 ## Deploy de release (fluxo normal, CA-4)
 
 ```bash
 # 1. Merge o PR na main (CI leve deve estar verde)
-# 2. Na sua máquina local, a partir do commit na main:
+# 2. `make e2e` local verde (ver checklist acima)
+# 3. Na sua máquina local, a partir do commit na main:
 git tag v0.1.0-rc.1
 git push origin v0.1.0-rc.1
-# 3. O GitHub Actions release.yml dispara automaticamente
-# 4. Acompanhe em: https://github.com/SEU_REPO/actions
+# 4. O GitHub Actions release.yml dispara automaticamente
+# 5. Acompanhe em: https://github.com/SEU_REPO/actions
 ```
 
 O pipeline: build → push Artifact Registry → deploy Cloud Run (api + admin) →
-deploy Firebase Hosting (webapp) → health checks → verde.
+deploy Firebase Hosting (webapp) → health checks → **smoke curl** (`/health` +
+`/version.json` nas 3 interfaces) → verde.
 
-Tempo esperado: ≤ 10 min (CA-4).
+Tempo esperado: ≤ 10 min (CA-4). Smoke curl substitui o antigo job de E2E
+Playwright pós-deploy (IDR-004) — pipeline ganha minutos de volta a cada release.
 
 ---
 

@@ -225,15 +225,18 @@ jobs:
           target: homolog
           channelId: live
 
-  # ── E2E pós-deploy em homologação ────────────────────────────────────────────
-  e2e-homolog:
-    name: E2E pós-deploy (homolog)
+  # ── Smoke pós-deploy em homologação (curl /health + /version.json) ──────────
+  # Substitui o antigo job e2e-homolog. E2E em browser real é gate LOCAL
+  # (pre-push / `make e2e`) — ver IDR-004 e quality-standards.md §2.2.
+  # Aqui só verificamos que as 3 interfaces respondem 200 e estão servindo a
+  # versão da tag recém-deployada (catch rápido de deploy parcial / cache stale).
+  smoke-homolog:
+    name: Smoke pós-deploy (homolog)
     runs-on: ubuntu-latest
     needs: [deploy-api-homolog, deploy-admin-homolog, deploy-webapp-homolog, detect-env]
     if: needs.detect-env.outputs.is_rc == 'true'
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-
       - name: Autenticar no GCP via WIF
         uses: google-github-actions/auth@v2
         with:
@@ -243,51 +246,59 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Obter URL do Cloud Run admin
-        id: admin-url
+      - name: Obter URLs Cloud Run
+        id: urls
         run: |
-          URL=$(gcloud run services describe turni-admin-homolog \
+          API_URL=$(gcloud run services describe turni-api-homolog \
             --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
             --format="value(status.url)")
-          echo "url=${URL}" >> "$GITHUB_OUTPUT"
+          ADMIN_URL=$(gcloud run services describe turni-admin-homolog \
+            --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
+            --format="value(status.url)")
+          echo "api=${API_URL}"     >> "$GITHUB_OUTPUT"
+          echo "admin=${ADMIN_URL}" >> "$GITHUB_OUTPUT"
+          echo "webapp=https://app.homolog.turni.com.br" >> "$GITHUB_OUTPUT"
 
-      # ── WebApp E2E (Firebase Hosting — público) ────────────────────────────
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "npm"
-          cache-dependency-path: "apps/webapp/package-lock.json"
+      - name: Smoke — /health (3 interfaces)
+        run: |
+          set -euo pipefail
+          fail=0
+          probe() {
+            local name=$1 url=$2
+            STATUS=$(curl -fsS -o /tmp/body -w "%{http_code}" "$url" || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✓ $name → 200"
+            else
+              echo "✗ $name → $STATUS"
+              echo "── body:"; cat /tmp/body || true; echo
+              fail=1
+            fi
+          }
+          probe "API    /health"  "${{ steps.urls.outputs.api }}/health"
+          probe "Admin  /health"  "${{ steps.urls.outputs.admin }}/health"
+          probe "WebApp /health.json" "${{ steps.urls.outputs.webapp }}/health.json"
+          exit $fail
 
-      - name: Install webapp Playwright
-        working-directory: apps/webapp
-        run: npm ci && npx playwright install chromium --with-deps
-
-      - name: E2E — WebApp (app.homolog.turni.com.br)
-        working-directory: apps/webapp
-        run: npx playwright test
-        env:
-          BASE_URL: https://app.homolog.turni.com.br
-
-      # ── Admin E2E (Cloud Run — IDR-003: ingress=all em homolog) ───────────
-      - name: Install admin Playwright
-        working-directory: apps/admin
-        run: npm ci && npx playwright install chromium --with-deps
-
-      - name: E2E — Admin (Cloud Run URL)
-        working-directory: apps/admin
-        run: npx playwright test
-        env:
-          BASE_URL: ${{ steps.admin-url.outputs.url }}
-
-      - name: Upload relatórios E2E
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: e2e-reports-${{ github.ref_name }}
-          path: |
-            apps/webapp/playwright-report/
-            apps/admin/playwright-report/
-          retention-days: 14
+      - name: Smoke — /version.json bate com a tag
+        run: |
+          set -euo pipefail
+          TAG="${{ github.ref_name }}"
+          fail=0
+          check_version() {
+            local name=$1 url=$2
+            BODY=$(curl -fsS "$url" || echo "")
+            GOT=$(echo "$BODY" | grep -oE '"version":"[^"]+"' | head -1 | cut -d'"' -f4)
+            if [ "$GOT" = "$TAG" ]; then
+              echo "✓ $name version=$GOT"
+            else
+              echo "✗ $name esperava version=$TAG, recebeu '$GOT' (body: $BODY)"
+              fail=1
+            fi
+          }
+          check_version "API"    "${{ steps.urls.outputs.api }}/version.json"
+          check_version "Admin"  "${{ steps.urls.outputs.admin }}/version.json"
+          check_version "WebApp" "${{ steps.urls.outputs.webapp }}/version.json"
+          exit $fail
 
   # ── Gate humano + deploy em PRODUÇÃO ────────────────────────────────────────
   deploy-prod:

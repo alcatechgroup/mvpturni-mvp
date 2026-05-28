@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
-# Hook de pré-push do Turni (quality-standards.md 2.2).
+# Hook de pré-push do Turni (quality-standards.md §2.2 / IDR-004).
 # Falha aqui = `git push` abortado. Instalado por `make hooks` (core.hooksPath).
 #
 # Roda, nesta ordem (barato → caro):
 #   1) detector de segredos mínimo (segredos nunca commitados — secção 4)
-#   2) suíte de testes: unit + integração contra Postgres + cobertura (`make test`)
+#   2) lint (dart format check + Laravel Pint)
+#   3) suíte de testes: unit + integração contra Postgres + cobertura (`make test`)
 #
-# Os testes E2E em browser real entram em STORY-008/009 (aqui o aparato apenas existe).
+# E2E em browser real (Playwright) NÃO roda aqui — é gate LOCAL MANUAL antes de
+# criar tag rc.N: `make e2e` (sobe docker-compose + roda Playwright contra
+# localhost:8002/8003). Pipeline de release faz apenas smoke curl (IDR-004).
 set -uo pipefail
 
 ROOT="$(git rev-parse --show-toplevel)"

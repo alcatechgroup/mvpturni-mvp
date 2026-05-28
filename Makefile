@@ -14,7 +14,8 @@ COMPOSE_RUN := $(DC) run --rm --no-deps
 
 .DEFAULT_GOAL := help
 .PHONY: help setup up down clean logs ps env build install key migrate seed \
-        webapp-build hooks test test-api test-admin test-webapp lint fresh
+        webapp-build hooks test test-api test-admin test-webapp lint fresh \
+        e2e e2e-webapp e2e-admin
 
 help: ## Mostra os comandos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -110,6 +111,22 @@ test-webapp: ## Testes de widget do WebApp Flutter (no host)
 lint: ## Lint/format (Laravel Pint)
 	$(COMPOSE_RUN) api ./vendor/bin/pint --test
 	$(COMPOSE_RUN) admin ./vendor/bin/pint --test
+
+e2e: e2e-webapp e2e-admin ## E2E Playwright local (gate antes de criar tag rc.N — IDR-004)
+
+e2e-webapp: ## E2E Playwright do WebApp contra localhost:8003 (exige `make up`)
+	@command -v npx >/dev/null 2>&1 || { echo "ERRO: npx ausente no PATH (instale Node 22)"; exit 1; }
+	@curl -fsS -o /dev/null http://localhost:$${WEBAPP_PORT:-8003} || { echo "ERRO: WebApp não responde em :$${WEBAPP_PORT:-8003}. Rode 'make up' antes."; exit 1; }
+	cd apps/webapp && (test -d node_modules || npm ci) \
+	  && (test -d node_modules/playwright-core/.local-browsers || npx playwright install chromium --with-deps) \
+	  && npx playwright test
+
+e2e-admin: ## E2E Playwright do Backoffice contra localhost:8002 (exige `make up`)
+	@command -v npx >/dev/null 2>&1 || { echo "ERRO: npx ausente no PATH (instale Node 22)"; exit 1; }
+	@curl -fsS -o /dev/null http://localhost:$${ADMIN_PORT:-8002} || { echo "ERRO: Backoffice não responde em :$${ADMIN_PORT:-8002}. Rode 'make up' antes."; exit 1; }
+	cd apps/admin && (test -d node_modules || npm ci) \
+	  && (test -d node_modules/playwright-core/.local-browsers || npx playwright install chromium --with-deps) \
+	  && npx playwright test
 
 _wait-db: # Aguarda o Postgres aceitar conexões
 	@echo -n "aguardando Postgres"; \
