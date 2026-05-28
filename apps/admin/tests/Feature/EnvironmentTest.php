@@ -11,9 +11,9 @@ test('o admin conecta no PostgreSQL', function () {
     expect(DB::connection()->getDriverName())->toBe('pgsql');
 });
 
-// CA-2: o processo admin aceita requisições — a rota raiz responde 200.
-test('a rota raiz do admin responde 200', function () {
-    $this->get('/')->assertOk();
+// CA-2: o processo admin aceita requisições — rota raiz redireciona para /login (agora com auth).
+test('a rota raiz do admin responde (redireciona para login sem auth)', function () {
+    $this->get('/')->assertRedirect('/login');
 });
 
 // Livewire 4 (ADR-001) está instalado e operante no Backoffice.
