@@ -7,8 +7,8 @@ sprint_id: SPRINT-2026-W24
 type: spike
 target_role: arquiteto
 requires_design: false
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-sonnet-4-6-arquiteto-2026-05-28
 created_at: 2026-05-28
 updated_at: 2026-05-28
 estimated_session_size: S
@@ -131,19 +131,25 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+Lidos: compliance.md (§aceite eletrônico, §estrutura do template, §placeholders, §imutabilidade), PDR-012, PDR-001, ADR-007, ADR-009, SKILL.md do Arquiteto e template de ADR. ADR-009 estava aceita — consumida como base de padrão de imutabilidade e de eventos auditáveis. Sem bloqueios.
 
 ### Decisões tomadas
-(a preencher)
+1. **Template (catálogo):** slug VARCHAR UNIQUE; dois registros canônicos `pf_autonomo_eventual` / `mei_pj_b2b`.
+2. **TemplateVersao:** partial unique index `(template_id) WHERE ativa = TRUE` para unicidade de versão ativa. Trigger restringe UPDATE ao campo `ativa` — conteúdo é imutável após INSERT.
+3. **AceiteEletronico:** trigger BEFORE UPDATE OR DELETE + REVOKE no `turni_app_runtime` (padrão ADR-009). Campo `turno_id` omitido no EPIC-001; adicionado via ALTER TABLE no EPIC-003.
+4. **Motor de renderização:** regex própria (`preg_replace_callback`) — simples, zero dependência, falha dura em placeholder ausente. Cláusula de habitualidade resolvida pelo chamador antes da renderização.
+5. **Fingerprint:** SHA-256 de `user_agent:ip:date`.
 
 ### Descobertas
-(a preencher)
+- `turno_id` em `aceites_eletronicos` deve ser omitido no EPIC-001 (tabela `turnos` não existe ainda) e adicionado via ALTER TABLE no EPIC-003 — mais limpo do que FK nullable para tabela inexistente.
+- A função trigger de imutabilidade do `AceiteEletronico` é análoga mas separada da do `admin_audit_log` (ADR-009) — cada tabela tem sua função própria, seguindo o padrão já estabelecido.
+- ADR-009 já define `admin.template.version_created` e `admin.template.version_activated` na lista canônica de eventos — esta ADR referencia sem redefinir.
 
 ### Bloqueios encontrados
-(a preencher)
+Nenhum.
 
 ### ADR proposta
-(a preencher — link após criação)
+`docs/project-state/decisions/adr/ADR-010-template-versao-e-aceite-eletronico.md` — status: `proposed`. Aguardando aprovação de Alexandro.
 
 ### Resultado final / evidência
-(a preencher)
+(a preencher após aprovação humana)

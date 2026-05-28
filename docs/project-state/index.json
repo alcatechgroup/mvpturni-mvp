@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "generated_at": "2026-05-28T19:30:00Z",
+  "generated_at": "2026-05-28T20:15:00Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
@@ -48,7 +48,8 @@
         "EPIC-002",
         "EPIC-003",
         "EPIC-004",
-        "EPIC-005"
+        "EPIC-005",
+        "EPIC-006"
       ],
       "path": "roadmap/current-wave.md"
     }
@@ -212,6 +213,18 @@
       "validation_report": null,
       "created_at": "2026-05-26",
       "updated_at": "2026-05-26"
+    },
+    {
+      "id": "EPIC-006",
+      "slug": "landing-institucional",
+      "title": "Landing institucional turni.com.br — deploy AS IS sob responsabilidade do marketing",
+      "wave": "WAVE-2026-01",
+      "status": "draft",
+      "path": "epics/EPIC-006-landing-institucional/epic.md",
+      "story_ids": [],
+      "validation_report": null,
+      "created_at": "2026-05-28",
+      "updated_at": "2026-05-28"
     }
   ],
   "stories": [
@@ -1188,6 +1201,18 @@
         "supersedes": null,
         "superseded_by": null,
         "source_story": "STORY-012"
+      },
+      {
+        "id": "ADR-010",
+        "title": "Modelo de Template/TemplateVersao (versionamento append-only) e renderização imutável do AceiteEletronico",
+        "status": "proposed",
+        "path": "decisions/adr/ADR-010-template-versao-e-aceite-eletronico.md",
+        "decided_at": null,
+        "decided_by": "arquiteto",
+        "approved_by": null,
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-013"
       },
       {
         "id": "ADR-011",
