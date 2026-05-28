@@ -334,7 +334,7 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "programador",
       "sprint_id": "SPRINT-2026-W23",
       "path": "epics/EPIC-000-foundation/stories/STORY-009-hello-world-backoffice.md",
