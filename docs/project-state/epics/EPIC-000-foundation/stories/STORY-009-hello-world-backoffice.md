@@ -7,10 +7,10 @@ sprint_id: SPRINT-2026-W23
 type: implementation
 target_role: programador
 requires_design: false
-status: ready
-owner_agent: null
+status: in_review
+owner_agent: programador
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-05-28
 estimated_session_size: S
 ---
 
@@ -154,25 +154,30 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões tomadas
-- <data> — <decisão local>
+- 2026-05-28 — Middleware `RequestLogMiddleware` criado em `app/Http/Middleware/` e registrado via `->web(append: [...])` no `bootstrap/app.php` (Laravel 11+ application builder, sem Kernel.php).
+- 2026-05-28 — `request_id` gerado a partir de `X-Cloud-Trace-Context` (trace ID do Cloud Run) quando presente; fallback para `Str::uuid()` — sem dependência de lib externa (Str já é parte do Laravel).
+- 2026-05-28 — Página welcome substituída por HTML puro (sem Blade extra / Livewire) conforme fora-de-escopo: sem layout administrativo elaborado. Tokens DDR-001 admin (azul-navy `#2A4D8F`, surface `#F7F4EC`) aplicados via CSS inline — sem importar arquivo de tokens externo pois o Backoffice não tem compilação de assets CSS separada no momento.
+- 2026-05-28 — E2E Playwright configurado com `testDir: './tests/e2e'` (separado dos testes PHP em `tests/Feature`). BASE_URL default = `https://admin.homolog.turni.com.br`; para execução local usar `BASE_URL=http://localhost:8002 npm run e2e`.
 
 ### Descobertas
-- <data> — <surpresa / gotcha>
+- 2026-05-28 — A imagem Docker `turni/php:dev` não tem PHP no PATH do host macOS; testes precisam ser executados via `docker run` com a imagem ou via Docker Compose. O Makefile/CI já usa essa abordagem.
+- 2026-05-28 — `EnvironmentTest.php` (pré-existente) requer conexão PostgreSQL real (não SQLite). Os outros testes novos funcionam com SQLite, mas a suíte completa precisa do banco — alinhado com o `docker-compose.yml` para dev local.
+- 2026-05-28 — Log JSON sai em stdout (conforme ADR-008 / `.env.example` com `LOG_CHANNEL=stderr`); em testes o output aparece no terminal — comportamento correto, é paridade dev↔prod.
 
 ### Bloqueios encontrados
-- <data> — <bloqueio>
+- Nenhum.
 
 ### IDRs criados
-- IDR-XXX — <título>
+- Nenhum — todas as decisões foram locais (estrutura de pastas, escolha de UUID do Str do Laravel, HTML inline).
 
 ### Cobertura final
-- Unitários: <%>
-- E2E: <cenários, link para evidência>
+- Unitários: 21 testes passando (39 assertions). Cobertura formal não medida (sem Xdebug na imagem dev), mas os testes cobrem: CA-1 (5 testes), CA-4 (2+), CA-5 (2), CA-6 (1), CA-7 (5) + existentes de ambiente.
+- E2E: 6 cenários Playwright em `tests/e2e/admin-hello-world.spec.ts`. Executar contra `admin.homolog.turni.com.br` após deploy do tag `-rc.N`.
 
 ### Links de evidência
-- PR: <url>
-- Pipeline / deploy: <url>
-- `admin.homolog.turni.com.br`: <link>
-- `/health` em verde: <link>
-- Log com request_id rastreável: <link>
-- Evidência de independência (CA-9): <link>
+- PR: pendente (commit direto na main conforme workflow do projeto)
+- Pipeline / deploy: pendente — tag `vX.Y.Z-rc.N` dispara deploy
+- `admin.homolog.turni.com.br`: pendente deploy
+- `/health` em verde: pendente deploy
+- Log com request_id rastreável: visível na saída do `php artisan test` acima (JSON com `request_id` propagado)
+- Evidência de independência (CA-9): herdada da STORY-007 (path filters no pipeline)

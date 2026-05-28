@@ -26,5 +26,6 @@ Route::get('/health', function () {
         'status' => $status,
         'version' => env('APP_VERSION', 'unknown'),
         'timestamp' => now()->toIso8601String(),
+        'service' => 'backoffice',
     ], $code);
 });
