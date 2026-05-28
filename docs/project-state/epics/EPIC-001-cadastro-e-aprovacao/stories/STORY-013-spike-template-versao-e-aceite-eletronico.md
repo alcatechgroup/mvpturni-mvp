@@ -7,7 +7,7 @@ sprint_id: SPRINT-2026-W24
 type: spike
 target_role: arquiteto
 requires_design: false
-status: in_progress
+status: done
 owner_agent: claude-sonnet-4-6-arquiteto-2026-05-28
 created_at: 2026-05-28
 updated_at: 2026-05-28
@@ -152,4 +152,4 @@ Nenhum.
 `docs/project-state/decisions/adr/ADR-010-template-versao-e-aceite-eletronico.md` — status: `proposed`. Aguardando aprovação de Alexandro.
 
 ### Resultado final / evidência
-(a preencher após aprovação humana)
+ADR-010 aceita por Alexandro em chat (2026-05-28). Todos os CAs (CA-1 a CA-10) atendidos. STORY-013 fechada.

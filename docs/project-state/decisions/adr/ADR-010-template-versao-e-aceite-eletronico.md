@@ -2,10 +2,10 @@
 adr_id: ADR-010
 slug: template-versao-e-aceite-eletronico
 title: Modelo de Template/TemplateVersao (versionamento append-only) e renderização imutável do AceiteEletronico
-status: proposed
-decided_at: null
+status: accepted
+decided_at: 2026-05-28
 decided_by: arquiteto
-approved_by: null
+approved_by: Alexandro
 supersedes: null
 superseded_by: null
 related_adrs: [ADR-000, ADR-001, ADR-002, ADR-007, ADR-009]
@@ -445,11 +445,11 @@ As cinco decisões honram os princípios arquiteturais centrais:
 
 > Esta seção é o registro formal do aceite. Não preencher sozinho — preencher quando Alexandro aprovar no chat ou via PR.
 
-- **Status final:** ⬜ pendente
-- **Aprovado por:** null
-- **Data:** null
-- **Forma do aceite:** ...
-- **Condicionantes do aceite:** ...
+- **Status final:** ✅ aceita
+- **Aprovado por:** Alexandro
+- **Data:** 2026-05-28
+- **Forma do aceite:** aprovado em chat (sessão de 2026-05-28); commit direto na `main`
+- **Condicionantes do aceite:** nenhuma.
 
 ### Em caso de rejeição
 - **Motivo:** ...
@@ -464,3 +464,4 @@ As cinco decisões honram os princípios arquiteturais centrais:
 ## Histórico
 
 - 2026-05-28 — criada como `proposed` por Arquiteto (STORY-013, claude-sonnet-4-6-arquiteto-2026-05-28). Cobre: schema de Template/TemplateVersao/AceiteEletronico; partial unique index para unicidade de versão ativa; motor de renderização via regex própria; imutabilidade do aceite via trigger + REVOKE (padrão ADR-009); fluxo de ativação com transação atômica.
+- 2026-05-28 — `accepted` por Alexandro (aprovação em chat, sessão de 2026-05-28; commit direto na `main`).

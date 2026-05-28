@@ -529,8 +529,8 @@
       "target_role": "arquiteto",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-sonnet-4-6-arquiteto-2026-05-28",
       "sprint_id": "SPRINT-2026-W24",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-013-spike-template-versao-e-aceite-eletronico.md",
       "blocked_by": [
@@ -1209,11 +1209,11 @@
       {
         "id": "ADR-010",
         "title": "Modelo de Template/TemplateVersao (versionamento append-only) e renderização imutável do AceiteEletronico",
-        "status": "proposed",
+        "status": "accepted",
         "path": "decisions/adr/ADR-010-template-versao-e-aceite-eletronico.md",
-        "decided_at": null,
+        "decided_at": "2026-05-28",
         "decided_by": "arquiteto",
-        "approved_by": null,
+        "approved_by": "Alexandro",
         "supersedes": null,
         "superseded_by": null,
         "source_story": "STORY-013"
