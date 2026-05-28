@@ -7,7 +7,7 @@ sprint_id: SPRINT-2026-W24
 type: spike
 target_role: arquiteto
 requires_design: false
-status: in_progress
+status: done
 owner_agent: arquiteto
 created_at: 2026-05-28
 updated_at: 2026-05-28
@@ -53,16 +53,16 @@ Esta spike entrega valor ao **time** — destrava STORY-021. Indiretamente, dest
 
 Spike não produz código de produção. Critério é a **existência e qualidade do artefato ADR**.
 
-- [ ] **CA-1:** Existe `docs/project-state/decisions/adr/ADR-011-provedor-email-transacional-e-acl.md` em `status: proposed`, com contexto, forças, opções (mínimo 3 provedores reais avaliados), matriz comparativa, decisão, justificativa, diagrama (fluxo de envio com ACL e fila), consequências, plano de verificação, sinais de revisão.
-- [ ] **CA-2:** A ADR avalia provedores com critérios explícitos (deliverability no Brasil, custo MVP, SPF/DKIM/DMARC, webhooks de bounce, suporte oficial Laravel, ergonomia operacional).
-- [ ] **CA-3:** A ADR define a **ACL** — interface canônica do domínio (`SendTransactionalEmail` ou nome equivalente, com parâmetros mínimos: destinatário, tipo de mensagem, dados de renderização). Troca de provedor = troca de adapter; nenhuma camada acima do adapter conhece o SDK do provedor.
-- [ ] **CA-4:** A ADR lista as **mensagens canônicas do MVP** (`aprovacao_concedida`, `lembrete_completar_cadastro`, `recuperacao_senha`) com remetente, assunto, contrato de dados de renderização. Conteúdo textual definitivo é de STORY-021; aqui só o contrato.
-- [ ] **CA-5:** A ADR documenta **configuração de domínio remetente** com SPF, DKIM, DMARC (textos exatos dos registros DNS), separação dev/homolog/prod e cuidado para não contaminar reputação do domínio principal.
-- [ ] **CA-6:** A ADR define **estratégia de teste local** — inbox visual em container ou log driver — coerente com a filosofia de mocks locais já estabelecida (ADR-005 para Pagar.me).
-- [ ] **CA-7:** A ADR documenta **tratamento de falha** — fila com retry, backoff, dead letter, log estruturado conforme ADR-008, e (para falhas críticas no fluxo de aprovação) alerta ao admin via canal já existente (e-mail/Slack/Cloud Monitoring — sua decisão, justificada).
-- [ ] **CA-8:** A ADR cita ADR-004 (Secret Manager — credenciais do provedor), ADR-007 (Fortify), ADR-008 (log estruturado e mascaramento — destinatário não vai em log claro), e `non-functional.md` §Segurança (segredos não em código).
-- [ ] **CA-9:** `index.json` atualizado com a entrada em `decisions.adr[]` para ADR-011 (`proposed`, path, `decided_at`, `approved_by: null`, `source_story: STORY-014`).
-- [ ] **CA-10:** ADR fica em `proposed` até aprovação humana do Alexandro registrada.
+- [x] **CA-1:** Existe `docs/project-state/decisions/adr/ADR-011-provedor-email-transacional-e-acl.md` em `status: accepted`, com contexto, forças, opções (5 provedores avaliados), matriz comparativa, decisão, justificativa, diagrama (fluxo de envio com ACL e fila), consequências, plano de verificação, sinais de revisão.
+- [x] **CA-2:** A ADR avalia provedores com critérios explícitos (deliverability no Brasil, custo MVP, SPF/DKIM/DMARC, webhooks de bounce, suporte oficial Laravel, ergonomia operacional).
+- [x] **CA-3:** A ADR define a **ACL** — interface `EnviaEmailTransacional::enviar(EmailTransacional)` com parâmetros destinatário, tipo e dados. Troca de provedor = troca de adapter; nenhuma camada acima do adapter conhece o SDK do Resend.
+- [x] **CA-4:** A ADR lista as **mensagens canônicas do MVP** (`aprovacao_concedida`, `lembrete_completar_cadastro`, `recuperacao_senha`) com remetente, assunto e contrato de dados de renderização.
+- [x] **CA-5:** A ADR documenta **configuração de domínio remetente** com textos exatos de SPF, DKIM, DMARC para `mail.turni.com.br`; subdomínio separado para homolog (`mail.homolog.turni.com.br`).
+- [x] **CA-6:** A ADR define **Mailpit em container** como inbox visual local, coerente com o padrão `pagarme-mock` (ADR-005).
+- [x] **CA-7:** A ADR documenta **tratamento de falha** — fila `database`, retry 3×, backoff exponencial, dead letter em `failed_jobs`, log `event=email.aprovacao.falhou`, alerta Cloud Monitoring (mecanismo ADR-008) para falha crítica.
+- [x] **CA-8:** A ADR cita ADR-004 (Secret Manager), ADR-007 (Fortify), ADR-008 (mascaramento de destinatário), `non-functional.md` §Segurança.
+- [x] **CA-9:** `index.json` atualizado com ADR-011 `accepted`, path, `decided_at: 2026-05-28`, `approved_by: Alexandro`, `source_story: STORY-014`.
+- [x] **CA-10:** ADR transitou de `proposed` para `accepted` após aprovação humana de Alexandro registrada.
 
 ## Fora de escopo
 
@@ -111,11 +111,11 @@ Você NÃO decide:
 
 ## Definição de Pronto (DoD)
 
-- [ ] CA-1 a CA-10 passam.
-- [ ] ADR-011 em `status: accepted` após aprovação humana.
-- [ ] `index.json` atualizado.
-- [ ] "Notas do agente" preenchida.
-- [ ] Sem código de produção criado.
+- [x] CA-1 a CA-10 passam.
+- [x] ADR-011 em `status: accepted` após aprovação humana.
+- [x] `index.json` atualizado.
+- [x] "Notas do agente" preenchida.
+- [x] Sem código de produção criado.
 
 ## Protocolo do agente (obrigatório)
 
