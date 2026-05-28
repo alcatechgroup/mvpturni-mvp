@@ -1479,6 +1479,18 @@
         "supersedes": null,
         "superseded_by": null,
         "source_story": "STORY-014"
+      },
+      {
+        "id": "ADR-012",
+        "title": "Landing institucional: gate Em breve, path secreto, hosting dedicado e pipeline isolado",
+        "status": "proposed",
+        "path": "decisions/adr/ADR-012-landing-gate-em-breve-path-secreto.md",
+        "decided_at": null,
+        "decided_by": "arquiteto",
+        "approved_by": null,
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-026"
       }
     ],
     "idr": [

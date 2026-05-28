@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/project-state/decisions/adr/ADR-009-modelo-de-dados-identidade-epic-001.md",
+                "file": "docs/project-state/sprints/SPRINT-2026-W24-LANDING.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ADR-009-modelo-de-dados-identidade-epic-001"
+              "title": "SPRINT-2026-W24-LANDING"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "docs/project-state/decisions/adr/ADR-009-modelo-de-dados-identidade-epic-001.md",
+                "file": "docs/project-state/sprints/SPRINT-2026-W24-LANDING.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Links inversos para ADR-009-modelo-de-dados-identidade-epic-001"
+              "title": "Links inversos para SPRINT-2026-W24-LANDING"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "docs/project-state/decisions/adr/ADR-009-modelo-de-dados-identidade-epic-001.md",
+                "file": "docs/project-state/sprints/SPRINT-2026-W24-LANDING.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Links de saída para ADR-009-modelo-de-dados-identidade-epic-001"
+              "title": "Links de saída para SPRINT-2026-W24-LANDING"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "docs/project-state/decisions/adr/ADR-009-modelo-de-dados-identidade-epic-001.md",
+                "file": "docs/project-state/sprints/SPRINT-2026-W24-LANDING.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Sumário de ADR-009-modelo-de-dados-identidade-epic-001"
+              "title": "Sumário de SPRINT-2026-W24-LANDING"
             }
           }
         ]
@@ -185,42 +185,42 @@
   },
   "active": "26c17ef143bce144",
   "lastOpenFiles": [
-    "docs/operacao/runbook-homolog.md",
+    "docs/project-state/decisions/adr/ADR-012-landing-gate-em-breve-path-secreto.md",
+    "docs/project-state/sprints/SPRINT-2026-W24-LANDING.md",
+    "apps/api/tests/Unit/ProfileModelsTest.php",
+    "apps/api/tests/Unit/AuditLogServiceTest.php",
+    "apps/api/tests/Feature/Identity/WebAppOnlyMiddlewareTest.php",
+    "apps/api/tests/Unit/UserModelTest.php",
+    "apps/webapp/tests/e2e/rbac-login.spec.ts",
+    "apps/admin/tests/e2e/rbac-login.spec.ts",
+    "apps/webapp/test/login_screen_test.dart",
+    "apps/webapp/build/unit_test_assets/NativeAssetsManifest.json",
+    "apps/webapp/build/unit_test_assets/shaders/ink_sparkle.frag",
+    "apps/webapp/build/unit_test_assets/shaders/stretch_effect.frag",
     "docs/project-state/sprints/SPRINT-2026-W24.md",
+    "docs/project-state/epics/EPIC-006-landing-institucional/validation/checklist.md",
+    "docs/project-state/epics/EPIC-006-landing-institucional/stories/STORY-033-validacao-final-epic-006.md",
+    "docs/project-state/epics/EPIC-006-landing-institucional/stories/STORY-032-runbook-operacional-landing.md",
+    "docs/project-state/epics/EPIC-006-landing-institucional/stories/STORY-031-firebase-json-rotas-explicitas-firebaserc-e-workflow-deploy.md",
+    "docs/project-state/epics/EPIC-006-landing-institucional/stories/STORY-030-scaffolding-apps-landing-import-as-is-adaptacoes-minimas.md",
+    "docs/project-state/epics/EPIC-006-landing-institucional/stories/STORY-029-terraform-firebase-multi-site-e-dns-apex-www-landing.md",
+    "docs/project-state/epics/EPIC-006-landing-institucional/stories/STORY-028-pagina-em-breve-com-identidade-visual.md",
+    "docs/project-state/epics/EPIC-006-landing-institucional/stories/STORY-027-pdr-fronteira-marketing-engenharia-comercial.md",
+    "docs/project-state/epics/EPIC-006-landing-institucional/stories/STORY-026-spike-gate-em-breve-path-secreto-topologia-firebase.md",
+    "docs/project-state/design/screens/SCREEN-STORY-016-login-e-rbac.md",
+    "docs/especificacao/contratos/template-mei-pj-b2b-v1.md",
+    "docs/especificacao/contratos/template-pf-autonomo-eventual-v1.md",
+    "docs/project-state/decisions/adr/ADR-010-template-versao-e-aceite-eletronico.md",
+    "docs/project-state/epics/EPIC-006-landing-institucional/epic.md",
+    "docs/project-state/decisions/adr/ADR-011-provedor-email-transacional-e-acl.md",
     "docs/project-state/decisions/adr/ADR-009-modelo-de-dados-identidade-epic-001.md",
+    "docs/operacao/runbook-homolog.md",
     "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/validation/checklist.md",
     "docs/skills/arquiteto/SKILL.md",
     "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-025-validacao-final-epic-001.md",
     "docs/project-state/epics/EPIC-000-foundation/stories/STORY-002-spike-hospedagem-iac-deploy.md",
     "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-024-completar-cadastro-contratante-com-aceite.md",
     "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-023-completar-cadastro-profissional-com-aceite.md",
-    "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-022-welcome-pos-aprovacao-webapp.md",
-    "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-021-emails-transacionais.md",
-    "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-020-editor-templates-contratuais-backoffice.md",
-    "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-019-fila-aprovacao-backoffice.md",
-    "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-018-pre-cadastro-contratante-webapp.md",
-    "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-017-pre-cadastro-profissional-webapp.md",
-    "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-016-rbac-vivo-login-roteamento-por-papel.md",
-    "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-015-texto-seed-templates-contratuais.md",
-    "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-014-spike-email-transacional-e-acl.md",
-    "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-013-spike-template-versao-e-aceite-eletronico.md",
-    "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-012-spike-modelo-usuario-funil-rbac-auditlog.md",
-    "docs/project-state/epics/EPIC-000-foundation/validation/report.md",
-    "firebase-debug.log",
-    "apps/admin/package-lock.json",
-    "apps/admin/node_modules/vite/bin/vite.js",
-    "apps/admin/node_modules/vite/bin/openChrome.js",
-    "apps/admin/node_modules/vite/bin",
-    "apps/admin/node_modules/laravel-vite-plugin/bin/clean.js",
-    "apps/admin/node_modules/laravel-vite-plugin/bin",
-    "apps/admin/node_modules/jiti/lib/types.d.ts",
-    "apps/admin/node_modules/jiti/lib/jiti.mjs",
-    "apps/admin/node_modules/jiti/lib/jiti.d.mts",
-    "apps/admin/node_modules/rxjs/README.md",
-    "apps/admin/node_modules/rxjs/CODE_OF_CONDUCT.md",
-    "apps/admin/node_modules/rxjs/CHANGELOG.md",
-    "apps/admin/node_modules/concurrently/README.md",
-    "apps/admin/node_modules/@tailwindcss/node/README.md",
     "apps/admin/node_modules/concurrently/docs/demo.gif",
     "apps/admin/node_modules/playwright-core/lib/vite/dashboard/assets/safari-na3_-uQk.svg",
     "apps/admin/node_modules/playwright-core/lib/vite/dashboard/assets/firefox-nightly-Cp5nfeDT.svg",

@@ -4,6 +4,7 @@
 
 use App\Models\AdminAuditLog;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 
@@ -14,7 +15,7 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     // Laravel 13: CSRF middleware renomeado para PreventRequestForgery.
     // Desabilitado nos testes pois o fluxo real (form @csrf) é validado no E2E (CA-13).
-    $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class);
+    $this->withoutMiddleware(PreventRequestForgery::class);
 });
 
 // ──────────────────────────────────────────────────────────────

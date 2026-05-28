@@ -2,6 +2,7 @@
 
 // STORY-016 — CA-1, CA-2 — Schema e idempotência das migrações
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 
@@ -46,15 +47,15 @@ test('admin_audit_log não tem coluna updated_at — é append-only', function (
 test('users.role permite apenas valores válidos (constraint CHECK ou enum)', function () {
     $valid = ['admin', 'contratante', 'profissional'];
     foreach ($valid as $role) {
-        expect(fn() => \App\Models\User::factory()->create(['role' => $role]))
-            ->not->toThrow(\Exception::class);
+        expect(fn () => User::factory()->create(['role' => $role]))
+            ->not->toThrow(Exception::class);
     }
 });
 
 test('users.status permite apenas valores válidos', function () {
     $valid = ['pendente_aprovacao', 'liberado', 'ativo', 'recusado'];
     foreach ($valid as $status) {
-        expect(fn() => \App\Models\User::factory()->admin()->create(['status' => $status]))
-            ->not->toThrow(\Exception::class);
+        expect(fn () => User::factory()->admin()->create(['status' => $status]))
+            ->not->toThrow(Exception::class);
     }
 });

@@ -38,7 +38,7 @@ test('audit log é imutável — UPDATE lança exceção do banco (trigger)', fu
 
     expect(function () use ($entry) {
         DB::statement('UPDATE admin_audit_log SET action = ? WHERE id = ?', ['hacked', $entry->id]);
-    })->toThrow(\Exception::class);
+    })->toThrow(Exception::class);
 });
 
 test('audit log é imutável — DELETE lança exceção do banco (trigger)', function () {
@@ -54,7 +54,7 @@ test('audit log é imutável — DELETE lança exceção do banco (trigger)', fu
 
     expect(function () use ($entry) {
         DB::statement('DELETE FROM admin_audit_log WHERE id = ?', [$entry->id]);
-    })->toThrow(\Exception::class);
+    })->toThrow(Exception::class);
 });
 
 test('audit log — Eloquent update() lança exceção', function () {
@@ -70,7 +70,7 @@ test('audit log — Eloquent update() lança exceção', function () {
 
     expect(function () use ($entry) {
         $entry->update(['action' => 'hacked']);
-    })->toThrow(\Exception::class);
+    })->toThrow(Exception::class);
 });
 
 test('audit log — Eloquent delete() lança exceção', function () {
@@ -86,5 +86,5 @@ test('audit log — Eloquent delete() lança exceção', function () {
 
     expect(function () use ($entry) {
         $entry->delete();
-    })->toThrow(\Exception::class);
+    })->toThrow(Exception::class);
 });

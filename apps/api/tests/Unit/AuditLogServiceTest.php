@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 
 uses(RefreshDatabase::class);
 
-
 test('AuditLogService cria entrada no audit log com campos corretos', function () {
     $admin = User::factory()->admin()->create();
 

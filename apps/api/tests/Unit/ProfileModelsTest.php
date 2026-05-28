@@ -2,13 +2,13 @@
 
 // STORY-016 — CA-1 — Testes dos modelos de perfil (ProfissionalProfile, ContratanteProfile)
 
+use App\Models\AdminAuditLog;
 use App\Models\ContratanteProfile;
 use App\Models\ProfissionalProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
-
 
 test('ProfissionalProfile pode ser criado e relacionado ao usuário', function () {
     $user = User::factory()->profissional()->ativo()->create();
@@ -36,7 +36,7 @@ test('ContratanteProfile pode ser criado e relacionado ao usuário', function ()
 
 test('AdminAuditLog relaciona ao usuário pelo actor_id', function () {
     $admin = User::factory()->admin()->create();
-    $log = \App\Models\AdminAuditLog::create([
+    $log = AdminAuditLog::create([
         'actor_id' => $admin->id,
         'action' => 'admin.login',
         'ip' => '127.0.0.1',

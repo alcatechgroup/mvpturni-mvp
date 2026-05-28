@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -31,6 +30,7 @@ class AuthController extends Controller
 
         if (RateLimiter::tooManyAttempts($throttleKey, $maxAttempts)) {
             $seconds = RateLimiter::availableIn($throttleKey);
+
             return response()->json([
                 'message' => 'Muitas tentativas. Aguarde antes de tentar novamente.',
                 'retry_after' => $seconds,
@@ -41,6 +41,7 @@ class AuthController extends Controller
 
         if (! $user || ! Hash::check($request->input('password'), $user->password)) {
             RateLimiter::hit($throttleKey, 60);
+
             return response()->json([
                 'message' => 'Credenciais inválidas.',
                 'code' => 'invalid_credentials',
@@ -50,6 +51,7 @@ class AuthController extends Controller
         // Credencial válida — admin não pode usar o WebApp (CA-7).
         if ($user->isAdmin()) {
             RateLimiter::clear($throttleKey);
+
             return response()->json([
                 'message' => 'Este usuário acessa o Backoffice.',
                 'code' => 'admin_must_use_backoffice',

@@ -9,13 +9,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class AuthController extends Controller
 {
     public function __construct(private readonly AuditLogService $audit) {}
 
     /** GET /login */
-    public function showLogin(): \Illuminate\View\View
+    public function showLogin(): View
     {
         return view('auth.login');
     }

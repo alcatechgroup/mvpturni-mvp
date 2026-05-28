@@ -22,6 +22,7 @@ Route::middleware([StartSession::class])->group(function () {
 Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSession::class])->group(function () {
     Route::get('/user', function () {
         $user = Auth::user();
+
         return response()->json([
             'id' => $user->id,
             'name' => $user->name,

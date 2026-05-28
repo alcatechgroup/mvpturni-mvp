@@ -3,8 +3,12 @@
 // STORY-016 — CA-3, CA-4, CA-7, CA-9 — Login/logout da API (Sanctum SPA)
 
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Testing\TestResponse;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 uses(RefreshDatabase::class);
 
@@ -13,13 +17,13 @@ uses(RefreshDatabase::class);
 // esses são validados no E2E em browser real (CA-13).
 // O AuthController usa Auth::login() que requer sessão; o TestCase inicia uma sessão
 // de teste implicitamente quando usamos withSession([]).
-function apiPost(string $url, array $data = []): \Illuminate\Testing\TestResponse
+function apiPost(string $url, array $data = []): TestResponse
 {
     return test()
         ->withoutMiddleware([
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
-            \Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class,
+            EnsureFrontendRequestsAreStateful::class,
+            VerifyCsrfToken::class,
+            PreventRequestForgery::class,
         ])
         ->withSession([])
         ->postJson($url, $data);
