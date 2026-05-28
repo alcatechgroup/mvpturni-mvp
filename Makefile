@@ -112,9 +112,16 @@ lint: ## Lint/format (Laravel Pint)
 	$(COMPOSE_RUN) api ./vendor/bin/pint --test
 	$(COMPOSE_RUN) admin ./vendor/bin/pint --test
 
-e2e: e2e-webapp e2e-admin ## E2E Playwright local (gate antes de criar tag rc.N — IDR-004)
+e2e: ## E2E Playwright local (gate antes de criar tag rc.N — IDR-004)
+	$(MAKE) _e2e-seed
+	$(MAKE) e2e-webapp
+	$(MAKE) e2e-admin
 
-e2e-webapp: ## E2E Playwright do WebApp contra localhost:8003 (exige `make up`)
+_e2e-seed: # Garante migrações + usuários de teste do CA-13 no banco de dev
+	$(DC) exec -T api php artisan migrate --force
+	$(DC) exec -T api php artisan db:seed --force
+
+e2e-webapp: webapp-build ## E2E Playwright do WebApp contra localhost:8003 (rebuilda antes — evita build velho)
 	@command -v npx >/dev/null 2>&1 || { echo "ERRO: npx ausente no PATH (instale Node 22)"; exit 1; }
 	@curl -fsS -o /dev/null http://localhost:$${WEBAPP_PORT:-8003} || { echo "ERRO: WebApp não responde em :$${WEBAPP_PORT:-8003}. Rode 'make up' antes."; exit 1; }
 	cd apps/webapp && (test -d node_modules || npm ci) \

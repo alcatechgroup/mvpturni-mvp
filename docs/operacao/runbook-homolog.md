@@ -102,11 +102,13 @@ Quem pula este passo está deployando regressão visual / interação para homol
 sem rede de proteção automatizada. O smoke curl no pipeline pega 5xx/404, mas
 não pega CSS quebrado nem label faltando.
 
-> **Cobertura atual do `make e2e` (2026-05-28):** Backoffice 100% (HTML real) +
-> smoke HTTP do WebApp. A **interação** do WebApp (login/funnel via browser) está
-> em `test.fixme` — Flutter Web/CanvasKit não expõe a UI como DOM, pendente de
-> decisão de estratégia (semantics vs. integration_test). Aparece como "skipped"
-> na saída; reabilitar quando a estratégia for escolhida. Não é regressão nova.
+> **Cobertura do `make e2e`:** Backoffice (HTML real) + WebApp Flutter completos —
+> login, RBAC e funnel guard rodam em browser real. O WebApp ativa a árvore de
+> semantics do Flutter (`gotoApp` clica no placeholder "Enable accessibility") e
+> usa `usePathUrlStrategy()`, então `/login`, `/welcome` e `/app` funcionam como
+> paths reais. Único `skipped`: `/health` JSON do WebApp, que é artefato de build
+> (Firebase serve `health.json` em homolog) e não existe no dev local.
+> `make e2e` rebuilda o WebApp e roda o seed automaticamente antes dos testes.
 
 ---
 

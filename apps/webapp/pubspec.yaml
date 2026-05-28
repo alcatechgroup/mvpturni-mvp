@@ -30,6 +30,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # URL strategy do Flutter Web — usePathUrlStrategy() em main.dart para deep links
+  # por path (/login, /welcome) em vez de hash (/#/login). STORY-016.
+  flutter_web_plugins:
+    sdk: flutter
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

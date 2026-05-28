@@ -10,6 +10,9 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
     testDir: './tests/e2e',
     fullyParallel: false,
+    // 1 worker: Flutter Web/CanvasKit é pesado no boot; instâncias paralelas
+    // contendem CPU e deixam a ativação de semantics flaky. Serial é determinístico.
+    workers: 1,
     retries: 1,
     timeout: 60_000,
     reporter: [['list'], ['html', { open: 'never' }]],
