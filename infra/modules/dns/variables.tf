@@ -16,7 +16,7 @@ variable "dns_zone_name" {
 variable "webapp_subdomain" {
   type        = string
   default     = null
-  description = "FQDN do webapp (ex: app.homolog.turni.com.br) — omitir até ter o CNAME target"
+  description = "FQDN do webapp (ex: app.homolog.turni.com.br)"
 }
 
 variable "webapp_cname_target" {
@@ -28,23 +28,11 @@ variable "webapp_cname_target" {
 variable "api_subdomain" {
   type        = string
   default     = null
-  description = "FQDN da API — omitir até ter o IP do LB"
+  description = "FQDN da API (ex: api.homolog.turni.com.br)"
 }
 
-variable "api_ip" {
+variable "api_cname_target" {
   type        = string
   default     = null
-  description = "IP estático do LB da API — omitir enquanto LB não estiver provisionado"
-}
-
-variable "admin_subdomain" {
-  type        = string
-  default     = null
-  description = "FQDN do admin — omitir até ter o IP do LB"
-}
-
-variable "admin_ip" {
-  type        = string
-  default     = null
-  description = "IP estático do LB do admin — omitir enquanto LB não estiver provisionado"
+  description = "Target CNAME da API — ghs.googlehosted.com para Cloud Run domain mapping"
 }

@@ -187,10 +187,11 @@ module "worker" {
 
 # ── Firebase Hosting (WebApp Flutter) ────────────────────────────────────────
 module "firebase" {
-  source     = "../../modules/firebase"
-  project_id = var.project_id
-  env        = local.env
-  depends_on = [google_project_service.apis]
+  source        = "../../modules/firebase"
+  project_id    = var.project_id
+  env           = local.env
+  custom_domain = local.webapp_host
+  depends_on    = [google_project_service.apis]
 }
 
 # ── Agendamento liga/desliga do Cloud SQL (economia de custo) ─────────────────
@@ -207,15 +208,37 @@ module "sql_scheduler" {
   depends_on           = [google_project_service.apis, module.cloud_sql, module.worker]
 }
 
+# ── Cloud Run domain mapping — API ───────────────────────────────────────────
+# Mapeia api.homolog.turni.com.br → serviço Cloud Run turni-api-homolog.
+# Google provisiona HTTPS automaticamente; DNS deve ter CNAME → ghs.googlehosted.com.
+resource "google_cloud_run_domain_mapping" "api" {
+  location = var.region
+  name     = local.api_host
+
+  metadata {
+    namespace = var.project_id
+  }
+
+  spec {
+    route_name = module.cloud_run_api.service_name
+  }
+
+  depends_on = [module.cloud_run_api, module.dns]
+}
+
 # ── DNS (Cloud DNS) ──────────────────────────────────────────────────────────
-# Fase 1: cria só a zona para obter os NS records (configurar no registro.br).
-# Fase 2: adicionar webapp_subdomain/webapp_cname_target e api/admin IPs quando LBs estiverem prontos.
+# Fase 1 (feita): zona criada, NS configurados no registro.br.
+# Fase 2 (esta): CNAME api → ghs.googlehosted.com, CNAME webapp → Firebase.
 module "dns" {
-  source        = "../../modules/dns"
-  project_id    = var.project_id
-  create_zone   = true
-  dns_zone_name = "turni-com-br"
-  depends_on    = [google_project_service.apis]
+  source              = "../../modules/dns"
+  project_id          = var.project_id
+  create_zone         = true
+  dns_zone_name       = "turni-com-br"
+  api_subdomain       = local.api_host
+  api_cname_target    = "ghs.googlehosted.com"
+  webapp_subdomain    = local.webapp_host
+  webapp_cname_target = module.firebase.cname_target
+  depends_on          = [google_project_service.apis, module.firebase]
 }
 
 # ── Monitoramento (ADR-008) ───────────────────────────────────────────────────
