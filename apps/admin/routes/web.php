@@ -33,6 +33,11 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Recuperação de senha — stub (CA-5: o link existe e leva a um destino funcional;
+// envio real de e-mail fica para STORY-021). Evita o 404 do link no /login.
+Route::get('/esqueci-minha-senha', fn () => view('auth.forgot-password'))
+    ->name('password.request');
+
 // Rotas protegidas — requerem admin
 Route::middleware([AdminOnly::class])->group(function () {
     Route::get('/', function () {
