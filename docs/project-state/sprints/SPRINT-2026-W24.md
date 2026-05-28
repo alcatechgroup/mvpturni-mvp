@@ -37,10 +37,10 @@ O e-mail de aprovação concedida **NÃO chega ao usuário** no fim desta sprint
 
 | ID | Título | Épico | Tipo | Papel | Tamanho | Design? | Status |
 |---|---|---|---|---|---|---|---|
-| STORY-012 | Spike — modelo de identidade (ADR-009) | EPIC-001 | spike | arquiteto | M | não | ready |
-| STORY-013 | Spike — Template/Versao e AceiteEletronico imutável (ADR-010) | EPIC-001 | spike | arquiteto | S | não | ready |
-| STORY-014 | Spike — provedor de e-mail + ACL (ADR-011) | EPIC-001 | spike | arquiteto | S | não | ready |
-| STORY-015 | Texto-seed dos templates contratuais (PF + MEI/PJ v1) | EPIC-001 | enablement | po | M | não | ready |
+| STORY-012 | Spike — modelo de identidade (ADR-009) | EPIC-001 | spike | arquiteto | M | não | **done** |
+| STORY-013 | Spike — Template/Versao e AceiteEletronico imutável (ADR-010) | EPIC-001 | spike | arquiteto | S | não | **done** |
+| STORY-014 | Spike — provedor de e-mail + ACL (ADR-011) | EPIC-001 | spike | arquiteto | S | não | **done** |
+| STORY-015 | Texto-seed dos templates contratuais (PF + MEI/PJ v1) | EPIC-001 | enablement | po | M | não | **done** |
 | STORY-016 | RBAC vivo — login + roteamento por papel + funnel guard | EPIC-001 | implementation | programador | **L** | sim | ready |
 | STORY-017 | Pré-cadastro de Profissional (PF/MEI/PJ) no WebApp | EPIC-001 | implementation | programador | M | sim | ready |
 | STORY-018 | Pré-cadastro de Contratante no WebApp | EPIC-001 | implementation | programador | M | sim | ready |
@@ -140,7 +140,7 @@ Diferente da W23, esta sprint entrega **usuário real entrando no produto**:
 ## Acompanhamento contínuo (PO)
 
 - **Diário** (~10 min): olhar `index.json`, identificar o que está `in_progress` / `blocked` / `in_review`. Desbloquear o que pode. Observar se Designer está mantendo ritmo com as 6 screen specs.
-- **Mid-sprint check em 2026-06-04 (quinta — D+7)**: PO verifica se as 3 spikes e a STORY-015 fecharam. Se sim, STORY-016 deveria estar em andamento. Se STORY-016 não começou ainda, sinal de gargalo no Designer ou no Arquiteto.
+- **Mid-sprint check em 2026-06-04 (quinta — D+7)**: ~~PO verifica se as 3 spikes e a STORY-015 fecharam.~~ **ANTECIPADO: as 4 estórias fecharam em D+1 (2026-05-28).** Verificar se STORY-016 já está em andamento. Se não, o gargalo é o Designer (screen spec 016 pendente).
 - **Mid-sprint check #2 em 2026-06-11 (quinta — D+14)**: PO verifica se STORY-016 fechou. Se não, considerar quebra em sub-estórias. PO conversa com Alexandro sobre soft-cap e priorização de carry-over.
 - **Soft-cap check em 2026-06-18**: se goal não bateu, abrir seção "Mudanças no escopo do sprint" abaixo e decidir entre (a) seguir sem ajuste, (b) tirar STORY-022 (welcome) — completar cadastro existe sem ela, vira placeholder; (c) tirar STORY-020 (editor) — operável com seed direto no DB, sem UI editora ainda.
 
@@ -171,7 +171,25 @@ Regras novas para W24:
 
 > Para registrar conforme acontecem; consolidados na seção "Fechamento do sprint" no fim.
 
-(a preencher durante a execução)
+### 2026-05-28 — D+1: todas as 4 estórias preparatórias fechadas
+
+**O que aconteceu:**
+
+As 3 ADRs (012/013/014) e a STORY-015 (texto-seed PO) foram concluídas no mesmo dia da abertura da sprint. Velocidade muito acima da estimada: o mid-sprint check de D+7 foi antecipado para D+1.
+
+**Estado resultante:**
+
+- 3 ADRs aceitas: ADR-009 (identidade + RBAC + audit log), ADR-010 (Template/TemplateVersao + AceiteEletronico), ADR-011 (e-mail transacional + ACL).
+- Texto-seed v1 dos dois templates contratuais (PF e MEI/PJ) produzido, validado pelo Alexandro e commitado.
+- Caminho crítico para STORY-016 (RBAC vivo, L) totalmente desbloqueado — nenhuma dependência técnica pendente.
+
+**Gargalo atual identificado:**
+
+STORY-016 (`requires_design: true`) não pode iniciar sem a screen spec do Designer. O risco identificado na abertura — "Designer entrega 6 screen specs antes das implementações — gargalo possível" — é agora o **único bloqueio ativo**. PO aciona Designer para priorizar a spec da 016 imediatamente.
+
+**Ajuste de expectativa:**
+
+Se o Designer entregar a spec de 016 ainda nesta semana (até 2026-05-30), a sprint pode acelerar significativamente — o programador pode entrar na STORY-016 antes do D+7 previsto originalmente. O soft-cap de 2026-06-18 parece confortável dado o ritmo do D+1.
 
 ## Fechamento do sprint
 
