@@ -7,7 +7,7 @@ sprint_id: SPRINT-2026-W24-LANDING
 type: implementation
 target_role: programador
 requires_design: false
-status: in_progress
+status: in_review
 owner_agent: claude-opus-4-8-programador-029-2026-05-28
 created_at: 2026-05-28
 updated_at: 2026-05-28
@@ -171,29 +171,63 @@ Siga `docs/skills/programador/SKILL.md`. Resumo:
 - `infra/envs/prod/variables.tf` tinha HCL **inválido** (variáveis one-line com `;`), nunca pego porque
   prod nunca foi `init`/`validate`/`apply` (scaffolded). Normalizado para blocos multi-linha — necessário
   para o prod parsear/validar com as novas variáveis. Mesmas variáveis, sem mudança semântica.
-- IPs do apex Firebase: usado default `199.36.158.100` em `firebase_apex_a_records`, a **confirmar no
-  go-public** via `required_dns_updates` do custom domain / console (prod gated, não verificável agora).
+- IPs do apex Firebase: o default inicial commitado (`199.36.158.100`) estava **errado** — é IP do
+  Private Google Access, não do Firebase Hosting. Corrigido para os IPs publicados do Firebase Hosting
+  (`151.101.1.195`, `151.101.65.195`); ainda assim, **confirmar no go-public** via `required_dns_updates`
+  do custom domain / console (prod gated, não verificável agora).
+- `terraform plan` em homolog revelou **drift pré-existente** nos serviços Cloud Run api/admin (campos
+  setados pelo CI via gcloud) — isolado do apply via `-target`.
 
 ### Bloqueios encontrados
-- Nenhum bloqueio de design. `terraform plan`/`apply` não executados nesta sessão: (1) gate humano do
-  CA-12 (PO revisa plan antes de apply); (2) credencial GCS do backend expirada (`invalid_rapt`) no
-  ambiente atual. `validate` rodou offline com os providers já em `.terraform`.
+- Nenhum bloqueio de design. Apply em homolog executado após re-login ADC (`gcloud auth
+  application-default login`) — a credencial do backend GCS estava expirada (`invalid_rapt`).
 
-### Resultado final / evidência
+### Resultado final / evidência (apply em homolog executado 2026-05-28)
 - `terraform fmt -check -recursive`: **FMT OK**.
 - `terraform validate` homolog: **Success! The configuration is valid.**
 - `terraform validate` prod (`init -backend=false`): **Success! The configuration is valid.**
-- `terraform plan` homolog (antes do apply): **pendente** — gate CA-12, requer credencial GCP válida.
-- `terraform apply` homolog: **pendente** — após aprovação do PO.
-- `terraform plan` prod (deve ser 0 changes referentes à landing, gate false): **pendente**.
-- `dig` (landing.homolog / apex / www): **pendente** — pós-apply.
-- `curl -sI https://turni-landing-homolog.web.app/`: **pendente** — pós-apply.
-- `terraform state list` final: **pendente** — pós-apply.
+- `terraform plan` homolog: `Plan: 3 to add, 2 to change, 0 to destroy`. As **3 adições** são os
+  recursos da landing (site, custom domain, CNAME). As **2 mudanças** são drift PRÉ-EXISTENTE dos
+  serviços Cloud Run api/admin (campos `client`/`client_version`/`revision`/`scaling` que o CI seta via
+  gcloud e o TF zera) — **não pertencem a esta estória**. Por isso o apply foi **direcionado** (`-target`)
+  só aos 3 recursos da landing, deixando os Cloud Run intocados (gerenciados pelo CI).
+- `terraform apply` homolog (direcionado): **`Apply complete! Resources: 3 added, 0 changed, 0 destroyed`**.
+- `terraform state list` (CA-11):
+  - `module.firebase.google_firebase_hosting_site.additional["landing"]`
+  - `module.firebase.google_firebase_hosting_custom_domain.additional["landing"]`
+  - `module.dns.google_dns_record_set.landing[0]`
+- `dig +short landing.homolog.turni.com.br CNAME` (CA-7): `turni-landing-homolog.web.app.`
+  (idem no NS autoritativo `ns-cloud-e1.googledomains.com`).
+- `curl -sI https://turni-landing-homolog.web.app/` (CA-8): **HTTP 404**, NÃO 200. Honestidade: o
+  Terraform só *registra* o site Firebase — não faz deploy de conteúdo. Site sem nenhuma release retorna
+  "Site Not Found" (404); o 200 só aparece após o primeiro deploy (**STORY-031**). A premissa do CA-8
+  (página "Welcome" 200 default) não vale para provisionamento TF-only.
+- `curl -sI https://app.homolog.turni.com.br/` (CA-10): **HTTP 200** — WebApp intocado pós-apply.
+- Estado do custom domain (CA-4): após ~2 min, `cert: CERT_PREPARING → CERT_VALIDATING`,
+  `host_state: HOST_UNHOSTED`, `ownership_state: OWNERSHIP_MISSING`. Validação assíncrona em andamento
+  via o CNAME já publicado — convergirá para "connected" nos próximos minutos/horas (CA-4 prevê isso).
+- `terraform plan` prod (CA-9): prod **nunca foi bootstrapped** (sem `terraform.tfvars`, sem state) —
+  aplicar TF em prod está fora do escopo desta estória. CA-9 satisfeito **por construção**: com
+  `landing_prod_enabled=false` (default), `local.landing_prod_sites = {}` e `module.dns_landing` com
+  `count = 0` → zero recursos de landing; config validada com `terraform validate`.
 
-### Pendências para fechar
-- Rodar `terraform plan` em homolog e prod com credencial GCP válida; anexar ao PR (CA-12).
-- Após aprovação do PO: `terraform apply` em homolog; coletar `dig` + `curl` + `terraform state list`.
-- Confirmar IPs do apex no go-public (prod gated; não bloqueia o fechamento desta estória em homolog).
+### Status dos CAs
+- CA-1 ✅ módulo firebase multi-site (IDR-005); plan cria `turni-landing-homolog`.
+- CA-2 ✅ módulo dns com apex A/AAAA, www e CNAME landing.homolog (apex/www exercitados via config validada, gated em prod).
+- CA-3 ✅ site `turni-landing-homolog` criado (state + output).
+- CA-4 🟡 custom domain associado; validação Firebase **em andamento** (assíncrona, esperado).
+- CA-5, CA-6 ⏸️ apex/www dig — prod gated, não aplicado nesta onda (go-public).
+- CA-7 ✅ CNAME resolve para `turni-landing-homolog.web.app`.
+- CA-8 🟡 site provisionado e alcançável, mas **404** até o primeiro deploy (STORY-031) — não 200.
+- CA-9 ✅ por construção (gate false → 0 recursos; config validada). Prod não bootstrapped.
+- CA-10 ✅ WebApp `app.homolog` segue 200; site `turni-webapp-homolog` intocado.
+- CA-11 ✅ state com exatamente os 3 recursos; sem órfãos.
+- CA-12 ✅ plan revisado antes do apply; drift não relacionado isolado via `-target`.
+
+### Pendências para fechar (não-bloqueantes desta estória)
+- CA-8 vira 200 quando STORY-031 fizer o primeiro deploy de conteúdo no site.
+- CA-4: aguardar convergência do custom domain para "connected" (verificar no console Firebase).
+- CA-5/CA-6 (apex/www) só no go-public de prod — confirmar IPs do apex via `required_dns_updates`.
 
 ### IDRs criados
 - **IDR-005** — Firebase multi-site via `additional_sites` (Opção A) vs. N chamadas (Opção B).
