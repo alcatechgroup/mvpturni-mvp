@@ -1,13 +1,13 @@
 {
   "version": 2,
-  "generated_at": "2026-05-28T20:15:00Z",
+  "generated_at": "2026-05-28T21:30:00Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W24",
     "last_closed_sprint": "SPRINT-2026-W23",
-    "phase": "wave-2026-01-epic-001-sprint-w24-aberto",
-    "next_action": "STORY-016 in_progress. Designer entregou SCREEN-STORY-016-login-e-rbac em ready (2026-05-28). Programador iniciou — sync Designer↔Programador concluído, notas registradas na estória. Próximos passos: TDD por CA, migrations, backend (api + admin), WebApp Flutter, E2E.",
+    "phase": "wave-2026-01-sprints-w24-e-w24-landing-em-paralelo",
+    "next_action": "DUAS sprints abertas em paralelo. (1) SPRINT-2026-W24 (EPIC-001): STORY-016 in_progress, sync Designer↔Programador concluído. (2) SPRINT-2026-W24-LANDING (EPIC-006): aberto agora; priorizar STORY-026 (ADR-012, arquiteto) e STORY-027 (PDR-015, PO) no D1 — ambas destravam as 6 estórias de implementação. Coordenação: PRs com prefixo [W24] ou [W24-LANDING]; touch points compartilhados (firebase.json, .firebaserc, CODEOWNERS, módulos Terraform firebase/dns) requerem rebase imediato entre as duas branches.",
     "notes": "SPRINT-2026-W24 aberta em 2026-05-28 com 10 estórias no escopo (012/013/014/015/016/017/018/019/020/022). Goal: funil de identidade Turni vivo em homolog até a tela real de welcome — profissional (PF/MEI/PJ) e contratante completam pré-cadastro, equipe Turni aprova no Backoffice com audit log imutável, usuário aprovado loga no WebApp e vê welcome real; RBAC vivo nas duas interfaces; editor de templates contratuais com texto-seed v1 validado por Alexandro carregado; 3 ADRs aceitas (ADR-009/010/011); F-NB-1 do EPIC-000 (migrate:rollback em homolog) quitado na STORY-016. STORY-021 (e-mails) como stretch. STORY-023/024/025 ficam para SPRINT-2026-W25. Soft-cap em 2026-06-18 (~21 dias) — gatilho de reavaliação, não prazo. Sizing: 1L + 7M + 2S — primeira sprint com volume real de implementação pós-EPIC-000."
   },
   "product": {
@@ -223,12 +223,24 @@
       "slug": "landing-institucional",
       "title": "Landing institucional turni.com.br — deploy AS IS sob responsabilidade do marketing",
       "wave": "WAVE-2026-01",
-      "status": "draft",
+      "status": "in_progress",
       "path": "epics/EPIC-006-landing-institucional/epic.md",
-      "story_ids": [],
+      "story_ids": [
+        "STORY-026",
+        "STORY-027",
+        "STORY-028",
+        "STORY-029",
+        "STORY-030",
+        "STORY-031",
+        "STORY-032",
+        "STORY-033"
+      ],
       "validation_report": null,
+      "validation_checklist_path": "epics/EPIC-006-landing-institucional/validation/checklist.md",
       "created_at": "2026-05-28",
-      "updated_at": "2026-05-28"
+      "updated_at": "2026-05-28",
+      "in_progress_sprint": "SPRINT-2026-W24-LANDING",
+      "next_action": "SPRINT-2026-W24-LANDING aberto com 8 estórias (026-033). Priorizar STORY-026 (ADR-012) e STORY-027 (PDR-015) no D1 — destravam as 6 estórias seguintes."
     }
   ],
   "stories": [
@@ -881,6 +893,203 @@
       "validation_report_path": "epics/EPIC-001-cadastro-e-aprovacao/validation/report.md",
       "created_at": "2026-05-28",
       "updated_at": "2026-05-28"
+    },
+    {
+      "id": "STORY-026",
+      "epic_id": "EPIC-006",
+      "title": "Spike Arquiteto — gate \"Em breve\" + path secreto + topologia Firebase (ADR-012)",
+      "type": "spike",
+      "target_role": "arquiteto",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W24-LANDING",
+      "path": "epics/EPIC-006-landing-institucional/stories/STORY-026-spike-gate-em-breve-path-secreto-topologia-firebase.md",
+      "blocked_by": [],
+      "blocks": [
+        "STORY-028",
+        "STORY-029",
+        "STORY-030",
+        "STORY-031",
+        "STORY-033"
+      ],
+      "estimated_session_size": "M",
+      "created_at": "2026-05-28",
+      "updated_at": "2026-05-28"
+    },
+    {
+      "id": "STORY-027",
+      "epic_id": "EPIC-006",
+      "title": "PO — PDR-015 Fronteira de responsabilidade marketing × engenharia × comercial na landing",
+      "type": "decision",
+      "target_role": "po",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W24-LANDING",
+      "path": "epics/EPIC-006-landing-institucional/stories/STORY-027-pdr-fronteira-marketing-engenharia-comercial.md",
+      "blocked_by": [],
+      "blocks": [
+        "STORY-030",
+        "STORY-032",
+        "STORY-033"
+      ],
+      "estimated_session_size": "S",
+      "created_at": "2026-05-28",
+      "updated_at": "2026-05-28"
+    },
+    {
+      "id": "STORY-028",
+      "epic_id": "EPIC-006",
+      "title": "Página \"Em breve\" institucional com identidade visual da landing",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-028-em-breve",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W24-LANDING",
+      "path": "epics/EPIC-006-landing-institucional/stories/STORY-028-pagina-em-breve-com-identidade-visual.md",
+      "blocked_by": [
+        "STORY-026"
+      ],
+      "blocks": [
+        "STORY-030",
+        "STORY-033"
+      ],
+      "estimated_session_size": "S",
+      "created_at": "2026-05-28",
+      "updated_at": "2026-05-28"
+    },
+    {
+      "id": "STORY-029",
+      "epic_id": "EPIC-006",
+      "title": "Terraform — Firebase Hosting multi-site e DNS apex/www/landing.homolog",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W24-LANDING",
+      "path": "epics/EPIC-006-landing-institucional/stories/STORY-029-terraform-firebase-multi-site-e-dns-apex-www-landing.md",
+      "blocked_by": [
+        "STORY-026"
+      ],
+      "blocks": [
+        "STORY-031",
+        "STORY-032",
+        "STORY-033"
+      ],
+      "estimated_session_size": "M",
+      "created_at": "2026-05-28",
+      "updated_at": "2026-05-28"
+    },
+    {
+      "id": "STORY-030",
+      "epic_id": "EPIC-006",
+      "title": "Scaffolding apps/landing/ — import AS IS da landing + 4 adaptações mínimas + robots/404/README/CODEOWNERS",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W24-LANDING",
+      "path": "epics/EPIC-006-landing-institucional/stories/STORY-030-scaffolding-apps-landing-import-as-is-adaptacoes-minimas.md",
+      "blocked_by": [
+        "STORY-026",
+        "STORY-027",
+        "STORY-028"
+      ],
+      "blocks": [
+        "STORY-031",
+        "STORY-032",
+        "STORY-033"
+      ],
+      "estimated_session_size": "M",
+      "created_at": "2026-05-28",
+      "updated_at": "2026-05-28"
+    },
+    {
+      "id": "STORY-031",
+      "epic_id": "EPIC-006",
+      "title": "firebase.json com rotas explícitas (gate) + .firebaserc + workflow GitHub Actions tag-based",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W24-LANDING",
+      "path": "epics/EPIC-006-landing-institucional/stories/STORY-031-firebase-json-rotas-explicitas-firebaserc-e-workflow-deploy.md",
+      "blocked_by": [
+        "STORY-026",
+        "STORY-029",
+        "STORY-030"
+      ],
+      "blocks": [
+        "STORY-032",
+        "STORY-033"
+      ],
+      "estimated_session_size": "M",
+      "created_at": "2026-05-28",
+      "updated_at": "2026-05-28"
+    },
+    {
+      "id": "STORY-032",
+      "epic_id": "EPIC-006",
+      "title": "Runbook operacional da landing — publicar, rollback, rotação de path, go-public",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W24-LANDING",
+      "path": "epics/EPIC-006-landing-institucional/stories/STORY-032-runbook-operacional-landing.md",
+      "blocked_by": [
+        "STORY-027",
+        "STORY-029",
+        "STORY-030",
+        "STORY-031"
+      ],
+      "blocks": [
+        "STORY-033"
+      ],
+      "estimated_session_size": "S",
+      "created_at": "2026-05-28",
+      "updated_at": "2026-05-28"
+    },
+    {
+      "id": "STORY-033",
+      "epic_id": "EPIC-006",
+      "title": "Validação final do EPIC-006 Landing institucional",
+      "type": "validation",
+      "target_role": "validador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W24-LANDING",
+      "path": "epics/EPIC-006-landing-institucional/stories/STORY-033-validacao-final-epic-006.md",
+      "blocked_by": [
+        "STORY-026",
+        "STORY-027",
+        "STORY-028",
+        "STORY-029",
+        "STORY-030",
+        "STORY-031",
+        "STORY-032"
+      ],
+      "blocks": [],
+      "estimated_session_size": "S",
+      "validation_checklist_path": "epics/EPIC-006-landing-institucional/validation/checklist.md",
+      "validation_report_path": "epics/EPIC-006-landing-institucional/validation/report.md",
+      "created_at": "2026-05-28",
+      "updated_at": "2026-05-28"
     }
   ],
   "sprints": [
@@ -986,6 +1195,47 @@
         "E-mail de aprovação concedida não chega ao usuário em homolog (STORY-021 fora do escopo) — UX gap esperado",
         "Mecanismo de imutabilidade (audit log + aceite) introduz complexidade no Postgres",
         "Alexandro nos 5 papéis em sprint com volume real de implementação — fadiga maior"
+      ],
+      "opened_at": "2026-05-28",
+      "opened_by": "PO (Alexandro / Claude)"
+    },
+    {
+      "id": "SPRINT-2026-W24-LANDING",
+      "wave": "WAVE-2026-01",
+      "status": "open",
+      "start_date": "2026-05-28",
+      "end_date": null,
+      "soft_cap_date": "2026-06-11",
+      "parallel_to": "SPRINT-2026-W24",
+      "closure_rule": "goal-atingido (encerra quando as 8 estórias do EPIC-006 estiverem done e a métrica primária — gate Em breve no apex + landing AS IS acessível via path secreto + pipeline isolado em landing.homolog.turni.com.br — for observada); soft-cap em 2026-06-11 é gatilho de reavaliação, não prazo de entrega",
+      "goal": "Landing institucional do Turni viva em homologação atrás de gate: landing.homolog.turni.com.br/ responde 'Em breve' com identidade visual da landing; landing.homolog.turni.com.br/<path-secreto>/ responde a landing AS IS importada de docs/prototipo/; robots.txt bloqueia indexação do path secreto; meta noindex no HTML da landing; pipeline GitHub Actions tag-based isolado do WebApp; rollback exercitado; runbook documentado cobrindo publicação, rollback, rotação de path e protocolo de go-public; site turni-landing-prod codificado em Terraform mas gated por landing_prod_enabled=false aguardando autorização comercial. 1 ADR nova aceita (ADR-012). 1 PDR novo aceito (PDR-015).",
+      "goal_outcome": null,
+      "path": "sprints/SPRINT-2026-W24-LANDING.md",
+      "story_ids": [
+        "STORY-026",
+        "STORY-027",
+        "STORY-028",
+        "STORY-029",
+        "STORY-030",
+        "STORY-031",
+        "STORY-032",
+        "STORY-033"
+      ],
+      "stretch_story_ids": [],
+      "deferred_story_ids": [],
+      "delivered_story_ids": [],
+      "carried_over_story_ids": [],
+      "sizing_total": "3M + 5S",
+      "risks_at_open": [
+        "Conflito de merge com SPRINT-2026-W24 em firebase.json, .firebaserc, CODEOWNERS da raiz (baixa probabilidade)",
+        "Designer entrega SCREEN-STORY-028-em-breve simultaneamente aos 6 specs da W24 — gargalo potencial (mitigado: tela trivial)",
+        "ADR-012 demora a fechar porque arquiteto está engajado em W24 (mitigado: spike isolado)",
+        "PDR-015 demora porque PO está consumido por W24 (mitigado: S, redigível em janela curta)",
+        "Comercial demora a definir valor inicial do path secreto (mitigado: STORY-029/030/031 usam placeholder em homolog)",
+        "Service worker AS IS cacheia versão antiga (mitigado: runbook P5 documenta remoção emergencial)",
+        "Headers de segurança bloqueiam algum asset legítimo da landing AS IS (mitigado: CSP permite Google Fonts; smoke test pós-deploy)",
+        "Workflow GitHub Actions colide com workflow do WebApp via path filter mal-escrito (mitigado: STORY-031 CA-10 testa isolamento)",
+        "Alexandro nos 5 papéis em DUAS sprints paralelas — fadiga (mitigado: carga humana real ≈2-3h espalhadas; agente cobre 5 implementation stories)"
       ],
       "opened_at": "2026-05-28",
       "opened_by": "PO (Alexandro / Claude)"
