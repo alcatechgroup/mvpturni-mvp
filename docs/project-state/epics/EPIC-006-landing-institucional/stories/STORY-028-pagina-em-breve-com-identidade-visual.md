@@ -8,8 +8,8 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-028-em-breve
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8-programador-2026-05-28
 created_at: 2026-05-28
 updated_at: 2026-05-28
 estimated_session_size: S
@@ -146,27 +146,47 @@ Siga `docs/skills/programador/SKILL.md`. Resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+Lidos: esta estória inteira; `epic.md` do EPIC-006 (Resultado esperado + Entregável visível); `ADR-012` (accepted — fixa site único, página em `apps/landing/public/index.html`, sem rewrite genérico, HTML `no-cache`, `sw.js` removido); tokens AS IS em `docs/prototipo/index.html` (CSS vars + carregamento de fontes + markup/CSS do mark TURNI.); `docs/skills/programador/SKILL.md`.
+
+Entendimento consolidado: entregar uma página estática single-file, minimalista, dark, com o mark TURNI. centralizado e copy "Em breve.", indexável, sem CTA/form/link/rastreamento/cookies, herdando os tokens visuais da landing. Performance e acessibilidade são triviais por construção; o que precisa de cuidado é (a) não vazar o path secreto, (b) herdar o mark fielmente (incl. fallback do ponto vazado), (c) meta tags institucionais corretas sem `noindex`.
+
+Bloqueio de entrada (resolvido): `SCREEN-STORY-028-em-breve.md` não existia (`requires_design: true`, protocolo passo 2 exige `status: ready` antes da 1ª linha de UI / CA-10). Escalado ao Designer, que entregou o spec em `status: ready` antes de qualquer código.
 
 ### Sync Designer↔Programador
-(a preencher — duração, decisões de UI, copy confirmada com PO)
+Spec `SCREEN-STORY-028-em-breve.md` entregue em `status: ready` (owner: claude-opus-4-8-designer-2026-05-28). Pontos alinhados (§11 do spec) e seguidos na implementação:
+1. **Tema dark único** (`--black #000000`), sem `prefers-color-scheme` dual — continuidade com o hero preto da landing AS IS; CA-9 aceita.
+2. **Footer incluído** `© Turni · 2026`, ano estático no HTML, **sem JS** (CA-5).
+3. **Mark font-based** TURN`I``.` herdado da landing: `TURN` branco, `.di` (I) verde sólido, `.de` (ponto) verde vazado via `-webkit-text-stroke`, com fallback verde sólido; `role="img"`+`aria-label="Turni"` no `<h1>`, spans `aria-hidden`.
+4. **Copy default "Em breve."** — proposta do Designer, **aprovada pelo PO Alexandro em 2026-05-28** (CA-10) após revisão visual da página servida localmente. Troca de copy não afeta layout.
+5. **Escala do mark** via `clamp(72px,12vw,120px)`; copy via `clamp(18px,2.4vw,24px)`.
+6. **Cor do footer** na faixa AA ≥4.5:1 — escolhi `#8A8A82` (~6.2:1, margem confortável sobre `--text-3` que é limítrofe).
 
 ### Decisões tomadas
-(a preencher)
+- Single-file HTML+CSS inline (recomendado pela estória dado o tamanho). Resultado: 3.4 KB de HTML.
+- Tokens declarados como CSS variables no `<style>` (`--black`, `--logo-green`, `--message`, `--footer`) — satisfaz CA-3 (palette futura reflete sem refactor).
+- Stroke do ponto = `3px` (faixa 72–120px do mark); fallback do ponto = verde sólido fora do `@supports (-webkit-text-stroke)`.
+- Fontes via Google Fonts (herdado da landing): `preconnect` (googleapis + gstatic) + `preload` do woff2 crítico do Bebas (mesma URL do protótipo, linha 19) + `display=swap` na URL `css2`.
+- Marcador de gate (epic.md): `<body data-screen="em-breve">` + `<title>Turni</title>` — neutros, **sem** ecoar path secreto (CA-4).
+- IDs estáveis para E2E/validação (STORY-033): `em-breve-logo`, `em-breve-message`, `em-breve-footer`.
 
 ### Descobertas
-(a preencher)
+- CSS do mark no protótipo confirma o spec: `.di{color:var(--logo-green)}`, `.de{-webkit-text-stroke:1.5px var(--logo-green);color:transparent}` (linhas 202/204; nav-logo 175/176; turni-intro 398/399 com stroke 4px). Herdado com stroke proporcional ao tamanho maior.
+- `.firebaserc`/`firebase.json` da landing, robots.txt, 404.html e o scaffolding `_lp/` são de STORY-030/031 — **fora desta estória**. Aqui só entra `apps/landing/public/index.html`.
 
 ### Bloqueios encontrados
-(a preencher)
+- Screen spec ausente na entrada (ver "Entrada inicial") — resolvido via escalonamento ao Designer; nenhuma linha de UI escrita antes do spec ficar `ready`.
 
 ### Resultado final / evidência
-- Lighthouse mobile: (Performance / Accessibility / Best Practices / SEO)
-- Screenshots: (mobile + desktop, claro + escuro se aplicável)
-- URL de homolog: (após STORY-031 estar verde)
+- **Verificações locais (grep):** bundle 3.4 KB; zero `<script>`/analytics/cookies/`new Date()` (CA-5); zero `<a>`/`<button>`/`<form>` ou link interno (CA-4); únicas requisições externas = Google Fonts (CA-5); sem `robots`/`noindex` (CA-6); meta `title`/`description`/`theme-color`/Open Graph presentes (CA-6).
+- **Render real (Playwright/Chromium, fontes carregadas):** mobile 390×844 e desktop 1280×800 conferem com o spec — mark centralizado com `I` verde sólido e ponto verde vazado, "Em breve." branca, footer discreto no rodapé. Tema dark único.
+- **Lighthouse mobile:** pendente — depende de URL servida (STORY-031). Performance ≥ 90 trivialmente atingível (3.4 KB, zero JS); registrar o número real quando o homolog estiver verde.
+- **URL de homolog:** (após STORY-031 estar verde)
 
 ### Pendências para fechar
-(a preencher)
+- [x] **Aprovação da copy default "Em breve." pelo PO (Alexandro)** — aprovada em 2026-05-28 (CA-10).
+- [ ] Lighthouse mobile (Performance ≥ 90 / Accessibility ≥ 95) rodado contra URL servida — gated em STORY-031.
+- [ ] Validação `curl` do gate no apex — gated em STORY-031/033.
+- [ ] Commit (workflow Turni: direto na main, stageando **só** `apps/landing/public/index.html`, `SCREEN-STORY-028-em-breve.md`, esta estória e a entrada do `index.json` — há outros agentes na worktree).
 
 ### Links de evidência
-(a preencher — commit, PR, run de Lighthouse)
+(commit a preencher após aprovação da copy)
