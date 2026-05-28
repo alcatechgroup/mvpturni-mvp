@@ -34,3 +34,52 @@ resource "google_dns_record_set" "api" {
   ttl          = 300
   rrdatas      = ["${var.api_cname_target}."]
 }
+
+# ── Landing institucional (EPIC-006 / ADR-012) ───────────────────────────────
+
+# landing.homolog.turni.com.br → Firebase Hosting (site da landing homolog)
+resource "google_dns_record_set" "landing" {
+  count        = var.landing_subdomain != null && var.landing_cname_target != null ? 1 : 0
+  project      = var.project_id
+  managed_zone = var.dns_zone_name
+  name         = "${var.landing_subdomain}."
+  type         = "CNAME"
+  ttl          = 300
+  rrdatas      = ["${var.landing_cname_target}."]
+}
+
+# apex turni.com.br → Firebase Hosting (registros A/AAAA — primeiro uso de apex na zona).
+# Os IPs vêm do Firebase Hosting ("connect domain") — confirmar em go-public pelo
+# required_dns_updates do google_firebase_hosting_custom_domain (ver runbook STORY-032).
+# Aplicado somente no go-public (gated por landing_prod_enabled no env prod).
+resource "google_dns_record_set" "apex_a" {
+  count        = var.apex_domain != null && length(var.apex_a_records) > 0 ? 1 : 0
+  project      = var.project_id
+  managed_zone = var.dns_zone_name
+  name         = "${var.apex_domain}."
+  type         = "A"
+  ttl          = 300
+  rrdatas      = var.apex_a_records
+}
+
+resource "google_dns_record_set" "apex_aaaa" {
+  count        = var.apex_domain != null && length(var.apex_aaaa_records) > 0 ? 1 : 0
+  project      = var.project_id
+  managed_zone = var.dns_zone_name
+  name         = "${var.apex_domain}."
+  type         = "AAAA"
+  ttl          = 300
+  rrdatas      = var.apex_aaaa_records
+}
+
+# www.turni.com.br → micro-site de redirect 301 para o apex (ADR-012 §6 fallback estável
+# em Terraform; o redirect em si fica no firebase.json do micro-site — STORY-031).
+resource "google_dns_record_set" "www" {
+  count        = var.www_subdomain != null && var.www_cname_target != null ? 1 : 0
+  project      = var.project_id
+  managed_zone = var.dns_zone_name
+  name         = "${var.www_subdomain}."
+  type         = "CNAME"
+  ttl          = 300
+  rrdatas      = ["${var.www_cname_target}."]
+}

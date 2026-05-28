@@ -8,6 +8,7 @@ locals {
   api_host        = "api.homolog.turni.com.br"
   admin_host      = "admin.homolog.turni.com.br"
   webapp_host     = "app.homolog.turni.com.br"
+  landing_host    = "landing.homolog.turni.com.br"
   cloudsql_socket = "/cloudsql/${module.cloud_sql.connection_name}"
 }
 
@@ -132,8 +133,8 @@ module "cloud_run_api" {
   }
 
   secret_env_vars = {
-    APP_KEY     = { secret = module.secrets.app_key_api_secret_id,  version = "latest" }
-    DB_PASSWORD = { secret = module.secrets.db_password_secret_id,  version = "latest" }
+    APP_KEY     = { secret = module.secrets.app_key_api_secret_id, version = "latest" }
+    DB_PASSWORD = { secret = module.secrets.db_password_secret_id, version = "latest" }
   }
 
   depends_on = [module.cloud_sql, module.secrets]
@@ -165,7 +166,7 @@ module "cloud_run_admin" {
 
   secret_env_vars = {
     APP_KEY     = { secret = module.secrets.app_key_admin_secret_id, version = "latest" }
-    DB_PASSWORD = { secret = module.secrets.db_password_secret_id,   version = "latest" }
+    DB_PASSWORD = { secret = module.secrets.db_password_secret_id, version = "latest" }
   }
 
   depends_on = [module.cloud_sql, module.secrets]
@@ -173,25 +174,33 @@ module "cloud_run_admin" {
 
 # ── Worker (GCE e2-micro) ─────────────────────────────────────────────────────
 module "worker" {
-  source                    = "../../modules/worker-vm"
-  project_id                = var.project_id
-  region                    = var.region
-  env                       = local.env
-  image                     = var.api_image
-  service_account_email     = module.iam.apps_service_account_email
-  cloudsql_connection_name  = module.cloud_sql.connection_name
-  vpc_network               = google_compute_network.main.self_link
-  subnetwork                = google_compute_subnetwork.main.self_link
-  depends_on                = [module.cloud_sql]
+  source                   = "../../modules/worker-vm"
+  project_id               = var.project_id
+  region                   = var.region
+  env                      = local.env
+  image                    = var.api_image
+  service_account_email    = module.iam.apps_service_account_email
+  cloudsql_connection_name = module.cloud_sql.connection_name
+  vpc_network              = google_compute_network.main.self_link
+  subnetwork               = google_compute_subnetwork.main.self_link
+  depends_on               = [module.cloud_sql]
 }
 
-# ── Firebase Hosting (WebApp Flutter) ────────────────────────────────────────
+# ── Firebase Hosting (WebApp Flutter + landing institucional) ────────────────
+# Site principal: WebApp. Site adicional: landing (ADR-012 — site único por ambiente
+# que serve "Em breve" no apex, landing AS IS no path secreto, robots.txt e 404).
 module "firebase" {
   source        = "../../modules/firebase"
   project_id    = var.project_id
   env           = local.env
   custom_domain = local.webapp_host
-  depends_on    = [google_project_service.apis]
+  additional_sites = {
+    landing = {
+      site_id       = "turni-landing-${local.env}" # turni-landing-homolog
+      custom_domain = local.landing_host           # landing.homolog.turni.com.br
+    }
+  }
+  depends_on = [google_project_service.apis]
 }
 
 # ── Agendamento liga/desliga do Cloud SQL (economia de custo) ─────────────────
@@ -215,13 +224,15 @@ module "sql_scheduler" {
 #      Em homolog: acesso via URL direta do Cloud Run.
 #      Em prod: provisionar HTTPS LB + Serverless NEG.
 module "dns" {
-  source              = "../../modules/dns"
-  project_id          = var.project_id
-  create_zone         = true
-  dns_zone_name       = "turni-com-br"
-  webapp_subdomain    = local.webapp_host
-  webapp_cname_target = module.firebase.cname_target
-  depends_on          = [google_project_service.apis, module.firebase]
+  source               = "../../modules/dns"
+  project_id           = var.project_id
+  create_zone          = true
+  dns_zone_name        = "turni-com-br"
+  webapp_subdomain     = local.webapp_host
+  webapp_cname_target  = module.firebase.cname_target
+  landing_subdomain    = local.landing_host
+  landing_cname_target = module.firebase.additional_cname_targets["landing"]
+  depends_on           = [google_project_service.apis, module.firebase]
 }
 
 # ── Monitoramento (ADR-008) ───────────────────────────────────────────────────

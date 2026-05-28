@@ -6,7 +6,10 @@
     "turni-mvp": {
       "hosting": {
         "homolog": ["turni-webapp-homolog"],
-        "prod":    ["turni-webapp-prod"]
+        "prod":    ["turni-webapp-prod"],
+        "landing-homolog":   ["turni-landing-homolog"],
+        "landing-prod":      ["turni-landing-prod"],
+        "www-redirect-prod": ["turni-www-redirect-prod"]
       }
     }
   }

@@ -7,8 +7,8 @@ sprint_id: SPRINT-2026-W24-LANDING
 type: implementation
 target_role: programador
 requires_design: false
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8-programador-029-2026-05-28
 created_at: 2026-05-28
 updated_at: 2026-05-28
 estimated_session_size: M
@@ -148,30 +148,58 @@ Siga `docs/skills/programador/SKILL.md`. Resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+- ADR-012 confirmada `accepted` (2026-05-28). Topologia §8: dois sites prod (`turni-landing-prod`,
+  micro-site `turni-www-redirect-prod` para o redirect www) + `turni-landing-homolog`; apex via A/AAAA,
+  www via CNAME→redirect, landing.homolog via CNAME.
+- Módulos atuais: `firebase` criava 1 site fixo + `google_firebase_project` singleton; `dns` só CNAMEs
+  (webapp/api), sem suporte a apex A/AAAA.
+- Estado do worktree: outros agentes ativos (STORY-028 em `apps/webapp/lib/...`, `index.json`).
+  Mudanças escopadas só aos arquivos da STORY-029; `terraform fmt -recursive` que reformatou módulos
+  fora de escopo (cloud-run/cloud-sql/worker-vm — só whitespace) foi **revertido**.
 
 ### Decisões tomadas
-(a preencher — Opção A ou B para módulo firebase, mecânica concreta do redirect www, nome da variable de gate prod)
+- **Módulo firebase — Opção A** (`var.additional_sites` no módulo existente), **não** Opção B (N
+  chamadas). Justificativa completa em **IDR-005**: `google_firebase_project` é singleton (B duplicaria
+  ou exigiria extração); Opção A não move estado do WebApp em produção (CA-10/CA-11) e gera plan de pura
+  adição — importante porque o `apply` é gated (CA-12) e não pôde ser verificado nesta sessão.
+- **Redirect www (ADR-012 §6)** — adotado o **fallback micro-site** `turni-www-redirect-prod`: o
+  `google_firebase_hosting_custom_domain` do Terraform não expõe redirect de domínio; o redirect 301 fica
+  no `firebase.json` do micro-site (STORY-031). `www.turni.com.br` = CNAME → `turni-www-redirect-prod.web.app`.
+- **Nome da variable de gate prod:** `landing_prod_enabled` (default `false`).
 
 ### Descobertas
-(a preencher — ex: tempo para Firebase validar custom domain via CNAME)
+- `infra/envs/prod/variables.tf` tinha HCL **inválido** (variáveis one-line com `;`), nunca pego porque
+  prod nunca foi `init`/`validate`/`apply` (scaffolded). Normalizado para blocos multi-linha — necessário
+  para o prod parsear/validar com as novas variáveis. Mesmas variáveis, sem mudança semântica.
+- IPs do apex Firebase: usado default `199.36.158.100` em `firebase_apex_a_records`, a **confirmar no
+  go-public** via `required_dns_updates` do custom domain / console (prod gated, não verificável agora).
 
 ### Bloqueios encontrados
-(a preencher)
+- Nenhum bloqueio de design. `terraform plan`/`apply` não executados nesta sessão: (1) gate humano do
+  CA-12 (PO revisa plan antes de apply); (2) credencial GCS do backend expirada (`invalid_rapt`) no
+  ambiente atual. `validate` rodou offline com os providers já em `.terraform`.
 
 ### Resultado final / evidência
-- `terraform plan` homolog (antes): (texto)
-- `terraform apply` homolog (output): (texto)
-- `terraform plan` prod (deve ser 0 changes): (texto)
-- `dig` verificações: (texto para cada um dos 3 registros)
-- `curl -sI https://turni-landing-homolog.web.app/`: (status code)
-- `terraform state list` final: (texto)
+- `terraform fmt -check -recursive`: **FMT OK**.
+- `terraform validate` homolog: **Success! The configuration is valid.**
+- `terraform validate` prod (`init -backend=false`): **Success! The configuration is valid.**
+- `terraform plan` homolog (antes do apply): **pendente** — gate CA-12, requer credencial GCP válida.
+- `terraform apply` homolog: **pendente** — após aprovação do PO.
+- `terraform plan` prod (deve ser 0 changes referentes à landing, gate false): **pendente**.
+- `dig` (landing.homolog / apex / www): **pendente** — pós-apply.
+- `curl -sI https://turni-landing-homolog.web.app/`: **pendente** — pós-apply.
+- `terraform state list` final: **pendente** — pós-apply.
 
 ### Pendências para fechar
-(a preencher)
+- Rodar `terraform plan` em homolog e prod com credencial GCP válida; anexar ao PR (CA-12).
+- Após aprovação do PO: `terraform apply` em homolog; coletar `dig` + `curl` + `terraform state list`.
+- Confirmar IPs do apex no go-public (prod gated; não bloqueia o fechamento desta estória em homolog).
 
 ### IDRs criados
-(a preencher se houve decisão técnica não óbvia)
+- **IDR-005** — Firebase multi-site via `additional_sites` (Opção A) vs. N chamadas (Opção B).
 
 ### Links de evidência
-(a preencher — commit, PR, run do CI, link do terraform state)
+- Arquivos: `infra/modules/firebase/{main,variables,outputs}.tf`, `infra/modules/dns/{main,variables}.tf`,
+  `infra/envs/homolog/{main,outputs}.tf`, `infra/envs/prod/{main,variables}.tf`, `.firebaserc`,
+  `apps/landing/firebase.json`, `docs/project-state/decisions/idr/IDR-005-*.md`.
+- Commit/PR: (a preencher)

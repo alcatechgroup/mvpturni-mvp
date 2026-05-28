@@ -24,6 +24,16 @@ output "firebase_site_id" {
   value = module.firebase.site_id
 }
 
+output "landing_site_id" {
+  description = "site_id do site Firebase da landing homolog"
+  value       = module.firebase.additional_site_ids["landing"]
+}
+
+output "landing_default_url" {
+  description = "URL default do site da landing homolog (placeholder até STORY-030 importar conteúdo)"
+  value       = "https://${module.firebase.additional_site_ids["landing"]}.web.app"
+}
+
 output "dns_name_servers" {
   description = "Nameservers para configurar no registro.br (delegar turni.com.br para o Cloud DNS)"
   value       = module.dns.name_servers
