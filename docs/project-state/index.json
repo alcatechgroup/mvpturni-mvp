@@ -902,7 +902,7 @@
       "target_role": "arquiteto",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_progress",
+      "status": "done",
       "owner_agent": "arquiteto",
       "sprint_id": "SPRINT-2026-W24-LANDING",
       "path": "epics/EPIC-006-landing-institucional/stories/STORY-026-spike-gate-em-breve-path-secreto-topologia-firebase.md",
@@ -1483,11 +1483,11 @@
       {
         "id": "ADR-012",
         "title": "Landing institucional: gate Em breve, path secreto, hosting dedicado e pipeline isolado",
-        "status": "proposed",
+        "status": "accepted",
         "path": "decisions/adr/ADR-012-landing-gate-em-breve-path-secreto.md",
-        "decided_at": null,
+        "decided_at": "2026-05-28",
         "decided_by": "arquiteto",
-        "approved_by": null,
+        "approved_by": "Alexandro",
         "supersedes": null,
         "superseded_by": null,
         "source_story": "STORY-026"

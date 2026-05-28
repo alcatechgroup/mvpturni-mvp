@@ -7,7 +7,7 @@ sprint_id: SPRINT-2026-W24-LANDING
 type: spike
 target_role: arquiteto
 requires_design: false
-status: in_progress
+status: done
 owner_agent: arquiteto
 created_at: 2026-05-28
 updated_at: 2026-05-28
@@ -164,19 +164,32 @@ Siga `docs/skills/arquiteto/SKILL.md` e `docs/skills/po/references/agent-task-fo
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+Li o épico, a estória, ADR-004 (Firebase/Terraform/Actions herdada), ADR-003 (monorepo/path filter), PDR-003 (3ª superfície), os módulos Terraform `firebase`/`dns`, `firebase.json`/`.firebaserc` da raiz, `docs/prototipo/index.html` (head + assets) e `docs/prototipo/sw.js`. Confirmei: o `firebase.json` do WebApp usa rewrite genérico `** → /index.html` (proibido no site da landing); o módulo Firebase fixa um site/um domínio; o módulo DNS só cria CNAMEs (sem A/AAAA de apex); o `sw.js` cacheia `app.html` em cache-first.
 
 ### Decisões tomadas
-(a preencher — registrar cada uma das 9 decisões da ADR com a justificativa-chave)
+- **§1 Gate:** site Firebase único por ambiente, rotas explícitas, **sem** rewrite genérico → path desconhecido cai em 404 (não na landing). Vence (b) dois-sites (revela estrutura) e (c) Cloud Function (custo/req + latência, viola #1/#11).
+- **§2 Path:** injetado em build-time (secret `FIREBASE_LANDING_PATH`); repo só tem placeholder `_lp/`; `robots.txt` gerado no build; `firebase.json` não referencia o path. Rotação = trocar secret + redeploy. Limitação declarada: obfuscação, não segurança.
+- **§3 404:** página institucional na identidade da landing, sem link ao path → distingue "não existe" de "quebrado", não mascara bug.
+- **§4 Cache:** HTML `no-cache`; assets hasheados `immutable`; assets AS IS não-hasheados `max-age=3600` (não podem ser immutable). Trade-off: asset AS IS propaga em ≤1 h; copy/HTML é imediato.
+- **§5 sw.js:** removido na importação (domínio novo → sem SW legado); kill-switch só como emergência no runbook.
+- **§6 www→apex:** redirect 301 nativo de domínio do Firebase; fallback micro-site dedicado. `redirects` do firebase.json casam por path, não por host — daí o nativo. Mecanismo Terraform deferido à STORY-029.
+- **§7 CTA homolog→prod:** placeholder `__WEBAPP_URL__` substituído no build (mesma família de §2). Go-public vira troca de variável.
+- **§8 Topologia:** `turni-landing-homolog` + `turni-landing-prod`; Terraform `firebase` a parametrizar (site/domínios), `dns` a ganhar A/AAAA de apex + www + CNAME landing.homolog.
+- **§9 CODEOWNERS:** patterns sobre a pasta-placeholder estável `_lp/` → marketing; "Em breve"/infra → engenharia. Não vaza o path real.
 
 ### Descobertas
-(a preencher)
+- **`robots.txt` com `Disallow: /<path>/` auto-revela o path** a qualquer leitor. Honrei o épico (que já declara "obfuscação, não segurança"), mas registrei na ADR que a garantia real de não-indexação é o `<meta name="robots" content="noindex,nofollow">`, não o robots.txt. Reconhecido e aceito por Alexandro no aceite. Não bloqueante.
+- O módulo `infra/modules/firebase` fixa `site_id = "turni-webapp-${env}"` e um único `custom_domain` → precisa generalizar (STORY-029).
+- O módulo `infra/modules/dns` só cria CNAMEs → o apex exige A/AAAA novos (STORY-029).
+- A CSP estrita pode quebrar a landing AS IS (fontes externas, unpkg) → calibrar em STORY-031 (provável report-only inicial).
 
 ### Bloqueios encontrados
-(a preencher)
+Nenhum. Spike concluída sem escalonamento.
 
 ### Pendências para fechar (in_review → done)
-(a preencher)
+Nenhuma. CA-1 a CA-9 atendidos; ADR `accepted`; `index.json` atualizado.
 
 ### Links de evidência
-(a preencher — PR da ADR, commit de merge)
+- ADR: `docs/project-state/decisions/adr/ADR-012-landing-gate-em-breve-path-secreto.md` (`status: accepted`, `approved_by: Alexandro`, `decided_at: 2026-05-28`).
+- `index.json`: ADR-012 em `decisions.adr[]` com `status: accepted`; STORY-026 com `status: done`.
+- Aprovação: chat (sessão de 2026-05-28), commit direto na `main` (workflow do projeto, sem PR).

@@ -2,10 +2,10 @@
 adr_id: ADR-012
 slug: landing-gate-em-breve-path-secreto
 title: Landing institucional — gate "Em breve", path secreto, hosting dedicado e pipeline isolado
-status: proposed  # proposed | accepted | superseded | rejected | deferred
-decided_at: null  # YYYY-MM-DD quando virar accepted
+status: accepted  # proposed | accepted | superseded | rejected | deferred
+decided_at: 2026-05-28  # YYYY-MM-DD quando virar accepted
 decided_by: arquiteto
-approved_by: null  # ex: "Alexandro" — preenchido na aprovação humana
+approved_by: Alexandro  # ex: "Alexandro" — preenchido na aprovação humana
 supersedes: null
 superseded_by: null
 related_adrs: [ADR-003, ADR-004]
@@ -256,11 +256,11 @@ flowchart TB
 
 ## Aprovação humana
 
-- **Status final:** ⬜ pendente | ✅ aceita | ❌ rejeitada | 🔄 superseded
-- **Aprovado por:** <pendente — Alexandro>
-- **Data:** <pendente>
-- **Forma do aceite:** <pendente>
-- **Condicionantes do aceite:** <pendente>
+- **Status final:** ✅ aceita
+- **Aprovado por:** Alexandro
+- **Data:** 2026-05-28
+- **Forma do aceite:** aprovado em chat (sessão de 2026-05-28); commit direto na `main`
+- **Condicionantes do aceite:** nenhuma. Descoberta do `robots.txt` (auto-revela o path; garantia real de não-indexação é o `<meta noindex,nofollow>`) reconhecida e aceita sob o modelo de obfuscação do épico.
 
 ### Em caso de rejeição
 - **Motivo:** ...
@@ -271,3 +271,4 @@ flowchart TB
 ## Histórico
 
 - 2026-05-28 — criada como `proposed` por Arquiteto (STORY-026). Nove decisões: §1 site único com rotas explícitas (sem rewrite genérico); §2 path injetado em build-time (pasta-placeholder `_lp/`); §3 404 institucional sem link ao path; §4 HTML no-cache, assets hasheados immutable, assets AS IS não-hasheados 1 h; §5 `sw.js` removido na importação; §6 redirect www→apex 301 nativo de domínio (fallback micro-site); §7 CTA via placeholder `__WEBAPP_URL__` build-time; §8 dois sites (`turni-landing-{homolog,prod}`), Terraform a generalizar; §9 CODEOWNERS por placeholder estável.
+- 2026-05-28 — `accepted` por Alexandro (aprovação em chat; commit direto na `main`).
