@@ -43,10 +43,9 @@ test('middleware loga campos canônicos do ADR-008 (CA-7)', function () {
     $this->get('/health');
 
     Log::shouldHaveReceived('info')
-        ->withArgs(fn ($event, $context) =>
-            $event === 'request.handled'
+        ->withArgs(fn ($event, $context) => $event === 'request.handled'
             && isset($context['service'], $context['request_id'], $context['method'],
-                      $context['path'], $context['status_code'], $context['duration_ms'])
+                $context['path'], $context['status_code'], $context['duration_ms'])
             && $context['service'] === 'backoffice'
         )
         ->once();

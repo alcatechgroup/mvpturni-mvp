@@ -7,8 +7,8 @@ sprint_id: SPRINT-2026-W23
 type: implementation
 target_role: programador
 requires_design: false
-status: done
-owner_agent: programador
+status: in_review
+owner_agent: claude-sonnet-4-6
 created_at: 2026-05-26
 updated_at: 2026-05-28
 estimated_session_size: S
@@ -174,10 +174,15 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 - Unitários: 21 testes passando (39 assertions). Cobertura formal não medida (sem Xdebug na imagem dev), mas os testes cobrem: CA-1 (5 testes), CA-4 (2+), CA-5 (2), CA-6 (1), CA-7 (5) + existentes de ambiente.
 - E2E: 6 cenários Playwright em `tests/e2e/admin-hello-world.spec.ts`. Executar contra `admin.homolog.turni.com.br` após deploy do tag `-rc.N`.
 
+### Reabertura 2026-05-28 — correção de lint (CI php-lint)
+
+- 2026-05-28 — CI job `php-lint` (matriz admin) falhava em `./vendor/bin/pint --test` desde o commit do hello world Backoffice. Arquivos corrigidos: `app/Http/Middleware/RequestLogMiddleware.php` (ordered_imports, binary_operators), `bootstrap/app.php` (fully_qualified_strict_types, ordered_imports), `tests/Feature/RequestLogMiddlewareTest.php` (no_multiline_whitespace_around_double_arrow). Após `./vendor/bin/pint`: `./vendor/bin/pint --test` → "31 files, PASS" exit 0. API: `./vendor/bin/pint --test` → "29 files, PASS" exit 0 (sem regressão). Definition of Done desta reabertura cumprido.
+
 ### Links de evidência
-- PR: pendente (commit direto na main conforme workflow do projeto)
+- PR: N/A (commit direto na main conforme workflow do projeto)
 - Pipeline / deploy: pendente — tag `vX.Y.Z-rc.N` dispara deploy
+- Correção lint: commit fix(STORY-009) — pint em 3 arquivos admin
 - `admin.homolog.turni.com.br`: pendente deploy
 - `/health` em verde: pendente deploy
-- Log com request_id rastreável: visível na saída do `php artisan test` acima (JSON com `request_id` propagado)
+- Log com request_id rastreável: visível na saída do `php artisan test` (JSON com `request_id` propagado)
 - Evidência de independência (CA-9): herdada da STORY-007 (path filters no pipeline)

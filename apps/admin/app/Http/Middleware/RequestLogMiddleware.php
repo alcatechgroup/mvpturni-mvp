@@ -4,8 +4,8 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -30,14 +30,14 @@ class RequestLogMiddleware
         $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
 
         Log::info('request.handled', [
-            'service'      => 'backoffice',
-            'env'          => config('app.env'),
-            'version'      => env('APP_VERSION', 'unknown'),
-            'request_id'   => $requestId,
-            'method'       => $request->method(),
-            'path'         => $request->path(),
-            'status_code'  => $response->getStatusCode(),
-            'duration_ms'  => $durationMs,
+            'service' => 'backoffice',
+            'env' => config('app.env'),
+            'version' => env('APP_VERSION', 'unknown'),
+            'request_id' => $requestId,
+            'method' => $request->method(),
+            'path' => $request->path(),
+            'status_code' => $response->getStatusCode(),
+            'duration_ms' => $durationMs,
         ]);
 
         $response->headers->set('X-Request-Id', $requestId);
