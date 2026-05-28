@@ -259,19 +259,25 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 - Firebase webapp: rollback via REST API de rc.9 para rc.8 (release `1779976471313000`, type: ROLLBACK). curl → `v0.1.0-rc.8` ✅. Restaurado para rc.9 após teste.
 - Evidência anexada em `docs/operacao/runbook-homolog.md#rollback`.
 
-**Pipeline rc.9 — verificação end-to-end**
-- Run #26578734323, duração: 3 min 22 s (13:48:14 → 13:51:36 UTC)
-- API /health: `{"status":"ok","version":"v0.1.0-rc.9"}` HTTP 200 ✅
-- Admin /health: `{"status":"ok","version":"v0.1.0-rc.9","service":"backoffice"}` HTTP 200 ✅
-- Webapp /health: `{"status":"ok","version":"v0.1.0-rc.9","service":"webapp"}` HTTP 200 ✅
-- Job e2e-homolog: ✅ verde (chromium, webapp + admin)
+**3 deploys consecutivos verdes (métrica primária do EPIC-000)**
+
+| Tag | Run | Duração | API | Admin | WebApp | E2E |
+|-----|-----|---------|-----|-------|--------|-----|
+| rc.10 | #26579647762 | 3 min 34 s | ✅ | ✅ | ✅ | ✅ |
+| rc.11 | #26579886803 | 3 min 39 s | ✅ | ✅ | ✅ | ✅ |
+| rc.12 | #26580246423 | 4 min 12 s | ✅ | ✅ | ✅ | ✅ |
+
+- Health checks finais (rc.12): API `v0.1.0-rc.12` HTTP 200 ✅ · Admin `v0.1.0-rc.12 (backoffice)` HTTP 200 ✅ · WebApp `v0.1.0-rc.12 (webapp)` HTTP 200 ✅
+- Nota: rc.7/rc.8 falharam por gaps pre-existentes (`package-lock.json` ausente no admin, playwright config com firefox/webkit sem instalação). Corrigidos como parte desta reabertura.
 
 ### Links de evidência
 - [CI run principal](https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/26549040001) — CI verde (commitlint, gitleaks, pint, flutter, smoke builds, trivy)
 - [Release rc.1](https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/26548939383) — deploy completo
 - [Release rc.2](https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/26549114906) — deploy completo
 - [Release rc.3](https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/26549196329) — deploy completo
-- [Release rc.9](https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/26578734323) — deploy completo pós-correção (pipeline verde end-to-end)
+- [Release rc.10](https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/26579647762) — deploy 1 de 3 (métrica primária pós-correção)
+- [Release rc.11](https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/26579886803) — deploy 2 de 3
+- [Release rc.12](https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/26580246423) — deploy 3 de 3 (todos os 3 verde, versão correta nos 3 endpoints)
 - IaC: `infra/envs/homolog/` + `infra/modules/`
 - Runbook de recriação: `docs/operacao/runbook-homolog.md`
 - Runbook de rollback: `docs/operacao/runbook-homolog.md#rollback` (com evidência de execução real)
