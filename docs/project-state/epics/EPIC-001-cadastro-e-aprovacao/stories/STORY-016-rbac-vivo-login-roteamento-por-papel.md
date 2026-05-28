@@ -8,8 +8,8 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-016-login-e-rbac
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-sonnet-4-6-programador-2026-05-28
 created_at: 2026-05-28
 updated_at: 2026-05-28
 estimated_session_size: L
@@ -170,10 +170,62 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+
+**Data:** 2026-05-28  
+**Agente:** claude-sonnet-4-6-programador-2026-05-28
+
+**Documentos lidos:**
+- STORY-016 inteira (todos os CAs, fora de escopo, DoD, protocolo)
+- ADR-007 (Sanctum SPA + guard web, Argon2id, cookies distintos, throttle)
+- ADR-009 (schema users, profissional_profiles, contratante_profiles, admin_audit_log, funnel flags, trigger imutabilidade + REVOKE)
+- DDR-001 tokens.md (perfil/tema, contraste, componentes)
+- voice-and-tone.md
+- components.md (roadmap inclui input.text)
+- SCREEN-STORY-016-login-e-rbac.md (criado pelo Designer nesta sessão — status: ready)
+- quality-standards.md (referência de cobertura 80%/98% núcleo)
+- domain/usuario.md (estados funil, máquina de estado)
+- PDR-003 (duas interfaces, segregação)
+
+**Entendimento consolidado:**
+- Esta estória entrega RBAC real pela primeira vez: login funcional em WebApp (Flutter/Sanctum SPA) e Backoffice (Livewire/guard web), separação de papéis, funnel guard para liberado/ativo, audit log do admin com imutabilidade garantida via trigger+REVOKE no Postgres.
+- Blocos centrais: (1) migração users + profissional_profiles + contratante_profiles + admin_audit_log, (2) seed atualizado, (3) endpoint POST /api/login + logout na api, (4) login Backoffice Livewire + middleware role=admin, (5) WebApp Flutter tela /login + funnel guard + placeholders, (6) E2E Playwright cobrindo CA-13.
+- F-NB-1 é critério herdado obrigatório — `migrate:rollback` em homolog com evidência no runbook antes de marcar done.
+- Funnel guard: `liberado + welcome_seen_at=null → /welcome`; `liberado + welcome_seen_at!=null + cadastro_completed_at=null → /completar-cadastro`; `ativo → acesso normal`. Dupla camada: Flutter + backend retorna 423 para rota interna de usuário não-ativo.
+- Audit log: trigger BEFORE UPDATE OR DELETE + REVOKE UPDATE,DELETE ON admin_audit_log FROM turni_app_runtime. Dois usuários de banco: turni_app_migrations (pleno) e turni_app_runtime (sem UPDATE/DELETE no audit log).
+- Dúvidas: nenhuma — tudo coberto nas ADRs e no spec.
+
+**Plano (5 bullets):**
+1. Migrações: users (role, status, welcome_seen_at, cadastro_completed_at) + profissional_profiles + contratante_profiles + admin_audit_log (trigger + REVOKE). Seeds.
+2. Backend api: POST /api/login, POST /api/logout, middleware RBAC, funnel guard backend (middleware + 423 para não-ativo em rota interna).
+3. Backend admin: login Livewire, guard web + middleware role=admin, audit log service, logout.
+4. WebApp Flutter: tela /login, tela /esqueci-minha-senha stub, placeholders /welcome e /completar-cadastro, funnel guard no router (go_router).
+5. Testes: Pest (unitário + integração — cobertura ≥80%/≥98% núcleo), Playwright E2E (CA-13 cenários a–e), suíte completa verde antes de abrir PR.
+
+**Testes previstos (principais):**
+- Pest: teste de migração idempotente, rollback + replay sem erro
+- Pest: POST /api/login — sucesso (contratante, profissional, admin), credencial inválida (401), throttle (429), admin rejeitado no WebApp
+- Pest: POST /api/logout — invalida sessão (401 subsequente)
+- Pest: middleware role=admin no Backoffice — não-admin recebe 403
+- Pest: fail-secure de host cruzado (cookie WebApp no host admin = bloqueado)
+- Pest: funnel guard — liberado+welcome_null→/welcome, liberado+welcome_visto+cadastro_null→/completar-cadastro, ativo→livre
+- Pest: audit log imutável — AdminAuditLog::update() lança exceção de banco; SELECT com turni_app_runtime retorna erro de permissão UPDATE
+- Pest: ownership policies (fail-secure: usuário sem policy registrada = negado por Gate::denyIfNobodyPoliciesFor)
+- Flutter test: tela /login — form valida, botão desabilitado durante submit, banners corretos por estado
+- Playwright: cenários CA-13 a–e (admin→backoffice, profissional→webapp, admin→webapp rejeitado, profissional→backoffice 403, liberado→/welcome)
 
 ### Sync Designer↔Programador
-(a preencher — duração, decisões de UI, dúvidas resolvidas)
+
+**Data:** 2026-05-28  
+**Duração:** embutido na sessão — spec criado e revisado pelo Programador no mesmo momento (~15 min de leitura e alinhamento).
+
+**Decisões alinhadas:**
+- Tema WebApp pré-login = profissional/verde (neutro). Pós-login o WebApp atualiza o ColorScheme para o papel real. ✅
+- Tela de login Backoffice sem sidebar (sidebar só pós-autenticação). ✅
+- `input.text` e `input.password` definidos no spec — Programador materializa como `TextFormField` filled com os tokens documentados; IDR registrará a decisão. ✅
+- URL do admin para o link "Ir para o Backoffice" (estado A.5.4) injeta via env (Cloud Run URL ou DNS). ✅
+- Stub de recuperação de senha = chamar endpoint Fortify diretamente (`/forgot-password`), sem layout customizado além do da Tela E. ✅
+- Throttle com contador regressivo no botão "Aguardar (Ns)" — Programador decide o mecanismo de timer local em Flutter. ✅
+- Tema escuro: implementar a fundação mas ligar via feature flag/env até o PO confirmar que o dark entra no MVP. ✅
 
 ### Decisões tomadas
 (a preencher)

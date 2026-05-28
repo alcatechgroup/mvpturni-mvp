@@ -7,7 +7,7 @@
     "current_sprint": "SPRINT-2026-W24",
     "last_closed_sprint": "SPRINT-2026-W23",
     "phase": "wave-2026-01-epic-001-sprint-w24-aberto",
-    "next_action": "STORY-012/013/014/015 concluídas em D+1 (2026-05-28). 3 ADRs aceitas + texto-seed validado. Gargalo único: screen spec do Designer para STORY-016 (RBAC vivo, L). PO pressiona Designer para entregar spec 016 imediatamente — sem ela o programador não inicia. Após spec 016 pronta: programador entra em STORY-016 (L, peça-pivô que destrava 017/018/019/020/022).",
+    "next_action": "STORY-016 in_progress. Designer entregou SCREEN-STORY-016-login-e-rbac em ready (2026-05-28). Programador iniciou — sync Designer↔Programador concluído, notas registradas na estória. Próximos passos: TDD por CA, migrations, backend (api + admin), WebApp Flutter, E2E.",
     "notes": "SPRINT-2026-W24 aberta em 2026-05-28 com 10 estórias no escopo (012/013/014/015/016/017/018/019/020/022). Goal: funil de identidade Turni vivo em homolog até a tela real de welcome — profissional (PF/MEI/PJ) e contratante completam pré-cadastro, equipe Turni aprova no Backoffice com audit log imutável, usuário aprovado loga no WebApp e vê welcome real; RBAC vivo nas duas interfaces; editor de templates contratuais com texto-seed v1 validado por Alexandro carregado; 3 ADRs aceitas (ADR-009/010/011); F-NB-1 do EPIC-000 (migrate:rollback em homolog) quitado na STORY-016. STORY-021 (e-mails) como stretch. STORY-023/024/025 ficam para SPRINT-2026-W25. Soft-cap em 2026-06-18 (~21 dias) — gatilho de reavaliação, não prazo. Sizing: 1L + 7M + 2S — primeira sprint com volume real de implementação pós-EPIC-000."
   },
   "product": {
@@ -607,8 +607,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-016-login-e-rbac",
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_progress",
+      "owner_agent": "claude-sonnet-4-6-programador-2026-05-28",
       "sprint_id": "SPRINT-2026-W24",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-016-rbac-vivo-login-roteamento-por-papel.md",
       "blocked_by": [
