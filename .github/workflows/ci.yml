@@ -8,6 +8,10 @@ on:
     tags-ignore:
       - "**"   # tags disparam o workflow release.yml, não este
 
+permissions:
+  contents: read
+  security-events: write   # necessário para upload de SARIF via codeql-action
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -172,7 +176,7 @@ jobs:
           severity: "CRITICAL,HIGH"
           exit-code: "1"
           ignore-unfixed: true
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: trivy-${{ matrix.app }}.sarif
