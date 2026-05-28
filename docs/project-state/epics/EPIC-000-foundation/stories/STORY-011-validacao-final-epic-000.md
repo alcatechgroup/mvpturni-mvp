@@ -7,7 +7,7 @@ sprint_id: SPRINT-2026-W23
 type: validation
 target_role: validador
 requires_design: false
-status: in_progress
+status: in_review
 owner_agent: claude-sonnet-4-6-validador
 created_at: 2026-05-26
 updated_at: 2026-05-28
@@ -168,7 +168,8 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo específico para v
 ## Notas do agente (preenchido durante/após execução)
 
 ### Resumo executivo da validação
-- 2026-05-28 — Validação INICIADA. Documentos canônicos lidos (SKILL.md, epic.md, quality-standards.md, validation-workflow.md, verdict-criteria.md, todas as 10 estórias anteriores, ADRs, DDR-001, IDR-002). Checklist criado a partir do template. **Validação bloqueada por 3 pré-condições não atendidas** — ver seção "Bloqueios encontrados". Aguarda resolução pelo PO antes de prosseguir com execução dos itens do checklist.
+- 2026-05-28 — Validação INICIADA. Documentos canônicos lidos (SKILL.md, epic.md, quality-standards.md, validation-workflow.md, verdict-criteria.md, todas as 10 estórias anteriores, ADRs, DDR-001, IDR-002). Checklist criado a partir do template. Bloqueios reportados ao PO → Programador resolveu pré-condições → validação retomada.
+- 2026-05-28 — Validação CONCLUÍDA. **VEREDITO: REJECTED.** 8 fails bloqueantes e 2 não-bloqueantes. O épico demonstrou fundação técnica sólida (WebApp em homolog, pipeline, ADRs), mas 3 problemas estruturais impedem o `done`: (1) CI RED desde STORY-008 (Flutter format + PHP Pint); (2) Admin homolog inacessível — 403 (IAM policy não propagada); (3) E2E nunca rodou na pipeline (releases rc.4/rc.5/rc.6 falharam antes de atingir o job E2E). Recomendadas STORY-012 (lint fixup), STORY-013 (IAM admin), STORY-014 (rollback testado).
 
 ### Decisões tomadas durante a validação
 - 2026-05-28 — Criado `validation/checklist.md` a partir do template (autorizado pela própria STORY-011: "a ser criado pelo PO... ou pelo próprio Validador a partir do template se ainda não existir").
