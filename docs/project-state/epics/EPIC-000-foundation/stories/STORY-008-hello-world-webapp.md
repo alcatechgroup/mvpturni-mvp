@@ -3,7 +3,7 @@ story_id: STORY-008
 slug: hello-world-webapp
 title: "Hello world" no WebApp — rota raiz, health-check e identidade visual base
 epic_id: EPIC-000
-sprint_id: null
+sprint_id: SPRINT-2026-W23
 type: implementation
 target_role: programador
 requires_design: true

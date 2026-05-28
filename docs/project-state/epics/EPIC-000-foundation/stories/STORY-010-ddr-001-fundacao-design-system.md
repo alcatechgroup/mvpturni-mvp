@@ -3,7 +3,7 @@ story_id: STORY-010
 slug: ddr-001-fundacao-design-system
 title: DDR-001 — Fundação do Design System (tokens base, tipografia, paleta inicial)
 epic_id: EPIC-000
-sprint_id: null
+sprint_id: SPRINT-2026-W22
 type: implementation
 target_role: designer
 requires_design: false

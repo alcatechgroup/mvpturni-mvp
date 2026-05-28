@@ -3,7 +3,7 @@ story_id: STORY-011
 slug: validacao-final-epic-000
 title: Validação final do EPIC-000 Foundation
 epic_id: EPIC-000
-sprint_id: null
+sprint_id: SPRINT-2026-W23
 type: validation
 target_role: validador
 requires_design: false

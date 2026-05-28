@@ -3,7 +3,7 @@ story_id: STORY-005
 slug: spike-adr-000-postgresql-retroativo
 title: Spike Arquiteto — ADR-000 retroativo formalizando PostgreSQL como banco principal
 epic_id: EPIC-000
-sprint_id: null
+sprint_id: SPRINT-2026-W22
 type: spike
 target_role: arquiteto
 requires_design: false

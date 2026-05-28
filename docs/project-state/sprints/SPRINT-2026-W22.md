@@ -1,10 +1,13 @@
 ---
 sprint_id: SPRINT-2026-W22
 wave: WAVE-2026-01
-status: active
+status: closed
 start_date: 2026-05-27
 end_date: 2026-06-07
+closed_at: 2026-05-27
+closed_by: PO (Alexandro / Claude)
 goal: "Fundação documental do EPIC-000 fechada: 9 ADRs aceitas (ADR-000 a ADR-008) + DDR-001 aceito; estórias de implementação prontas para SPRINT-2026-W23."
+goal_outcome: achieved
 ---
 
 # SPRINT-2026-W22
@@ -48,10 +51,10 @@ Após STORY-001 fechar (ADRs aceitas pelo Alexandro):
 
 O Arquiteto executou em rajada três spikes do plano original (STORY-001, STORY-002 e STORY-005) e Alexandro aprovou as 5 ADRs resultantes no mesmo dia. Ordem efetiva: 001 → 002 (puxada antes de 005 porque o agente já tinha contexto de stack) → 005. STORY-010 (Designer) e STORY-003/004 (Arquiteto) seguem `ready` para os próximos dias do sprint.
 
-**Frentes disponíveis a partir de 2026-05-28:**
-- STORY-003 (Pagar.me + habitualidade) — Arquiteto. **Única estória restante do sprint.**
+**Frentes disponíveis a partir de 2026-05-28** (registro original do dia 1, mantido como histórico):
+- STORY-003 (Pagar.me + habitualidade) — Arquiteto.
 
-STORY-004 (auth/observabilidade) e STORY-010 (DDR-001) foram concluídas ainda em 2026-05-27 (ver atualização abaixo), restando só STORY-003 para fechar o goal.
+Na prática, STORY-004 e STORY-010 fecharam ainda em 2026-05-27 (ver atualização abaixo) e **STORY-003 também fechou no mesmo dia**, eliminando a fila para 2026-05-28. Detalhe registrado na seção "Execução real — fechamento (2026-05-27)".
 
 ### Execução real — atualização 2026-05-27 (fim do dia)
 
@@ -60,6 +63,12 @@ Além das três spikes da manhã (001/002/005), no mesmo dia fecharam:
 - **STORY-010** (Designer) — DDR-001 (Fundação do Design System) aceito por Alexandro. Saiu o Design System vivo (`design/system/`: tokens com contraste AA, README, components, patterns, voice-and-tone + 2 previews HTML), o screen spec `SCREEN-STORY-008` em `ready`, e — como subproduto — **PDR-013** (dual-theme claro/escuro) com a seção "Temas" adicionada em `non-functional.md`.
 
 Resultado: **5 de 6 estórias `done` no dia 1**. Resta STORY-003.
+
+### Execução real — fechamento (2026-05-27)
+
+No mesmo dia 1, encerrando o sprint inteiro em janela de horas, o Arquiteto também concluiu **STORY-003** (Pagar.me + habitualidade) com ADR-005 (integração Pagar.me alto nível) e ADR-006 (estratégia de consulta de habitualidade) aceitas por Alexandro. Commit final do sprint: `6320665 feat: add ADR-005 e ADR-006, fecha STORY-003`.
+
+Resultado consolidado: **6 de 6 estórias `done` no dia 1**, **9 ADRs aceitas (ADR-000 a ADR-008)** + **DDR-001 aceito** + **PDR-013 aceito** (subproduto). Goal documental do EPIC-000 **cumprido 11 dias antes do end_date original** (2026-06-07).
 
 ## Compromisso visível ao fim do sprint
 
@@ -74,7 +83,7 @@ Ao fim do sprint, **nada novo é visível ao usuário externo** — esta sprint 
 
 ## Decisões pendentes que podem afetar o sprint
 
-- **Aprovações humanas restantes**: só as 2 ADRs de STORY-003 (ADR-005, ADR-006) dependem do Alexandro. As demais (7 ADRs + DDR-001) já estão `accepted`.
+- **Aprovações humanas restantes**: **nenhuma**. Em 2026-05-27 todas as aprovações foram concluídas — 9 ADRs (ADR-000 a ADR-008), DDR-001 e PDR-013 estão `accepted`, com `approved_by: Alexandro` registrado.
 - **Decisão de produto nova surgida na sprint:** **PDR-013** (dual-theme claro/escuro; padrão do MVP = claro) — emergiu da fundação do Design System (DDR-001), aprovada pelo Alexandro e já `accepted`. Atualizou `non-functional.md` (seção "Temas"), que era silente sobre o tema.
 
 ## Riscos identificados na abertura
@@ -113,17 +122,56 @@ Para registrar conforme acontecem; consolidados na seção "Fechamento do sprint
 - **Aprovações humanas**: janela diária dedicada para revisar ADRs/DDR em `in_review` e marcar `accepted` ou pedir revisão.
 - **Mid-sprint check** (~2026-06-01, segunda): verificar se o goal vai bater. Se 3 ou mais ADRs ainda em `proposed` sem decisão, intensificar revisão.
 
-## Fechamento do sprint (preencher no encerramento — 2026-06-07)
+## Fechamento do sprint (encerrado em 2026-05-27)
+
+> Sprint fechado pelo PO em **2026-05-27**, mesmo dia da abertura. Goal documental do EPIC-000 atingido em janela de horas, **11 dias antes do `end_date` original** (2026-06-07). Decisão de fechar agora em vez de manter aberto até 2026-06-07 é deliberada: o compromisso do sprint foi 100% entregue, manter o sprint aberto sem trabalho residual só polui o estado. SPRINT-2026-W23 começa em seguida com as estórias de implementação (STORY-006/007/008/009 + validação STORY-011).
 
 ### O que foi entregue
-- ...
+
+**Estórias (6/6 `done`):**
+- **STORY-001** — ADRs aceitas: ADR-001 (stack Laravel + Livewire + Flutter), ADR-002 (topologia: monolito modular + api/admin/worker), ADR-003 (monorepo poliglota único).
+- **STORY-002** — ADR-004 aceita (hospedagem GCP — Cloud Run + Cloud SQL + Firebase Hosting; IaC Terraform; deploy promoção tag-based).
+- **STORY-003** — ADRs aceitas: ADR-005 (integração Pagar.me alto nível, ACL no módulo Pagamento, mock dedicado, idempotência, pré-autorização → captura → Pix com webhook validado) e ADR-006 (consulta de habitualidade — query direta + índice composto sobre Postgres, janela semana corrida America/Sao_Paulo, PF×PJ na mesma consulta).
+- **STORY-004** — ADRs aceitas: ADR-007 (auth base — Sanctum cookie SPA no WebApp + sessão web no Backoffice, Argon2id, RBAC por coluna) e ADR-008 (observabilidade mínima — log JSON em stdout, health-check padrão, métricas RED via log-based metrics, alerta de indisponibilidade).
+- **STORY-005** — ADR-000 aceita (formalização retroativa do PostgreSQL como banco principal).
+- **STORY-010** — DDR-001 aceito (fundação do Design System: dual-theme claro/escuro + cor por perfil); Design System vivo em `design/system/` (tokens com contraste AA, README, `components.md`, `patterns.md`, `voice-and-tone.md`, 2 previews HTML); screen spec `SCREEN-STORY-008-hello-world-webapp` em `ready`.
+
+**Decisões registradas no sprint:** 9 ADRs (ADR-000 a ADR-008), 1 DDR (DDR-001), 1 PDR novo (PDR-013, dual-theme — emergiu de DDR-001 e cobriu silêncio do `non-functional.md`).
+
+**Subprodutos não previstos no goal mas valiosos:**
+- `non-functional.md` ganhou seção "Temas" (antes silente).
+- Previews HTML versionados do Design System (`preview.html`, `preview-backoffice.html`) — ferramenta barata e de alto valor para decisão visual.
+- Atualização contínua do `index.json` em cada commit — o índice nunca ficou defasado por mais de algumas horas.
 
 ### O que ficou para trás (e por quê)
-- ...
+
+**Nada do escopo do sprint ficou para trás.** O sprint entregou 6/6 estórias e o goal completo.
+
+Itens **fora do escopo** que continuam pendentes (esperado, registrado aqui só para contexto da próxima sprint):
+- STORY-006/007/008/009 (implementação Foundation) — destravadas, vão para SPRINT-2026-W23.
+- STORY-011 (validação final do EPIC-000) — depende das anteriores.
 
 ### Aprendizados
-- <aprendizado de produto>
-- <aprendizado de processo>
+
+**Aprendizados de produto:**
+
+- **PDR-013 nasceu de uma estória de design.** O dual-theme não estava previsto no roadmap, mas emergiu quando o Designer foi estruturar tokens e percebeu que "MVP só no claro" era uma suposição sem registro. Esse padrão — decisão de produto silente virando PDR a partir de uma decisão técnica/de design adjacente — é saudável e deve continuar. Lição: quando um papel não-PO encontra uma "verdade de corredor", o gesto correto é parar e pedir PDR, não absorvê-la na própria estória.
+- **Cor por perfil emergiu como decisão de produto, não só visual.** Migrar admin de vermelho para azul-navy liberou o vermelho para significar apenas erro/destrutivo — semântica de cor é decisão de produto disfarçada de design. Vale revisitar outras semânticas de cor antes de telas de fluxo financeiro entrarem (Epic-003).
+- **A fundação documental foi maior do que o goal explicitava.** O sprint pedia "9 ADRs + DDR-001"; entregou também tokens AA, voice-and-tone, screen spec, dois previews HTML navegáveis e atualização do `non-functional.md`. A definição mínima do goal estava conservadora.
+
+**Aprendizados de processo:**
+
+- **Throughput de fundação documental ficou ~11× acima do planejado.** Plano era 6 estórias em até 11 dias; saíram em ~1 dia. Hipóteses concorrentes: (a) tamanho S/M de spike puramente documental está superdimensionado quando ADRs já têm referência clara de stack candidata; (b) "Alexandro nos 5 papéis" elimina ciclos de aprovação cross-pessoa; (c) viés de fundação — primeira sprint é toda contexto novo, o Arquiteto carrega ele de uma vez só. Vigiar nas próximas sprints: quando entrar estória de implementação real (STORY-006+), o efeito pode desaparecer. **Não recalibrar o sizing ainda — esperar 2-3 sprints com naturezas diferentes para ter sinal real.**
+- **Aprovação humana no mesmo dia funcionou em massa.** 9 ADRs + DDR-001 + PDR-013 aprovados todos em 2026-05-27. Risco "atraso na aprovação humana bloqueia estórias dependentes" não se materializou. Manter a janela diária dedicada e a disciplina de propor → revisar → `accepted` em ciclo curto.
+- **Inconsistência de checklist no `.md` da estória (CAs `[ ]` em estória `done`) persistiu em 4 das 6 estórias.** STORY-001, 002, 003, 004 fecharam com frontmatter `done` mas CAs no corpo continuam `[ ]`. STORY-005 e STORY-010 marcaram corretamente. PO observou já na primeira metade do dia (entrada de mid-sprint) e **não vai reprovar retroativamente** — as ADRs aceitas pelo Alexandro são sinal forte de cumprimento real. Mas o padrão se repetiu mesmo após o aviso, o que mostra que "lembrar o agente no chat" é fraco. **Ação para a próxima sprint:** reforçar no preâmbulo da estória de spike um lembrete explícito de marcação de CA no fechamento, e considerar um pre-commit hook leve (ou check do PO) que rejeita transição de status para `done` enquanto houver `[ ]` no corpo.
+- **`sprint_id` no frontmatter de estória diverge do `index.json`.** STORY-001, 002, 005, 010 ficaram com `sprint_id: null` no frontmatter, embora `index.json` as tenha em `sprints[0].story_ids`. Inconsistência de baixo impacto operacional (o índice manda) mas de alta confusão para quem ler só o `.md`. **Será corrigida no fechamento desta sprint** (parte do mesmo commit) e adicionada à disciplina de "abertura de sprint": ao incluir uma estória no sprint, atualizar `sprint_id` no `.md` da estória junto do `index.json`.
+- **DDR-001 mostrou que "preview navegável vale a pena".** Duas revisões guiadas pelo Alexandro antes do `accepted`, com base em `preview.html` e `preview-backoffice.html` versionados. Custo baixíssimo (HTML estático), valor de decisão alto. Replicar o hábito em qualquer decisão de design ambígua daqui pra frente.
+- **Sprint terminou no dia 1 — mid-sprint check (2026-06-01) não foi necessário.** Mecânica de sprint do `sprint-mechanics.md` precisa absorver o caso "sprint pequeno fecha cedo": critério explícito para fechar antecipadamente em vez de manter aberto sem trabalho. Está sendo aplicado aqui pela primeira vez, registrado neste fechamento, e vira regra: **sprint cujo goal foi 100% atingido e sem estórias residuais é fechado imediatamente, e a próxima sprint é aberta em seguida em vez de manter o calendário original.**
 
 ### Ajustes para o próximo sprint
-- <ajuste>
+
+- **Disciplina de marcação de CA**: ao transicionar uma estória para `done`, marcar `[x]` em todo CA atendido no corpo do `.md`, no mesmo commit que atualiza o frontmatter. Validar no PR (visualmente no diff) — se houver `[ ]` em estória `done`, devolve para `in_progress` (regra explícita, não dependente de boa vontade).
+- **Disciplina de `sprint_id` na abertura**: ao puxar uma estória para a sprint, atualizar o `sprint_id` no frontmatter da estória junto do `index.json` (par único de commits).
+- **SPRINT-2026-W23 abre logo em seguida** (provavelmente 2026-05-28) com STORY-006 (setup do repositório e ambiente local em 1 comando) como ponto de partida — primeira sprint com código de produção do projeto. Manter o tamanho conservador na abertura: o throughput observado nesta sprint é de natureza documental e não deve ser projetado para sprints de implementação.
+- **Manter previews HTML como ferramenta padrão de decisão de design ambígua** — registrar no `docs/skills/designer/` se ainda não estiver.
+- **Vigiar "verdades de corredor"** — se uma estória citar uma decisão de produto sem PDR associado, parar e pedir PDR antes de prosseguir. PDR-013 mostrou que esse gesto é barato e evita débito.

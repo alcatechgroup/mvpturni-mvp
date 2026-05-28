@@ -3,7 +3,7 @@ story_id: STORY-009
 slug: hello-world-backoffice
 title: "Hello world" no Backoffice — rota raiz e health-check
 epic_id: EPIC-000
-sprint_id: null
+sprint_id: SPRINT-2026-W23
 type: implementation
 target_role: programador
 requires_design: false

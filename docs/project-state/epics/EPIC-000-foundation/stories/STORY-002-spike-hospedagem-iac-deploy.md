@@ -3,7 +3,7 @@ story_id: STORY-002
 slug: spike-hospedagem-iac-deploy
 title: Spike Arquiteto — hospedagem, Infra-as-Code e estratégia de deploy
 epic_id: EPIC-000
-sprint_id: null
+sprint_id: SPRINT-2026-W22
 type: spike
 target_role: arquiteto
 requires_design: false
