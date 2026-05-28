@@ -1,5 +1,5 @@
 # Imagem de produção do Backoffice Turni (Laravel + Livewire) para Cloud Run.
-# Idêntico ao api/Dockerfile.prod em estrutura — mesmo runtime PHP.
+# Build context: raiz do repositório (monorepo). Idêntico ao api em estrutura.
 
 ARG APP_VERSION=dev
 
@@ -16,10 +16,10 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_NO_INTERACTION=1
 
 WORKDIR /app
-COPY composer.json composer.lock ./
+COPY apps/admin/composer.json apps/admin/composer.lock ./
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts
 
-COPY . .
+COPY apps/admin/. .
 ARG APP_VERSION
 RUN echo "{\"version\":\"${APP_VERSION}\"}" > public/version.json
 

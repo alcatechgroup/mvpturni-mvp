@@ -68,7 +68,7 @@ jobs:
             --tag "${IMAGE}:${{ github.ref_name }}" \
             --tag "${IMAGE}:latest" \
             --push \
-            apps/${{ matrix.app }}
+            .
 
   # ── Build Flutter web ────────────────────────────────────────────────────────
   build-webapp:
