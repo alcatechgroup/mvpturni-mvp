@@ -7,10 +7,10 @@ sprint_id: SPRINT-2026-W23
 type: validation
 target_role: validador
 requires_design: false
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-sonnet-4-6-validador
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-05-28
 estimated_session_size: M
 ---
 
@@ -168,28 +168,38 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo específico para v
 ## Notas do agente (preenchido durante/após execução)
 
 ### Resumo executivo da validação
-- <data> — <1 parágrafo: o que foi validado, veredito, principais observações>
-
-### Itens reprovados (se houver)
-- <CA reprovado> — <evidência> — <proposta de estória de correção>
+- 2026-05-28 — Validação INICIADA. Documentos canônicos lidos (SKILL.md, epic.md, quality-standards.md, validation-workflow.md, verdict-criteria.md, todas as 10 estórias anteriores, ADRs, DDR-001, IDR-002). Checklist criado a partir do template. **Validação bloqueada por 3 pré-condições não atendidas** — ver seção "Bloqueios encontrados". Aguarda resolução pelo PO antes de prosseguir com execução dos itens do checklist.
 
 ### Decisões tomadas durante a validação
-- <data> — <decisão local, ex: critério usado para classificar item ambíguo>
+- 2026-05-28 — Criado `validation/checklist.md` a partir do template (autorizado pela própria STORY-011: "a ser criado pelo PO... ou pelo próprio Validador a partir do template se ainda não existir").
+- 2026-05-28 — STORY-011 marcada como `in_progress` e `owner_agent` definido conforme protocolo do agente.
 
 ### Descobertas
-- <data> — <surpresa relevante para o PO/Arquiteto>
+- 2026-05-28 — **CRÍTICO:** STORY-008 e STORY-009 nunca foram deployadas em homolog. Os 3 rc tags (rc.1, rc.2, rc.3 — evidência da métrica primária do EPIC-000) foram criados durante a STORY-007, ANTES dos commits de STORY-008 (`62eba0e`) e STORY-009 (`8a8d71b`). A validação da métrica primária (CA-4 da STORY-011) requer 3 deploys consecutivos com código completo do épico — o que ainda não ocorreu. Nenhuma tag foi criada após `ce0700e` (fecha STORY-009). As notas de STORY-008 e STORY-009 confirmam: "app.homolog.turni.com.br: pendente tag vX.Y.Z-rc.N".
+- 2026-05-28 — **CRÍTICO:** E2E de STORY-008 e STORY-009 nunca rodaram em homolog — specs escritas, mas "execução aguarda deploy em homolog" (notas STORY-008/009). Sem CI run com E2E verde no homolog atual.
+- 2026-05-28 — STORY-006 está `in_review` no index.json, mas seu único item pendente (CA-8 — setup testado em CI periódico) foi absorvido e completado pela STORY-007 (conforme notas da STORY-006: "done quando STORY-007 fechar CI verde + deploy em homologação verificado" e STORY-007 DoD: "[x] CA-8"). O status nunca foi atualizado formalmente.
+- 2026-05-28 — EPIC-000 está com `status: ready` (deveria ser `in_review` para iniciar validação formal).
 
 ### Bloqueios encontrados
-- <data> — <bloqueio>
+
+**BLOQUEIO 1 — PRÉ-CONDIÇÃO CRÍTICA:** STORY-006 com `status: in_review` no `index.json`.
+- Causa: CA-8 (setup periódico em CI) foi absorvido pela STORY-007, que está `done`. Status de STORY-006 nunca foi atualizado.
+- Resolução esperada do PO: marcar STORY-006 como `done` no `index.json` e no frontmatter da story (CA-8 foi satisfeito pelo job `scheduled-setup-test.yml` de STORY-007).
+
+**BLOQUEIO 2 — PRÉ-CONDIÇÃO CRÍTICA:** EPIC-000 com `status: ready` (requer `in_review`).
+- Resolução esperada do PO: atualizar `epics[id==EPIC-000].status` para `in_review` no `index.json` e no frontmatter `epic.md`.
+
+**BLOQUEIO 3 — CA IMPOSSÍVEL DE VERIFICAR:** STORY-008 e STORY-009 nunca deployadas em homolog.
+- Consequência: CA-4 (métrica primária — 3 deploys pós-código completo), CA-5, CA-6, CA-7, CA-10, CA-13 não podem ser verificados.
+- Resolução esperada: criação de pelo menos 3 tags consecutivas (`vX.Y.Z-rc.N`) após o commit `ce0700e` (fecha STORY-009), com CI runs de deploy completo + E2E verde.
 
 ### Cobertura final
 - Unitários: N/A (validação não escreve código)
-- E2E: N/A
+- E2E: N/A (validação não escreve código)
 
 ### Links de evidência
-- PR: <url>
-- Relatório final: <link>
-- Checklist preenchido: <link>
-- Métrica primária (3 deploys ≤ 10 min): <links de CI>
-- Screenshots `app.homolog.turni.com.br` e `admin.homolog.turni.com.br`: <links>
-- Logs com request_id rastreáveis: <links>
+- Relatório final: pendente (bloqueado)
+- Checklist preenchido: `epics/EPIC-000-foundation/validation/checklist.md` (criado, pendente preenchimento)
+- Métrica primária (3 deploys ≤ 10 min): pendente nova tag pós-STORY-009
+- Screenshots homolog: pendente deploy
+- Logs com request_id: pendente deploy

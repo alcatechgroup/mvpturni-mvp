@@ -167,10 +167,14 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
       - name: Deploy Cloud Run — admin (homolog)
         run: |
+          # IDR-003: homolog usa --ingress=all --allow-unauthenticated para E2E no CI.
+          # Prod continua com INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER + IAP.
           gcloud run deploy turni-admin-homolog \
             --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/admin:${{ github.ref_name }}" \
             --region ${{ env.GCP_REGION }} \
             --project ${{ secrets.GCP_PROJECT_ID }} \
+            --ingress=all \
+            --allow-unauthenticated \
             --tag "v-$(echo ${{ github.ref_name }} | tr '.' '-' | tr '+' '-')" \
             --no-traffic \
             --quiet
@@ -178,22 +182,18 @@ jobs:
             --to-latest \
             --region ${{ env.GCP_REGION }} \
             --project ${{ secrets.GCP_PROJECT_ID }}
-      - name: Verificar readiness (admin — ingress interno)
+      - name: Health check admin
         run: |
-          # Admin usa INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER; não é acessível externamente.
-          # Verifica readiness via gcloud em vez de curl.
+          ADMIN_URL=$(gcloud run services describe turni-admin-homolog \
+            --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
+            --format="value(status.url)" 2>/dev/null)
           for i in $(seq 1 12); do
-            READY=$(gcloud run services describe turni-admin-homolog \
-              --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
-              --format="value(status.conditions[0].status)" 2>/dev/null)
-            if [ "$READY" = "True" ]; then
-              echo "Admin service ready (revision serving traffic)"
-              exit 0
-            fi
-            echo "Aguardando readiness... ($i/12) status=$READY"
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${ADMIN_URL}/health")
+            if [ "$STATUS" = "200" ]; then echo "Admin health check ok: ${ADMIN_URL}/health"; exit 0; fi
+            echo "Aguardando... ($i/12) status=$STATUS"
             sleep 10
           done
-          echo "Timeout aguardando admin service ficar ready" && exit 1
+          echo "Health check falhou após 120s" && exit 1
 
   # ── Deploy WebApp (Firebase Hosting) em homologação ─────────────────────────
   deploy-webapp-homolog:
@@ -224,6 +224,70 @@ jobs:
           projectId: ${{ secrets.GCP_PROJECT_ID }}
           target: homolog
           channelId: live
+
+  # ── E2E pós-deploy em homologação ────────────────────────────────────────────
+  e2e-homolog:
+    name: E2E pós-deploy (homolog)
+    runs-on: ubuntu-latest
+    needs: [deploy-api-homolog, deploy-admin-homolog, deploy-webapp-homolog, detect-env]
+    if: needs.detect-env.outputs.is_rc == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Autenticar no GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Obter URL do Cloud Run admin
+        id: admin-url
+        run: |
+          URL=$(gcloud run services describe turni-admin-homolog \
+            --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
+            --format="value(status.url)")
+          echo "url=${URL}" >> "$GITHUB_OUTPUT"
+
+      # ── WebApp E2E (Firebase Hosting — público) ────────────────────────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "apps/webapp/package-lock.json"
+
+      - name: Install webapp Playwright
+        working-directory: apps/webapp
+        run: npm ci && npx playwright install chromium --with-deps
+
+      - name: E2E — WebApp (app.homolog.turni.com.br)
+        working-directory: apps/webapp
+        run: npx playwright test
+        env:
+          BASE_URL: https://app.homolog.turni.com.br
+
+      # ── Admin E2E (Cloud Run — IDR-003: ingress=all em homolog) ───────────
+      - name: Install admin Playwright
+        working-directory: apps/admin
+        run: npm ci && npx playwright install chromium --with-deps
+
+      - name: E2E — Admin (Cloud Run URL)
+        working-directory: apps/admin
+        run: npx playwright test
+        env:
+          BASE_URL: ${{ steps.admin-url.outputs.url }}
+
+      - name: Upload relatórios E2E
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-reports-${{ github.ref_name }}
+          path: |
+            apps/webapp/playwright-report/
+            apps/admin/playwright-report/
+          retention-days: 14
 
   # ── Gate humano + deploy em PRODUÇÃO ────────────────────────────────────────
   deploy-prod:

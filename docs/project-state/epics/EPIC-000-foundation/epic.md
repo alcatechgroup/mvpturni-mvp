@@ -3,10 +3,10 @@ epic_id: EPIC-000
 slug: foundation
 title: Foundation — stack decidida, pipelines duplos rodando, hello world em homologação
 wave: WAVE-2026-01
-status: ready
+status: in_review
 owner_role: po
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-05-28
 target_completion: 2026-06-09  # estimativa orientativa
 stories_detailed_at: 2026-05-26  # Fluxo C concluído — 11 estórias escritas e em status `ready`
 ---

@@ -58,7 +58,7 @@
       "slug": "foundation",
       "title": "Foundation — stack decidida, pipelines duplos rodando, hello world em homologação",
       "wave": "WAVE-2026-01",
-      "status": "ready",
+      "status": "in_review",
       "path": "epics/EPIC-000-foundation/epic.md",
       "story_ids": [
         "STORY-001",
@@ -261,7 +261,7 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "programador-claude",
       "sprint_id": "SPRINT-2026-W23",
       "path": "epics/EPIC-000-foundation/stories/STORY-006-setup-repo-e-ambiente-local-1-comando.md",
@@ -277,7 +277,7 @@
         "STORY-011"
       ],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-27"
+      "updated_at": "2026-05-28"
     },
     {
       "id": "STORY-007",
@@ -378,8 +378,8 @@
       "target_role": "validador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_progress",
+      "owner_agent": "claude-sonnet-4-6-validador",
       "sprint_id": "SPRINT-2026-W23",
       "path": "epics/EPIC-000-foundation/stories/STORY-011-validacao-final-epic-000.md",
       "blocked_by": [
@@ -396,7 +396,7 @@
       ],
       "blocks": [],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-27"
+      "updated_at": "2026-05-28"
     }
   ],
   "sprints": [
@@ -664,6 +664,15 @@
         "decided_at": "2026-05-27",
         "decided_by": "programador",
         "source_story": "STORY-007"
+      },
+      {
+        "id": "IDR-003",
+        "title": "Admin em homolog com INGRESS_TRAFFIC_ALL + allow_unauthenticated para viabilizar E2E no CI",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-003-admin-homolog-ingress-all-para-e2e.md",
+        "decided_at": "2026-05-28",
+        "decided_by": "programador",
+        "source_story": "STORY-011"
       }
     ],
     "ddr": [

@@ -139,7 +139,7 @@ module "cloud_run_api" {
   depends_on = [module.cloud_sql, module.secrets]
 }
 
-# ── Cloud Run: Admin (ingress interno + IAP) ──────────────────────────────────
+# ── Cloud Run: Admin (homolog: público para E2E; prod: interno + IAP — IDR-003) ─
 module "cloud_run_admin" {
   source                   = "../../modules/cloud-run"
   project_id               = var.project_id
@@ -149,8 +149,8 @@ module "cloud_run_admin" {
   image                    = var.admin_image
   service_account_email    = module.iam.apps_service_account_email
   cloudsql_connection_name = module.cloud_sql.connection_name
-  ingress                  = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
-  allow_unauthenticated    = false
+  ingress                  = "INGRESS_TRAFFIC_ALL"
+  allow_unauthenticated    = true
 
   env_vars = {
     APP_ENV        = "production"
