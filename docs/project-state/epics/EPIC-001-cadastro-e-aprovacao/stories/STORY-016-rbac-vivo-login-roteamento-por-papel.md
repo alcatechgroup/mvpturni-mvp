@@ -228,19 +228,46 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
 - Tema escuro: implementar a fundação mas ligar via feature flag/env até o PO confirmar que o dark entra no MVP. ✅
 
 ### Decisões tomadas
-(a preencher)
+
+- **WebApp Flutter usa `usePathUrlStrategy()`** (IDR-006). Sem isso o app usava
+  hash strategy e `/login` (path) caía na `WelcomeScreen` — o funnel guard e deep
+  links dependem de paths reais.
+- **Padrão de E2E do Flutter Web** (IDR-006): ativar a árvore de semantics +
+  digitar com teclado real + `workers: 1`. O CanvasKit é testável; o diagnóstico
+  anterior de "intestável" estava errado.
+- **E2E sai do pipeline → gate local `make e2e` + smoke curl** (IDR-004, com o PO).
+- **`make e2e` rebuilda o WebApp e roda o seed** antes dos testes — fecha a classe
+  de bug "testar contra build velho / banco sem usuário".
 
 ### Descobertas
-(a preencher)
+
+- **CI estava vermelha desde ~14:20 de 2026-05-28**: `commitlint` rejeitava o
+  vocabulário de commits do projeto (spike/pdr/epic/arch/design/style/...). Enum
+  estendido; CI verde.
+- **Release rc.13 falhava** só no job `e2e-homolog` (Playwright pós-deploy) —
+  resolvido pela troca por `smoke-homolog` (IDR-004).
+- **`make up` não rebuilda o WebApp**: servia `build/web` defasado (de 08:28),
+  mostrando a `WelcomeScreen` no lugar do login. Causa real do "login não abre".
+- Seed de dev (`turni`) é volátil entre sessões; `make e2e` agora seeda sozinho.
 
 ### Bloqueios encontrados
-(a preencher)
+
+- Nenhum bloqueio arquitetural. Não foi preciso reabrir ADR-007/009.
 
 ### IDRs criados
-(a preencher)
+
+- **IDR-006** — WebApp Flutter: `usePathUrlStrategy()` + padrão de E2E via semantics.
+- **IDR-004** — E2E vira gate local; pipeline pós-deploy faz smoke curl.
 
 ### Cobertura final
-(a preencher)
+
+- **API (Pest):** 70 testes, **94,2%** linhas (gate ≥80% ok).
+- **Admin (Pest):** 30 testes.
+- **WebApp (flutter test):** 24 testes; `flutter analyze` sem issues.
+- **E2E (`make e2e`, browser real):** WebApp 10 passed / 1 skip (`/health` é
+  artefato de build) + Backoffice 7 passed = **17 passed, 0 fail**. CA-13 a–e
+  verificados, inclusive por screenshots (profissional→/app; admin→banner
+  "acessa o Backoffice"; contratante→403; funnel guard redireciona).
 
 ### Resultado final / evidência
 - `migrate:rollback` em homolog: (link/log)
