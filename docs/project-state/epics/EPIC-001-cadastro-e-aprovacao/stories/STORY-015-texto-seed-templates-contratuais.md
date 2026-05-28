@@ -7,8 +7,8 @@ sprint_id: SPRINT-2026-W24
 type: enablement
 target_role: po
 requires_design: false
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: PO (Alexandro / Claude)
 created_at: 2026-05-28
 updated_at: 2026-05-28
 estimated_session_size: M
@@ -138,19 +138,47 @@ Você (PO) NÃO decide:
 ## Notas do PO (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+
+Sessão iniciada em 2026-05-28. ADR-010 (STORY-013) ainda está `in_progress` — templates redigidos com placeholders no formato `{{namespace.campo}}` (padrão Mustache-like, coerente com compliance.md). Frontmatter marcado com `rascunho: true`; revisão final após ADR-010 aceita.
 
 ### Referências públicas consultadas
-(a preencher — links/livros/PDRs que embasaram cada cláusula)
+
+Ver seção "Notas do PO → Referências públicas consultadas" de cada arquivo de template produzido. Resumo:
+
+- CLT art. 3.º — definição de empregado (o que a relação NÃO é).
+- CC arts. 593–609 — contrato de prestação de serviços (pessoa física e B2B).
+- Decreto 9.580/2018 (RIR), art. 647 — IRRF na fonte sobre autônomos (PF).
+- Lei 8.212/1991, arts. 22 (III) e 28 (I) — INSS sobre serviço de contribuinte individual (PF).
+- LC 123/2006 + LC 155/2016 — Estatuto MEI; confirma natureza PJ da relação (MEI/PJ).
+- MP 2.200-2/2001 e Lei 14.063/2020 — validade jurídica do aceite eletrônico simples.
+- PDR-002 e `domain/compliance.md` — regra de habitualidade e override MEI/PJ.
 
 ### Decisões de redação
-(a preencher)
+
+- **Estrutura em duas seções:** Seção 1 (Termos gerais) renderiza sozinha no aceite de adesão EPIC-001; Seção 2 (Termos do turno específico) renderiza quando contexto de turno presente — motor ADR-010 omite a seção quando placeholders de turno/contratante são nulos.
+- **Identificação do contratante na Seção 2:** evita campos em branco visíveis ao profissional no aceite de adesão.
+- **Cláusulas tributárias informativas, sem alíquotas:** evita desatualização automática; orienta cada parte a consultar seu contador.
+- **Habitualidade override apenas no template MEI/PJ (cláusula 10):** PF tem bloqueio duro (PDR-002); override é exclusivo de MEI/PJ.
+- **Tom acessível:** frases curtas, vocabulário canônico do glossário, sem latinismos desnecessários.
+- **Retenção do termo "Prestador" na cláusula 1 do MEI/PJ:** mais preciso juridicamente no contexto B2B; restante do documento usa "Profissional" conforme glossário.
 
 ### Dúvidas registradas para validação jurídica futura
-(a preencher — entrega como input para o advogado que a equipe Turni contratar depois)
+
+Consolidadas nos arquivos de template (seção "Notas do PO → Dúvidas registradas"). Resumo dos pontos mais relevantes para o advogado externo:
+
+1. **PF — Simples Nacional:** contratantes no Simples podem ter regras distintas de retenção de IRRF/INSS. A cláusula atual é genérica; validar se é suficiente.
+2. **MEI — Limite de faturamento:** confirmar limite vigente em produção (R$ 81 mil ou R$ 144.900); avaliar se o template deve incluir cláusula de responsabilidade do profissional por manter o CNPJ regular.
+3. **MEI/PJ — ISS pelo tomador:** LC 116/2003 prevê retenção pelo tomador em determinadas atividades. A cláusula é genérica; validar cobertura.
+4. **Override de habitualidade — eficácia jurídica real:** o bloco documenta ciência e consentimento, não oferece blindagem absoluta. Esse ponto precisa ser discutido com advogado antes do primeiro turno em produção.
+5. **Assinatura eletrônica simples em ação trabalhista:** confirmar aceitação como prova; avaliar migração para assinatura avançada (certificado digital) em versão futura.
 
 ### Validação do Alexandro
-(a preencher — data, condicionantes do aceite)
+
+(pendente — CA-8 da STORY-015. O texto está pronto para revisão. Alexandro lê os dois arquivos e registra aqui: data, nome, condicionantes — ex.: "texto válido para homolog; revisão jurídica externa antes de produção.")
 
 ### Resultado final / evidência
-(a preencher — paths dos arquivos)
+
+- `docs/especificacao/contratos/template-pf-autonomo-eventual-v1.md`
+- `docs/especificacao/contratos/template-mei-pj-b2b-v1.md`
+- `index.json` atualizado com `spec.contracts[*]` apontando para os dois arquivos.
+- STORY-015 em `status: in_progress`; transição para `done` após CA-8 (validação do Alexandro).

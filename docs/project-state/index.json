@@ -32,7 +32,11 @@
       "disputa": "../especificacao/domain/disputa.md"
     },
     "flows_index": "../especificacao/flows/README.md",
-    "screens_index": "../especificacao/screens/README.md"
+    "screens_index": "../especificacao/screens/README.md",
+    "contracts": [
+      "../especificacao/contratos/template-pf-autonomo-eventual-v1.md",
+      "../especificacao/contratos/template-mei-pj-b2b-v1.md"
+    ]
   },
   "waves": [
     {
