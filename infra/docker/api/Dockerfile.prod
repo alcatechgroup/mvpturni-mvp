@@ -1,55 +1,63 @@
 # Imagem de produção do API Turni (Laravel) para Cloud Run.
 # Build context: raiz do repositório (monorepo).
-# Multi-stage: builder instala deps; runtime copia só o necessário.
+# Base: alpine:3.22 + php84 APK — sem compilação de extensões.
 # Serve na porta 8080 (padrão Cloud Run) via php-fpm + nginx + supervisord.
 
 ARG APP_VERSION=dev
 
 # ── Stage 1: builder ──────────────────────────────────────────────────────────
-FROM php:8.5-fpm-alpine AS builder
+FROM alpine:3.22 AS builder
 
-RUN apk add --no-cache git unzip
-
-RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS postgresql-dev \
-    && docker-php-ext-install -j"$(nproc)" pdo_pgsql pcntl opcache \
-    && apk del .build-deps \
-    && apk add --no-cache postgresql-libs
+RUN apk add --no-cache \
+    php84 php84-fpm php84-pdo php84-pdo_pgsql php84-pcntl php84-opcache \
+    php84-mbstring php84-ctype php84-curl php84-dom php84-fileinfo \
+    php84-openssl php84-session php84-tokenizer php84-xml php84-xmlwriter \
+    php84-phar php84-posix php84-iconv \
+    git unzip \
+    && ln -sf /usr/bin/php84 /usr/bin/php
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_NO_INTERACTION=1
 
-WORKDIR /app
-COPY apps/api/composer.json apps/api/composer.lock ./
+# Preserva estrutura do monorepo: ../../packages/domain fica válido a partir de /build/apps/api
+WORKDIR /build
+COPY packages/domain packages/domain
+COPY apps/api/composer.json apps/api/composer.lock apps/api/
+WORKDIR /build/apps/api
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts
 
-COPY apps/api/. .
-# Geração do version.json com a tag injetada no build (CA-7b)
-ARG APP_VERSION
-RUN echo "{\"version\":\"${APP_VERSION}\"}" > public/version.json
+WORKDIR /build
+COPY apps/api/. apps/api/
 
-RUN php artisan package:discover --ansi \
+ARG APP_VERSION
+RUN echo "{\"version\":\"${APP_VERSION}\"}" > apps/api/public/version.json
+
+WORKDIR /build/apps/api
+RUN mkdir -p bootstrap/cache \
+    && php artisan package:discover --ansi \
     && php artisan config:clear
 
 # ── Stage 2: runtime ──────────────────────────────────────────────────────────
-FROM php:8.5-fpm-alpine AS runtime
+FROM alpine:3.22 AS runtime
 
-RUN apk add --no-cache nginx supervisor postgresql-libs \
-    && adduser -D -u 1000 app
+RUN apk add --no-cache \
+    nginx supervisor \
+    php84-fpm php84-pdo php84-pdo_pgsql php84-pcntl php84-opcache \
+    php84-mbstring php84-ctype php84-curl php84-dom php84-fileinfo \
+    php84-openssl php84-session php84-tokenizer php84-xml php84-xmlwriter \
+    php84-phar php84-posix php84-iconv \
+    && adduser -D -u 1000 app \
+    && ln -sf /usr/sbin/php-fpm84 /usr/sbin/php-fpm
 
-RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS postgresql-dev \
-    && docker-php-ext-install -j"$(nproc)" pdo_pgsql pcntl opcache \
-    && apk del .build-deps
-
-COPY --from=builder /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
-RUN echo 'opcache.enable=1' >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo 'opcache.validate_timestamps=0' >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo 'opcache.memory_consumption=128' >> /usr/local/etc/php/conf.d/opcache.ini
+RUN echo 'opcache.enable=1' >> /etc/php84/conf.d/turni.ini \
+    && echo 'opcache.validate_timestamps=0' >> /etc/php84/conf.d/turni.ini \
+    && echo 'opcache.memory_consumption=128' >> /etc/php84/conf.d/turni.ini
 
 COPY infra/docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY infra/docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 WORKDIR /app
-COPY --from=builder --chown=app:app /app .
+COPY --from=builder --chown=app:app /build/apps/api .
 
 RUN chmod -R 755 storage bootstrap/cache \
     && chown -R app:app storage bootstrap/cache
