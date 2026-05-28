@@ -29,11 +29,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _loading = true);
     // Stub: aguarda 1s simulando envio (Fortify real vem em STORY-021).
     await Future.delayed(const Duration(seconds: 1));
-    if (mounted)
+    if (mounted) {
       setState(() {
         _loading = false;
         _sent = true;
       });
+    }
   }
 
   @override
@@ -102,8 +103,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             labelText: 'E-mail',
                           ),
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty)
+                            if (v == null || v.trim().isEmpty) {
                               return 'Este campo é obrigatório.';
+                            }
                             if (!v.contains('@')) return 'E-mail inválido.';
                             return null;
                           },

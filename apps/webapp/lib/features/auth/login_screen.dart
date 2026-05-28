@@ -200,10 +200,12 @@ class _LoginForm extends StatelessWidget {
               hintText: 'seunome@email.com',
             ),
             validator: (v) {
-              if (v == null || v.trim().isEmpty)
+              if (v == null || v.trim().isEmpty) {
                 return 'Este campo é obrigatório.';
-              if (!v.contains('@') || !v.contains('.'))
+              }
+              if (!v.contains('@') || !v.contains('.')) {
                 return 'E-mail inválido.';
+              }
               return null;
             },
           ),
