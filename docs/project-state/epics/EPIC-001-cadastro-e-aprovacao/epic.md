@@ -3,10 +3,10 @@ epic_id: EPIC-001
 slug: cadastro-e-aprovacao
 title: Cadastro e aprovação de profissional e contratante
 wave: WAVE-2026-01
-status: draft
+status: ready
 owner_role: po
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-05-28
 target_completion: 2026-07-07  # estimativa orientativa
 ---
 
@@ -76,30 +76,62 @@ Ao fim deste épico, profissional (PF/MEI/PJ) e contratante (CNPJ) conseguem com
   - Provedor de e-mail transacional + ACL (segue padrão `integration-architecture.md`).
 - **Não há mais spike externo bloqueante** (PDR-012 removeu essa dependência). Texto-seed dos templates é produzido pelo PO durante o épico com referências públicas + validação do Alexandro antes de produção.
 
-## Estórias
+## Estórias (decomposição final — Fluxo C executado em 2026-05-28)
 
-> A decompor via Fluxo B quando o épico entrar em sprint. Sequência prevista (esboço):
+| # | ID | Título | Tipo | Papel | Tamanho | Design? |
+|---|---|---|---|---|---|---|
+| 1 | STORY-012 | Spike — modelo de usuário polimórfico, funil, RBAC com ownership e audit log (ADR-009) | spike | arquiteto | M | não |
+| 2 | STORY-013 | Spike — Template/TemplateVersao e AceiteEletronico imutável (ADR-010) | spike | arquiteto | S | não |
+| 3 | STORY-014 | Spike — provedor de e-mail transacional + ACL (ADR-011) | spike | arquiteto | S | não |
+| 4 | STORY-015 | Texto-seed dos templates contratuais (PF + MEI/PJ v1) | enablement | po | M | não |
+| 5 | STORY-016 | RBAC vivo — login + roteamento por papel + funnel guard | implementation | programador | L | sim |
+| 6 | STORY-017 | Pré-cadastro de Profissional (PF/MEI/PJ) no WebApp | implementation | programador | M | sim |
+| 7 | STORY-018 | Pré-cadastro de Contratante no WebApp | implementation | programador | M | sim |
+| 8 | STORY-019 | Fila de aprovação no Backoffice (aprovar/remover) | implementation | programador | M | sim |
+| 9 | STORY-020 | Editor de templates contratuais no Backoffice | implementation | programador | M | sim |
+| 10 | STORY-021 | E-mails transacionais (aprovado + lembrete + reset Fortify) | implementation | programador | M | sim |
+| 11 | STORY-022 | Tela de welcome pós-aprovação no WebApp | implementation | programador | S | sim |
+| 12 | STORY-023 | Completar cadastro de Profissional + AceiteEletronico | implementation | programador | L | sim |
+| 13 | STORY-024 | Completar cadastro de Contratante + AceiteEletronico | implementation | programador | M | sim |
+| 14 | STORY-025 | Validação final do EPIC-001 | validation | validador | M | não |
 
-- Spike Arquiteto: modelo de dados de usuário polimórfico + modelo de Template/TemplateVersao + ACL de e-mail transacional — `type: spike`.
-- Texto-seed dos templates contratuais (`template_pf_autonomo_eventual` v1, `template_mei_pj_b2b` v1) — escrito pelo PO, validado pelo Alexandro — `type: enablement`.
-- Editor de templates no backoffice (listar, ver versões, criar nova versão, marcar versão ativa) — paralelismo Designer↔Programador, `requires_design: true`.
-- Pré-cadastro de profissional (webapp): formulário público com `tipo_pessoa`.
-- Pré-cadastro de contratante (webapp): formulário público.
-- Backoffice mínimo: fila de aprovação + ação aprovar/recusar.
-- Geração do aceite eletrônico no momento da aprovação (renderização do template vigente com dados do usuário; armazenamento imutável).
-- Funil pós-aprovação: tela welcome.
-- Completar cadastro do profissional (dados sensíveis + chave Pix + documento).
-- Completar cadastro do contratante (CNPJ + endereço + cultura + contatos).
-- E-mails transacionais (aprovado, recusado, lembrete de completar cadastro).
-- Validação final do épico (Validador).
+**Ordem de execução (dependências obrigatórias):**
+
+```
+STORY-012 (ADR-009) ─┐
+STORY-013 (ADR-010) ─┼─► STORY-015 (texto-seed) ─► STORY-016 (RBAC vivo) ─┐
+STORY-014 (ADR-011) ─┘                                                    │
+                                                                          ▼
+                              ┌─► STORY-017 (pré-cadastro profissional) ─┐
+                              ├─► STORY-018 (pré-cadastro contratante)  ─┤
+                              ├─► STORY-019 (fila aprovação) ────────────┤  podem rodar
+                              ├─► STORY-020 (editor templates) ──────────┤  em paralelo
+                              ├─► STORY-021 (e-mails transacionais) ─────┤
+                              └─► STORY-022 (welcome) ───────────────────┘
+                                            │
+                                            ▼
+                              ┌─► STORY-023 (completar cadastro PF/MEI/PJ + aceite) ┐
+                              └─► STORY-024 (completar cadastro contratante + aceite) ┤
+                                                                                      ▼
+                                                                          STORY-025 (validação)
+```
+
+**Decisões PO embutidas na decomposição:**
+
+- **Aceite eletrônico é gerado ao final do completar cadastro** (clique explícito do usuário em "Aceito e concluir cadastro" no fim das STORY-023/024), **não na aprovação do admin**. Resolve ambiguidade do texto original deste epic.md ("anexado ao usuário no momento da aprovação"): na aprovação do admin o usuário ainda não tem documento (CPF/CNPJ vem só no completar cadastro por `domain/usuario.md`), e o ato de consentimento informado é o clique do usuário com texto integral à vista. Decisão registrada em STORY-019 §Decisões já tomadas e STORY-023 §Contexto; vira PDR formal se o validador ou Alexandro pedir.
+- **RBAC vivo pela primeira vez**: STORY-016 é a peça central — login + roteamento por papel + funnel guard em uma estória vertical L. Sem ela, nenhuma das outras estórias de fluxo de usuário pode entregar resultado observável.
+- **Critério herdado de EPIC-000 (F-NB-1 — exercer `php artisan migrate:rollback` em homologação)** cai em STORY-016, que entrega a primeira migração com lógica de negócio (`role`, `status`, flags do funil).
+- **3 ADRs novas propostas**: ADR-009 (modelo de identidade — STORY-012), ADR-010 (template versionado e aceite imutável — STORY-013), ADR-011 (provedor de e-mail + ACL — STORY-014). Cada spike concentra **uma** ADR conforme regra de `story-craft.md`.
+- **STORY-015 (texto-seed) tem `target_role: po`** — primeiro caso do projeto. O PO escreve o conteúdo dos templates manualmente; nenhum agente programador envolvido.
 
 ## Validação final
 
-Critérios em `validation/checklist.md` (a criar). Relatório do validador em `validation/report.md`.
+Critérios em `validation/checklist.md` (criado junto com esta decomposição). Relatório do validador em `validation/report.md`.
 
-**Definição de épico concluído**: cadastro fim a fim funcionando em homologação para os 3 tipos de pessoa do profissional + contratante; backoffice mínimo operacional (fila de aprovação **+ editor de templates contratuais**); texto-seed dos templates validado pelo Alexandro; aceite eletrônico renderizado e anexado ao usuário no momento da aprovação, com referência à versão vigente do template; relatório do validador `approved`.
+**Definição de épico concluído**: cadastro fim a fim funcionando em homologação para os 3 tipos de pessoa do profissional + contratante; backoffice mínimo operacional (fila de aprovação **+ editor de templates contratuais**); texto-seed dos templates validado pelo Alexandro; aceite eletrônico imutável referenciando a versão ativa do template, gerado no fim do completar cadastro; RBAC vivo nas duas interfaces; audit log de admin com eventos canônicos imutáveis; e-mails transacionais entregues; relatório do validador `approved` (ou `approved_with_pending` tratado como goal atingido pelo PO, conforme precedente da STORY-011).
 
 ## Histórico
 
 - 2026-05-26 — criado por PO durante planejamento da WAVE-2026-01.
 - 2026-05-26 — ajustado por PO após PDR-012: spike jurídico/contábil sai do caminho crítico; entra estória de editor de templates no backoffice + texto-seed inicial.
+- 2026-05-28 — PO executou Fluxo C: decompôs em 14 estórias (STORY-012 a STORY-025) com `status: ready`. Decomposição pronta para a SPRINT-2026-W24 (slice a definir na abertura). Status do épico passa de `draft` para `ready`. Decisão PO sobre momento do AceiteEletronico embutida nas estórias.

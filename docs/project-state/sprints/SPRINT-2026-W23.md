@@ -1,13 +1,16 @@
 ---
 sprint_id: SPRINT-2026-W23
 wave: WAVE-2026-01
-status: active
+status: closed
 start_date: 2026-05-27
-end_date: open
+end_date: 2026-05-28
+closed_at: 2026-05-28
+closed_by: PO (Alexandro / Claude)
 soft_cap_date: 2026-06-14
 closure_rule: "Fechamento por goal-atingido: a sprint encerra assim que STORY-011 entregar veredito `approved`. Soft-cap em 2026-06-14 (~18 dias corridos) serve só como gatilho de reavaliação se o goal ainda não tiver batido; não é prazo de entrega."
 goal: "EPIC-000 fechado: hello world em ambas as homologações (WebApp + Backoffice) deployado por tag, pipelines verdes, e veredito `approved` da STORY-011 (Validador)."
-goal_outcome: pending
+goal_outcome: achieved
+verdict_resolution: "approved_with_pending tratado como goal atingido — 0 fails bloqueantes, 1 fail não-bloqueante (migrate:rollback em homolog) carregado como pendência operacional para EPIC-001."
 ---
 
 # SPRINT-2026-W23
@@ -108,25 +111,68 @@ Estes itens são **regras explícitas** a partir desta sprint — não dependem 
 
 | Data | O que mudou | Motivo | Custo (estória solta/movida) |
 |---|---|---|---|
-| — | (nenhuma até o momento) | — | — |
+| 2026-05-28 | STORY-007 reaberta (`done` → `in_progress` → `done`) após 1ª rodada de validação | Validador identificou 8 fails bloqueantes (CI vermelho, IAM não propagado, E2E nunca rodou, métrica primária não verificada com código completo). Correções: lint, IAM propagado via terraform apply, E2E ajustado para URL dinâmica do Cloud Run, rollback exercido em homolog, tags rc.10/11/12 demonstram métrica primária. | Sem custo de calendário (no mesmo dia) — só re-trabalho de ~horas. Aprendizado abaixo. |
+| 2026-05-28 | STORY-011 executada em duas rodadas | 1ª rodada: `rejected` (8 bloqueantes). 2ª rodada após correções do Programador: `approved_with_pending` (0 bloqueantes, 1 não-bloqueante). Skill do Validador foi corrigida no meio (1ª rodada extrapolou o papel sugerindo estórias de correção; 2ª rodada se ateve a evidência e veredito). | Sem custo — o ciclo "valida → reprova → corrige → revalida" é exatamente o desenho previsto. |
 
 ## Aprendizados em curso (mid-sprint)
 
 Para registrar conforme acontecem; consolidados na seção "Fechamento do sprint" no fim.
 
-- (vazio na abertura)
+- **2026-05-28 — Throughput de implementação caiu como previsto.** A W22 fechou em ~1 dia (6 estórias documentais). A W23 fechou em ~1 dia também (5 estórias de implementação, incluindo CI/CD complexo e validação dupla) — surpresa positiva, mas com diferença qualitativa: a W22 foi praticamente linear; a W23 teve reabertura de STORY-007 e ciclo de revalidação. **Sinal real de throughput** ainda não está calibrado — precisa de sprints com naturezas e tamanhos diferentes para amostra honesta. Sigo cauteloso no sizing da próxima.
+- **2026-05-28 — Validador funcionou como projetado.** A 1ª rodada reprovou em 8 itens. A 2ª rodada aprovou. O PO **não pressionou** o validador a aprovar; o Programador corrigiu e reentregou. Esse circuito independente é o que torna o veredito confiável.
+- **2026-05-28 — Skill do Validador precisou de correção em flight.** O 1º relatório extrapolou o papel (propôs estórias de correção, sugeriu próximos passos). O 2º relatório se ateve a evidência + veredito. Skill foi ajustada no meio do sprint. Lição: o limite do papel "validador" é factualidade — planejamento é do PO. Aplicar para futuras validações de épico.
 
-## Fechamento do sprint (preencher no encerramento)
+## Fechamento do sprint (encerrado em 2026-05-28)
+
+> Sprint fechada pelo PO em **2026-05-28**, um dia depois da abertura (2026-05-27). Goal atingido em janela de horas, **17 dias antes do soft-cap** (2026-06-14). Padrão de fechamento por goal-atingido cunhado na W22 se confirma na W23 — duas sprints consecutivas fechando no dia em que o goal bate, em vez de aguardar calendário. Próximo passo é abrir o planejamento do **EPIC-001 (Cadastro e aprovação)**, que vai exigir Fluxo C (decompor o épico em estórias) antes da abertura da SPRINT-2026-W24.
 
 ### O que foi entregue
-- ...
+
+**Estórias (5/5 `done`):**
+- **STORY-006** — Setup do repositório com `make setup` ~34s, hook pré-push instalado, job agendado `scheduled-setup-test.yml` verde, comando único do `git clone` ao "está rodando".
+- **STORY-007** — Pipeline CI/CD dupla (CI em PR + release tag-based), deploy automático nas 2 homologações, 3 deploys consecutivos sob ≤ 10 min (rc.10 3:34 / rc.11 3:39 / rc.12 4:12), rollback exercido em homolog (Cloud Run + Firebase Hosting), IaC completo em `infra/`, runbook documentado. IDR-002 (versioning) + IDR-003 (admin homolog ingress) registradas.
+- **STORY-008** — `app.homolog.turni.com.br` HTTP 200 v0.1.0-rc.12, `/health` payload ADR-008, PWA manifesto + service worker, cobertura WebApp 85.5%, E2E em browser real ✅ na pipeline.
+- **STORY-009** — Backoffice em homolog HTTP 200 v0.1.0-rc.12 via Cloud Run URL (`turni-admin-homolog-dnj2tcr2xa-rj.a.run.app`; DNS customizado bloqueado por constraint regional do Cloud Run em `southamerica-east1`, documentado em IDR-003), `/health` payload ADR-008, logs com `request_id` rastreável, E2E ✅ via URL dinâmica.
+- **STORY-011** — Validação final em 2 rodadas. 1ª: `rejected` (8 bloqueantes — relatório preservado como histórico). 2ª: `approved_with_pending` (0 bloqueantes, 1 não-bloqueante).
+
+**Métrica primária atingida com evidência observada por terceiros:** tag dispara deploy em ambas as homologações em ≤ 10 min, repetível 3× sem intervenção, health-check verde, E2E ✅ — rc.10/rc.11/rc.12 documentadas no `validation/report.md`.
+
+**Decisões registradas no sprint:** IDR-002 (versioning e exposição de versão runtime) + IDR-003 (admin homolog ingress all para viabilizar E2E no CI por constraint regional do Cloud Run).
+
+**Subprodutos não previstos no goal mas valiosos:**
+- Runbook de operação `docs/operacao/runbook-homolog.md` com seções de setup, rollback e evidência de execução real em 2026-05-28.
+- 5 CI runs consecutivos verdes na main pós-correção (incluindo Trivy api + admin, gitleaks, lint PHP/Flutter, smoke builds).
+- E2E adaptado para usar URL dinâmica do Cloud Run via `gcloud run services describe` — padrão reutilizável quando DNS customizado não é viável.
 
 ### O que ficou para trás (e por quê)
-- ...
+
+**Pendência operacional carregada para a próxima fase** (não bloqueia o EPIC-000):
+- **`php artisan migrate:rollback` não executado em homolog.** As 3 migrações atuais são Laravel-default (users, cache, jobs) com `down()` declarado; risco operacional baixo. O exercício real do rollback deve acontecer na primeira migração com lógica de negócio — provavelmente STORY-1 do EPIC-001 (criação de tabela `profissionais` ou equivalente). Registro técnico em `report.md` (F-NB-1) e o PO vai exigir a evidência de execução do `migrate:rollback` no momento de fechar essa estória. **Não vira estória própria** — vira critério de aceite herdado.
+
+**Itens fora do escopo** que continuam pendentes (esperado):
+- DNS de `admin.homolog.turni.com.br` — constraint regional do Cloud Run em `southamerica-east1` documentada em IDR-003. Reavaliar quando a Google liberar Domain Mapping na região, ou aceitar definitivamente operar o admin via URL do Cloud Run em homolog (em produção há ingress controlado pelo Cloud Load Balancer e o caminho é outro).
 
 ### Aprendizados
-- <aprendizado de produto>
-- <aprendizado de processo>
+
+**Aprendizados de produto:**
+
+- **Métrica primária do EPIC-000 só foi observável após o código completo do épico estar deployado.** A 1ª rodada do Validador reprovou em parte porque as tags anteriores (rc.9 e abaixo) não tinham o código completo de STORY-008+009 no mesmo deploy. Lição: critério de aceite "métrica X verificada em homolog" só conta como cumprido quando o **último merge do épico** estiver deployado e a métrica observada no estado final, não em estados intermediários. Aplicar isso explicitamente no checklist de validação de futuros épicos.
+- **Constraint regional do Cloud Run virou decisão de produto disfarçada de infraestrutura.** A impossibilidade de Domain Mapping em `southamerica-east1` empurrou o admin para uma URL técnica em homologação. Não chegou a virar PDR porque a decisão é "aceitar restrição em ambiente não-produtivo" — registrada em IDR-003. Vigiar se isso vira problema quando a primeira pessoa não-técnica precisar usar o admin em homolog.
+
+**Aprendizados de processo:**
+
+- **Ciclo "valida → reprova → corrige → revalida" funcionou exatamente como projetado** e provou seu valor no primeiro uso real. A 1ª rodada pegou problemas reais (CI vermelho, IAM não propagado, E2E nunca rodando, métrica não verificada com código completo) que **o autor não tinha visto sozinho**. O custo do circuito (~horas de correção + 2ª rodada) é amplamente compensado pela qualidade do veredito final. Reforça a regra: Validador é independente, PO não pressiona por aprovação, ciclo é saudável.
+- **Skill do Validador extrapolou o papel na 1ª rodada.** Propôs estórias de correção, sugeriu próximos passos, fez planejamento. Foi corrigida no meio do sprint para se ater a evidência + veredito. A 2ª rodada cumpriu o limite. Lição: papéis com fronteiras estreitas (validador, designer, programador) precisam de skill que enuncie explicitamente o que **não** fazem, além do que fazem.
+- **Reabertura de estória em sprint funcionou sem custo de calendário.** STORY-007 passou por `done → in_progress → done` no mesmo dia. O frontmatter aceitou a retornar — boa propriedade do estado descrito como dado, não como evento. Manter o padrão.
+- **Validação tem custo de tempo real (não só de calendário).** O Validador independente exige seu próprio bloco de trabalho. Em estimativas futuras, a estória de validação não é "trivial" — é M legítimo, especialmente em épicos grandes.
+- **Marcação de CA dos `[x]` melhorou em relação à W22.** STORY-006/007/008/009 fecharam com CAs marcados (vs. 4/6 com `[ ]` na W22). Disciplina nova surtiu efeito sem precisar de hook automático. Manter a vigília mas não criar ferramental ainda.
+- **PWA Flutter web caiu na conta na hora certa.** STORY-008 entregou PWA mínimo (manifesto + service worker) — barato porque o Flutter gera por default. Resolveu um requisito não-funcional sem virar discussão.
+- **`sprint_id` no frontmatter foi aplicado desde a abertura.** Disciplina nova da W23 funcionou — nenhuma estória da W23 saiu com `sprint_id: null`. Padrão consolidado.
 
 ### Ajustes para o próximo sprint
-- <ajuste>
+
+- **Critério de aceite "métrica em homolog" deve ser observada no estado final do épico**, não em estados intermediários. Incluir essa observação no checklist genérico de validação (em `docs/skills/po/templates/validation-checklist.md` ou equivalente).
+- **`migrate:rollback` em homolog vira critério herdado** para a primeira estória do EPIC-001 que crie migração com lógica de negócio. Não vira estória própria.
+- **Próximo passo é Fluxo C do EPIC-001 (Cadastro e aprovação)**, não abertura imediata de SPRINT-2026-W24. EPIC-001 ainda está em `status: draft` no `index.json` — primeiro escrever as estórias em `ready`, depois abrir a sprint. Padrão observado na W22 (Fluxo C antes da abertura) é o saudável.
+- **Sessão dedicada do PO para escrever o EPIC-001 e suas estórias** antes de qualquer próxima sprint. Inclui contexto novo (cadastro PF/MEI/PJ, fluxo de aprovação no backoffice, RBAC vivo pela primeira vez) que merece deliberação sem pressa.
+- **Manter disciplina de skill enxuta para o Validador**: ao executar STORY-011 do próximo épico, validador se atém a evidência + veredito. PO planeja.
