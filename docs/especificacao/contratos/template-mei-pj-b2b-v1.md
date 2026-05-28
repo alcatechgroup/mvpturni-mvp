@@ -138,9 +138,9 @@ O aceite eletrônico aqui registrado tem validade jurídica nos termos da Medida
 
 ## Histórico de validação
 
-> *A preencher pelo Alexandro antes de marcar a STORY-015 como `done`. Registrar: data, nome e condicionantes do aceite ("texto válido para subir em homolog; revisão jurídica externa pendente para produção").*
-
-(pendente — CA-8 da STORY-015)
+| Data | Validador | Condicionantes |
+|---|---|---|
+| 2026-05-28 | Alexandro Almeida (PO) | Texto aprovado para homologação. Revisão jurídica externa por advogado trabalhista pendente antes de produção com turnos reais. |
 
 ---
 

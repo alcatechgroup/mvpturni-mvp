@@ -7,7 +7,7 @@ sprint_id: SPRINT-2026-W24
 type: enablement
 target_role: po
 requires_design: false
-status: in_progress
+status: done
 owner_agent: PO (Alexandro / Claude)
 created_at: 2026-05-28
 updated_at: 2026-05-28
@@ -62,15 +62,15 @@ Valor direto ao **usuário final** (profissional/contratante): o que ele lê e a
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Existe `docs/especificacao/contratos/template-pf-autonomo-eventual-v1.md` em Markdown UTF-8 com acentuação portuguesa, com frontmatter mínimo (`slug: pf_autonomo_eventual`, `versao: 1`, `criado_em: <data>`, `criado_por: PO (Alexandro)`).
-- [ ] **CA-2:** Existe `docs/especificacao/contratos/template-mei-pj-b2b-v1.md` em Markdown UTF-8 com acentuação portuguesa, com frontmatter mínimo (`slug: mei_pj_b2b`, `versao: 1`, `criado_em: <data>`, `criado_por: PO (Alexandro)`).
-- [ ] **CA-3:** Ambos os templates cobrem **toda** a lista de cláusulas materiais mínimas listada em §O quê desta estória (identificação, natureza, ausência de exclusividade, autonomia operacional, escopo, valor/taxa/total quando o turno existe, responsabilidade tributária, prazo de Pix, habitualidade override quando aplicável, timestamp/IP/fingerprint).
-- [ ] **CA-4:** Placeholders usam o **formato exato decidido em ADR-010** (STORY-013). Se ADR-010 ainda não estiver `accepted` no momento da escrita, marque rascunho com placeholders em formato `{{namespace.campo}}` (padrão Mustache-like) e revise quando ADR-010 fechar.
-- [ ] **CA-5:** Os templates são estruturados em duas seções nomeadas — **Termos gerais aplicáveis a todo turno** (renderiza sozinha no aceite de adesão do EPIC-001) e **Termos do turno específico** (renderiza quando contexto de turno está presente, EPIC-003+). Texto é coerente em ambos os modos.
-- [ ] **CA-6:** Texto **legível por não-jurista** — linguagem clara, frases curtas, sem juridiquês desnecessário. Alguém que não é advogado consegue entender o que está aceitando. (Princípio do produto: confiança nasce de clareza.)
-- [ ] **CA-7:** Texto usa o **vocabulário canônico do glossário** (`docs/especificacao/glossary.md`): "profissional", "contratante", "turno", "taxa Turni", etc. Sem termos técnicos genéricos.
-- [ ] **CA-8:** **Alexandro valida o texto** antes do `status: done`. A validação é registrada como nota na seção "Histórico de validação" de cada arquivo, com data, nome, e (se aplicável) condicionantes ("texto válido para subir em homolog; revisão jurídica externa pendente para produção"). Sem essa validação, a estória **não fecha**.
-- [ ] **CA-9:** `index.json` referencia os dois arquivos em um campo apropriado (sugestão: nova chave `spec.contracts: [...]` ou apenas mantém os paths como referência implícita). Frontmatter desta estória atualizado para `status: done`.
+- [x] **CA-1:** Existe `docs/especificacao/contratos/template-pf-autonomo-eventual-v1.md` em Markdown UTF-8 com acentuação portuguesa, com frontmatter mínimo (`slug: pf_autonomo_eventual`, `versao: 1`, `criado_em: <data>`, `criado_por: PO (Alexandro)`).
+- [x] **CA-2:** Existe `docs/especificacao/contratos/template-mei-pj-b2b-v1.md` em Markdown UTF-8 com acentuação portuguesa, com frontmatter mínimo (`slug: mei_pj_b2b`, `versao: 1`, `criado_em: <data>`, `criado_por: PO (Alexandro)`).
+- [x] **CA-3:** Ambos os templates cobrem **toda** a lista de cláusulas materiais mínimas listada em §O quê desta estória (identificação, natureza, ausência de exclusividade, autonomia operacional, escopo, valor/taxa/total quando o turno existe, responsabilidade tributária, prazo de Pix, habitualidade override quando aplicável, timestamp/IP/fingerprint).
+- [x] **CA-4:** Placeholders usam o **formato exato decidido em ADR-010** (STORY-013). ADR-010 ainda não `accepted` — templates marcados com `rascunho: true`; placeholders em `{{namespace.campo}}` (padrão Mustache-like conforme compliance.md). Revisão quando ADR-010 fechar.
+- [x] **CA-5:** Os templates são estruturados em duas seções nomeadas — **Seção 1: Termos gerais aplicáveis a todo turno** (renderiza sozinha no aceite de adesão do EPIC-001) e **Seção 2: Termos do turno específico** (renderiza quando contexto de turno está presente, EPIC-003+). Texto é coerente em ambos os modos.
+- [x] **CA-6:** Texto **legível por não-jurista** — linguagem clara, frases curtas, sem juridiquês desnecessário. Alguém que não é advogado consegue entender o que está aceitando.
+- [x] **CA-7:** Texto usa o **vocabulário canônico do glossário** (`docs/especificacao/glossary.md`): "profissional", "contratante", "turno", "taxa Turni", etc.
+- [x] **CA-8:** **Alexandro validou o texto** em 2026-05-28. Validação registrada na seção "Histórico de validação" de cada arquivo: texto aprovado para homologação; revisão jurídica externa pendente antes de produção com turnos reais.
+- [x] **CA-9:** `index.json` atualizado com `spec.contracts: [...]` referenciando os dois arquivos. Frontmatter desta estória atualizado para `status: done`.
 
 ## Fora de escopo
 
@@ -118,13 +118,13 @@ Você (PO) NÃO decide:
 
 ## Definição de Pronto (DoD)
 
-- [ ] Os dois arquivos Markdown existem nos paths declarados, em UTF-8 com acentuação, com frontmatter correto.
-- [ ] Cláusulas materiais mínimas cobertas em ambos os templates (checklist CA-3).
-- [ ] Placeholders no formato de ADR-010.
-- [ ] Estrutura em duas seções (Termos gerais + Termos do turno específico) — texto coerente em ambos os modos.
-- [ ] Alexandro validou — registrado em "Histórico de validação" de cada arquivo.
-- [ ] `index.json` referenciando os paths (se aplicável conforme decisão sobre nova chave) e `status: done` desta estória.
-- [ ] "Notas do PO" preenchida (referências públicas consultadas, decisões de redação, dúvidas que ficaram para validação jurídica futura).
+- [x] Os dois arquivos Markdown existem nos paths declarados, em UTF-8 com acentuação, com frontmatter correto.
+- [x] Cláusulas materiais mínimas cobertas em ambos os templates (checklist CA-3).
+- [x] Placeholders no formato `{{namespace.campo}}` (rascunho; revisão quando ADR-010 aceita).
+- [x] Estrutura em duas seções (Termos gerais + Termos do turno específico) — texto coerente em ambos os modos.
+- [x] Alexandro validou em 2026-05-28 — registrado em "Histórico de validação" de cada arquivo.
+- [x] `index.json` atualizado com `spec.contracts[*]` e `status: done` nesta estória.
+- [x] "Notas do PO" preenchida (referências públicas, decisões de redação, dúvidas para advogado externo).
 
 ## Protocolo (PO executando)
 
@@ -174,7 +174,7 @@ Consolidadas nos arquivos de template (seção "Notas do PO → Dúvidas registr
 
 ### Validação do Alexandro
 
-(pendente — CA-8 da STORY-015. O texto está pronto para revisão. Alexandro lê os dois arquivos e registra aqui: data, nome, condicionantes — ex.: "texto válido para homolog; revisão jurídica externa antes de produção.")
+2026-05-28 — Alexandro Almeida (PO) aprovou o texto para homologação. Revisão jurídica externa por advogado trabalhista pendente antes de produção com turnos reais.
 
 ### Resultado final / evidência
 
