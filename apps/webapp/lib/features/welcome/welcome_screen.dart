@@ -12,19 +12,22 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark =
-        MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isDesktop = screenWidth >= 1024;
 
-    final accentColor =
-        isDark ? TurniColors.accentDark : TurniColors.accentLight;
-    final textMuted =
-        isDark ? TurniColors.textMutedDark : TurniColors.textMutedLight;
-    final borderColor =
-        isDark ? TurniColors.borderSubtleDark : TurniColors.borderSubtleLight;
-    final surfacePage =
-        isDark ? TurniColors.surfacePageDark : TurniColors.surfacePageLight;
+    final accentColor = isDark
+        ? TurniColors.accentDark
+        : TurniColors.accentLight;
+    final textMuted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+    final borderColor = isDark
+        ? TurniColors.borderSubtleDark
+        : TurniColors.borderSubtleLight;
+    final surfacePage = isDark
+        ? TurniColors.surfacePageDark
+        : TurniColors.surfacePageLight;
 
     final content = _WelcomeContent(
       accentColor: accentColor,
@@ -41,10 +44,12 @@ class WelcomeScreen extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
           child: isDesktop
-              ? Card(child: Padding(
-                  padding: const EdgeInsets.all(TurniSpacing.x2l),
-                  child: content,
-                ))
+              ? Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(TurniSpacing.x2l),
+                    child: content,
+                  ),
+                )
               : content,
         ),
       ),
@@ -118,7 +123,9 @@ class _WelcomeContent extends StatelessWidget {
         const SizedBox(height: TurniSpacing.x2l),
         // Versão — body-sm (14px) em mobile (piso de texto essencial, DDR-001 §5.1.1).
         Text(
-          _appVersion.isNotEmpty ? 'versão $_appVersion' : 'versão indisponível',
+          _appVersion.isNotEmpty
+              ? 'versão $_appVersion'
+              : 'versão indisponível',
           key: const Key('screen-welcome-version'),
           style: TextStyle(
             fontSize: 14,
@@ -139,10 +146,7 @@ class _HealthLink extends StatelessWidget {
   Future<void> _open() async {
     // Navega para /health no mesmo aba; Firebase Hosting serve health.json (CA-6).
     // webOnlyWindowName: '_self' garante mesma aba no Flutter Web.
-    await launchUrl(
-      Uri.parse('/health'),
-      webOnlyWindowName: '_self',
-    );
+    await launchUrl(Uri.parse('/health'), webOnlyWindowName: '_self');
   }
 
   @override

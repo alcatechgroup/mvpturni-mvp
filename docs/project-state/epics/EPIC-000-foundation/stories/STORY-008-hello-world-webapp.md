@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-008-hello-world-webapp
-status: done
+status: in_review
 owner_agent: claude-sonnet-4-6
 created_at: 2026-05-26
 updated_at: 2026-05-28
@@ -195,9 +195,14 @@ Siga `docs/skills/po/references/agent-task-format.md`. Particular: porque `requi
 - Unitários: **85.5%** total (ds/theme.dart 100%, welcome_screen.dart 93%, main.dart 75%, router.dart 50%). Lógica de negócio mínima (versão fallback): coberta pelo teste de fallback.
 - E2E: spec Playwright pendente de execução em homologação. Cenários: (1) welcome page carrega e exibe versão; (2) link `/health` retorna 200 JSON.
 
+### Reabertura 2026-05-28 — correção de lint (CI flutter-lint)
+
+- 2026-05-28 — CI job `flutter-lint` falhava em `dart format --output none --set-exit-if-changed lib/` desde o commit `62eba0e`. Arquivos corrigidos: `lib/ds/theme.dart`, `lib/features/welcome/welcome_screen.dart`, `lib/router.dart`. Após `dart format lib/`: `dart format --output none --set-exit-if-changed lib/` → exit 0, `flutter analyze --no-fatal-infos` → "No issues found!" exit 0. Definition of Done desta reabertura cumprido.
+
 ### Links de evidência
 - PR: N/A (commit direto na main — workflow do projeto)
 - Commit: `62eba0e` (feat: hello world WebApp) + closure commit de finalização
+- Correção lint: commit fix(STORY-008) — dart format em 3 arquivos
 - Aprovação Alexandro: 2026-05-28 (verificação local em `localhost:8003`)
 - `app.homolog.turni.com.br`: pendente tag vX.Y.Z-rc.N
 - `/health` em verde: verificado local `curl localhost:8003/health` → 200 JSON ✅

@@ -9,10 +9,7 @@ import 'features/welcome/welcome_screen.dart';
 final router = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const WelcomeScreen(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => const WelcomeScreen()),
     GoRoute(
       path: '/health',
       builder: (context, state) => const _HealthInfoScreen(),
@@ -24,8 +21,10 @@ final router = GoRouter(
 class _HealthInfoScreen extends StatelessWidget {
   const _HealthInfoScreen();
 
-  static const _version =
-      String.fromEnvironment('APP_VERSION', defaultValue: 'dev');
+  static const _version = String.fromEnvironment(
+    'APP_VERSION',
+    defaultValue: 'dev',
+  );
 
   @override
   Widget build(BuildContext context) {
