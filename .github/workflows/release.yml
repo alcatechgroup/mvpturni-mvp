@@ -84,9 +84,10 @@ jobs:
       - name: Get dependencies
         working-directory: apps/webapp
         run: flutter pub get
-      - name: Gerar version.json
+      - name: Gerar version.json e health.json
         run: |
           echo '{"version":"${{ github.ref_name }}"}' > apps/webapp/web/version.json
+          echo '{"status":"ok","version":"${{ github.ref_name }}","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","service":"webapp"}' > apps/webapp/web/health.json
       - name: Build web (release)
         working-directory: apps/webapp
         run: |

@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-008-hello-world-webapp
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-sonnet-4-6
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-05-28
 estimated_session_size: M
 ---
 
@@ -170,25 +170,41 @@ Siga `docs/skills/po/references/agent-task-format.md`. Particular: porque `requi
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões tomadas
-- <data> — <decisão local>
+
+- 2026-05-28 — `/health` da WebApp implementado como arquivo estático `web/health.json` servido pelo Firebase Hosting com rewrite `"/health" → "/health.json"` (antes do catch-all SPA). Conteúdo gerado pelo CI com version + timestamp do build. Em dev local, GoRouter serve `/health` como tela Flutter com os mesmos dados. Decisão alinhada com ADR-008 ("webapp não tem processo de backend").
+- 2026-05-28 — Versão lida via `String.fromEnvironment('APP_VERSION', defaultValue: '')` em compile-time (IDR-002). Tela mostra "versão indisponível" quando vazia (dev sem `--dart-define`).
+- 2026-05-28 — Tema dual-theme (claro/escuro) ativo via `ThemeMode.system` conforme DDR-001 D2 e PDR-013. Esquema profissional (verde-sage) em pré-login.
+- 2026-05-28 — Logomarca usa `semanticsLabel: 'Turni'` em vez de wrapper `Semantics` — mais limpo e testável diretamente.
+- 2026-05-28 — `Flexible` no Row do link `/health` previne overflow em viewports estreitos (360dp).
+- 2026-05-28 — Fontes: `google_fonts` para Inter (body text via `GoogleFonts.interTextTheme()`). Bebas Neue declarada por `fontFamily: 'BebasNeue'` sem package — cai para sistema se não instalada. Nota: para CA-5 (FCP ≤5s em 3G), o bundle CanvasKit do Flutter Web é o fator dominante (trade-off aceito em ADR-001). Otimização de fonte recomendada para sprints futuras.
 
 ### Descobertas
-- <data> — <surpresa / gotcha>
+
+- 2026-05-28 — CA-7 (PostgreSQL check em `/health`) **não se aplica ao WebApp estático**. ADR-008 confirma: "o webapp não tem processo de backend — sua saúde é o Firebase Hosting servir o index.html + version.json". O check de PostgreSQL é responsabilidade da API (`/health?deep=1` já implementado em `apps/api/routes/web.php`). O health.json da WebApp sempre retorna `status: ok` enquanto o Firebase estiver servindo o arquivo — comportamento correto para um CDN/hosting.
+- 2026-05-28 — CA-9 (request_id propagado em log) **não se aplica ao WebApp estático** (sem processo de servidor próprio). Firebase Hosting gera logs de acesso automaticamente via Cloud Logging. O request_id é mecanismo de backend (API/admin).
+- 2026-05-28 — `CardThemeData` (não `CardTheme`) é o tipo correto em Flutter 3.41 para `ThemeData.cardTheme`. Erro detectado e corrigido via `flutter analyze`.
+- 2026-05-28 — `go_router ^17.2.3` instalado (versão mais recente estável no Dart 3.11.4).
 
 ### Bloqueios encontrados
-- <data> — <bloqueio>
+- Nenhum.
 
 ### IDRs criados
-- IDR-XXX — <título>
+- Nenhum IDR novo nesta estória. Decisão de `/health` estático é extensão natural de IDR-002 (sem nova camada de decisão transversal).
 
 ### Cobertura final
-- Unitários: <%>
-- E2E: <cenários, link para evidência em homologação>
+- Unitários: **85.5%** total (ds/theme.dart 100%, welcome_screen.dart 93%, main.dart 75%, router.dart 50%). Lógica de negócio mínima (versão fallback): coberta pelo teste de fallback.
+- E2E: spec Playwright pendente de execução em homologação. Cenários: (1) welcome page carrega e exibe versão; (2) link `/health` retorna 200 JSON.
+
+### CAs pendentes de verificação em homologação
+- CA-1, CA-5, CA-6, CA-8, CA-10, CA-11, CA-12, CA-13 — requerem deploy em `app.homolog.turni.com.br`.
+- CA-2, CA-3, CA-4 — verificação visual/lighthouse pós-deploy.
+- CA-7 — não aplicável (ver Descobertas).
+- CA-9 — não aplicável (ver Descobertas).
 
 ### Links de evidência
-- PR: <url>
-- Pipeline / deploy: <url>
-- `app.homolog.turni.com.br` (screenshot ou link com timestamp): <link>
-- `/health` em verde: <link>
-- Lighthouse PWA report: <link>
-- Log com request_id rastreável: <link>
+- PR: N/A (commit direto na main — workflow do projeto)
+- Pipeline / deploy: pendente tag vX.Y.Z-rc.N
+- `app.homolog.turni.com.br` (screenshot ou link com timestamp): pendente
+- `/health` em verde: pendente
+- Lighthouse PWA report: pendente
+- Log com request_id rastreável: N/A (webapp estático)

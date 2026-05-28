@@ -1,13 +1,16 @@
-// Smoke test do WebApp (CA-10): garante que o aparato de teste do Flutter está
-// plugado e que o placeholder da rota raiz renderiza. E2E em browser real entra
-// em STORY-008.
+// Smoke test: garante que TurniApp inicializa sem erro e renderiza a tela de boas-vindas.
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:turni_webapp/main.dart';
 
 void main() {
-  testWidgets('WebApp renderiza o placeholder do Turni', (WidgetTester tester) async {
+  testWidgets('TurniApp renderiza a tela de boas-vindas', (tester) async {
     await tester.pumpWidget(const TurniApp());
+    await tester.pumpAndSettle();
 
-    expect(find.text('Turni'), findsOneWidget);
+    expect(find.byKey(const Key('screen-welcome-webapp')), findsOneWidget);
+    expect(find.byKey(const Key('screen-welcome-brand')), findsOneWidget);
+    expect(find.byKey(const Key('screen-welcome-health-link')), findsOneWidget);
+    expect(find.byKey(const Key('screen-welcome-version')), findsOneWidget);
   });
 }

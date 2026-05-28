@@ -1,12 +1,12 @@
 {
-    "name": "turni_webapp",
-    "short_name": "turni_webapp",
-    "start_url": ".",
+    "name": "Turni",
+    "short_name": "Turni",
+    "description": "Hospitalidade on-demand",
+    "start_url": "/",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#F7F4EC",
+    "theme_color": "#00A868",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {
