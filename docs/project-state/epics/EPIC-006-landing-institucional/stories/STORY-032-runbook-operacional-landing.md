@@ -53,13 +53,13 @@ Entregar `docs/operacao/runbook-landing.md` cobrindo **7 procedimentos operacion
    - Passos: criar tag `landing-vX.Y.Z-rc.N` apontando para o commit de merge; push da tag; workflow dispara automaticamente; smoke test pós-deploy verde; site atualizado em `landing.homolog.turni.com.br/<path-secreto>/` em ≤ 5 min.
    - Verificação: `curl` retornando conteúdo novo; preview no navegador.
    - Quem executa: marketing (com permissão de push de tag) ou engenharia (sempre).
-   - SLA: deploy em homolog ≤ 5 min após push da tag (definido por PDR-015).
+   - SLA: deploy em homolog ≤ 5 min após push da tag (propagação de HTML `no-cache` definida em ADR-012 §4).
 
 2. **Procedimento P2 — Rollback emergencial (engenharia).**
    - Pré-condição: deploy quebrou a landing (smoke test falhou e workflow auto-reverteu) OU defeito detectado pós-deploy (smoke test passou mas humano vê problema).
    - Passos: identificar release anterior via console Firebase Hosting (`firebase hosting:channel:list` ou console web); executar `firebase hosting:rollback --site turni-landing-homolog` (ou `--site turni-landing-prod`); verificar `curl` retornando conteúdo anterior; comunicar marketing via canal acordado em PDR-015.
    - Quem executa: qualquer engenheiro com acesso ao Firebase Hosting CLI seguindo runbook (não precisa de aprovação humana adicional — rollback é reversão segura).
-   - SLA: ≤ 30 min em horário comercial (PDR-015).
+   - SLA: **best-effort, sem número fixo** (PDR-015 §4 — time solo, sem on-call; rollback é prioridade sobre trabalho não-urgente; risco baixo porque a "Em breve" no apex independe do conteúdo AS IS).
 
 3. **Procedimento P3 — Rotacionar `<path-secreto>` (engenharia, gatilho do comercial).**
    - Pré-condição: comercial confirma vazamento ou rotação preventiva agendada (PDR-015 define o gatilho exato).
@@ -73,7 +73,7 @@ Entregar `docs/operacao/runbook-landing.md` cobrindo **7 procedimentos operacion
      g. Mesmo procedimento em prod se aplicável (com gate humano).
      h. Comunicação: enviar novo path aos detentores legítimos via canal acordado; declarar path antigo morto (Firebase Hosting servirá 404 institucional para `<path-secreto-antigo>/`).
    - Quem executa: engenharia (passos b-g); comercial (passos a, h).
-   - SLA: ≤ 24h se vazamento confirmado (PDR-015).
+   - SLA: **sob demanda, sem prazo fixo** (PDR-015 §6 — o gate é obfuscação, não segurança; vazamento não é incidente de segurança cronometrado; rotação acontece quando o comercial pedir e a engenharia conseguir executar).
    - Verificação: `curl /<path-secreto-antigo>/` → 404; `curl /<path-secreto-novo>/` → 200 com landing.
 
 4. **Procedimento P4 — Trocar/adicionar domínio.**
@@ -86,24 +86,25 @@ Entregar `docs/operacao/runbook-landing.md` cobrindo **7 procedimentos operacion
    - Pré-condição: detectado que service worker está cacheando agressivamente (push do marketing não aparece) ou vazando conteúdo (visitante do apex vê conteúdo da landing antiga).
    - Passos: PR removendo `apps/landing/public/<path-secreto>/sw.js`; ajustar `apps/landing/public/<path-secreto>/index.html` removendo o registro de service worker (`<script>` de `navigator.serviceWorker.register`); adicionar resposta 404 explícita em `firebase.json` para `/<path-secreto>/sw.js` para que browsers que cacheiam o registro recebam 404 e desinstalem; merge + tag + deploy.
    - Quem executa: engenharia.
-   - SLA: ≤ 30 min em horário comercial (mesmo SLA de rollback).
-   - Nota: ADR-012 pode ter pré-decidido remover o sw.js já na importação; se sim, P5 é apenas para vigilância pós-fato.
+   - SLA: **best-effort** (mesmo regime do rollback, PDR-015 §4).
+   - Nota: ADR-012 §5 já decidiu remover o sw.js na importação (STORY-030); P5 é vigilância pós-fato / kill-switch caso algum SW persista em clientes.
 
 6. **Procedimento P6 — Go-public (comercial autoriza, engenharia executa).**
-   - Pré-condição: comercial comunica autorização de go-public via canal acordado em PDR-015 (issue/PR/mensagem registrada) com data alvo (≥ 48h de antecedência por PDR-015).
+   - Pré-condição: comercial comunica autorização de go-public via canal acordado em PDR-015 (issue/PR/mensagem registrada) com data alvo (**≥ 24h de antecedência** por PDR-015 §7). Pré-condição adicional: WebApp em produção (`app.turni.com.br`) já no ar — o swap de CTA depende do cutover de produção (WAVE-2026-02); sem ele, o go-public fica bloqueado pelo cutover, não pela landing.
    - Passos:
-     a. **T-48h:** engenharia abre PR de preparação:
+     a. **Ao receber a autorização (T ≥ 24h):** engenharia abre PR de preparação:
         - Flip `var.landing_prod_enabled = true` em `infra/envs/prod/terraform.tfvars`.
         - Atualizar registros DNS de prod no Terraform (apex A/AAAA → site prod da landing; redirect www).
         - Atualizar CTAs da landing AS IS de `app.homolog.turni.com.br` para `app.turni.com.br` (mecânica conforme ADR-012 — placeholder build-time ou PR manual).
         - Atualizar `apps/landing/public/<path-secreto>/index.html` removendo `<meta name="robots" content="noindex,nofollow">` (path-secreto vai virar apex em breve).
         - Atualizar `robots.txt` removendo `Disallow: /<path-secreto>/` (será irrelevante após swap).
-     b. **T-24h:** PR aprovado; merge.
+     b. **Após revisão:** PR aprovado; merge.
      c. **T-1h:** `terraform plan` em prod revisado; `terraform apply` (cria site `turni-landing-prod`, registra domínios).
-     d. **T-0:** tag `landing-vX.Y.Z` (sem `-rc`) → workflow dispara → gate humano em GitHub Environment `landing-prod` → 1 clique de aprovação → deploy. Smoke test em `https://turni.com.br/` retorna landing (não mais "Em breve"); `https://www.turni.com.br/` retorna 301 para apex; `https://turni.com.br/<path-secreto>/` retorna landing (mesmo conteúdo, agora **também** disponível no apex — comercial decide se quer 301 do `<path-secreto>` para apex via PR de seguimento).
+     d. **T-0:** tag `landing-vX.Y.Z` (sem `-rc`) → workflow dispara → gate humano em GitHub Environment `landing-prod` → 1 clique de aprovação → deploy. Smoke test em `https://turni.com.br/` retorna landing (não mais "Em breve"); `https://www.turni.com.br/` retorna 301 para apex; `https://turni.com.br/<path-secreto>/` retorna landing (mesmo conteúdo, agora **também** disponível no apex).
      e. **T+0:** comunicação comercial → marketing/parceiros que a landing está pública.
-   - Quem executa: engenharia (todos os passos técnicos); comercial (autorização T-48h e comunicação T+0).
-   - SLA: janela mínima de 48h entre autorização e go-public.
+     f. **Destino do path antigo (PDR-015 §7):** PR de seguimento configura **301 do `<path-secreto>` para `/` por 90 dias**; após 90 dias, trocar por **410 Gone**. Os 90 dias preservam links já compartilhados com parceiros/imprensa; o 410 aposenta formalmente o path.
+   - Quem executa: engenharia (todos os passos técnicos); comercial (autorização e comunicação T+0).
+   - SLA: janela mínima de **24h** entre autorização e go-public (PDR-015 §7), condicionada ao WebApp prod já estar no ar.
 
 7. **Procedimento P7 — Verificações de saúde periódicas.**
    - Pré-condição: nenhuma; checklist semanal de engenharia.

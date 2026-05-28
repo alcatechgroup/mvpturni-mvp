@@ -7,8 +7,8 @@ sprint_id: SPRINT-2026-W24-LANDING
 type: decision
 target_role: po
 requires_design: false
-status: ready
-owner_agent: null
+status: done
+owner_agent: claude-opus-po-2026-05-28
 created_at: 2026-05-28
 updated_at: 2026-05-28
 estimated_session_size: S
@@ -137,19 +137,37 @@ Siga `docs/skills/po/SKILL.md`. Resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+- Lidos: `epic.md` do EPIC-006, ADR-012 (par técnico já `accepted`), PDR-003, PDR-011, PDR-012 (precedentes), `templates/pdr.md`, `SKILL.md` do PO, `references/indexing.md`, e as estórias 030/032 (consumidoras do PDR).
+- Constatação: a ADR-012 já fixou a mecânica do gate, rotação, 404, cache, sw.js e o padrão de CODEOWNERS por placeholder `_lp/`. PDR-015 não reabre nada disso — fixa só o **acordo de processo** por trás (quem decide, SLA, janelas, go-public).
+- As 8 dimensões da estória traziam sugestões de default; 4 delas são compromissos reais que exigiam chancela do Alexandro como PO/CEO.
 
 ### Conversas com stakeholders
-(a preencher — registrar quem foi consultado, em que canal, e os pontos onde o acordo precisou ser ajustado)
+- Canal: chat da sessão (2026-05-28). No time atual o Alexandro acumula PO/CEO/marketing/engenharia/comercial; ele chancela em nome dos três papéis (CA-6).
+- 4 parâmetros submetidos via questionário, com a sugestão da estória como recomendada. Alexandro **divergiu da sugestão em 3 dos 4** — escolhas mais honestas para time de 1 pessoa:
+  - **SLA de rollback (§4):** escolheu **best-effort, sem número fixo** (sugestão era 30 min/2h). Razão: não há on-call; número teatral vira dívida no 1º incidente; risco real é baixo (infra isola, "Em breve" no apex independe do AS IS).
+  - **Janela de go-public (§7):** escolheu **≥ 24h** (sugestão era ≥ 48h). Razão: ADR-012 fez do go-public operação de minutos; o gargalo real é o cutover de produção do WebApp (WAVE-2026-02), não a landing.
+  - **Rotação de path (§6):** escolheu **sob demanda, sem prazo fixo** (sugestão era ≤ 24h). Razão: o gate é obfuscação, não segurança — vazamento não é incidente cronometrado.
+  - **Destino do path pós go-public (§7):** **manteve a sugestão** — 301 → `/` por 90 dias, depois 410 Gone.
 
 ### Decisões tomadas
-(a preencher — uma linha por dimensão do PDR)
+- **§1 Conteúdo AS IS (`_lp/**`):** marketing é dono; edita sem revisão de engenharia (CODEOWNERS → `@turni/marketing`). Engenharia só toca nas 4 adaptações da importação + remediação emergencial documentada.
+- **§2 "Em breve" (`index.html`):** engenharia dona; marketing pede ajuste de copy via PR; mudanças visuais maiores com input do DDR-001.
+- **§3 Infra:** engenharia exclusiva; marketing não revisa.
+- **§4 SLA de quebra:** best-effort, sem número fixo (time solo; risco baixo).
+- **§5 Cadência de release:** push sob demanda; sem on-call fora do horário; evitar push grande depois de sexta 17h sem combinar.
+- **§6 Rotação de path:** comercial decide (dono da lista de convidados); sob demanda, sem prazo; engenharia executa via runbook (STORY-032).
+- **§7 Go-public:** comercial decide + chancela CEO; comunicado por issue/PR registrado com data alvo; janela ≥ 24h (condicionada ao WebApp prod no ar); engenharia executa; path antigo → 301 p/ `/` por 90d, depois 410.
+- **§8 Fora de escopo:** i18n, captura de lead com backend, A/B, analytics/GTM, CRM, proteção real do path.
 
 ### Bloqueios encontrados
-(a preencher)
+- Nenhum bloqueio. ADR-012 já `accepted` removeu a ambiguidade de mecânica.
 
 ### Pendências para fechar
-(a preencher)
+- Nenhuma pendência bloqueante. Aliases `@turni/marketing` / `@turni/engenharia` são materializados na STORY-030 (CODEOWNERS) — PDR-015 fixa o padrão, não o arquivo.
+- Consistência: STORY-032 (runbook, ainda `ready`) carregava os números **sugeridos** (rollback ≤30 min, rotação ≤24h, go-public ≥48h). Alinhados nesta sessão aos valores realmente decididos na PDR-015 (best-effort / sob-demanda / ≥24h + destino 301→410 do path), para não deixar contradição no estado do projeto. CA-8 confirmado: epic.md, STORY-030 e STORY-032 referenciam PDR-015.
+- Comunicação ao time (padrão de qualidade): mencionar PDR-015 no próximo update geral para garantir que marketing/comercial saibam que o acordo existe.
 
 ### Links de evidência
-(a preencher — PR do PDR, commit de merge)
+- PDR: `docs/project-state/decisions/pdr/PDR-015-fronteira-marketing-engenharia-comercial-landing.md` (`status: accepted`, `approved_by: Alexandro`, `decided_at: 2026-05-28`).
+- `index.json`: PDR-015 em `decisions.pdr[]` (`accepted`); STORY-027 `status: done` com `produces_pdr: PDR-015`.
+- Workflow Turni: commit direto na `main` (sem PR), conforme preferência registrada do Alexandro.
