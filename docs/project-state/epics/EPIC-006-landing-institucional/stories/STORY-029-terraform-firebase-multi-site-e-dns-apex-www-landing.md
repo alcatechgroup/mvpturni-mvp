@@ -7,7 +7,7 @@ sprint_id: SPRINT-2026-W24-LANDING
 type: implementation
 target_role: programador
 requires_design: false
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-programador-029-2026-05-28
 created_at: 2026-05-28
 updated_at: 2026-05-28
@@ -228,6 +228,13 @@ Siga `docs/skills/programador/SKILL.md`. Resumo:
 - CA-8 vira 200 quando STORY-031 fizer o primeiro deploy de conteúdo no site.
 - CA-4: aguardar convergência do custom domain para "connected" (verificar no console Firebase).
 - CA-5/CA-6 (apex/www) só no go-public de prod — confirmar IPs do apex via `required_dns_updates`.
+
+### Fechamento
+Estória marcada **done** em 2026-05-28 pelo PO (Alexandro), que aceitou os residuais documentados
+acima como deferidos legítimos (CA-8 → STORY-031; CA-4 → convergência assíncrona; CA-5/6 → go-public).
+O entregável de infra da onda (sites Firebase multi-site + DNS da landing homolog, com prod codificado
+e gated) está aplicado e verde em homolog. Destrava STORY-031 (deploy/firebase.json), STORY-032
+(runbook) e STORY-033 (validação).
 
 ### IDRs criados
 - **IDR-005** — Firebase multi-site via `additional_sites` (Opção A) vs. N chamadas (Opção B).
