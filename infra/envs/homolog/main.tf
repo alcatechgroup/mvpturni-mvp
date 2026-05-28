@@ -28,6 +28,7 @@ resource "google_project_service" "apis" {
     "logging.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     "servicenetworking.googleapis.com",
+    "cloudscheduler.googleapis.com",
   ])
 
   project            = var.project_id
@@ -190,6 +191,18 @@ module "firebase" {
   project_id = var.project_id
   env        = local.env
   depends_on = [google_project_service.apis]
+}
+
+# ── Agendamento liga/desliga do Cloud SQL (economia de custo) ─────────────────
+# Desliga: seg–sex 22h BRT; sáb+dom ficam desligados.
+# Liga: seg–sex 06h BRT.
+module "sql_scheduler" {
+  source        = "../../modules/sql-scheduler"
+  project_id    = var.project_id
+  region        = var.region
+  env           = local.env
+  instance_name = module.cloud_sql.instance_name
+  depends_on    = [google_project_service.apis, module.cloud_sql]
 }
 
 # ── Monitoramento (ADR-008) ───────────────────────────────────────────────────
