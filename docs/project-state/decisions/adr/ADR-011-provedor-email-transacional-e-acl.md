@@ -2,10 +2,10 @@
 adr_id: ADR-011
 slug: provedor-email-transacional-e-acl
 title: Provedor de e-mail transacional e Anti-Corruption Layer — Resend como provedor, interface EnviaEmailTransacional no domínio, Mailpit em container para dev/local
-status: proposed
-decided_at: null
+status: accepted
+decided_at: 2026-05-28
 decided_by: arquiteto
-approved_by: null
+approved_by: Alexandro
 supersedes: null
 superseded_by: null
 related_adrs: [ADR-002, ADR-004, ADR-005, ADR-007, ADR-008]
@@ -320,11 +320,11 @@ flowchart TB
 
 > Esta seção é o registro formal do aceite. Não preencher sozinho — preencher quando o humano aprovar no chat ou via PR.
 
-- **Status final:** ⬜ pendente
-- **Aprovado por:** —
-- **Data:** —
-- **Forma do aceite:** —
-- **Condicionantes do aceite:** —
+- **Status final:** ✅ aceita
+- **Aprovado por:** Alexandro
+- **Data:** 2026-05-28
+- **Forma do aceite:** aprovado em chat (sessão de 2026-05-28); commit direto na `main`
+- **Condicionantes do aceite:** nenhuma.
 
 ### Em caso de rejeição
 - **Motivo:** ...
@@ -339,3 +339,4 @@ flowchart TB
 ## Histórico
 
 - 2026-05-28 — criada como `proposed` por Arquiteto (STORY-014). Resend como provedor; ACL `EnviaEmailTransacional` no domínio; Mailpit em container para dev; subdomínio `mail.turni.com.br`; tratamento de falha via fila `database` com retry 3×, backoff exponencial, dead letter, alerta Cloud Monitoring para falha crítica de aprovação.
+- 2026-05-28 — `accepted` por Alexandro (aprovação em chat; commit direto na `main`).
