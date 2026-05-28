@@ -208,34 +208,17 @@ module "sql_scheduler" {
   depends_on           = [google_project_service.apis, module.cloud_sql, module.worker]
 }
 
-# ── Cloud Run domain mapping — API ───────────────────────────────────────────
-# Mapeia api.homolog.turni.com.br → serviço Cloud Run turni-api-homolog.
-# Google provisiona HTTPS automaticamente; DNS deve ter CNAME → ghs.googlehosted.com.
-resource "google_cloud_run_domain_mapping" "api" {
-  location = var.region
-  name     = local.api_host
-
-  metadata {
-    namespace = var.project_id
-  }
-
-  spec {
-    route_name = module.cloud_run_api.service_name
-  }
-
-  depends_on = [module.cloud_run_api, module.dns]
-}
-
 # ── DNS (Cloud DNS) ──────────────────────────────────────────────────────────
 # Fase 1 (feita): zona criada, NS configurados no registro.br.
-# Fase 2 (esta): CNAME api → ghs.googlehosted.com, CNAME webapp → Firebase.
+# Fase 2 (esta): CNAME webapp → Firebase (app.homolog.turni.com.br).
+# API: Cloud Run domain mapping não é suportado em southamerica-east1.
+#      Em homolog: acesso via URL direta do Cloud Run.
+#      Em prod: provisionar HTTPS LB + Serverless NEG.
 module "dns" {
   source              = "../../modules/dns"
   project_id          = var.project_id
   create_zone         = true
   dns_zone_name       = "turni-com-br"
-  api_subdomain       = local.api_host
-  api_cname_target    = "ghs.googlehosted.com"
   webapp_subdomain    = local.webapp_host
   webapp_cname_target = module.firebase.cname_target
   depends_on          = [google_project_service.apis, module.firebase]
