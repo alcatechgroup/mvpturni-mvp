@@ -143,9 +143,13 @@ jobs:
             --project ${{ secrets.GCP_PROJECT_ID }}
       - name: Health check
         run: |
+          # Tenta domínio customizado; fallback para URL do Cloud Run enquanto DNS não está propagado
+          URL=$(gcloud run services describe turni-api-homolog \
+            --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
+            --format="value(status.url)" 2>/dev/null)
           for i in $(seq 1 12); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.homolog.turni.com.br/health)
-            if [ "$STATUS" = "200" ]; then echo "Health check ok"; exit 0; fi
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${URL}/health")
+            if [ "$STATUS" = "200" ]; then echo "Health check ok: ${URL}/health"; exit 0; fi
             echo "Aguardando... ($i/12) status=$STATUS"
             sleep 10
           done
@@ -184,9 +188,12 @@ jobs:
             --project ${{ secrets.GCP_PROJECT_ID }}
       - name: Health check
         run: |
+          URL=$(gcloud run services describe turni-admin-homolog \
+            --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
+            --format="value(status.url)" 2>/dev/null)
           for i in $(seq 1 12); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://admin.homolog.turni.com.br/health)
-            if [ "$STATUS" = "200" ]; then echo "Health check ok"; exit 0; fi
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${URL}/health")
+            if [ "$STATUS" = "200" ]; then echo "Health check ok: ${URL}/health"; exit 0; fi
             echo "Aguardando... ($i/12) status=$STATUS"
             sleep 10
           done
