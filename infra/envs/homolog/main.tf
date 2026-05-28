@@ -207,6 +207,17 @@ module "sql_scheduler" {
   depends_on           = [google_project_service.apis, module.cloud_sql, module.worker]
 }
 
+# ── DNS (Cloud DNS) ──────────────────────────────────────────────────────────
+# Fase 1: cria só a zona para obter os NS records (configurar no registro.br).
+# Fase 2: adicionar webapp_subdomain/webapp_cname_target e api/admin IPs quando LBs estiverem prontos.
+module "dns" {
+  source        = "../../modules/dns"
+  project_id    = var.project_id
+  create_zone   = true
+  dns_zone_name = "turni-com-br"
+  depends_on    = [google_project_service.apis]
+}
+
 # ── Monitoramento (ADR-008) ───────────────────────────────────────────────────
 module "monitoring" {
   source      = "../../modules/monitoring"

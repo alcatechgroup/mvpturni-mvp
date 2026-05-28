@@ -23,3 +23,8 @@ output "admin_url" {
 output "firebase_site_id" {
   value = module.firebase.site_id
 }
+
+output "dns_name_servers" {
+  description = "Nameservers para configurar no registro.br (delegar turni.com.br para o Cloud DNS)"
+  value       = module.dns.name_servers
+}
