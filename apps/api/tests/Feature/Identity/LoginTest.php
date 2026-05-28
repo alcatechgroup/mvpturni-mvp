@@ -19,8 +19,9 @@ function apiPost(string $url, array $data = []): \Illuminate\Testing\TestRespons
         ->withoutMiddleware([
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class,
         ])
-        ->withSession([])  // Inicia sessão de teste em memória
+        ->withSession([])
         ->postJson($url, $data);
 }
 

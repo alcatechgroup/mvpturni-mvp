@@ -17,6 +17,12 @@
             <directory>app</directory>
             <directory>database/seeders</directory>
         </include>
+        <exclude>
+            <!-- Fortify stubs publicados — implementação fica para STORY-017/018/021 -->
+            <directory>app/Actions</directory>
+            <!-- FortifyServiceProvider publica routes de Fortify — não testado isoladamente -->
+            <file>app/Providers/FortifyServiceProvider.php</file>
+        </exclude>
     </source>
     <coverage>
         <report>
