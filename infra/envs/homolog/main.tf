@@ -119,14 +119,15 @@ module "cloud_run_api" {
   allow_unauthenticated    = true
 
   env_vars = {
-    APP_ENV       = "production"
-    APP_DEBUG     = "false"
-    LOG_CHANNEL   = "stderr"
-    DB_CONNECTION = "pgsql"
-    DB_SOCKET     = local.cloudsql_socket
-    DB_DATABASE   = "turni"
-    DB_USERNAME   = "turni"
+    APP_ENV          = "production"
+    APP_DEBUG        = "false"
+    LOG_CHANNEL      = "stderr"
+    DB_CONNECTION    = "pgsql"
+    DB_SOCKET        = local.cloudsql_socket
+    DB_DATABASE      = "turni"
+    DB_USERNAME      = "turni"
     QUEUE_CONNECTION = "database"
+    SESSION_DRIVER   = "array"
   }
 
   secret_env_vars = {
@@ -151,13 +152,14 @@ module "cloud_run_admin" {
   allow_unauthenticated    = false
 
   env_vars = {
-    APP_ENV       = "production"
-    APP_DEBUG     = "false"
-    LOG_CHANNEL   = "stderr"
-    DB_CONNECTION = "pgsql"
-    DB_SOCKET     = local.cloudsql_socket
-    DB_DATABASE   = "turni"
-    DB_USERNAME   = "turni"
+    APP_ENV        = "production"
+    APP_DEBUG      = "false"
+    LOG_CHANNEL    = "stderr"
+    DB_CONNECTION  = "pgsql"
+    DB_SOCKET      = local.cloudsql_socket
+    DB_DATABASE    = "turni"
+    DB_USERNAME    = "turni"
+    SESSION_DRIVER = "cookie"
   }
 
   secret_env_vars = {

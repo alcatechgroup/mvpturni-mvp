@@ -69,6 +69,7 @@ ARG APP_VERSION
 ENV APP_ENV=production \
     APP_DEBUG=false \
     LOG_CHANNEL=stderr \
+    SESSION_DRIVER=array \
     APP_VERSION=${APP_VERSION}
 
 EXPOSE 8080
