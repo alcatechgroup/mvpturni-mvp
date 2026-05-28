@@ -24,12 +24,23 @@ Esta reference cobre **como escrever o relatório bem**.
 ## Resumo executivo
 ## Checklist preenchido (por bloco)
 ## Fails categorizados por gravidade
-## Recomendação ao PO
+## Passes com ressalva
+## Limitações da validação
 ## Apêndice — evidência detalhada
 ## Histórico
 ```
 
 Cada seção tem propósito distinto. Não cole tudo em uma — quem lê precisa pular para a seção certa rapidamente.
+
+**Atenção ao que NÃO entra no relatório:**
+
+- **Recomendação ao PO** — não existe. Validador entrega fatos; PO decide o que fazer com eles.
+- **Sugestão de estórias de correção** — não. Não nomeie "STORY-XXX-corr", não estime tamanho, não proponha escopo de correção.
+- **Próximos passos** — não. "Sugiro corrigir antes de fechar" é planejamento, é do PO.
+- **Observações de processo / input para retrospectiva** — não. Gestão de processo é do PO.
+- **Linguagem de aconselhamento** — "recomendo", "sugiro", "considere", "vale lembrança", "merece atenção do PO". Todas fora. Substitua por fato neutro.
+
+Se você sente vontade de escrever uma dessas coisas, é sinal de que cruzou a fronteira. Pare, releia o fato observado, descreva o fato.
 
 ---
 
@@ -39,17 +50,23 @@ Cada seção tem propósito distinto. Não cole tudo em uma — quem lê precisa
 
 - **Veredito**: APPROVED / REJECTED / APPROVED com pendências.
 - **Contagem rápida**: X passes, Y fails (bloqueantes/não-bloqueantes), Z n/a.
-- **Próximo passo recomendado** em uma frase.
+- **Resumo factual** dos bloqueantes em uma frase (o que falhou, sem opinar sobre o que fazer).
 
 **Exemplo bom:**
 
-> **Veredito: REJECTED.** 18 passes, 2 fails (1 bloqueante, 1 não-bloqueante), 3 n/a justificados. **Recomendação**: corrigir o fail bloqueante (CA-3 sem teste) antes de fechar; não-bloqueante pode virar estória própria.
+> **Veredito: REJECTED.** 18 passes, 2 fails (1 bloqueante, 1 não-bloqueante), 3 n/a justificados. **Bloqueante**: CA-3 da STORY-007 sem teste cobrindo (função `validar_digitos_verificadores` com 0% de cobertura).
 
-**Exemplo ruim:**
+**Exemplo ruim — não use:**
+
+> **Veredito: REJECTED.** 18 passes, 2 fails. **Recomendação**: corrigir o fail bloqueante antes de fechar; não-bloqueante pode virar estória própria.
+
+(Isso é planejamento — sai. PO lê o fato, PO decide.)
+
+**Outro exemplo ruim:**
 
 > Foi feita a validação completa do EPIC-007 que envolveu... [parágrafo de 200 palavras descrevendo o épico inteiro]
 
-TL;DR não é resumo do épico. É veredito acionável.
+TL;DR não é resumo do épico. **É veredito + fato dos bloqueantes**, nada além.
 
 ---
 
@@ -64,9 +81,9 @@ TL;DR não é resumo do épico. É veredito acionável.
 
 **Exemplo:**
 
-> O EPIC-007 entregou o fluxo de candidatura a uma vaga — profissional consegue ver vaga em homologação, candidatar-se e o contratante consegue confirmar o match. Cobertura geral 84%, núcleo 98.5%. Pipeline verde nos últimos 8 commits da branch principal. **Achei um fail bloqueante**: CA-3 ("sistema rejeita arquivo > 5MB com mensagem específica") não tem teste automatizado cobrindo — a validação funciona em homologação mas não está sob teste, o que viola padrão do PO. **Outro fail não-bloqueante**: README do módulo de matching não foi atualizado; vira estória pequena de correção. Restante OK.
+> O EPIC-007 entregou o fluxo de candidatura a uma vaga — profissional consegue ver vaga em homologação, candidatar-se e o contratante consegue confirmar o match. Cobertura geral 84%, núcleo 98.5%. Pipeline verde nos últimos 8 commits da branch principal. **Fail bloqueante observado**: CA-3 ("sistema rejeita arquivo > 5MB com mensagem específica") não tem teste automatizado cobrindo — a validação funciona em homologação mas não está sob teste, o que viola padrão do PO de cobertura. **Fail não-bloqueante**: README do módulo de matching não foi atualizado. Restante OK.
 
-Concisão + específico + acionável.
+Concisão + específico + factual. **Note:** sem "vira estória pequena de correção", sem "achei um fail" (use "fail observado"), sem juízo sobre o que o PO deveria fazer.
 
 ---
 
@@ -101,55 +118,70 @@ Lista dedicada para PO escanear rapidamente:
 ```markdown
 ## Fails identificados
 
-### Bloqueantes (épico não deve fechar até resolver)
+### Bloqueantes
+
+> Classificação conforme `verdict-criteria.md` (CA não cumprido, cobertura abaixo do mínimo, pipeline vermelho, funcionalidade inacessível, etc.).
 
 1. **CA-3 da STORY-007 sem teste cobrindo** (Bloco 1.3)
-   - Função `bloquear_terceira_alocacao_pf` em `candidatura/habitualidade.py` com 0% de cobertura.
-   - Regra do PDR-002 funciona manualmente em homologação mas não está sob teste automatizado.
-   - **Sugestão**: estória nova com testes para CA-3 cobrindo: profissional PF com 0, 1, 2 e 3 alocações na semana corrente no mesmo estabelecimento; transição entre semanas; profissional PJ com 3 alocações (alerta + override, não bloqueio).
-   - Evidência: apêndice A.3.
+   - **Critério esperado**: CA-3 da STORY-007 — "sistema rejeita arquivo > 5MB com mensagem específica" coberto por teste automatizado.
+   - **O que verifiquei**: função `bloquear_terceira_alocacao_pf` em `candidatura/habitualidade.py` com 0% de cobertura no relatório CI #1234. `grep -r "habitualidade" tests/` retorna vazio. Manualmente em homologação a rejeição funciona.
+   - **Classificação**: bloqueante por regra `verdict-criteria.md` — CA com funcionalidade observável mas sem teste automatizado conta como fail bloqueante.
+   - **Evidência**: apêndice A.3.
 
-### Não-bloqueantes (podem virar pendência)
+### Não-bloqueantes
+
+> Classificação conforme `verdict-criteria.md` (documentação desatualizada em ponto não-crítico, convenção parcial, etc.).
 
 1. **README do módulo `candidatura` desatualizado** (Bloco 6.1)
-   - Mudanças do épico não refletidas no README.
-   - **Sugestão**: estória pequena (S) para atualizar README.
-   - Evidência: apêndice A.6.
+   - **Critério esperado**: README do módulo reflete mudanças do épico.
+   - **O que verifiquei**: README último commit em 2026-03-12; mudanças do épico em commits posteriores não refletidas.
+   - **Classificação**: não-bloqueante — documentação desatualizada em ponto não-crítico (`verdict-criteria.md`).
+   - **Evidência**: apêndice A.6.
 ```
 
 **Para cada fail:**
 
 - **Nome curto** no formato consistente.
-- **Descrição factual** (não emocional).
-- **Sugestão** ao PO (o que poderia virar estória — sem decidir por ele).
+- **Critério esperado** — citação do que o checklist exigia.
+- **O que verifiquei** — descrição factual + evidência inline.
+- **Classificação** — bloqueante ou não-bloqueante, com referência à regra de `verdict-criteria.md` que se aplica.
 - **Link para evidência detalhada** no apêndice.
+
+**Note bem o que NÃO entra em cada fail:**
+
+- ❌ Sugestão de estória de correção
+- ❌ Escopo de testes que a correção deveria cobrir
+- ❌ "Estimativa de tamanho" da correção
+- ❌ "O PO deveria...", "vira correção...", "vira pendência..."
+
+Isso é planejamento do PO. Validador para no fato + classificação.
 
 ---
 
-## Recomendação ao PO
+## Limitações da validação
 
-Esta seção é onde você **traduz fails em ação possível** — sem decidir pelo PO. Você é conselheiro técnico do veredito; ele decide o que fazer.
+Substitui a antiga "Recomendação ao PO" — em vez de aconselhar, o Validador relata o que **não conseguiu verificar** e por quê.
 
 ```markdown
-## Recomendação ao PO
+## Limitações da validação
 
-**Sobre o épico**:
-- Veredito REJECTED por causa de 1 fail bloqueante.
-- Sugiro **não fechar o épico** até esse fail virar correção. Não-bloqueante pode entrar como estória da próxima sprint.
+> O que ficou fora do alcance desta validação. Honestidade sobre cobertura > simulação de completude.
 
-**Sobre estórias de correção sugeridas**:
-- STORY-XXX-correcao: adicionar testes para CA-3 da STORY-007 (regra de habitualidade PF). Tamanho estimado S.
-- STORY-YYY-correcao: atualizar README do módulo `candidatura`. Tamanho estimado S.
-
-**Observações que merecem atenção** (não fails, mas vale notar):
-- Cobertura geral em 84.3% — atende mínimo de 80%, mas próxima do limite. Considere meta interna de 85% para manter folga.
-- Estória STORY-009 tem "Notas do agente" muito breves comparado às outras. Pode indicar pressa no fim — vale conversa em retro.
-
-**Sobre o processo** (input para retrospectiva):
-- O fail bloqueante (CA sem teste) sugere que `done-checklist` do Programador não pegou. Vale lembrança no próximo sprint.
+- **Cobertura do módulo X em ambiente integrado**: não foi possível porque o sandbox não tem o connector externo Y configurado. Verificação ficou na cobertura local + smoke manual em homologação.
+- **Evidência de E2E para o cenário Z**: cenário existe na spec mas o último run em CI foi há 12 dias (antes do épico). Não há run pós-épico para anexar.
 ```
 
-**Princípio**: você dá insumo, PO decide.
+**Princípio**: você diz o que viu e o que não viu. Você não diz o que o PO deveria fazer com isso.
+
+**O que NÃO entra aqui (e nem em nenhum outro lugar do relatório):**
+
+- "Recomendo ao PO..."
+- "Sugiro abrir estória..."
+- "Vira input para retrospectiva..."
+- "PO deveria considerar..."
+- "Tamanho estimado: S"
+
+Tudo isso é planejamento. Planejamento é do PO. Fim.
 
 ---
 
@@ -186,10 +218,9 @@ Para cada fail e para `pass com ressalva` significativo, expanda no apêndice:
 
 **Impacto**: regressão de regra de compliance (PDR-002) pode acontecer sem detecção — quebra promessa de governança documentada.
 
-**Sugestão**: estória nova com testes cobrindo: PF com 0, 1, 2 alocações (libera); PF com 2 alocações já realizadas + 3ª tentativa (bloqueia); PJ com 3 alocações (alerta + override); transição de semana (segunda-feira reseta contagem).
 ```
 
-Apêndice é o lugar para **detalhe extenso**. Quem quer entender em profundidade vem aqui.
+Apêndice é o lugar para **detalhe extenso da evidência**. Quem quer entender em profundidade vem aqui. **Não inclua "sugestão" no apêndice** — mesmo aqui não cabe planejamento; apenas reprodução, log, screenshot, citação do critério.
 
 ---
 
@@ -199,11 +230,12 @@ Apêndice é o lugar para **detalhe extenso**. Quem quer entender em profundidad
 |---|---|
 | "Infelizmente identificamos um problema crítico..." | "Fail bloqueante: ..." |
 | "O time fez um excelente trabalho em..." | "Pass com evidência forte em..." |
-| "Acredito que devemos..." | "Recomendo..." (e só se vc é o validador, **se** for recomendação) |
+| "Acredito que devemos...", "Recomendo...", "Sugiro..." | (apague — Validador não recomenda nem sugere. Se sente vontade, escreva o fato em vez disso) |
+| "Vira estória pequena de correção..." | (apague — escopo de correção é do PO) |
 | "Não foi possível verificar..." | "Não verifiquei porque [motivo específico]. Limitação registrada." |
 | "Parece que..." | "Verifiquei e..." (com evidência) ou "Não pude verificar; observação parcial:..." |
 
-Você é **régua**. Régua não tem emoção. Régua tem precisão.
+Você é **régua**. Régua não tem emoção. Régua tem precisão. **Régua não dá conselho.**
 
 ---
 
@@ -230,8 +262,8 @@ Anti-padrão clássico. Sempre prosa específica.
 **7. Tom emocional.**
 "Lamentavelmente" ou "felizmente" entra em opinião. Você é factual.
 
-**8. Recomendação como decisão.**
-"Decido reprovar e exigir correção em 3 dias." Você não decide isso. Você relata e recomenda. PO decide.
+**8. Recomendação ou planejamento — em qualquer dose.**
+"Sugiro estória nova...", "Decido reprovar e exigir correção em 3 dias", "Vira pendência da próxima sprint", "Recomendo ao PO...". Tudo fora. Validador relata fatos e classificação. Planejar é do PO; decidir é do PO. Se você sente vontade de escrever uma dessas, é sinal de que cruzou a fronteira do papel.
 
 **9. Relatório muito longo.**
 20+ páginas de prosa cansa quem lê. Use apêndice para detalhe — corpo principal compacto.
@@ -245,14 +277,15 @@ Se você precisa corrigir/complementar o relatório depois do veredito inicial, 
 
 Antes de marcar o relatório como completo:
 
-- [ ] **TL;DR** está no topo, 3-5 linhas, com veredito + contagem + próximo passo.
-- [ ] **Resumo executivo** dá contexto em 1-2 parágrafos.
+- [ ] **TL;DR** está no topo, 3-5 linhas, com veredito + contagem + resumo factual dos bloqueantes (sem "próximo passo recomendado").
+- [ ] **Resumo executivo** dá contexto em 1-2 parágrafos, factual.
 - [ ] **Cada item do checklist** tem status + evidência inline.
 - [ ] **Cada `pass` tem evidência verificável** (não só "ok").
 - [ ] **Cada `n/a` tem prosa específica** justificando.
-- [ ] **Cada `fail` tem gravidade** classificada (bloqueante / não-bloqueante).
-- [ ] **Recomendação ao PO** é insumo, não decisão.
-- [ ] **Apêndice** expande os fails e ressalvas relevantes com reprodução.
+- [ ] **Cada `fail` tem gravidade** classificada (bloqueante / não-bloqueante) com referência à regra de `verdict-criteria.md`.
+- [ ] **Sem seção "Recomendação ao PO".** Sem "sugestão de estória" em fail nenhum. Sem "próximo passo". Sem "vira retro".
+- [ ] **Busca textual** por `recomend`, `sugir`, `sugest`, `próximo passo`, `vira est`, `retrospect` no relatório — qualquer ocorrência é sinal de cruzamento de fronteira, revisar.
+- [ ] **Apêndice** expande os fails e ressalvas relevantes com reprodução — sem aconselhar correção.
 - [ ] **Tom factual** — releia procurando palavras emocionais e remova.
 - [ ] **Cabe em pessoa lendo em ~5 min** o corpo principal (apêndice à parte).
 
@@ -264,10 +297,10 @@ Se uma das checagens acima falha → não submeta ainda. Ajuste.
 
 Relatório bem feito tem:
 
-1. **Topo acionável** (TL;DR).
-2. **Corpo navegável** (checklist + fails + recomendação).
+1. **Topo acionável** (TL;DR factual).
+2. **Corpo navegável** (checklist + fails classificados + limitações).
 3. **Apêndice profundo** (evidência detalhada).
-4. **Tom factual** em todo o texto.
-5. **Releitura final** antes de submeter.
+4. **Tom factual** em todo o texto. **Zero linguagem de aconselhamento.**
+5. **Releitura final** antes de submeter — incluindo busca textual por palavras de recomendação.
 
-> **Relatório bom não convence — informa. PO faz o resto.**
+> **Relatório bom não convence — informa. PO faz o resto, inclusive o plano de correção.**

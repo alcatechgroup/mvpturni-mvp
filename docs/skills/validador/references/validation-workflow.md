@@ -174,14 +174,14 @@ Detalhamento em `evidence-discipline.md`. **Sem evidência, sua afirmação não
 
 Use `templates/validation-report.md`. Detalhamento em `reporting-craft.md`. Estrutura:
 
-1. TL;DR (veredito + 3 linhas)
-2. Resumo executivo (1 parágrafo)
+1. TL;DR (veredito + 3 linhas factuais — sem "próximo passo recomendado")
+2. Resumo executivo (1 parágrafo — o que foi observado, sem opinião sobre o que fazer)
 3. Checklist preenchido (todos os blocos com pass/fail/n-a + evidência)
-4. Fails categorizados por gravidade (bloqueante vs não-bloqueante)
-5. Recomendação para o PO (próximos passos)
+4. Fails categorizados por gravidade (bloqueante vs não-bloqueante) — apenas fatos por fail: critério esperado, o que verifiquei, por que é bloqueante/não-bloqueante segundo `verdict-criteria.md`, evidência. **Sem "sugestão", sem "estória de correção", sem "próximo passo".**
+5. Limitações da validação (o que não conseguiu verificar e por quê)
 6. Apêndice de evidência
 
-**Não submeta o relatório se algum item está vazio ou impreciso.** Releia uma vez antes de fechar.
+**Não submeta o relatório se algum item está vazio ou impreciso.** Releia uma vez antes de fechar — **e remova qualquer linguagem que sugira plano, ordem de correção ou estória nova**. Planejamento é do PO.
 
 ---
 
@@ -213,21 +213,18 @@ No chat, ao terminar:
 
 > "**Validação do EPIC-XXX concluída.**
 > **Veredito: APPROVED** (todos os 7 blocos `pass` ou `n/a` justificado).
-> **Resumo**: <3 linhas: o que foi entregue, pontos altos, eventuais ressalvas>.
-> **Relatório**: [link]
->
-> Aguardo sua leitura para fechar o épico."
+> **Resumo**: <3 linhas: o que foi entregue e verificado, eventuais ressalvas>.
+> **Relatório**: [link]"
 
 ou
 
 > "**Validação do EPIC-XXX concluída.**
 > **Veredito: REJECTED** — 3 fails identificados, sendo 1 bloqueante.
-> **Bloqueante**: <descrição curta>.
-> **Não-bloqueantes**: <lista curta>.
-> **Recomendação**: <resumo>.
+> **Bloqueante**: <descrição factual curta>.
+> **Não-bloqueantes**: <lista factual curta>.
 > **Relatório completo**: [link]"
 
-Curto, factual, acionável.
+Curto, factual. **Sem recomendação, sem próximo passo, sem opinião sobre o que o PO deve fazer.** O PO lê o relatório e decide.
 
 ---
 
@@ -257,7 +254,7 @@ Depende do tamanho do épico:
 - Checklist mal definido (você está improvisando o que verificar).
 - Ambiente ruim (subir homologação demora demais).
 
-Registre como observação no relatório — pode virar input de melhoria para o PO.
+Registre como **limitação observada** no relatório (na seção "Limitações da validação") — fato neutro, sem opinar sobre o que o PO deveria fazer com isso.
 
 ---
 
@@ -271,9 +268,9 @@ Em ordem, sem pular:
 4. Setup do ambiente de validação.
 5. Executa o checklist em ordem (7 blocos).
 6. Compila evidência item por item.
-7. Atribui veredito.
-8. Escreve o relatório completo.
+7. Atribui veredito e classifica gravidade dos fails (regras objetivas de `verdict-criteria.md`).
+8. Escreve o relatório completo — só fatos, evidência e classificação. **Sem recomendação, sem sugestão de stories, sem próximo passo.**
 9. Atualiza `index.json` (campo `validation_report` apenas).
-10. Notifica PO com resumo + link.
+10. Notifica PO com resumo factual + link.
 
 > **Validação boa parece rotineira por fora. Por dentro, é disciplina sem atalho.**

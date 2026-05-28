@@ -11,6 +11,8 @@ status: in_review
 owner_agent: claude-sonnet-4-6-validador
 created_at: 2026-05-26
 updated_at: 2026-05-28
+validation_round: 2
+verdict: approved_with_pending
 estimated_session_size: M
 ---
 
@@ -168,8 +170,10 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo específico para v
 ## Notas do agente (preenchido durante/após execução)
 
 ### Resumo executivo da validação
-- 2026-05-28 — Validação INICIADA. Documentos canônicos lidos (SKILL.md, epic.md, quality-standards.md, validation-workflow.md, verdict-criteria.md, todas as 10 estórias anteriores, ADRs, DDR-001, IDR-002). Checklist criado a partir do template. Bloqueios reportados ao PO → Programador resolveu pré-condições → validação retomada.
-- 2026-05-28 — Validação CONCLUÍDA. **VEREDITO: REJECTED.** 8 fails bloqueantes e 2 não-bloqueantes. O épico demonstrou fundação técnica sólida (WebApp em homolog, pipeline, ADRs), mas 3 problemas estruturais impedem o `done`: (1) CI RED desde STORY-008 (Flutter format + PHP Pint); (2) Admin homolog inacessível — 403 (IAM policy não propagada); (3) E2E nunca rodou na pipeline (releases rc.4/rc.5/rc.6 falharam antes de atingir o job E2E). Recomendadas STORY-012 (lint fixup), STORY-013 (IAM admin), STORY-014 (rollback testado).
+- 2026-05-28 — Validação 1ª RODADA INICIADA. Documentos canônicos lidos (SKILL.md, epic.md, quality-standards.md, validation-workflow.md, verdict-criteria.md, todas as 10 estórias anteriores, ADRs, DDR-001, IDR-002). Checklist criado a partir do template. Bloqueios reportados ao PO → Programador resolveu pré-condições → validação retomada.
+- 2026-05-28 — Validação 1ª RODADA CONCLUÍDA. **VEREDITO: REJECTED.** 8 fails bloqueantes e 2 não-bloqueantes. O épico demonstrou fundação técnica sólida (WebApp em homolog, pipeline, ADRs), mas 3 problemas estruturais impediram o `done`: (1) CI RED (Flutter format + PHP Pint); (2) Admin homolog inacessível — 403 (IAM policy não propagada); (3) E2E nunca rodou na pipeline (releases rc.4/rc.5/rc.6 falharam antes de atingir o job E2E).
+- 2026-05-28 — Validação 2ª RODADA INICIADA. Programador realizou correções (lint, IAM admin via terraform apply, rollback testado, E2E adaptado para URL dinâmica). Criadas tags rc.10/rc.11/rc.12 para demonstrar métrica primária com código completo.
+- 2026-05-28 — Validação 2ª RODADA CONCLUÍDA. **VEREDITO: APPROVED com pendências.** 0 fails bloqueantes; 1 fail não-bloqueante (php artisan migrate:rollback não executado em homologação). Todos os 8 fails bloqueantes da 1ª rodada foram resolvidos: CI verde em 5 runs consecutivos (incluindo Trivy api+admin), admin v0.1.0-rc.12 HTTP 200, E2E ✅ em rc.10/rc.11/rc.12, métrica primária atingida (3 min 34 s / 3 min 39 s / 4 min 12 s).
 
 ### Decisões tomadas durante a validação
 - 2026-05-28 — Criado `validation/checklist.md` a partir do template (autorizado pela própria STORY-011: "a ser criado pelo PO... ou pelo próprio Validador a partir do template se ainda não existir").

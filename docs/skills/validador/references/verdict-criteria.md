@@ -35,7 +35,7 @@ Existe para casos onde o critério **é cumprido** mas há detalhe que o PO ou t
 
 **Exemplos:**
 
-⚠️ "Cobertura geral 80.2% — atende o mínimo de 80% mas no limite. Sugiro reforço em próximas estórias." → `pass com ressalva`.
+⚠️ "Cobertura geral 80.2% — atende o mínimo de 80% mas no limite (margem 0.2pp)." → `pass com ressalva`.
 ⚠️ "E2E em browser real cobrindo fluxo, mas apenas cenário feliz (sem cenário de erro)." → `pass com ressalva`.
 
 **Quando usar**: você marca `pass` (não bloqueia o épico), mas registra a observação no relatório para o PO considerar em planejamento futuro.
@@ -89,7 +89,7 @@ Fail é bloqueante quando atende **uma ou mais** condições:
 - **Dado pessoal** novo sem alinhamento com PO (LGPD).
 - **Segredo no código** descoberto.
 
-Bloqueante = épico **rejected**. PO precisa abrir estórias de correção antes do épico fechar.
+Bloqueante = épico **rejected**. O que o PO decide fazer com isso (abrir estória de correção, reabrir a estória original, mudar plano) **não é problema do Validador** — registre apenas a classificação.
 
 ### **Não-bloqueante** — épico pode fechar, mas vira pendência
 
@@ -102,7 +102,7 @@ Fail é não-bloqueante quando:
 - **Cenário E2E** falta um caso de erro (mas feliz está coberto).
 - **Notas do agente** incompletas em uma estória.
 
-Não-bloqueante = épico **rejected** mesmo assim **se o PO decidir** — ou aprovado **com pendências**. Decisão final é do PO, sua recomendação aparece no relatório.
+Não-bloqueante = épico pode ser fechado **se o PO decidir** — ou aprovado **com pendências**. Decisão final é do PO; o Validador apenas classifica e relata o fato, **sem recomendar** o que o PO deve escolher.
 
 ### Como classificar quando está em zona cinza
 
@@ -130,7 +130,7 @@ Teste que passa às vezes e falha às vezes — sem causa clara.
 
 - **Flaky introduzido pelo épico** (não passava antes, passa agora intermitente, foi mexido nessa estória): **fail bloqueante**.
 - **Flaky pré-existente** (já estava assim antes do épico — verifique no histórico): **registre como observação** no relatório, mas não bloqueia o épico — abra estória de bug com PO para tratar separado.
-- **Flaky com taxa de falha alta** (>20% das execuções falha): tratar como **fail** mesmo se pré-existente; **com sugestão de skip temporário** + IDR explicando + estória de correção priorizada.
+- **Flaky com taxa de falha alta** (>20% das execuções falha): tratar como **fail** mesmo se pré-existente. Relate o fato (taxa observada, comando de reprodução, histórico do flake); o PO decide o que fazer (skip temporário, IDR, estória de correção priorizada — não é o Validador que propõe).
 
 Veja `programador/references/testing-discipline.md` sobre "eu quebrei vs já estava quebrado" — mesma lógica aplica aqui na validação.
 
@@ -144,9 +144,9 @@ Compilação dos itens:
 |---|---|
 | Todos os itens `pass`, `pass com ressalva` ou `n/a` justificado | **APPROVED** |
 | Pelo menos um `fail` **bloqueante** | **REJECTED** |
-| Pelo menos um `fail` **não-bloqueante**, sem bloqueantes | **APPROVED com pendências** (recomendar ao PO; decisão final dele) |
+| Pelo menos um `fail` **não-bloqueante**, sem bloqueantes | **APPROVED com pendências** (PO decide se aceita ou pede correção) |
 
-**APPROVED com pendências** é estado intermediário honesto. Você está dizendo: "épico cumpre o essencial; estas pendências viram estórias futuras". PO decide se aceita ou pede correção antes do `done`.
+**APPROVED com pendências** é estado intermediário honesto. Você está dizendo: "épico cumpre o essencial; estes itens não-bloqueantes ficaram em aberto". PO decide o que fazer com elas — você **não opina** se devem virar correção, pendência ou ser ignoradas.
 
 ---
 
@@ -189,8 +189,8 @@ Histórico mostra teste que falhava — agora não falha mais, mas foi **removid
 Estória declara `done` no índice, mas você verifica e o CA não está funcionando.
 
 - **Veredito do bloco 1**: `fail bloqueante`.
-- **Implicação maior**: questione consistência do índice e do trabalho do Programador. Registre como ressalva no relatório — pode indicar problema de processo (Programador marcando done sem validar próprio trabalho — princípio "done means done" violado).
-- **Recomendação ao PO**: além de corrigir o CA, considere retro com Programador sobre disciplina de done.
+- **Registro factual adicional**: mencione no relatório que a estória está marcada `done` no `index.json` mas o CA não foi cumprido pela verificação. Isso é fato observável sobre o estado do índice — não é juízo sobre processo nem chamado para retrospectiva.
+- **Não recomende** "retro com Programador", "revisão de processo", "lembrança no próximo sprint" — isso é decisão do PO sobre como conduzir o time. Você só relata o fato.
 
 ---
 
@@ -219,6 +219,6 @@ Para o veredito do épico:
 
 - [ ] Compilei todos os itens.
 - [ ] Veredito: **APPROVED** se zero fails; **REJECTED** se pelo menos um fail bloqueante; **APPROVED com pendências** se só não-bloqueantes.
-- [ ] Recomendação ao PO sobre próximos passos.
+- [ ] Relatório contém apenas fatos, evidência e classificação. **Zero recomendação, zero próximo passo, zero sugestão de estória.**
 
-> **Calibração honesta protege o produto. Carimbação corrompe a confiança. Rigor sem critério gera retrabalho.**
+> **Calibração honesta protege o produto. Carimbação corrompe a confiança. Rigor sem critério gera retrabalho. Planejamento da resposta é do PO, não seu.**

@@ -13,13 +13,13 @@ checklist_source: epics/EPIC-XXX-<slug>/validation/checklist.md
 
 > **Veredito**: <APPROVED | REJECTED | APPROVED com pendências>.
 > **Contagem**: X passes, Y passes com ressalva, Z fails (W bloqueantes, V não-bloqueantes), U n/a justificados.
-> **Próximo passo recomendado**: <em uma frase>.
+> **Bloqueantes (resumo factual)**: <em uma frase listando o que falhou — sem opinar sobre o que o PO deve fazer>.
 
 ---
 
 ## Resumo executivo
 
-<1-2 parágrafos. Contexto curto do épico (1 frase para quem não lembra de cabeça), o que foi entregue, achados principais, conexão com o veredito. Tom factual. Veja `reporting-craft.md` para padrão.>
+<1-2 parágrafos. Contexto curto do épico (1 frase para quem não lembra de cabeça), o que foi entregue, achados principais observados, conexão com o veredito. Tom factual. **Zero recomendação, zero sugestão de estória, zero "próximo passo".** Veja `reporting-craft.md` para padrão.>
 
 ---
 
@@ -87,14 +87,13 @@ checklist_source: epics/EPIC-XXX-<slug>/validation/checklist.md
 
 ### Bloqueantes
 
-> Itens cujo `fail` deveria impedir o épico de ser declarado `done`. Veja `verdict-criteria.md`.
+> Itens classificados como bloqueantes conforme regras objetivas de `verdict-criteria.md` (CA não cumprido, cobertura abaixo do mínimo, pipeline vermelho, funcionalidade inacessível, etc.).
 
 #### F-B-1 — <título curto do fail>
 - **Bloco**: <bloco e item, ex: Bloco 1.3>
 - **Critério esperado**: <citação curta do que era pra ser>
 - **O que verifiquei**: <descrição factual>
-- **Por que é bloqueante**: <conexão com critério do PO/Arquiteto>
-- **Sugestão (não-vinculante)**: <ex: nova estória pequena cobrindo X, Y, Z>
+- **Classificação**: bloqueante — <regra de `verdict-criteria.md` que se aplica, ex: "CA com funcionalidade observável mas sem teste automatizado">
 - **Evidência**: ver Apêndice <A.X>
 
 #### F-B-2 — ...
@@ -102,46 +101,28 @@ checklist_source: epics/EPIC-XXX-<slug>/validation/checklist.md
 
 ### Não-bloqueantes
 
-> Itens cujo `fail` pode virar pendência sem impedir fechamento — decisão final do PO.
+> Itens classificados como não-bloqueantes conforme regras objetivas de `verdict-criteria.md` (documentação desatualizada em ponto não-crítico, convenção parcial, etc.).
 
 #### F-NB-1 — <título>
 - **Bloco**: <ref>
-- **Descrição**: <factual>
-- **Sugestão**: <ex: estória de correção pequena>
+- **Critério esperado**: <citação curta>
+- **O que verifiquei**: <factual>
+- **Classificação**: não-bloqueante — <regra de `verdict-criteria.md` que se aplica>
 - **Evidência**: ver Apêndice <A.Y>
 
 #### F-NB-2 — ...
 - ...
 
+> **Nota**: nenhum fail inclui "sugestão", "estória de correção", "próximo passo" ou estimativa de tamanho — planejamento é do PO.
+
 ---
 
 ## Passes com ressalva
 
-> Itens cumpridos mas com observação que o PO/Arquiteto pode querer considerar — não são fails, mas merecem nota.
+> Itens cumpridos mas com observação factual que merece registro — não são fails, mas o relatório anota o detalhe observado. **Sem aconselhamento.**
 
-- **<bloco e item>**: <ressalva> (Ex: "Bloco 2.1 — Cobertura geral 80.2%, atende mínimo de 80% mas no limite; sugiro reforço em próximos sprints.")
+- **<bloco e item>**: <ressalva factual> (Ex: "Bloco 2.1 — Cobertura geral 80.2%, atende mínimo de 80% mas no limite (margem 0.2pp).")
 - ...
-
----
-
-## Recomendação ao PO
-
-### Sobre o épico
-
-<Veredict + sugestão de próximo passo. Ex: "REJECTED por F-B-1; sugiro não fechar até correção. F-NB-1 e F-NB-2 podem virar estórias do próximo sprint.">
-
-### Estórias de correção sugeridas (decisão final do PO)
-
-- **STORY-XXX-corr** (sugerido): <título curto> — endereça F-B-1. Tamanho estimado: S.
-- **STORY-YYY-corr** (sugerido): <título curto> — endereça F-NB-1. Tamanho estimado: S.
-- ...
-
-### Observações de processo (input para retrospectiva)
-
-> Sinais não-bloqueantes que podem virar aprendizado de processo — sem culpar pessoa, foco em hábito.
-
-- <Ex: "F-B-1 (CA sem teste cobrindo) sugere que `done-checklist.md` do Programador não pegou. Vale lembrança em próximo sprint.">
-- <Ex: "Cobertura próxima ao limite mínimo — considerar meta interna de 85% para margem.">
 
 ---
 

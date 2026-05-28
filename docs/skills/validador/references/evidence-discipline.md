@@ -220,7 +220,7 @@ Não force `pass` baseado em evidência ruim. Quando em dúvida real, `pass com 
 
 ## Evidência de fail — específica é dobrar útil
 
-Quando um item é `fail`, evidência precisa permitir o Programador **reproduzir e consertar** sem voltar a perguntar:
+Quando um item é `fail`, evidência precisa permitir **reproduzir** o achado sem voltar a perguntar. Note: a evidência descreve **o que foi observado**; não inclui plano de correção nem sugestão de estória — isso é do PO.
 
 ```markdown
 **Bloco 1.3 — CA-3 da STORY-007 sem teste cobrindo**: ❌ FAIL
@@ -229,16 +229,13 @@ Evidência:
 - CA-3 da estória: "Sistema rejeita CNPJ com dígitos verificadores incorretos e retorna mensagem 'CNPJ inválido — dígitos verificadores não conferem'."
 - Busca por testes: nenhum teste encontrado para esta validação específica.
 - Comando usado: `grep -r "digitos verificadores" tests/`. Resultado: zero matches.
-- Testes existentes para CNPJ: `test_cnpj_formato_invalido` (CA-2), `test_cnpj_valido` (CA-1). Falta o cenário de dígito verificador errado.
+- Testes existentes para CNPJ: `test_cnpj_formato_invalido` (CA-2), `test_cnpj_valido` (CA-1). Não há cenário cobrindo dígito verificador errado.
 - Reprodução: rodar `npm test -- --coverage tests/cadastro/` mostra função `validar_digitos_verificadores` em `validators.ts` linhas 23-45 com 0% de cobertura.
 
-**Recomendação**: estória de correção que adicione testes para CA-3 com pelo menos:
-- CNPJ com primeiro dígito verificador errado.
-- CNPJ com segundo dígito verificador errado.
-- Validação retorna mensagem específica conforme CA.
+Classificação: bloqueante — CA com funcionalidade observável mas sem teste automatizado (`verdict-criteria.md`).
 ```
 
-Specific. Acionável. Reproduzível.
+Específico. Reproduzível. **Sem "Recomendação", sem propor escopo de testes que a correção deveria cobrir** — isso é trabalho do PO/Programador na resposta ao relatório.
 
 ---
 
