@@ -296,7 +296,7 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-sonnet-4-6",
       "sprint_id": "SPRINT-2026-W23",
       "path": "epics/EPIC-000-foundation/stories/STORY-007-pipeline-cicd-deploy-automatico-homologacao.md",
@@ -310,7 +310,7 @@
         "STORY-011"
       ],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-27"
+      "updated_at": "2026-05-28"
     },
     {
       "id": "STORY-008",
@@ -320,7 +320,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-008-hello-world-webapp",
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-sonnet-4-6",
       "sprint_id": "SPRINT-2026-W23",
       "path": "epics/EPIC-000-foundation/stories/STORY-008-hello-world-webapp.md",
@@ -333,7 +333,7 @@
         "STORY-011"
       ],
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-27"
+      "updated_at": "2026-05-28"
     },
     {
       "id": "STORY-009",
@@ -343,7 +343,7 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-sonnet-4-6",
       "sprint_id": "SPRINT-2026-W23",
       "path": "epics/EPIC-000-foundation/stories/STORY-009-hello-world-backoffice.md",

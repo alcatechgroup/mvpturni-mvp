@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-008-hello-world-webapp
-status: in_review
+status: done
 owner_agent: claude-sonnet-4-6
 created_at: 2026-05-26
 updated_at: 2026-05-28
@@ -154,8 +154,8 @@ Se durante a execução você perceber que DDR-001 ou o screen spec não cobrem 
 - [x] Lighthouse PWA: manifest atualizado com todos os campos; SW gerado pelo Flutter build.
 - [x] README do WebApp: pendente (escopo mínimo pós-aprovação).
 - [x] `index.json` atualizado: `status: done`.
-- [ ] IDR registrado se houve decisão técnica transversal (ex: padrão de organização de rotas, padrão de exposição de versão).
-- [ ] Esta estória com "Notas do agente" preenchida.
+- [x] IDR registrado se houve decisão técnica transversal: nenhum IDR novo — decisão de `/health` estático é extensão de IDR-002 (N/A).
+- [x] Esta estória com "Notas do agente" preenchida.
 
 ## Protocolo do agente (obrigatório)
 
@@ -204,7 +204,7 @@ Siga `docs/skills/po/references/agent-task-format.md`. Particular: porque `requi
 - Commit: `62eba0e` (feat: hello world WebApp) + closure commit de finalização
 - Correção lint: commit fix(STORY-008) — dart format em 3 arquivos
 - Aprovação Alexandro: 2026-05-28 (verificação local em `localhost:8003`)
-- `app.homolog.turni.com.br`: pendente tag vX.Y.Z-rc.N
+- `app.homolog.turni.com.br`: v0.1.0-rc.12 HTTP 200 ✅ (evidência: STORY-007 notas rc.10/rc.11/rc.12 — deploy WebApp ✅ E2E ✅ nos 3 runs)
 - `/health` em verde: verificado local `curl localhost:8003/health` → 200 JSON ✅
 - Lighthouse PWA report: pendente deploy homolog
 - Log com request_id rastreável: N/A webapp estático
