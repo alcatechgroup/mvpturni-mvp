@@ -233,7 +233,7 @@ resource "google_monitoring_alert_policy" "error_rate" {
   conditions {
     display_name = "Taxa de erro > 5%"
     condition_threshold {
-      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_errors_5xx\""
+      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_errors_5xx\" AND resource.type=\"cloud_run_revision\""
       comparison      = "COMPARISON_GT"
       threshold_value = 5
       duration        = "300s"

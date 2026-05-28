@@ -1,10 +1,34 @@
-variable "project_id"             { type = string }
-variable "region"                 { type = string; default = "southamerica-east1" }
-variable "app"                    { type = string; description = "api | admin" }
-variable "env"                    { type = string; description = "homolog | prod" }
-variable "image"                  { type = string; description = "URI completo da imagem no Artifact Registry" }
-variable "service_account_email"  { type = string }
-variable "cloudsql_connection_name" { type = string }
+variable "project_id" {
+  type = string
+}
+
+variable "region" {
+  type    = string
+  default = "southamerica-east1"
+}
+
+variable "app" {
+  type        = string
+  description = "api | admin"
+}
+
+variable "env" {
+  type        = string
+  description = "homolog | prod"
+}
+
+variable "image" {
+  type        = string
+  description = "URI completo da imagem no Artifact Registry"
+}
+
+variable "service_account_email" {
+  type = string
+}
+
+variable "cloudsql_connection_name" {
+  type = string
+}
 
 variable "ingress" {
   type    = string
@@ -18,7 +42,7 @@ variable "allow_unauthenticated" {
 
 variable "min_instances" {
   type    = number
-  default = 0  # scale-to-zero em homolog (sem custo ocioso)
+  default = 0
 }
 
 variable "max_instances" {

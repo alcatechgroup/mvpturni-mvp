@@ -1,9 +1,9 @@
 {
   "projects": {
-    "default": "SEU_PROJECT_ID_GCP"
+    "default": "turni-mvp"
   },
   "targets": {
-    "SEU_PROJECT_ID_GCP": {
+    "turni-mvp": {
       "hosting": {
         "homolog": ["turni-webapp-homolog"],
         "prod":    ["turni-webapp-prod"]
