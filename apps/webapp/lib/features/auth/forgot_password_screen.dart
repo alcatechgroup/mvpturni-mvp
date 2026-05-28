@@ -29,15 +29,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _loading = true);
     // Stub: aguarda 1s simulando envio (Fortify real vem em STORY-021).
     await Future.delayed(const Duration(seconds: 1));
-    if (mounted) setState(() { _loading = false; _sent = true; });
+    if (mounted)
+      setState(() {
+        _loading = false;
+        _sent = true;
+      });
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? TurniColors.accentDark : TurniColors.accentLight;
-    final surfacePage = isDark ? TurniColors.surfacePageDark : TurniColors.surfacePageLight;
-    final textMuted = isDark ? TurniColors.textMutedDark : TurniColors.textMutedLight;
+    final surfacePage = isDark
+        ? TurniColors.surfacePageDark
+        : TurniColors.surfacePageLight;
+    final textMuted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
 
     return Scaffold(
       key: const Key('screen-forgot-password'),
@@ -53,7 +61,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               children: [
                 TextButton.icon(
                   onPressed: () => context.go('/login'),
-                  style: TextButton.styleFrom(foregroundColor: accent, padding: EdgeInsets.zero),
+                  style: TextButton.styleFrom(
+                    foregroundColor: accent,
+                    padding: EdgeInsets.zero,
+                  ),
                   icon: const Icon(Icons.arrow_back, size: 16),
                   label: const Text('Voltar para login'),
                 ),
@@ -87,9 +98,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           key: const Key('input-email'),
                           controller: _emailCtrl,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(labelText: 'E-mail'),
+                          decoration: const InputDecoration(
+                            labelText: 'E-mail',
+                          ),
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty) return 'Este campo é obrigatório.';
+                            if (v == null || v.trim().isEmpty)
+                              return 'Este campo é obrigatório.';
                             if (!v.contains('@')) return 'E-mail inválido.';
                             return null;
                           },
@@ -106,8 +120,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             ),
                             child: _loading
                                 ? const SizedBox(
-                                    width: 20, height: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
                                   )
                                 : const Text('Enviar link'),
                           ),
@@ -143,7 +160,11 @@ class _SuccessBanner extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.check_circle_outline, size: 18, color: TurniColors.successLight),
+            const Icon(
+              Icons.check_circle_outline,
+              size: 18,
+              color: TurniColors.successLight,
+            ),
             const SizedBox(width: TurniSpacing.sm),
             const Expanded(
               child: Text(

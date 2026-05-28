@@ -19,8 +19,12 @@ class CompletarCadastroPlaceholderScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? TurniColors.accentDark : TurniColors.accentLight;
-    final surfacePage = isDark ? TurniColors.surfacePageDark : TurniColors.surfacePageLight;
-    final textMuted = isDark ? TurniColors.textMutedDark : TurniColors.textMutedLight;
+    final surfacePage = isDark
+        ? TurniColors.surfacePageDark
+        : TurniColors.surfacePageLight;
+    final textMuted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
 
     return Scaffold(
       key: const Key('screen-placeholder-completar-cadastro'),

@@ -11,12 +11,12 @@ class WelcomePlaceholderScreen extends StatefulWidget {
   const WelcomePlaceholderScreen({super.key});
 
   @override
-  State<WelcomePlaceholderScreen> createState() => _WelcomePlaceholderScreenState();
+  State<WelcomePlaceholderScreen> createState() =>
+      _WelcomePlaceholderScreenState();
 }
 
 class _WelcomePlaceholderScreenState extends State<WelcomePlaceholderScreen> {
-  bool get _isAtivo =>
-      AuthService().session?.status == 'ativo';
+  bool get _isAtivo => AuthService().session?.status == 'ativo';
 
   Future<void> _logout() async {
     await AuthService().logout();
@@ -27,8 +27,12 @@ class _WelcomePlaceholderScreenState extends State<WelcomePlaceholderScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? TurniColors.accentDark : TurniColors.accentLight;
-    final surfacePage = isDark ? TurniColors.surfacePageDark : TurniColors.surfacePageLight;
-    final textMuted = isDark ? TurniColors.textMutedDark : TurniColors.textMutedLight;
+    final surfacePage = isDark
+        ? TurniColors.surfacePageDark
+        : TurniColors.surfacePageLight;
+    final textMuted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
 
     return Scaffold(
       key: const Key('screen-placeholder-welcome'),
@@ -65,12 +69,18 @@ class _WelcomePlaceholderScreenState extends State<WelcomePlaceholderScreen> {
                     padding: const EdgeInsets.all(TurniSpacing.md),
                     decoration: BoxDecoration(
                       color: TurniColors.infoSoftLight,
-                      border: Border.all(color: TurniColors.infoLight.withAlpha(128)),
+                      border: Border.all(
+                        color: TurniColors.infoLight.withAlpha(128),
+                      ),
                       borderRadius: BorderRadius.all(TurniRadius.md),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.info_outline, size: 16, color: TurniColors.infoLight),
+                        const Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: TurniColors.infoLight,
+                        ),
                         const SizedBox(width: TurniSpacing.sm),
                         Expanded(
                           child: Text(

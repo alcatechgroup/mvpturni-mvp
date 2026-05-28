@@ -82,7 +82,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final isDesktop = width >= 840;
 
     final accent = isDark ? TurniColors.accentDark : TurniColors.accentLight;
-    final surfacePage = isDark ? TurniColors.surfacePageDark : TurniColors.surfacePageLight;
+    final surfacePage = isDark
+        ? TurniColors.surfacePageDark
+        : TurniColors.surfacePageLight;
 
     return Scaffold(
       key: const Key('screen-login-webapp'),
@@ -108,8 +110,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         banner: _banner,
                         accent: accent,
                         isDark: isDark,
-                        onTogglePassword: () =>
-                            setState(() => _obscurePassword = !_obscurePassword),
+                        onTogglePassword: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
                         onSubmit: _submit,
                       ),
                     ),
@@ -192,10 +195,15 @@ class _LoginForm extends StatelessWidget {
             textInputAction: TextInputAction.next,
             autofocus: true,
             autocorrect: false,
-            decoration: InputDecoration(labelText: 'E-mail', hintText: 'seunome@email.com'),
+            decoration: InputDecoration(
+              labelText: 'E-mail',
+              hintText: 'seunome@email.com',
+            ),
             validator: (v) {
-              if (v == null || v.trim().isEmpty) return 'Este campo é obrigatório.';
-              if (!v.contains('@') || !v.contains('.')) return 'E-mail inválido.';
+              if (v == null || v.trim().isEmpty)
+                return 'Este campo é obrigatório.';
+              if (!v.contains('@') || !v.contains('.'))
+                return 'E-mail inválido.';
               return null;
             },
           ),
@@ -261,7 +269,10 @@ class _LoginForm extends StatelessWidget {
                     )
                   : const Text(
                       'Entrar',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
             ),
           ),
@@ -296,32 +307,31 @@ class _BannerState {
     this.retryAfter,
   });
 
-  factory _BannerState.error(String message) => _BannerState._(
-        kind: _BannerKind.error,
-        message: message,
-      );
+  factory _BannerState.error(String message) =>
+      _BannerState._(kind: _BannerKind.error, message: message);
 
   factory _BannerState.adminRedirect(String url) => _BannerState._(
-        kind: _BannerKind.adminRedirect,
-        message: 'Este usuário acessa o Backoffice.',
-        backofficeUrl: url,
-      );
+    kind: _BannerKind.adminRedirect,
+    message: 'Este usuário acessa o Backoffice.',
+    backofficeUrl: url,
+  );
 
   factory _BannerState.pending() => _BannerState._(
-        kind: _BannerKind.pending,
-        message: 'Sua conta está em análise. Você receberá um aviso quando for aprovada.',
-      );
+    kind: _BannerKind.pending,
+    message:
+        'Sua conta está em análise. Você receberá um aviso quando for aprovada.',
+  );
 
   factory _BannerState.rejected() => _BannerState._(
-        kind: _BannerKind.rejected,
-        message: 'Cadastro não aprovado. Entre em contato com o suporte.',
-      );
+    kind: _BannerKind.rejected,
+    message: 'Cadastro não aprovado. Entre em contato com o suporte.',
+  );
 
   factory _BannerState.throttle(int retryAfter) => _BannerState._(
-        kind: _BannerKind.throttle,
-        message: 'Muitas tentativas. Aguarde antes de tentar novamente.',
-        retryAfter: retryAfter,
-      );
+    kind: _BannerKind.throttle,
+    message: 'Muitas tentativas. Aguarde antes de tentar novamente.',
+    retryAfter: retryAfter,
+  );
 }
 
 class _BannerWidget extends StatelessWidget {
@@ -343,13 +353,13 @@ class _BannerWidget extends StatelessWidget {
 
     switch (banner.kind) {
       case _BannerKind.error || _BannerKind.rejected || _BannerKind.throttle:
-        bgColor = isDark ? TurniColors.errorSoftDark : TurniColors.errorSoftLight;
+        bgColor = isDark
+            ? TurniColors.errorSoftDark
+            : TurniColors.errorSoftLight;
         iconColor = isDark ? TurniColors.errorDark : TurniColors.errorLight;
         icon = Icons.error_outline;
       case _BannerKind.adminRedirect:
-        bgColor = isDark
-            ? const Color(0x266A8FCC)
-            : TurniColors.infoSoftLight;
+        bgColor = isDark ? const Color(0x266A8FCC) : TurniColors.infoSoftLight;
         iconColor = TurniColors.infoLight;
         icon = Icons.info_outline;
       case _BannerKind.pending:

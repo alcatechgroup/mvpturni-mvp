@@ -61,8 +61,7 @@ class UserSession {
     return FunnelState.active;
   }
 
-  bool get canAccessApp =>
-      status == 'ativo' || status == 'liberado';
+  bool get canAccessApp => status == 'ativo' || status == 'liberado';
 }
 
 /// Resultado do login.
@@ -109,7 +108,9 @@ class AuthService extends ChangeNotifier {
     final raw = prefs.getString(_sessionKey);
     if (raw != null) {
       try {
-        _session = UserSession.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+        _session = UserSession.fromJson(
+          jsonDecode(raw) as Map<String, dynamic>,
+        );
         notifyListeners();
       } catch (_) {
         await prefs.remove(_sessionKey);
@@ -152,9 +153,7 @@ class AuthService extends ChangeNotifier {
 
       case 403:
         if (data['code'] == 'admin_must_use_backoffice') {
-          return LoginAdminRedirect(
-            data['backoffice_url'] as String? ?? '',
-          );
+          return LoginAdminRedirect(data['backoffice_url'] as String? ?? '');
         }
         return LoginError(data['message'] as String? ?? 'Acesso negado.');
 
@@ -166,7 +165,10 @@ class AuthService extends ChangeNotifier {
         return LoginError(msg);
 
       default:
-        return LoginError('E-mail ou senha incorretos.', code: 'invalid_credentials');
+        return LoginError(
+          'E-mail ou senha incorretos.',
+          code: 'invalid_credentials',
+        );
     }
   }
 
@@ -186,12 +188,15 @@ class AuthService extends ChangeNotifier {
 
   Future<void> _saveSession(UserSession s) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_sessionKey, jsonEncode({
-      'role': s.role,
-      'status': s.status,
-      'welcome_visto': s.welcomeVisto,
-      'cadastro_completo': s.cadastroCompleto,
-    }));
+    await prefs.setString(
+      _sessionKey,
+      jsonEncode({
+        'role': s.role,
+        'status': s.status,
+        'welcome_visto': s.welcomeVisto,
+        'cadastro_completo': s.cadastroCompleto,
+      }),
+    );
   }
 
   Map<String, dynamic> _parseJson(String body) {
@@ -210,6 +215,7 @@ class AuthService extends ChangeNotifier {
         return first.first.toString();
       }
     }
-    return data['message'] as String? ?? 'Verifique os campos e tente novamente.';
+    return data['message'] as String? ??
+        'Verifique os campos e tente novamente.';
   }
 }

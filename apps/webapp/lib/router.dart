@@ -31,10 +31,12 @@ String? _funnelGuard(BuildContext context, GoRouterState state) {
   final funnel = session.funnelState;
 
   // Usuário em rota placeholder de funil — permite acesso direto
-  if (state.matchedLocation == '/welcome' && funnel == FunnelState.awaitWelcome) {
+  if (state.matchedLocation == '/welcome' &&
+      funnel == FunnelState.awaitWelcome) {
     return null;
   }
-  if (state.matchedLocation == '/completar-cadastro' && funnel == FunnelState.awaitCadastro) {
+  if (state.matchedLocation == '/completar-cadastro' &&
+      funnel == FunnelState.awaitCadastro) {
     return null;
   }
 
@@ -64,17 +66,29 @@ final router = GoRouter(
 
     // Auth
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-    GoRoute(path: '/esqueci-minha-senha', builder: (context, state) => const ForgotPasswordScreen()),
+    GoRoute(
+      path: '/esqueci-minha-senha',
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
 
     // Funnel guard — placeholders
-    GoRoute(path: '/welcome', builder: (context, state) => const WelcomePlaceholderScreen()),
-    GoRoute(path: '/completar-cadastro', builder: (context, state) => const CompletarCadastroPlaceholderScreen()),
+    GoRoute(
+      path: '/welcome',
+      builder: (context, state) => const WelcomePlaceholderScreen(),
+    ),
+    GoRoute(
+      path: '/completar-cadastro',
+      builder: (context, state) => const CompletarCadastroPlaceholderScreen(),
+    ),
 
     // App shell — usuários ativos
     GoRoute(path: '/app', builder: (context, state) => const AppShellScreen()),
 
     // Health (dev local)
-    GoRoute(path: '/health', builder: (context, state) => const _HealthInfoScreen()),
+    GoRoute(
+      path: '/health',
+      builder: (context, state) => const _HealthInfoScreen(),
+    ),
   ],
 );
 
