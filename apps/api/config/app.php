@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    // URL do Backoffice admin (usada no erro admin_must_use_backoffice — CA-7)
+    'backoffice_url' => env('BACKOFFICE_URL', ''),
+
 ];

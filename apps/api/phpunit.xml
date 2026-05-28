@@ -18,6 +18,11 @@
             <directory>database/seeders</directory>
         </include>
     </source>
+    <coverage>
+        <report>
+            <text outputFile="php://stderr"/>
+        </report>
+    </coverage>
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
@@ -35,6 +40,9 @@
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
+        <env name="SANCTUM_STATEFUL_DOMAINS" value="localhost,127.0.0.1"/>
+        <env name="HASH_DRIVER" value="argon2id"/>
+        <env name="BACKOFFICE_URL" value="http://localhost:8002"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

@@ -8,7 +8,6 @@ Route::get('/', function () {
 });
 
 // Health-check (ADR-008): liveness sempre 200; readiness verifica Postgres.
-// Versão exposta via version.json (IDR-002) e também aqui para conveniência.
 Route::get('/health', function () {
     $deep = request()->boolean('deep');
     $status = 'ok';
