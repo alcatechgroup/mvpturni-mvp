@@ -27,8 +27,8 @@ test.describe('Backoffice — login admin (CA-13b)', () => {
 
     // Após login: redireciona para '/'
     await expect(page).toHaveURL('/');
-    // Dashboard mostra "Backoffice"
-    await expect(page.getByText('Backoffice')).toBeVisible();
+    // Dashboard protegido renderiza a saudação ao admin autenticado
+    await expect(page.getByRole('heading', { name: /Bem-vindo/ })).toBeVisible();
   });
 
   test('tela de login do admin tem campos com data-testid corretos', async ({ page }) => {

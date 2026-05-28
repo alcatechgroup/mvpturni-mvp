@@ -3,13 +3,20 @@ import { test, expect } from '@playwright/test';
 /**
  * STORY-016 — CA-13 — E2E de login e RBAC no WebApp.
  *
- * Roda contra app.homolog.turni.com.br (BASE_URL via env).
- * Credenciais via env (default: seed de homolog).
+ * Default: http://localhost:8003 (IDR-004). Homolog: BASE_URL=https://app.homolog.turni.com.br.
+ * Credenciais via env (default: seed local/homolog).
  *
- * Flutter Web com CanvasKit: usa seletores acessíveis (label, role, text) em vez de
- * atributos CSS `[key="..."]` que não são expostos como HTML attributes.
- *
- * Pré-requisito: migrações aplicadas em homolog + seed executado.
+ * ⚠️ FOLLOW-UP RASTREADO (decisão 2026-05-28): estes cenários estão `test.fixme`.
+ * O WebApp roda Flutter Web com renderer CanvasKit, que pinta a UI num <canvas> e
+ * NÃO expõe a árvore semântica como DOM por padrão — nem `[key="..."]` (não viram
+ * HTML attributes) nem `getByLabel`/`getByRole` encontram os campos, e o suite dá
+ * timeout. Resolver exige uma decisão de estratégia de E2E do Flutter Web ainda
+ * pendente: (a) ativar/forçar `flutter.semanticsEnabled` (clicar no placeholder
+ * "Enable accessibility") e mapear Semantics labels nos widgets, ou (b) adotar
+ * integration_test (flutter drive) no lugar de Playwright para o WebApp.
+ * Até essa decisão, o gate `make e2e` cobre o Backoffice (HTML real, verde) e o
+ * smoke HTTP do WebApp (webapp-hello-world.spec.ts). Não remover os cenários —
+ * eles são o checklist do CA-13 a reabilitar quando a estratégia for escolhida.
  */
 
 const adminEmail = process.env.ADMIN_SEED_EMAIL ?? 'admin@turni.local';
@@ -30,7 +37,7 @@ async function fillLoginForm(page: import('@playwright/test').Page, email: strin
 // CA-13 (c) — Admin tentando logar no WebApp → banner de redirecionamento
 // ──────────────────────────────────────────────────────────────
 
-test.describe('WebApp — admin rejeitado (CA-13c)', () => {
+test.describe.fixme('WebApp — admin rejeitado (CA-13c)', () => {
     test('tela /login carrega e exibe campos de e-mail e senha', async ({ page }) => {
         await page.goto('/login');
 
@@ -61,7 +68,7 @@ test.describe('WebApp — admin rejeitado (CA-13c)', () => {
 // CA-13 (b) — Profissional ativo loga no WebApp
 // ──────────────────────────────────────────────────────────────
 
-test.describe('WebApp — profissional ativo (CA-13b)', () => {
+test.describe.fixme('WebApp — profissional ativo (CA-13b)', () => {
     test('profissional ativo loga e é roteado para /app ou funnel', async ({ page }) => {
         await page.goto('/login');
         await page.waitForTimeout(3000);
@@ -82,7 +89,7 @@ test.describe('WebApp — profissional ativo (CA-13b)', () => {
 // CA-13 (e) — Funnel guard: /welcome existe para usuário liberado
 // ──────────────────────────────────────────────────────────────
 
-test.describe('WebApp — funnel guard e estrutura (CA-13e)', () => {
+test.describe.fixme('WebApp — funnel guard e estrutura (CA-13e)', () => {
     test('tela /login tem botão Entrar', async ({ page }) => {
         await page.goto('/login');
         await page.waitForTimeout(3000);

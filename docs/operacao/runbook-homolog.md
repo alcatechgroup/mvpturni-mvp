@@ -90,6 +90,8 @@ o ambiente local:
 ```bash
 # 1. Ambiente local de pé (containers + WebApp + seed)
 make up
+docker compose exec api php artisan migrate --force && \
+  docker compose exec api php artisan db:seed --force   # usuários de teste do CA-13
 
 # 2. E2E Playwright contra localhost:8002 + localhost:8003
 make e2e
@@ -99,6 +101,12 @@ make e2e
 Quem pula este passo está deployando regressão visual / interação para homolog
 sem rede de proteção automatizada. O smoke curl no pipeline pega 5xx/404, mas
 não pega CSS quebrado nem label faltando.
+
+> **Cobertura atual do `make e2e` (2026-05-28):** Backoffice 100% (HTML real) +
+> smoke HTTP do WebApp. A **interação** do WebApp (login/funnel via browser) está
+> em `test.fixme` — Flutter Web/CanvasKit não expõe a UI como DOM, pendente de
+> decisão de estratégia (semantics vs. integration_test). Aparece como "skipped"
+> na saída; reabilitar quando a estratégia for escolhida. Não é regressão nova.
 
 ---
 
