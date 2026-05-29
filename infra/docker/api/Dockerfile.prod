@@ -55,7 +55,11 @@ RUN apk add --no-cache \
 
 RUN echo 'opcache.enable=1' >> /etc/php84/conf.d/turni.ini \
     && echo 'opcache.validate_timestamps=0' >> /etc/php84/conf.d/turni.ini \
-    && echo 'opcache.memory_consumption=128' >> /etc/php84/conf.d/turni.ini
+    && echo 'opcache.memory_consumption=128' >> /etc/php84/conf.d/turni.ini \
+    # Upload de foto (STORY-017): defaults do PHP (upload 2M / post 8M) bloqueariam
+    # fotos entre 2–5 MB no layer do PHP. Alinha com o limite da app (5 MB) + folga.
+    && echo 'upload_max_filesize=8M' >> /etc/php84/conf.d/turni.ini \
+    && echo 'post_max_size=10M' >> /etc/php84/conf.d/turni.ini
 
 COPY infra/docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY infra/docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf

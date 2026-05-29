@@ -363,6 +363,23 @@ jobs:
           check_version "WebApp" "${{ steps.urls.outputs.webapp }}/version.json"
           exit $fail
 
+      # STORY-017: foto de celular (~1.3 MB) era barrada com 413 no nginx (default 1 MB).
+      # Garante que o edge (nginx client_max_body_size + PHP upload_max_filesize) aceita
+      # upload realista. Payload incompleto de propósito → 422 de validação, sem criar
+      # usuário. O que NÃO pode acontecer é 413.
+      - name: Smoke — upload >1MB não é barrado no edge (regressão 413)
+        run: |
+          set -euo pipefail
+          head -c 1300000 /dev/urandom > /tmp/foto_smoke.jpg
+          STATUS=$(curl -s -o /tmp/up_body -w "%{http_code}" \
+            -F "foto=@/tmp/foto_smoke.jpg;type=image/jpeg" \
+            -F "name=smoke" -F "email=smoke@invalid.test" \
+            "${{ steps.urls.outputs.api }}/api/cadastro/profissional" || echo "000")
+          if [ "$STATUS" = "413" ]; then
+            echo "✗ upload de 1.3MB barrado com 413 (limites de corpo baixos)"; cat /tmp/up_body || true; exit 1
+          fi
+          echo "✓ upload >1MB aceito no edge (HTTP $STATUS — 4xx de validação esperado, não 413)"
+
   # ── Gate humano + deploy em PRODUÇÃO ────────────────────────────────────────
   deploy-prod:
     name: Deploy → PRODUÇÃO (gate humano obrigatório)

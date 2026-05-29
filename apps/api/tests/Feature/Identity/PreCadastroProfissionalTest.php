@@ -163,6 +163,18 @@ test('foto acima de 5MB é rejeitada', function () {
     $response->assertStatus(422)->assertJsonValidationErrors('foto');
 });
 
+// Regressão do 413 em homolog: foto realista de celular (~2 MB) tem de ser aceita.
+// O limite da app (5 MB) e a infra (nginx client_max_body_size, PHP upload_max_filesize)
+// precisam ficar acima disso — ver infra/docker/nginx/nginx.conf e api/Dockerfile.prod.
+test('foto de ~2MB (tamanho típico de celular) é aceita', function () {
+    $response = cadastroPost([
+        'email' => 'foto2mb@example.com',
+        'foto' => UploadedFile::fake()->create('foto.jpg', 2048, 'image/jpeg'),
+    ]);
+    $response->assertCreated();
+    expect(User::where('email', 'foto2mb@example.com')->exists())->toBeTrue();
+});
+
 test('foto ausente é rejeitada', function () {
     $response = cadastroPost(['foto' => null]);
     $response->assertStatus(422)->assertJsonValidationErrors('foto');
