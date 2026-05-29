@@ -27,6 +27,11 @@ GoRouter _testRouter() => GoRouter(
       path: '/cadastro/profissional',
       builder: (context, state) => const Scaffold(body: Text('cadastro')),
     ),
+    GoRoute(
+      path: '/cadastro/contratante',
+      builder: (context, state) =>
+          const Scaffold(body: Text('cadastro-contratante')),
+    ),
   ],
   initialLocation: '/login',
 );
@@ -85,7 +90,7 @@ void main() {
       expect(find.byKey(const Key('link-forgot-password')), findsOneWidget);
     });
 
-    testWidgets('tem link "Cadastre-se" que leva ao pré-cadastro', (
+    testWidgets('tem link de criar conta de profissional que leva ao pré-cadastro', (
       tester,
     ) async {
       await tester.pumpWidget(_loginApp());
@@ -100,6 +105,23 @@ void main() {
         find.text('cadastro'),
         findsOneWidget,
       ); // navegou para /cadastro/profissional
+    });
+
+    testWidgets('tem link de criar conta de estabelecimento que leva ao pré-cadastro', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_loginApp());
+      await tester.pumpAndSettle();
+
+      final link = find.byKey(const Key('link-criar-conta-contratante'));
+      expect(link, findsOneWidget);
+
+      await tester.tap(link);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('cadastro-contratante'),
+        findsOneWidget,
+      ); // navegou para /cadastro/contratante
     });
 
     testWidgets('validação exibe erro para campos vazios', (tester) async {

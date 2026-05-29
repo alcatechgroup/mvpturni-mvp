@@ -147,11 +147,18 @@ test.describe('WebApp — navegação (root / criar conta)', () => {
     await expect(page).toHaveURL(/\/login$/);
   });
 
-  test('link "Cadastre-se" no login leva ao pré-cadastro', async ({ page }) => {
+  test('link "Criar conta de profissional" no login leva ao pré-cadastro', async ({ page }) => {
     await gotoApp(page, '/login');
-    await page.getByRole('button', { name: 'Não tem conta? Cadastre-se' }).click();
+    await page.getByRole('button', { name: 'Criar conta de profissional' }).click();
     await page.waitForTimeout(1500);
     await expect(page).toHaveURL(/\/cadastro\/profissional$/);
+  });
+
+  test('link "Criar conta de estabelecimento" no login leva ao pré-cadastro de contratante', async ({ page }) => {
+    await gotoApp(page, '/login');
+    await page.getByRole('button', { name: 'Criar conta de estabelecimento' }).click();
+    await page.waitForTimeout(1500);
+    await expect(page).toHaveURL(/\/cadastro\/contratante$/);
   });
 
   test('/info carrega a tela informativa pública sem auth', async ({ page }) => {

@@ -1,14 +1,12 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 
-// URL base da API — injetada via dart-define em build/CI (mesma convenção do AuthService).
-const _apiBase = String.fromEnvironment(
-  'API_BASE_URL',
-  defaultValue: 'http://localhost:8001',
-);
+import 'shared/cadastro_types.dart';
+
+// Tipos compartilhados (FotoUpload, CadastroResult e variantes) ficam em shared/ desde a
+// STORY-018 (IDR-012). Re-exportados aqui para manter os imports existentes da STORY-017.
+export 'shared/cadastro_types.dart';
 
 /// Função pretendida (vem de GET /api/funcoes — STORY-017 / IDR-008).
 class Funcao {
@@ -21,38 +19,6 @@ class Funcao {
       Funcao(id: json['id'] as int, nome: json['nome'] as String);
 }
 
-/// Dados da foto selecionada (bytes + nome), desacoplado do image_picker para testes.
-class FotoUpload {
-  final Uint8List bytes;
-  final String filename;
-
-  const FotoUpload({required this.bytes, required this.filename});
-}
-
-/// Resultado do pré-cadastro.
-sealed class CadastroResult {}
-
-class CadastroSuccess extends CadastroResult {
-  final String message;
-  CadastroSuccess(this.message);
-}
-
-/// Erros de validação por campo (422 com `errors`). Chave = campo da API.
-class CadastroValidationError extends CadastroResult {
-  final Map<String, String> errors;
-  CadastroValidationError(this.errors);
-}
-
-/// Erro genérico de cadastro (CA-4 — e-mail já existe / falha; sem enumeração).
-class CadastroGenericError extends CadastroResult {
-  final String message;
-  CadastroGenericError(this.message);
-}
-
-class CadastroThrottle extends CadastroResult {}
-
-class CadastroServerError extends CadastroResult {}
-
 /// Serviço do pré-cadastro de profissional (STORY-017).
 class CadastroService {
   CadastroService({http.Client? client}) : _client = client ?? http.Client();
@@ -62,7 +28,7 @@ class CadastroService {
   /// GET /api/funcoes — lista funções ativas para o select.
   Future<List<Funcao>> fetchFuncoes() async {
     final response = await _client.get(
-      Uri.parse('$_apiBase/api/funcoes'),
+      Uri.parse('$cadastroApiBase/api/funcoes'),
       headers: {'Accept': 'application/json'},
     );
     if (response.statusCode != 200) return [];
@@ -74,7 +40,7 @@ class CadastroService {
   }
 
   /// POST /api/cadastro/profissional (multipart). Não autentica — o usuário aguarda
-  /// aprovação. Segue o padrão CSRF do Sanctum usado no login (ADR-007 §b).
+  /// aprovação. CSRF/multipart/parse no helper compartilhado (IDR-012).
   Future<CadastroResult> cadastrar({
     required String name,
     required String email,
@@ -87,93 +53,23 @@ class CadastroService {
     required String passwordConfirmation,
     required bool termosAceitos,
     required FotoUpload foto,
-  }) async {
-    // 1. CSRF cookie do Sanctum (o browser anexa o cookie nas requisições seguintes).
-    try {
-      await _client.get(Uri.parse('$_apiBase/sanctum/csrf-cookie'));
-    } catch (_) {
-      // Dev local sem Sanctum completo: segue para o POST mesmo assim.
-    }
-
-    // 2. POST multipart.
-    final request =
-        http.MultipartRequest(
-            'POST',
-            Uri.parse('$_apiBase/api/cadastro/profissional'),
-          )
-          ..headers['Accept'] = 'application/json'
-          ..fields['name'] = name
-          ..fields['email'] = email
-          ..fields['telefone'] = telefone
-          ..fields['cidade'] = cidade
-          ..fields['bairro'] = bairro
-          ..fields['funcao_id'] = funcaoId.toString()
-          ..fields['tipo_pessoa'] = tipoPessoa
-          ..fields['password'] = password
-          ..fields['password_confirmation'] = passwordConfirmation
-          ..fields['termos_aceitos'] = termosAceitos ? '1' : '0'
-          ..files.add(
-            http.MultipartFile.fromBytes(
-              'foto',
-              foto.bytes,
-              filename: foto.filename,
-              contentType: _mediaTypeFor(foto.filename),
-            ),
-          );
-
-    http.Response response;
-    try {
-      final streamed = await _client.send(request);
-      response = await http.Response.fromStream(streamed);
-    } catch (_) {
-      return CadastroServerError();
-    }
-
-    final data = _parseJson(response.body);
-
-    switch (response.statusCode) {
-      case 201:
-        return CadastroSuccess(
-          data['message'] as String? ??
-              'Cadastro recebido. Em até 24h a equipe Turni revisa e envia notificação por e-mail.',
-        );
-      case 422:
-        final errors = data['errors'] as Map<String, dynamic>?;
-        if (errors != null && errors.isNotEmpty) {
-          return CadastroValidationError(_flattenErrors(errors));
-        }
-        return CadastroGenericError(
-          data['message'] as String? ??
-              'Não foi possível concluir o cadastro. Verifique os dados e tente novamente.',
-        );
-      case 429:
-        return CadastroThrottle();
-      default:
-        return CadastroServerError();
-    }
-  }
-
-  MediaType _mediaTypeFor(String filename) {
-    final lower = filename.toLowerCase();
-    if (lower.endsWith('.png')) return MediaType('image', 'png');
-    return MediaType('image', 'jpeg'); // jpg/jpeg default
-  }
-
-  Map<String, String> _flattenErrors(Map<String, dynamic> errors) {
-    final out = <String, String>{};
-    errors.forEach((field, messages) {
-      if (messages is List && messages.isNotEmpty) {
-        out[field] = messages.first.toString();
-      }
-    });
-    return out;
-  }
-
-  Map<String, dynamic> _parseJson(String body) {
-    try {
-      return jsonDecode(body) as Map<String, dynamic>;
-    } catch (_) {
-      return {};
-    }
+  }) {
+    return postCadastroMultipart(
+      client: _client,
+      path: '/api/cadastro/profissional',
+      foto: foto,
+      fields: {
+        'name': name,
+        'email': email,
+        'telefone': telefone,
+        'cidade': cidade,
+        'bairro': bairro,
+        'funcao_id': funcaoId.toString(),
+        'tipo_pessoa': tipoPessoa,
+        'password': password,
+        'password_confirmation': passwordConfirmation,
+        'termos_aceitos': termosAceitos ? '1' : '0',
+      },
+    );
   }
 }

@@ -698,8 +698,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-018-pre-cadastro-contratante",
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-programador",
       "sprint_id": "SPRINT-2026-W24",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-018-pre-cadastro-contratante-webapp.md",
       "blocked_by": [
@@ -713,7 +713,7 @@
       ],
       "estimated_session_size": "M",
       "created_at": "2026-05-28",
-      "updated_at": "2026-05-28"
+      "updated_at": "2026-05-29"
     },
     {
       "id": "STORY-019",
@@ -1633,6 +1633,15 @@
         "decided_at": "2026-05-29",
         "decided_by": "programador",
         "source_story": "STORY-017"
+      },
+      {
+        "id": "IDR-012",
+        "title": "tipo_operacao como enum estático e componentes de cadastro compartilhados (lib/cadastro/shared)",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-012-tipo-operacao-enum-estatico-e-componentes-cadastro-compartilhados.md",
+        "decided_at": "2026-05-29",
+        "decided_by": "programador",
+        "source_story": "STORY-018"
       }
     ],
     "ddr": [
@@ -1699,6 +1708,34 @@
           "input.select",
           "input.checkbox",
           "segmented",
+          "banner"
+        ],
+        "owner_designer": "claude-opus-designer",
+        "created_at": "2026-05-29",
+        "updated_at": "2026-05-29"
+      },
+      {
+        "id": "SCREEN-STORY-018-pre-cadastro-contratante",
+        "story": "STORY-018",
+        "epic": "EPIC-001",
+        "status": "ready",
+        "path": "design/screens/SCREEN-STORY-018-pre-cadastro-contratante.md",
+        "viewports": [
+          "mobile",
+          "desktop"
+        ],
+        "related_ddrs": [
+          "DDR-001"
+        ],
+        "ds_components_used": [
+          "brand.logo",
+          "button.primary",
+          "link.text",
+          "surface.card",
+          "input.text",
+          "input.password",
+          "input.select",
+          "input.checkbox",
           "banner"
         ],
         "owner_designer": "claude-opus-designer",

@@ -15,6 +15,15 @@ abstract final class TurniColors {
   static const onAccentDark = Color(0xFF0F1411);
   static const accentHoverLight = Color(0xFF3A7050);
 
+  // Contratante — esquema pré-login (mostarda, DDR-001 / tokens.md §6).
+  // Claro: CTA usa accent (#9A6E25, on-accent branco = 4.5:1 ✅); texto/link usa
+  // accent.ink (#6E4E12, 7.6:1 ✅). Escuro: accent (#D4A95C) serve a botão e texto
+  // (on-accent #0F1411 = 8.3:1 ✅). O mostarda vibrante #B8842F é só chrome/realce
+  // grande — texto branco sobre ele reprova AA, por isso não é cor de CTA.
+  static const contratanteAccentLight = Color(0xFF9A6E25); // CTA claro (4.5:1 ✅)
+  static const contratanteAccentInkLight = Color(0xFF6E4E12); // texto/link claro (7.6:1 ✅)
+  static const contratanteAccentDark = Color(0xFFD4A95C); // CTA/link escuro (8.3:1 ✅)
+
   // Superfícies — tema claro (DDR-001 §3.1).
   static const surfacePageLight = Color(0xFFF7F4EC);
   static const surfaceLight = Color(0xFFFFFFFF);

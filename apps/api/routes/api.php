@@ -5,6 +5,7 @@
 // auth.protected: requer sessão ativa + role check + funnel guard.
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Cadastro\ContratanteCadastroController;
 use App\Http\Controllers\Cadastro\FuncaoController;
 use App\Http\Controllers\Cadastro\ProfissionalCadastroController;
 use App\Http\Middleware\FunnelGuard;
@@ -22,6 +23,9 @@ Route::middleware([StartSession::class])->group(function () {
     // Pré-cadastro público de profissional (STORY-017). Pública (sem auth), mas dentro
     // do escopo stateful/CSRF do Sanctum — segue o padrão de submit da API (ADR-007).
     Route::post('/cadastro/profissional', [ProfissionalCadastroController::class, 'store']);
+
+    // Pré-cadastro público de contratante (STORY-018). Mesmo padrão stateful/CSRF.
+    Route::post('/cadastro/contratante', [ContratanteCadastroController::class, 'store']);
 });
 
 // Lista pública de funções para o select do pré-cadastro (STORY-017). GET sem estado.

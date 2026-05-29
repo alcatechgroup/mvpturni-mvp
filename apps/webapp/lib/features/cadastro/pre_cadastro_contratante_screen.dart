@@ -3,43 +3,43 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../ds/tokens.dart';
-import 'cadastro_service.dart';
+import 'contratante_cadastro_service.dart';
 import 'shared/cadastro_widgets.dart';
 
-/// Tela de pré-cadastro de profissional (STORY-017 — SCREEN-STORY-017, Vista A + B).
-/// Pública (sem auth). Perfil pré-login = profissional/verde (DDR-001).
+/// Tela de pré-cadastro de contratante (STORY-018 — SCREEN-STORY-018, Vista A + B).
+/// Pública (sem auth). Perfil pré-login = contratante/mostarda (DDR-001 / tokens.md §6).
 /// Não autentica após o envio — o usuário aguarda aprovação (SLA 24h).
-/// Componentes de formulário em `shared/` (IDR-012), compartilhados com o contratante.
-class PreCadastroProfissionalScreen extends StatefulWidget {
-  const PreCadastroProfissionalScreen({super.key, this.service, this.photoPicker});
+/// Espelha a tela do profissional (STORY-017), reusando `shared/` (IDR-012). Contratante
+/// é sempre PJ: sem `tipo_pessoa`/segmented; tipo de operação é uma lista estática.
+class PreCadastroContratanteScreen extends StatefulWidget {
+  const PreCadastroContratanteScreen({super.key, this.service, this.photoPicker});
 
   /// Injetável para teste; em produção usa o serviço real.
-  final CadastroService? service;
+  final ContratanteCadastroService? service;
 
   /// Injetável para teste; em produção usa o image_picker.
   final Future<FotoUpload?> Function()? photoPicker;
 
   @override
-  State<PreCadastroProfissionalScreen> createState() =>
-      _PreCadastroProfissionalScreenState();
+  State<PreCadastroContratanteScreen> createState() =>
+      _PreCadastroContratanteScreenState();
 }
 
-class _PreCadastroProfissionalScreenState
-    extends State<PreCadastroProfissionalScreen> {
-  late final CadastroService _service = widget.service ?? CadastroService();
+class _PreCadastroContratanteScreenState
+    extends State<PreCadastroContratanteScreen> {
+  late final ContratanteCadastroService _service =
+      widget.service ?? ContratanteCadastroService();
 
   final _formKey = GlobalKey<FormState>();
   final _nome = TextEditingController();
   final _email = TextEditingController();
   final _telefone = TextEditingController();
+  final _estabelecimento = TextEditingController();
   final _cidade = TextEditingController();
-  final _bairro = TextEditingController();
   final _senha = TextEditingController();
   final _confirma = TextEditingController();
 
-  List<Funcao> _funcoes = [];
-  int? _funcaoId;
-  String? _tipoPessoa; // PF | MEI | PJ — nenhum selecionado por padrão
+  String? _tipoOperacao; // nenhum selecionado por padrão
   FotoUpload? _foto;
 
   bool _obscureSenha = true;
@@ -50,7 +50,6 @@ class _PreCadastroProfissionalScreenState
   bool _submitted = false; // troca para a Vista B (recebido)
 
   // Erros que não são de TextFormField (mostrados manualmente).
-  String? _tipoError;
   String? _fotoError;
   String? _termosError;
 
@@ -61,20 +60,8 @@ class _PreCadastroProfissionalScreenState
   CadastroBanner? _banner;
 
   @override
-  void initState() {
-    super.initState();
-    _loadFuncoes();
-  }
-
-  Future<void> _loadFuncoes() async {
-    final funcoes = await _service.fetchFuncoes();
-    if (!mounted) return;
-    setState(() => _funcoes = funcoes);
-  }
-
-  @override
   void dispose() {
-    for (final c in [_nome, _email, _telefone, _cidade, _bairro, _senha, _confirma]) {
+    for (final c in [_nome, _email, _telefone, _estabelecimento, _cidade, _senha, _confirma]) {
       c.dispose();
     }
     super.dispose();
@@ -86,7 +73,6 @@ class _PreCadastroProfissionalScreenState
     try {
       foto = await picker();
     } catch (_) {
-      // Falha/cancelamento ao selecionar — mantém sem foto; a validação cobra.
       return;
     }
     if (foto == null || !mounted) return;
@@ -118,14 +104,12 @@ class _PreCadastroProfissionalScreenState
 
   bool _validateExtras() {
     setState(() {
-      _tipoError =
-          _tipoPessoa == null ? 'Selecione o tipo de cadastro: PF, MEI ou PJ.' : null;
       _fotoError = _foto == null ? 'Adicione uma foto.' : _fotoError;
       _termosError = !_termos
           ? 'É necessário aceitar os Termos de Uso e a Política de Privacidade.'
           : null;
     });
-    return _tipoError == null && _foto != null && _termosError == null;
+    return _foto != null && _termosError == null;
   }
 
   Future<void> _submit() async {
@@ -143,10 +127,9 @@ class _PreCadastroProfissionalScreenState
       name: _nome.text.trim(),
       email: _email.text.trim(),
       telefone: _telefone.text.trim(),
+      nomeEstabelecimento: _estabelecimento.text.trim(),
+      tipoOperacao: _tipoOperacao!,
       cidade: _cidade.text.trim(),
-      bairro: _bairro.text.trim(),
-      funcaoId: _funcaoId!,
-      tipoPessoa: _tipoPessoa!,
       password: _senha.text,
       passwordConfirmation: _confirma.text,
       termosAceitos: _termos,
@@ -181,10 +164,17 @@ class _PreCadastroProfissionalScreenState
         isDark ? TurniColors.surfacePageDark : TurniColors.surfacePageLight;
     final width = MediaQuery.sizeOf(context).width;
     final isDesktop = width >= 840;
-    final accent = isDark ? TurniColors.accentDark : TurniColors.accentLight;
+    // Tema contratante (mostarda): claro usa accent.ink p/ texto-link e accent p/ CTA;
+    // escuro usa o mesmo tom para ambos (tokens.md §6).
+    final accentCta = isDark
+        ? TurniColors.contratanteAccentDark
+        : TurniColors.contratanteAccentLight;
+    final accentInk = isDark
+        ? TurniColors.contratanteAccentDark
+        : TurniColors.contratanteAccentInkLight;
 
     return Scaffold(
-      key: const Key('screen-cadastro-profissional'),
+      key: const Key('screen-cadastro-contratante'),
       backgroundColor: surfacePage,
       body: Center(
         child: SingleChildScrollView(
@@ -195,22 +185,22 @@ class _PreCadastroProfissionalScreenState
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: isDesktop ? 560 : 480),
             child: _submitted
-                ? CadastroSuccessView(accent: accent)
+                ? CadastroSuccessView(accent: accentCta)
                 : (isDesktop
                       ? Card(
                           child: Padding(
                             padding: const EdgeInsets.all(TurniSpacing.xl),
-                            child: _buildForm(isDark, isDesktop, accent),
+                            child: _buildForm(isDark, isDesktop, accentCta, accentInk),
                           ),
                         )
-                      : _buildForm(isDark, isDesktop, accent)),
+                      : _buildForm(isDark, isDesktop, accentCta, accentInk)),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildForm(bool isDark, bool isDesktop, Color accent) {
+  Widget _buildForm(bool isDark, bool isDesktop, Color accentCta, Color accentInk) {
     return Form(
       key: _formKey,
       child: Column(
@@ -222,7 +212,7 @@ class _PreCadastroProfissionalScreenState
             child: TextButton(
               key: const Key('link-entrar'),
               onPressed: () => context.go('/login'),
-              style: TextButton.styleFrom(foregroundColor: accent),
+              style: TextButton.styleFrom(foregroundColor: accentInk),
               child: const Text('Já tem conta? Entrar'),
             ),
           ),
@@ -241,7 +231,7 @@ class _PreCadastroProfissionalScreenState
           ),
           const SizedBox(height: TurniSpacing.md),
           Text(
-            'Criar conta de profissional',
+            'Criar conta de estabelecimento',
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
@@ -259,12 +249,12 @@ class _PreCadastroProfissionalScreenState
           CadastroTextField(
             fieldKey: 'input-nome',
             controller: _nome,
-            label: 'Nome completo',
-            hint: 'Ex.: Diego Almeida',
+            label: 'Nome do responsável',
+            hint: 'Ex.: Maria Souza',
             textCapitalization: TextCapitalization.words,
             validator: (v) {
               final t = v?.trim() ?? '';
-              if (t.isEmpty) return 'Informe seu nome completo.';
+              if (t.isEmpty) return 'Informe o nome do responsável.';
               if (t.length < 3) return 'O nome deve ter ao menos 3 caracteres.';
               if (t.length > 120) return 'O nome deve ter no máximo 120 caracteres.';
               return _serverErrors['name'];
@@ -303,41 +293,42 @@ class _PreCadastroProfissionalScreenState
             },
           ),
 
-          const CadastroSection('Onde você atua'),
+          const CadastroSection('Seu estabelecimento'),
+          CadastroTextField(
+            fieldKey: 'input-estabelecimento',
+            controller: _estabelecimento,
+            label: 'Nome do estabelecimento',
+            hint: 'Ex.: Bar do Porto',
+            textCapitalization: TextCapitalization.words,
+            validator: (v) {
+              final t = v?.trim() ?? '';
+              if (t.isEmpty) return 'Informe o nome do estabelecimento.';
+              if (t.length < 2) {
+                return 'O nome do estabelecimento deve ter ao menos 2 caracteres.';
+              }
+              if (t.length > 200) {
+                return 'O nome do estabelecimento deve ter no máximo 200 caracteres.';
+              }
+              return _serverErrors['nome_estabelecimento'];
+            },
+          ),
           if (isDesktop)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _cidadeField()),
+                Expanded(child: _tipoOperacaoField()),
                 const SizedBox(width: TurniSpacing.md),
-                Expanded(child: _bairroField()),
+                Expanded(child: _cidadeField()),
               ],
             )
-          else ...[_cidadeField(), _bairroField()],
-          _funcaoField(),
-
-          const CadastroSection('Tipo de cadastro'),
-          _segmented(accent),
-          if (_tipoError != null) CadastroErrorText(_tipoError!),
-          Padding(
-            padding: const EdgeInsets.only(top: TurniSpacing.xs),
-            child: Text(
-              'Você envia seu documento depois da aprovação.',
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark
-                    ? TurniColors.textMutedDark
-                    : TurniColors.textMutedLight,
-              ),
-            ),
-          ),
+          else ...[_tipoOperacaoField(), _cidadeField()],
 
           const CadastroSection('Sua foto'),
           CadastroPhotoField(
             foto: _foto,
             error: _fotoError,
             onPick: _pickFoto,
-            accent: accent,
+            accent: accentCta,
             isDark: isDark,
           ),
 
@@ -381,7 +372,7 @@ class _PreCadastroProfissionalScreenState
               _termos = v;
               if (_termos) _termosError = null;
             }),
-            accent: accent,
+            accent: accentInk,
             isDark: isDark,
           ),
           if (_termosError != null) CadastroErrorText(_termosError!),
@@ -394,7 +385,7 @@ class _PreCadastroProfissionalScreenState
               key: const Key('btn-submit-cadastro'),
               onPressed: _loading ? null : _submit,
               style: FilledButton.styleFrom(
-                backgroundColor: accent,
+                backgroundColor: accentCta,
                 shape: const StadiumBorder(),
               ),
               child: _loading
@@ -424,55 +415,25 @@ class _PreCadastroProfissionalScreenState
     );
   }
 
+  Widget _tipoOperacaoField() => CadastroDropdownField<String>(
+    fieldKey: 'input-tipo-operacao',
+    label: 'Tipo de operação',
+    hint: 'Escolha o que melhor descreve',
+    value: _tipoOperacao,
+    items: TipoOperacao.opcoes
+        .map((t) => DropdownMenuItem(value: t.value, child: Text(t.label)))
+        .toList(),
+    onChanged: (v) => setState(() => _tipoOperacao = v),
+    validator: (v) =>
+        v == null ? 'Selecione o tipo de operação.' : _serverErrors['tipo_operacao'],
+  );
+
   Widget _cidadeField() => CadastroTextField(
     fieldKey: 'input-cidade',
     controller: _cidade,
     label: 'Cidade',
     textCapitalization: TextCapitalization.words,
     validator: (v) =>
-        (v?.trim().isEmpty ?? true) ? 'Informe sua cidade.' : _serverErrors['cidade'],
+        (v?.trim().isEmpty ?? true) ? 'Informe a cidade.' : _serverErrors['cidade'],
   );
-
-  Widget _bairroField() => CadastroTextField(
-    fieldKey: 'input-bairro',
-    controller: _bairro,
-    label: 'Bairro',
-    textCapitalization: TextCapitalization.words,
-    validator: (v) =>
-        (v?.trim().isEmpty ?? true) ? 'Informe seu bairro.' : _serverErrors['bairro'],
-  );
-
-  Widget _funcaoField() => CadastroDropdownField<int>(
-    fieldKey: 'input-funcao',
-    label: 'Função pretendida',
-    hint: 'Escolha a principal',
-    value: _funcaoId,
-    items: _funcoes
-        .map((f) => DropdownMenuItem(value: f.id, child: Text(f.nome)))
-        .toList(),
-    onChanged: (v) => setState(() => _funcaoId = v),
-    validator: (v) =>
-        v == null ? 'Selecione a função pretendida.' : _serverErrors['funcao_id'],
-  );
-
-  Widget _segmented(Color accent) {
-    return Semantics(
-      label: 'Tipo de pessoa',
-      child: SegmentedButton<String>(
-        key: const Key('segmented-tipo-pessoa'),
-        segments: const [
-          ButtonSegment(value: 'PF', label: Text('PF', key: Key('segment-pf'))),
-          ButtonSegment(value: 'MEI', label: Text('MEI', key: Key('segment-mei'))),
-          ButtonSegment(value: 'PJ', label: Text('PJ', key: Key('segment-pj'))),
-        ],
-        selected: _tipoPessoa == null ? <String>{} : {_tipoPessoa!},
-        emptySelectionAllowed: true,
-        showSelectedIcon: false,
-        onSelectionChanged: (s) => setState(() {
-          _tipoPessoa = s.isEmpty ? null : s.first;
-          _tipoError = null;
-        }),
-      ),
-    );
-  }
 }

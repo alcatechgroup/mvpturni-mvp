@@ -5,6 +5,7 @@ import 'features/app/app_shell_screen.dart';
 import 'features/auth/auth_service.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
+import 'features/cadastro/pre_cadastro_contratante_screen.dart';
 import 'features/cadastro/pre_cadastro_profissional_screen.dart';
 import 'features/funnel/completar_cadastro_placeholder_screen.dart';
 import 'features/funnel/welcome_placeholder_screen.dart';
@@ -29,6 +30,7 @@ String? _funnelGuard(BuildContext context, GoRouterState state) {
     '/login',
     '/esqueci-minha-senha',
     '/cadastro/profissional',
+    '/cadastro/contratante',
     '/health',
   };
   if (publicRoutes.contains(state.matchedLocation)) return null;
@@ -86,6 +88,12 @@ final router = GoRouter(
     GoRoute(
       path: '/cadastro/profissional',
       builder: (context, state) => const PreCadastroProfissionalScreen(),
+    ),
+
+    // Pré-cadastro público de contratante (STORY-018)
+    GoRoute(
+      path: '/cadastro/contratante',
+      builder: (context, state) => const PreCadastroContratanteScreen(),
     ),
 
     // Funnel guard — placeholders

@@ -285,14 +285,52 @@ class _LoginForm extends StatelessWidget {
             _BannerWidget(banner: banner!, accent: accent, isDark: isDark),
           ],
 
-          // Criar conta — facilita a entrada de quem ainda não tem cadastro.
+          // Criar conta — duas portas de entrada públicas (STORY-017 profissional,
+          // STORY-018 estabelecimento/contratante). Login é neutro (verde); o tema do
+          // perfil aparece só na tela de cadastro de destino.
           const SizedBox(height: TurniSpacing.md),
           Center(
-            child: TextButton(
-              key: const Key('link-criar-conta'),
-              onPressed: () => context.go('/cadastro/profissional'),
-              style: TextButton.styleFrom(foregroundColor: accent),
-              child: const Text('Não tem conta? Cadastre-se'),
+            child: Column(
+              children: [
+                Text(
+                  'Não tem conta?',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark
+                        ? TurniColors.textMutedDark
+                        : TurniColors.textMutedLight,
+                  ),
+                ),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: TurniSpacing.sm,
+                  children: [
+                    // Cada porta usa o acento do seu perfil (DDR-001): verde =
+                    // profissional, mostarda = estabelecimento/contratante. Antecipa
+                    // visualmente o tema da tela de destino.
+                    TextButton(
+                      key: const Key('link-criar-conta'),
+                      onPressed: () => context.go('/cadastro/profissional'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: isDark
+                            ? TurniColors.accentDark
+                            : TurniColors.accentLight,
+                      ),
+                      child: const Text('Criar conta de profissional'),
+                    ),
+                    TextButton(
+                      key: const Key('link-criar-conta-contratante'),
+                      onPressed: () => context.go('/cadastro/contratante'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: isDark
+                            ? TurniColors.contratanteAccentDark
+                            : TurniColors.contratanteAccentInkLight,
+                      ),
+                      child: const Text('Criar conta de estabelecimento'),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],

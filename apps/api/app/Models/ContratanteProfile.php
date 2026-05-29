@@ -15,10 +15,21 @@ class ContratanteProfile extends Model
         'cnpj_encrypted',
         'nome_estabelecimento',
         'tipo_operacao',
+        'telefone',
+        'cidade',
         'endereco_completo',
         'plano',
         'logo_path',
+        'foto_path',
+        'termos_aceitos_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'termos_aceitos_at' => 'datetime',
+        ];
+    }
 
     public function user(): BelongsTo
     {
