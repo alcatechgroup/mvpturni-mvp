@@ -1615,6 +1615,15 @@
         "decided_at": "2026-05-29",
         "decided_by": "programador",
         "source_story": "STORY-016"
+      },
+      {
+        "id": "IDR-008",
+        "title": "Funções pretendidas do profissional como tabela auxiliar com seed (em vez de enum hard-coded)",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-008-funcoes-tabela-auxiliar-vs-enum.md",
+        "decided_at": "2026-05-29",
+        "decided_by": "programador",
+        "source_story": "STORY-017"
       }
     ],
     "ddr": [

@@ -165,28 +165,46 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 **Dúvidas:** nenhuma de produto — escopo e decisões já fechadas em PDR-001/ADR-009/domain. As escolhas técnicas (tabela `funcoes` vs enum, lib de upload, path da foto) são liberdade do agente e registrarei em IDR.
 
 ### Sync Designer↔Programador
-(a preencher)
+Pendente — screen spec `SCREEN-STORY-017` ainda não entregue (ver Bloqueios). O sync ≤15 min acontece quando o Designer publicar a spec em `ready`. Backend não depende do sync.
 
 ### Decisões tomadas
-(a preencher)
+- **Funções = tabela auxiliar `funcoes` + seed** (não enum) → **IDR-008**. FK `funcao_id` em `profissional_profiles`, validação exige `ativo=true`.
+- **Proteção contra enumeração (CA-4):** a unicidade do e-mail **não** usa a regra `unique` do validator (que vazaria via erro de campo); é checada no controller com **mensagem genérica** + dica "Já tem conta? Faça login.". Status 422, `code: cadastro_nao_concluido`.
+- **Foto:** `store('profissionais/fotos')` no disco default (nome aleatório/hash → path **não-enumerável**), disco **privado** (sem URL pública direta — CA-13). Acesso do admin virá por rota controlada na STORY-019. Em prod o disco é Cloud Storage (ADR-004) via `FILESYSTEM_DISK`.
+- **Senha:** regra explícita `Password::min(10)->mixedCase()->numbers()` **local** ao FormRequest (não mexi no `Password::defaults()` global para não afetar outros fluxos). Hash Argon2id pelo cast `hashed` + `HASH_DRIVER=argon2id`.
+- **Mascaramento de e-mail** para o log: helper `App\Support\Pii::maskEmail` (`d***@dominio`).
+- **E-mail de confirmação (item 6 do §O quê):** STORY-021 (infra de e-mail) **não está done** → confirmação **deferida**, não-bloqueante. Não criei job/mailable órfão; STORY-021 dispara quando a infra existir.
 
 ### Descobertas
-(a preencher)
+- O container `api` **não tem a extensão GD** → `UploadedFile::fake()->image()` quebra nos testes. Usei `->create($nome, $kb, $mime)` que exercita `image|mimes|max` sem gerar pixels. A validação `image` em produção usa fileinfo (não GD), então o upload real não é afetado.
+- O `.env` local **não tinha `HASH_DRIVER`** (caía no bcrypt default), embora `.env.example` e `phpunit.xml` já declarem `argon2id`. Adicionei ao `.env` local (git-ignored) para paridade. **Atenção infra:** homolog/prod precisam ter `HASH_DRIVER=argon2id` setado (vem do `.env.example`/Secret Manager).
 
 ### Bloqueios encontrados
 - **[DESIGN] Screen spec ausente (2026-05-29):** `requires_design: true` aponta `SCREEN-STORY-017-pre-cadastro-profissional`, mas o arquivo **não existe** em `docs/project-state/design/screens/` (só há SCREEN-016, SCREEN-028, STORY-008). Pelo protocolo, o Programador é dono mas **não toca a UI** até o Designer entregar a spec em `status: ready` + sync ≤15 min. **Decisão:** sigo backend-first (totalmente desbloqueado) e mantenho a parte de UI (CA-1, CA-2, CA-7, CA-8, CA-10 e o E2E de CA-9) pendente do design. Não está `blocked` no índice porque há trabalho substancial desbloqueado em andamento.
 
 ### IDRs criados
-(a preencher)
+- **IDR-008** — Funções como tabela auxiliar `funcoes` com seed (vs enum). `status: accepted`. Registrado em `index.json`.
 
 ### Cobertura final
-(a preencher)
+- Suíte `api` completa: **96 testes, 0 falhas**; cobertura global **95%** (gate `--min=80` verde). `StoreProfissionalPreCadastroRequest` 100%, `Pii` 100%, `FuncaoSeeder` 100%, `ProfissionalCadastroController` 92,5% (3 linhas não cobertas = bloco `catch` de limpeza de foto órfã — defensivo, fora do núcleo de regra). `Funcao` 100%.
+- Lint (Pint): limpo.
+- Backend cobre por teste: CA-3, CA-4, CA-5, CA-6, CA-9 (persistência PF/MEI/PJ), CA-11 (cobertura), CA-12, CA-14.
 
 ### Resultado final / evidência
-(a preencher — URL de homolog, screenshots, E2E run)
+**Backend concluído e verde localmente** (2026-05-29). Falta a camada de UI (bloqueada por design) e o deploy em homolog para evidência ao vivo + E2E em browser.
+
+**Status dos CAs:**
+- ✅ CA-3, CA-4, CA-5, CA-6, CA-9 (parte de persistência/backend), CA-11 (backend), CA-12, CA-14 — cobertos por teste e verdes.
+- ⏳ CA-1, CA-2, CA-7, CA-8, CA-10 e o **E2E em browser** de CA-9, CA-13 (verificação ao vivo de acesso à foto) — **pendentes da UI** (design spec).
 
 ### Pendências para fechar
-(a preencher)
+1. **[DESIGN]** Designer entregar `SCREEN-STORY-017` em `ready` + sync ≤15 min.
+2. UI Flutter: rota pública `/cadastro/profissional` (tema profissional DDR-001), formulário com validação client-side (CA-1, CA-2), tela de sucesso (CA-7), mensagem "aguardando aprovação" no login de `pendente_aprovacao` (CA-8 — coordenar com STORY-016), a11y WCAG 2.1 AA dual-theme (CA-10).
+3. E2E em browser real cobrindo PF + MEI (CA-9) na pipeline de homolog.
+4. Deploy verde em homolog → evidência ao vivo (URL, screenshots, run E2E).
+5. Confirmar `HASH_DRIVER=argon2id` no ambiente homolog/prod (infra).
 
 ### Links de evidência
-(a preencher)
+- Commits: `feat(STORY-017): endpoint de pré-cadastro de profissional (backend)`.
+- LGPD: `docs/especificacao/lgpd/campos-coletados.md` §STORY-017.
+- IDR: `docs/project-state/decisions/idr/IDR-008-funcoes-tabela-auxiliar-vs-enum.md`.

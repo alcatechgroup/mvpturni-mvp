@@ -1,6 +1,6 @@
 <?php
 
-// STORY-017 — Tabela auxiliar de funções pretendidas pelo profissional (IDR-006).
+// STORY-017 — Tabela auxiliar de funções pretendidas pelo profissional (IDR-008).
 // Decisão do agente: tabela pequena com seed em vez de enum hard-coded, antecipando
 // uso por STORY-019 (fila) e filtros de busca futuros. Reversível com drop table.
 
