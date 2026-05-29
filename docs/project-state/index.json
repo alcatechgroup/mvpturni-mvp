@@ -1,13 +1,13 @@
 {
   "version": 2,
-  "generated_at": "2026-05-28T23:10:00Z",
+  "generated_at": "2026-05-29T12:00:00Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W24",
     "last_closed_sprint": "SPRINT-2026-W23",
     "phase": "wave-2026-01-sprints-w24-e-w24-landing-em-paralelo",
-    "next_action": "DUAS sprints abertas em paralelo. (1) SPRINT-2026-W24 (EPIC-001): STORY-016 in_progress, sync Designer↔Programador concluído. (2) SPRINT-2026-W24-LANDING (EPIC-006): aberto agora; priorizar STORY-026 (ADR-012, arquiteto) e STORY-027 (PDR-015, PO) no D1 — ambas destravam as 6 estórias de implementação. Coordenação: PRs com prefixo [W24] ou [W24-LANDING]; touch points compartilhados (firebase.json, .firebaserc, CODEOWNERS, módulos Terraform firebase/dns) requerem rebase imediato entre as duas branches.",
+    "next_action": "DUAS sprints abertas em paralelo. (1) SPRINT-2026-W24 (EPIC-001): STORY-016 done em 2026-05-29 (aprovada por Alexandro em chat, F-NB-1 e CA-15 evidenciados em homolog) — desbloqueia 017/018/019/020/022. Gargalo agora é Designer: 5 screen specs restantes (017/018/019/020/022) precisam virar ready para 017/018/022 entrarem. (2) SPRINT-2026-W24-LANDING (EPIC-006): aberto; priorizar STORY-026 (ADR-012, arquiteto) e STORY-027 (PDR-015, PO) no D1 — ambas destravam as 6 estórias de implementação. Coordenação: PRs com prefixo [W24] ou [W24-LANDING]; touch points compartilhados (firebase.json, .firebaserc, CODEOWNERS, módulos Terraform firebase/dns) requerem rebase imediato entre as duas branches.",
     "notes": "SPRINT-2026-W24 aberta em 2026-05-28 com 10 estórias no escopo (012/013/014/015/016/017/018/019/020/022). Goal: funil de identidade Turni vivo em homolog até a tela real de welcome — profissional (PF/MEI/PJ) e contratante completam pré-cadastro, equipe Turni aprova no Backoffice com audit log imutável, usuário aprovado loga no WebApp e vê welcome real; RBAC vivo nas duas interfaces; editor de templates contratuais com texto-seed v1 validado por Alexandro carregado; 3 ADRs aceitas (ADR-009/010/011); F-NB-1 do EPIC-000 (migrate:rollback em homolog) quitado na STORY-016. STORY-021 (e-mails) como stretch. STORY-023/024/025 ficam para SPRINT-2026-W25. Soft-cap em 2026-06-18 (~21 dias) — gatilho de reavaliação, não prazo. Sizing: 1L + 7M + 2S — primeira sprint com volume real de implementação pós-EPIC-000."
   },
   "product": {
@@ -639,10 +639,23 @@
       ],
       "estimated_session_size": "L",
       "inherited_criteria": [
-        "F-NB-1 do EPIC-000: exercer php artisan migrate:rollback em homolog (primeira migração com lógica de negócio)"
+        "F-NB-1 do EPIC-000: exercer php artisan migrate:rollback em homolog (primeira migração com lógica de negócio) — QUITADO em rc.19 (turni-migrate-homolog-x476q)"
       ],
+      "closure": {
+        "closed_at": "2026-05-29",
+        "approved_by": "PO (Alexandro / chat)",
+        "evidence": {
+          "ca2_f_nb_1": "turni-migrate-homolog-x476q (rc.19) — migrate:reset reverteu 10 migrações + replay + seed; runbook §rollback-migracoes",
+          "ca15_audit_log_imutavel": "turni-migrate-homolog-6ksds — update=BLOQUEADO delete=BLOQUEADO via trigger; runbook",
+          "ca13_e2e": "make e2e — 17 passed (10 WebApp + 7 Backoffice), 0 fail",
+          "ca14_cobertura": "API 94,2% (70 Pest) / Admin 30 Pest / WebApp 24 flutter test",
+          "pipeline": "rc.18/rc.19 verdes (build → migrate+seed → deploy → smoke)"
+        },
+        "idrs_e_emendas": ["IDR-006", "IDR-007", "ADR-007 (emenda: API same-origin via Firebase rewrite)"],
+        "commits_chave": ["806ce03 (fix down() add_identity_columns)"]
+      },
       "created_at": "2026-05-28",
-      "updated_at": "2026-05-28"
+      "updated_at": "2026-05-29"
     },
     {
       "id": "STORY-017",

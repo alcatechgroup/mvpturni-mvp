@@ -41,7 +41,7 @@ O e-mail de aprovação concedida **NÃO chega ao usuário** no fim desta sprint
 | STORY-013 | Spike — Template/Versao e AceiteEletronico imutável (ADR-010) | EPIC-001 | spike | arquiteto | S | não | **done** |
 | STORY-014 | Spike — provedor de e-mail + ACL (ADR-011) | EPIC-001 | spike | arquiteto | S | não | **done** |
 | STORY-015 | Texto-seed dos templates contratuais (PF + MEI/PJ v1) | EPIC-001 | enablement | po | M | não | **done** |
-| STORY-016 | RBAC vivo — login + roteamento por papel + funnel guard | EPIC-001 | implementation | programador | **L** | sim | ready |
+| STORY-016 | RBAC vivo — login + roteamento por papel + funnel guard | EPIC-001 | implementation | programador | **L** | sim | **done** |
 | STORY-017 | Pré-cadastro de Profissional (PF/MEI/PJ) no WebApp | EPIC-001 | implementation | programador | M | sim | ready |
 | STORY-018 | Pré-cadastro de Contratante no WebApp | EPIC-001 | implementation | programador | M | sim | ready |
 | STORY-019 | Fila de aprovação no Backoffice | EPIC-001 | implementation | programador | M | sim | ready |
@@ -170,6 +170,34 @@ Regras novas para W24:
 ## Aprendizados em curso (mid-sprint)
 
 > Para registrar conforme acontecem; consolidados na seção "Fechamento do sprint" no fim.
+
+### 2026-05-29 — D+2: STORY-016 (L) fechada, RBAC vivo em homolog
+
+**O que aconteceu:**
+
+A estória pivô da sprint — STORY-016 (RBAC vivo, L) — foi finalizada em D+2, ritmo bem acima do estimado (a expectativa era ≥1 semana para uma L). Alexandro aprovou em chat após verificação em browser real.
+
+**Estado resultante:**
+
+- Login funcional em `app.homolog.turni.com.br/login` (profissional/contratante) e no Backoffice (admin).
+- Roteamento por papel + funnel guard + fail-secure de host cruzado validados em E2E (17 passed, 0 fail via gate local `make e2e`).
+- **F-NB-1 do EPIC-000 quitado** (CA-2): `migrate:reset` em homolog (execução `turni-migrate-homolog-x476q`, rc.19) com replay + seed; evidência no runbook.
+- **Audit log imutável em homolog** (CA-15): execução `turni-migrate-homolog-6ksds` confirma `update=BLOQUEADO delete=BLOQUEADO` via trigger.
+- Cobertura: API 94,2% (gate ≥80% ok); 70 testes Pest na api, 30 no admin, 24 no Flutter.
+- IDR-006 (path strategy + E2E semantics), IDR-007 (Cloud Run↔Cloud SQL privado), emenda ADR-007 (API same-origin via Firebase rewrite).
+- Releases rc.18/rc.19 verdes (build → migrate+seed → deploy → smoke).
+
+**Estórias destravadas (blocked_by STORY-016):**
+
+STORY-017, STORY-018, STORY-019, STORY-020, STORY-021, STORY-022, STORY-023, STORY-024, STORY-025. Dentro do escopo da W24: 017, 018, 019, 020, 022 — podem ser puxadas conforme dependências secundárias e disponibilidade do Designer (specs 017/018/019/020/022 a confirmar `ready`).
+
+**Próximo gargalo previsto:**
+
+Designer entregando as 5 screen specs remanescentes (017/018/019/020/022). Sem isso, 017/018/022 não podem iniciar (`requires_design: true`). PO acompanha backlog do Designer diariamente.
+
+**Ajuste de expectativa:**
+
+Com a peça-pivô fechada em D+2, o soft-cap de 2026-06-18 fica ainda mais confortável. Espaço significativo para puxar STORY-021 (e-mails, stretch) se a velocidade se mantiver e Designer der vazão.
 
 ### 2026-05-28 — D+1: todas as 4 estórias preparatórias fechadas
 
