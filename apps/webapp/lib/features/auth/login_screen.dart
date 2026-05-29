@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
       case FunnelState.rejected:
         setState(() => _banner = _BannerState.rejected());
       case FunnelState.active:
-        context.go('/app');
+        context.go('/');
     }
   }
 
@@ -284,6 +284,17 @@ class _LoginForm extends StatelessWidget {
             const SizedBox(height: TurniSpacing.md),
             _BannerWidget(banner: banner!, accent: accent, isDark: isDark),
           ],
+
+          // Criar conta — facilita a entrada de quem ainda não tem cadastro.
+          const SizedBox(height: TurniSpacing.md),
+          Center(
+            child: TextButton(
+              key: const Key('link-criar-conta'),
+              onPressed: () => context.go('/cadastro/profissional'),
+              style: TextButton.styleFrom(foregroundColor: accent),
+              child: const Text('Não tem conta? Cadastre-se'),
+            ),
+          ),
         ],
       ),
     );

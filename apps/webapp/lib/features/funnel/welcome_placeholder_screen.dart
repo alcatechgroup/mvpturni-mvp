@@ -89,7 +89,7 @@ class _WelcomePlaceholderScreenState extends State<WelcomePlaceholderScreen> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () => context.go('/app'),
+                          onPressed: () => context.go('/'),
                           child: const Text('Continuar'),
                         ),
                       ],

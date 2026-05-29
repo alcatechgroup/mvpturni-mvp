@@ -91,13 +91,15 @@ test.describe('WebApp — tela de login (CA-5)', () => {
 // ──────────────────────────────────────────────────────────────
 
 test.describe('WebApp — profissional ativo (CA-13b)', () => {
-  test('profissional ativo loga e é roteado para /app', async ({ page }) => {
+  test('profissional ativo loga e é roteado para a home (root)', async ({ page }) => {
     await gotoApp(page, '/login');
 
     await fillLoginForm(page, profissionalEmail, profissionalPassword);
     await submitLogin(page);
 
-    await expect(page).toHaveURL(/\/(app|welcome|completar-cadastro)$/);
+    // Ativo cai na home pós-login (root `/`); demais estados, nas rotas de funil.
+    // Em qualquer caso, NÃO permanece em /login.
+    await expect(page).not.toHaveURL(/\/login$/);
   });
 });
 
@@ -132,5 +134,29 @@ test.describe('WebApp — funnel guard (CA-10/CA-11)', () => {
   test('rota /completar-cadastro sem auth redireciona para /login', async ({ page }) => {
     await gotoApp(page, '/completar-cadastro');
     await expect(page).toHaveURL(/\/login$/);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────
+// Navegação: root protegido + atalho "Criar conta" (ajustes 2026-05-29)
+// ──────────────────────────────────────────────────────────────
+
+test.describe('WebApp — navegação (root / criar conta)', () => {
+  test('root `/` sem auth redireciona para /login', async ({ page }) => {
+    await gotoApp(page, '/');
+    await expect(page).toHaveURL(/\/login$/);
+  });
+
+  test('link "Cadastre-se" no login leva ao pré-cadastro', async ({ page }) => {
+    await gotoApp(page, '/login');
+    await page.getByRole('button', { name: 'Não tem conta? Cadastre-se' }).click();
+    await page.waitForTimeout(1500);
+    await expect(page).toHaveURL(/\/cadastro\/profissional$/);
+  });
+
+  test('/info carrega a tela informativa pública sem auth', async ({ page }) => {
+    const response = await page.goto('/info');
+    expect(response?.status()).toBe(200);
+    await expect(page).toHaveURL(/\/info$/);
   });
 });

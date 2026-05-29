@@ -15,16 +15,17 @@ import 'features/welcome/welcome_screen.dart';
 // Roteamento pós-login conforme ADR-009:
 //   status=liberado + welcome_seen_at=null → /welcome
 //   status=liberado + welcome_seen_at!=null + cadastro=null → /completar-cadastro
-//   status=ativo → /app
+//   status=ativo → / (home pós-login)
 //   não-logado → /login
 // ──────────────────────────────────────────────────────────────
 String? _funnelGuard(BuildContext context, GoRouterState state) {
   final auth = AuthService();
   final session = auth.session;
 
-  // Rotas públicas — sem guard
+  // Rotas públicas — sem guard. O root `/` NÃO é público: é a home pós-login
+  // (redireciona para /login quando não há sessão). A tela informativa fica em /info.
   const publicRoutes = {
-    '/',
+    '/info',
     '/login',
     '/esqueci-minha-senha',
     '/cadastro/profissional',
@@ -32,7 +33,7 @@ String? _funnelGuard(BuildContext context, GoRouterState state) {
   };
   if (publicRoutes.contains(state.matchedLocation)) return null;
 
-  // Não logado → /login
+  // Não logado → /login (inclui o root `/`)
   if (session == null) return '/login';
 
   final funnel = session.funnelState;
@@ -68,8 +69,11 @@ final router = GoRouter(
   initialLocation: '/',
   redirect: _funnelGuard,
   routes: [
-    // Rota pública (hello world / landing)
-    GoRoute(path: '/', builder: (context, state) => const WelcomeScreen()),
+    // Home pós-login (status=ativo). Não logado → o guard manda para /login.
+    GoRoute(path: '/', builder: (context, state) => const AppShellScreen()),
+
+    // Tela informativa pública (antigo root)
+    GoRoute(path: '/info', builder: (context, state) => const WelcomeScreen()),
 
     // Auth
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
@@ -93,9 +97,6 @@ final router = GoRouter(
       path: '/completar-cadastro',
       builder: (context, state) => const CompletarCadastroPlaceholderScreen(),
     ),
-
-    // App shell — usuários ativos
-    GoRoute(path: '/app', builder: (context, state) => const AppShellScreen()),
 
     // Health (dev local)
     GoRoute(

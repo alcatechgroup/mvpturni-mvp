@@ -9,36 +9,35 @@ import 'package:turni_webapp/ds/tokens.dart';
 
 // Router mínimo para testes de tela isolada
 GoRouter _testRouter() => GoRouter(
-      routes: [
-        GoRoute(
-          path: '/login',
-          builder: (context, state) => const LoginScreen(),
-        ),
-        GoRoute(
-          path: '/esqueci-minha-senha',
-          builder: (context, state) => const Scaffold(body: Text('forgot')),
-        ),
-        GoRoute(
-          path: '/welcome',
-          builder: (context, state) => const Scaffold(body: Text('welcome')),
-        ),
-        GoRoute(
-          path: '/app',
-          builder: (context, state) => const Scaffold(body: Text('app')),
-        ),
-      ],
-      initialLocation: '/login',
-    );
+  routes: [
+    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+    GoRoute(
+      path: '/esqueci-minha-senha',
+      builder: (context, state) => const Scaffold(body: Text('forgot')),
+    ),
+    GoRoute(
+      path: '/welcome',
+      builder: (context, state) => const Scaffold(body: Text('welcome')),
+    ),
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const Scaffold(body: Text('home')),
+    ),
+    GoRoute(
+      path: '/cadastro/profissional',
+      builder: (context, state) => const Scaffold(body: Text('cadastro')),
+    ),
+  ],
+  initialLocation: '/login',
+);
 
 Widget _loginApp() => MaterialApp.router(
-      routerConfig: _testRouter(),
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: TurniColors.accentLight,
-        ),
-        useMaterial3: true,
-      ),
-    );
+  routerConfig: _testRouter(),
+  theme: ThemeData(
+    colorScheme: ColorScheme.fromSeed(seedColor: TurniColors.accentLight),
+    useMaterial3: true,
+  ),
+);
 
 void main() {
   group('LoginScreen', () {
@@ -77,11 +76,30 @@ void main() {
       expect(find.byKey(const Key('btn-toggle-password')), findsOneWidget);
     });
 
-    testWidgets('tem link "Esqueci minha senha" com key correta', (tester) async {
+    testWidgets('tem link "Esqueci minha senha" com key correta', (
+      tester,
+    ) async {
       await tester.pumpWidget(_loginApp());
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('link-forgot-password')), findsOneWidget);
+    });
+
+    testWidgets('tem link "Cadastre-se" que leva ao pré-cadastro', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_loginApp());
+      await tester.pumpAndSettle();
+
+      final link = find.byKey(const Key('link-criar-conta'));
+      expect(link, findsOneWidget);
+
+      await tester.tap(link);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('cadastro'),
+        findsOneWidget,
+      ); // navegou para /cadastro/profissional
     });
 
     testWidgets('validação exibe erro para campos vazios', (tester) async {
@@ -98,7 +116,10 @@ void main() {
       await tester.pumpWidget(_loginApp());
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byKey(const Key('input-email')), 'nao-e-email');
+      await tester.enterText(
+        find.byKey(const Key('input-email')),
+        'nao-e-email',
+      );
       await tester.enterText(find.byKey(const Key('input-password')), 'senha');
       await tester.tap(find.byKey(const Key('btn-submit-login')));
       await tester.pumpAndSettle();
@@ -106,7 +127,9 @@ void main() {
       expect(find.text('E-mail inválido.'), findsOneWidget);
     });
 
-    testWidgets('toggle show/hide inverte a visibilidade da senha', (tester) async {
+    testWidgets('toggle show/hide inverte a visibilidade da senha', (
+      tester,
+    ) async {
       await tester.pumpWidget(_loginApp());
       await tester.pumpAndSettle();
 
