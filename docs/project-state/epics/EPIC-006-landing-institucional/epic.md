@@ -3,10 +3,11 @@ epic_id: EPIC-006
 slug: landing-institucional
 title: Landing institucional turni.com.br — deploy AS IS sob responsabilidade do marketing
 wave: WAVE-2026-01
-status: ready
+status: done
 owner_role: po
 created_at: 2026-05-28
-updated_at: 2026-05-28
+updated_at: 2026-05-29
+closed_at: 2026-05-29
 target_completion: 2026-07-31  # estimativa orientativa; soft-cap, não prazo
 ---
 
