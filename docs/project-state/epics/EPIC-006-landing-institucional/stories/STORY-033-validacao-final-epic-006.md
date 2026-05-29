@@ -7,10 +7,10 @@ sprint_id: SPRINT-2026-W24-LANDING
 type: validation
 target_role: validador
 requires_design: false
-status: ready
-owner_agent: null
+status: done
+owner_agent: claude-opus-4-8-validador-2026-05-29
 created_at: 2026-05-28
-updated_at: 2026-05-28
+updated_at: 2026-05-29
 estimated_session_size: S
 ---
 
@@ -153,25 +153,31 @@ Siga `docs/skills/validador/SKILL.md`. Resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+- Lidos: `epic.md` (via checklist/stories), `validation/checklist.md` (15 blocos), STORYs 026–032, ADR-012, PDR-015, ADR-004/003, `runbook-landing.md`, `SKILL.md` do validador, `verdict-criteria.md`.
+- Papel: Validador — fato + evidência + veredito. Sem propor correções, sem planejar.
 
 ### Pré-condições verificadas
-(a preencher — lista de STORYs e status confirmado)
+- PRE-1 ✅ STORY-026..032 `done`. PRE-2: EPIC-006 estava `in_progress` → transicionado para `in_review` (todas as stories done, PO autorizou validar). PRE-3 ✅ homolog 200/TLS. PRE-4 ✅ acesso repo/GCP/GitHub.
 
 ### Itens do checklist
-(a preencher — uma linha por item com status + evidência)
+Preenchidos em `validation/report.md` (62 itens + 4 pré-condições), cada um com status + evidência (comando/saída, run id, REST, Lighthouse, headers).
 
 ### Descobertas
-(a preencher — observações que não viram fail mas merecem registro)
+- `firebase hosting:rollback` **não existe** (firebase-tools 13.x/15.15.0) — runbook documenta REST/Console/`hosting:clone` (CA-B10-1).
+- CODEOWNERS retorna 11 erros "Unknown owner" — times `@turni/marketing`/`@turni/engenharia` não existem na org; GitHub não aplica as regras. Estado aceito por PDR-015 (CA-B7-2/3).
+- Auth do deploy via chave SA (`FIREBASE_SERVICE_ACCOUNT`), não WIF puro — mesmo padrão do `release.yml` do WebApp (CA-B8-2, fail não-bloqueante).
+- Assets AS IS = `max-age=3600` por ADR-012 §4 (não immutable) — comportamento correto (CA-B12-4).
 
 ### Bloqueios encontrados
-(a preencher)
+- `terraform plan` em prod não executou: reauth de ADC (`invalid_rapt`) na conta gcloud. Mitigado por inspeção estática do gate + confirmação via API de que sites de prod não existem (CA-B11-2).
 
 ### Veredito
-(a preencher — `approved` | `approved_with_pending` | `rejected` com justificativa)
+**`approved_with_pending`** — 0 fails bloqueantes; 2 não-bloqueantes (CA-B8-2 auth via chave SA; CA-B3-6 Perf da landing AS IS 58–60, item declarado não-bloqueante pelo checklist); 6 pass com ressalva; 3 n/a justificados; 51 passes. Métrica primária atendida e verificada no último deploy (rc.4).
 
 ### Pendências para fechar
-(a preencher)
+- Decisão sobre as 2 pendências não-bloqueantes e o fechamento do EPIC-006 (`in_review` → `done`) é do PO. Validador não recomenda.
 
 ### Links de evidência
-(a preencher — PR do report, screenshots, logs)
+- Relatório: `docs/project-state/epics/EPIC-006-landing-institucional/validation/report.md`.
+- Runs: Landing Deploy rc.4 (id 26639183247) success; release.yml só em `v0.1.0-rc.*`.
+- Lighthouse: Em breve Perf 89/A11y 100; Landing Perf 58–60/A11y 85.
