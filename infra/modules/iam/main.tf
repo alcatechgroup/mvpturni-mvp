@@ -75,6 +75,15 @@ resource "google_project_iam_member" "ci_service_account_user" {
   member  = "serviceAccount:${google_service_account.ci.email}"
 }
 
+# Cloud SQL admin: o job de migração do pipeline (release.yml migrate-homolog)
+# precisa ligar a instância (scheduler de economia pode tê-la desligado) e
+# executar migrações. STORY-016.
+resource "google_project_iam_member" "ci_cloudsql_admin" {
+  project = var.project_id
+  role    = "roles/cloudsql.admin"
+  member  = "serviceAccount:${google_service_account.ci.email}"
+}
+
 # Permissões do runtime das apps: Cloud SQL client, Secret Manager accessor, Logging writer
 resource "google_project_iam_member" "apps_cloudsql" {
   project = var.project_id
