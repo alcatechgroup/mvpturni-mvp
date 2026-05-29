@@ -69,17 +69,18 @@ Future<CadastroResult> postCadastroMultipart({
   }
 
   // 2. POST multipart.
-  final request = http.MultipartRequest('POST', Uri.parse('$cadastroApiBase$path'))
-    ..headers['Accept'] = 'application/json'
-    ..fields.addAll(fields)
-    ..files.add(
-      http.MultipartFile.fromBytes(
-        'foto',
-        foto.bytes,
-        filename: foto.filename,
-        contentType: _mediaTypeFor(foto.filename),
-      ),
-    );
+  final request =
+      http.MultipartRequest('POST', Uri.parse('$cadastroApiBase$path'))
+        ..headers['Accept'] = 'application/json'
+        ..fields.addAll(fields)
+        ..files.add(
+          http.MultipartFile.fromBytes(
+            'foto',
+            foto.bytes,
+            filename: foto.filename,
+            contentType: _mediaTypeFor(foto.filename),
+          ),
+        );
 
   http.Response response;
   try {

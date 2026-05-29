@@ -12,7 +12,11 @@ import 'shared/cadastro_widgets.dart';
 /// Espelha a tela do profissional (STORY-017), reusando `shared/` (IDR-012). Contratante
 /// é sempre PJ: sem `tipo_pessoa`/segmented; tipo de operação é uma lista estática.
 class PreCadastroContratanteScreen extends StatefulWidget {
-  const PreCadastroContratanteScreen({super.key, this.service, this.photoPicker});
+  const PreCadastroContratanteScreen({
+    super.key,
+    this.service,
+    this.photoPicker,
+  });
 
   /// Injetável para teste; em produção usa o serviço real.
   final ContratanteCadastroService? service;
@@ -61,7 +65,15 @@ class _PreCadastroContratanteScreenState
 
   @override
   void dispose() {
-    for (final c in [_nome, _email, _telefone, _estabelecimento, _cidade, _senha, _confirma]) {
+    for (final c in [
+      _nome,
+      _email,
+      _telefone,
+      _estabelecimento,
+      _cidade,
+      _senha,
+      _confirma,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -79,7 +91,9 @@ class _PreCadastroContratanteScreenState
 
     final lower = foto.filename.toLowerCase();
     final extOk =
-        lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png');
+        lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.png');
     if (!extOk) {
       setState(() => _fotoError = 'A foto deve ser JPG ou PNG.');
       return;
@@ -160,8 +174,9 @@ class _PreCadastroContratanteScreenState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfacePage =
-        isDark ? TurniColors.surfacePageDark : TurniColors.surfacePageLight;
+    final surfacePage = isDark
+        ? TurniColors.surfacePageDark
+        : TurniColors.surfacePageLight;
     final width = MediaQuery.sizeOf(context).width;
     final isDesktop = width >= 840;
     // Tema contratante (mostarda): claro usa accent.ink p/ texto-link e accent p/ CTA;
@@ -190,7 +205,12 @@ class _PreCadastroContratanteScreenState
                       ? Card(
                           child: Padding(
                             padding: const EdgeInsets.all(TurniSpacing.xl),
-                            child: _buildForm(isDark, isDesktop, accentCta, accentInk),
+                            child: _buildForm(
+                              isDark,
+                              isDesktop,
+                              accentCta,
+                              accentInk,
+                            ),
                           ),
                         )
                       : _buildForm(isDark, isDesktop, accentCta, accentInk)),
@@ -200,7 +220,12 @@ class _PreCadastroContratanteScreenState
     );
   }
 
-  Widget _buildForm(bool isDark, bool isDesktop, Color accentCta, Color accentInk) {
+  Widget _buildForm(
+    bool isDark,
+    bool isDesktop,
+    Color accentCta,
+    Color accentInk,
+  ) {
     return Form(
       key: _formKey,
       child: Column(
@@ -241,7 +266,9 @@ class _PreCadastroContratanteScreenState
             'Leva 2 minutos. A equipe Turni revisa em até 24h.',
             style: TextStyle(
               fontSize: 14,
-              color: isDark ? TurniColors.textMutedDark : TurniColors.textMutedLight,
+              color: isDark
+                  ? TurniColors.textMutedDark
+                  : TurniColors.textMutedLight,
             ),
           ),
 
@@ -256,7 +283,8 @@ class _PreCadastroContratanteScreenState
               final t = v?.trim() ?? '';
               if (t.isEmpty) return 'Informe o nome do responsável.';
               if (t.length < 3) return 'O nome deve ter ao menos 3 caracteres.';
-              if (t.length > 120) return 'O nome deve ter no máximo 120 caracteres.';
+              if (t.length > 120)
+                return 'O nome deve ter no máximo 120 caracteres.';
               return _serverErrors['name'];
             },
           ),
@@ -321,7 +349,10 @@ class _PreCadastroContratanteScreenState
                 Expanded(child: _cidadeField()),
               ],
             )
-          else ...[_tipoOperacaoField(), _cidadeField()],
+          else ...[
+            _tipoOperacaoField(),
+            _cidadeField(),
+          ],
 
           const CadastroSection('Sua foto'),
           CadastroPhotoField(
@@ -343,7 +374,8 @@ class _PreCadastroContratanteScreenState
                 'Use 10+ caracteres, com letras maiúsculas, minúsculas e números.',
             validator: (v) {
               final t = v ?? '';
-              final strong = t.length >= 10 &&
+              final strong =
+                  t.length >= 10 &&
                   RegExp(r'[A-Z]').hasMatch(t) &&
                   RegExp(r'[a-z]').hasMatch(t) &&
                   RegExp(r'\d').hasMatch(t);
@@ -358,7 +390,8 @@ class _PreCadastroContratanteScreenState
             controller: _confirma,
             label: 'Confirmar senha',
             obscure: _obscureConfirma,
-            onToggle: () => setState(() => _obscureConfirma = !_obscureConfirma),
+            onToggle: () =>
+                setState(() => _obscureConfirma = !_obscureConfirma),
             validator: (v) {
               if ((v ?? '') != _senha.text) return 'As senhas não conferem.';
               return null;
@@ -396,7 +429,10 @@ class _PreCadastroContratanteScreenState
                     )
                   : const Text(
                       'Enviar cadastro',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
             ),
           ),
@@ -424,8 +460,9 @@ class _PreCadastroContratanteScreenState
         .map((t) => DropdownMenuItem(value: t.value, child: Text(t.label)))
         .toList(),
     onChanged: (v) => setState(() => _tipoOperacao = v),
-    validator: (v) =>
-        v == null ? 'Selecione o tipo de operação.' : _serverErrors['tipo_operacao'],
+    validator: (v) => v == null
+        ? 'Selecione o tipo de operação.'
+        : _serverErrors['tipo_operacao'],
   );
 
   Widget _cidadeField() => CadastroTextField(
@@ -433,7 +470,8 @@ class _PreCadastroContratanteScreenState
     controller: _cidade,
     label: 'Cidade',
     textCapitalization: TextCapitalization.words,
-    validator: (v) =>
-        (v?.trim().isEmpty ?? true) ? 'Informe a cidade.' : _serverErrors['cidade'],
+    validator: (v) => (v?.trim().isEmpty ?? true)
+        ? 'Informe a cidade.'
+        : _serverErrors['cidade'],
   );
 }

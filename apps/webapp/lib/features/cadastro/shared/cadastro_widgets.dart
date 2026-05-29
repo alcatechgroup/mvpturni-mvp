@@ -17,7 +17,10 @@ class CadastroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: TurniSpacing.lg, bottom: TurniSpacing.sm),
+    padding: const EdgeInsets.only(
+      top: TurniSpacing.lg,
+      bottom: TurniSpacing.sm,
+    ),
     child: Text(
       title.toUpperCase(),
       style: const TextStyle(
@@ -229,7 +232,9 @@ class CadastroPhotoField extends StatelessWidget {
             backgroundColor: accent,
             child: Icon(
               Icons.check,
-              color: isDark ? TurniColors.onAccentDark : TurniColors.onAccentLight,
+              color: isDark
+                  ? TurniColors.onAccentDark
+                  : TurniColors.onAccentLight,
             ),
           ),
           const SizedBox(width: TurniSpacing.md),
@@ -260,7 +265,9 @@ class CadastroPhotoField extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border.all(
                   color: error != null
-                      ? (isDark ? TurniColors.errorDark : TurniColors.errorLight)
+                      ? (isDark
+                            ? TurniColors.errorDark
+                            : TurniColors.errorLight)
                       : border,
                   width: 2,
                 ),
@@ -396,7 +403,9 @@ class CadastroSuccessView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? TurniColors.textMutedDark : TurniColors.textMutedLight;
+    final muted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
     return ConstrainedBox(
       key: const Key('panel-cadastro-recebido'),
       constraints: const BoxConstraints(maxWidth: 400),
@@ -449,7 +458,10 @@ class CadastroSuccessView extends StatelessWidget {
               ),
               child: Text(
                 ctaLabel,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
