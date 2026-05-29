@@ -121,6 +121,7 @@ Antes de marcar `status: in_review`, você passa pela checklist em `references/d
 - ✅ "Notas do agente" da estória preenchidas (decisões locais, descobertas, IDRs).
 - ✅ IDRs criados se houve decisão de impacto futuro.
 - ✅ `index.json` atualizado.
+- ✅ Roteiro de teste manual entregue ao usuário (ver seção "Roteiro de teste para o usuário").
 
 **Se um item está ❌, a estória NÃO está pronta.** Volte para `in_progress` ou `blocked` e resolva. Não existe "está quase pronto, marco done e ajusto depois" — esse hábito apodrece o projeto.
 
@@ -140,6 +141,25 @@ Antes de marcar `status: in_review`, você passa pela checklist em `references/d
 6. **Pré-revisão.** Antes de marcar pronto: rode suíte completa, valide cobertura, rode E2E em browser real (se FE), verifique smoke em homologação. Passe pelo `references/done-checklist.md` inteiro.
 7. **Finalizar "Notas do agente"** com decisões locais tomadas, descobertas relevantes, bloqueios resolvidos, IDRs criados, cobertura final, links de evidência.
 8. **Abrir PR. `status: in_review`. Atualizar `index.json`.**
+9. **Entregar ao usuário um roteiro de teste manual** (ver seção abaixo) — sempre, sem exceção, ao terminar a estória.
+
+## Roteiro de teste para o usuário (entrega obrigatória)
+
+Toda vez que você terminar uma tarefa/estória, **antes de encerrar a interação**, mostre ao usuário um pequeno passo a passo de como ele pode testar manualmente o que foi entregue. Sem isso, a entrega está incompleta.
+
+Formato curto e direto, em chat (não precisa virar arquivo):
+
+- **O que foi entregue** — 1 frase.
+- **Como testar** — passos numerados, do ponto de partida até a verificação. Comandos exatos, URLs, dados de exemplo (login, payload, etc.) quando aplicável.
+- **Resultado esperado** — o que o usuário deve ver/observar em cada passo crítico para confirmar que está funcionando.
+- **Como reverter / desligar** (se a mudança for arriscada — feature flag, env var, rollback).
+
+Regras:
+
+- Foque no **caminho que o usuário consegue rodar**, não na suíte automatizada (essa já está coberta pelo DoD).
+- Se o teste exige setup (subir container, popular dado, configurar env), inclua o setup nos passos.
+- Se a entrega é puramente interna (refactor sem mudança de comportamento observável), diga isso explicitamente e oriente o teste de regressão mínimo (ex.: "rodar fluxo X em homologação e confirmar que nada mudou").
+- Mantenha enxuto — 3 a 8 passos. Se precisar de mais, é sinal de que a entrega tem complexidade que merece doc separada (registre em `docs/` e linke).
 
 ## Quando você trava (bloqueio)
 

@@ -104,3 +104,11 @@ Independente da skill ativa, o projeto carrega exigências transversais:
 - **Estado registrado, sempre** — decisão sem PDR/ADR/DDR/IDR não conta; `index.json` reflete a realidade.
 
 Demais decisões técnicas (linguagem, framework, banco, hospedagem) **estão em aberto** e serão tomadas via ADRs do Arquiteto.
+
+## Política de Git (aplicável a todos os papéis)
+
+Regra geral, válida para qualquer agente atuando neste repositório:
+
+- **Commits** seguem a política atual do projeto (mensagens, convenções e granularidade já praticadas). Podem ser feitos livremente conforme o trabalho avança.
+- **Push é manual** — o agente **nunca** executa `git push` (nem variantes como `git push --force`, push de tags, push de branches novas) por conta própria. O push só acontece quando o usuário pedir explicitamente.
+- Se o agente julgar que é um bom momento para subir as alterações, pode **sugerir** ao usuário — mas a execução fica com ele.

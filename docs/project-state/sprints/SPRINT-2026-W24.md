@@ -35,18 +35,18 @@ O e-mail de aprovação concedida **NÃO chega ao usuário** no fim desta sprint
 
 ## Estórias incluídas
 
-| ID | Título | Épico | Tipo | Papel | Tamanho | Design? | Status |
-|---|---|---|---|---|---|---|---|
-| STORY-012 | Spike — modelo de identidade (ADR-009) | EPIC-001 | spike | arquiteto | M | não | **done** |
-| STORY-013 | Spike — Template/Versao e AceiteEletronico imutável (ADR-010) | EPIC-001 | spike | arquiteto | S | não | **done** |
-| STORY-014 | Spike — provedor de e-mail + ACL (ADR-011) | EPIC-001 | spike | arquiteto | S | não | **done** |
-| STORY-015 | Texto-seed dos templates contratuais (PF + MEI/PJ v1) | EPIC-001 | enablement | po | M | não | **done** |
-| STORY-016 | RBAC vivo — login + roteamento por papel + funnel guard | EPIC-001 | implementation | programador | **L** | sim | **done** |
-| STORY-017 | Pré-cadastro de Profissional (PF/MEI/PJ) no WebApp | EPIC-001 | implementation | programador | M | sim | ready |
-| STORY-018 | Pré-cadastro de Contratante no WebApp | EPIC-001 | implementation | programador | M | sim | ready |
-| STORY-019 | Fila de aprovação no Backoffice | EPIC-001 | implementation | programador | M | sim | ready |
-| STORY-020 | Editor de templates contratuais no Backoffice | EPIC-001 | implementation | programador | M | sim | ready |
-| STORY-022 | Tela de welcome pós-aprovação no WebApp | EPIC-001 | implementation | programador | S | sim | ready |
+| ID        | Título                                                        | Épico    | Tipo           | Papel       | Tamanho | Design? | Status   |
+| --------- | ------------------------------------------------------------- | -------- | -------------- | ----------- | ------- | ------- | -------- |
+| STORY-012 | Spike — modelo de identidade (ADR-009)                        | EPIC-001 | spike          | arquiteto   | M       | não     | **done** |
+| STORY-013 | Spike — Template/Versao e AceiteEletronico imutável (ADR-010) | EPIC-001 | spike          | arquiteto   | S       | não     | **done** |
+| STORY-014 | Spike — provedor de e-mail + ACL (ADR-011)                    | EPIC-001 | spike          | arquiteto   | S       | não     | **done** |
+| STORY-015 | Texto-seed dos templates contratuais (PF + MEI/PJ v1)         | EPIC-001 | enablement     | po          | M       | não     | **done** |
+| STORY-016 | RBAC vivo — login + roteamento por papel + funnel guard       | EPIC-001 | implementation | programador | **L**   | sim     | **done** |
+| STORY-017 | Pré-cadastro de Profissional (PF/MEI/PJ) no WebApp            | EPIC-001 | implementation | programador | M       | sim     | **done** |
+| STORY-018 | Pré-cadastro de Contratante no WebApp                         | EPIC-001 | implementation | programador | M       | sim     | **done** |
+| STORY-019 | Fila de aprovação no Backoffice                               | EPIC-001 | implementation | programador | M       | sim     | ready    |
+| STORY-020 | Editor de templates contratuais no Backoffice                 | EPIC-001 | implementation | programador | M       | sim     | ready    |
+| STORY-022 | Tela de welcome pós-aprovação no WebApp                       | EPIC-001 | implementation | programador | S       | sim     | ready    |
 
 **Sizing total**: 1 L + 7 M + 2 S. **Atenção dupla**: (1) STORY-016 (L) é candidata natural a estouro de sessão única — critério de quebra está na própria estória; se o agente sentir que não cabe, escala ao PO antes de inflar. (2) STORY-015 é a primeira estória com `target_role: po` — o PO executa diretamente (não há agente programador envolvido); o ciclo de validação com Alexandro precisa rodar dentro do sprint.
 
@@ -141,7 +141,7 @@ Diferente da W23, esta sprint entrega **usuário real entrando no produto**:
 
 - **Diário** (~10 min): olhar `index.json`, identificar o que está `in_progress` / `blocked` / `in_review`. Desbloquear o que pode. Observar se Designer está mantendo ritmo com as 6 screen specs.
 - **Mid-sprint check em 2026-06-04 (quinta — D+7)**: ~~PO verifica se as 3 spikes e a STORY-015 fecharam.~~ **ANTECIPADO: as 4 estórias fecharam em D+1 (2026-05-28).** Verificar se STORY-016 já está em andamento. Se não, o gargalo é o Designer (screen spec 016 pendente).
-- **Mid-sprint check #2 em 2026-06-11 (quinta — D+14)**: PO verifica se STORY-016 fechou. Se não, considerar quebra em sub-estórias. PO conversa com Alexandro sobre soft-cap e priorização de carry-over.
+- **Mid-sprint check #2 em 2026-06-11 (quinta — D+14)**: ~~PO verifica se STORY-016 fechou.~~ **ANTECIPADO: STORY-016 fechou em D+2 (2026-05-29). STORY-017 e STORY-018 fechadas em D+2 (2026-05-29).** Próxima verificação: STORY-019 + STORY-020 + STORY-022 puxadas e cobertas pelo Designer.
 - **Soft-cap check em 2026-06-18**: se goal não bateu, abrir seção "Mudanças no escopo do sprint" abaixo e decidir entre (a) seguir sem ajuste, (b) tirar STORY-022 (welcome) — completar cadastro existe sem ela, vira placeholder; (c) tirar STORY-020 (editor) — operável com seed direto no DB, sem UI editora ainda.
 
 ## Disciplina de processo (vinda de W22/W23)
@@ -170,6 +170,34 @@ Regras novas para W24:
 ## Aprendizados em curso (mid-sprint)
 
 > Para registrar conforme acontecem; consolidados na seção "Fechamento do sprint" no fim.
+
+### 2026-05-29 — D+2 (final do dia): STORY-017 + STORY-018 fechadas, pré-cadastro público completo em homolog
+
+**O que aconteceu:**
+
+No mesmo dia em que STORY-016 fechou (D+2 de manhã), Alexandro/agentes destravaram a fila do programador e as duas estórias de pré-cadastro (M cada) foram entregues e aprovadas pelo PO em chat após verificação manual em browser. Velocidade muito acima do estimado (expectativa era ≥1 semana para o par).
+
+**Estado resultante:**
+
+- **STORY-017 (Pré-cadastro Profissional PF/MEI/PJ):** `POST /api/cadastro/profissional` + tela Flutter `/cadastro/profissional` em produção de homolog. Bug 413 do upload de foto identificado e corrigido (limite de body do nginx/php) — release `rc.21` verde. IDR-008 (endpoint `/api/funcoes`) registrado. E2E Playwright cobrindo PF+MEI.
+- **STORY-018 (Pré-cadastro Contratante):** `POST /api/cadastro/contratante` + tela Flutter `/cadastro/contratante` (acento mostarda do DDR-001). Componentes compartilhados extraídos em `lib/features/cadastro/shared/` (refatoração consumida também pela 017) — IDR-012. Login passa a ter "duas portas" (profissional verde + estabelecimento mostarda). Não coleta CNPJ/endereço por decisão de produto (CA-13). 128 testes Pest na API + 37 no WebApp passando; `flutter analyze` limpo.
+- **Funil público funcionando em homolog**: `app.homolog.turni.com.br/cadastro/profissional` e `/cadastro/contratante` recebem inscrições reais (`status: pendente_aprovacao`).
+
+**Estórias destravadas:**
+
+STORY-019 (Fila de aprovação no Backoffice) — agora tem fila real de inscrições para aprovar, dependência de dados satisfeita.
+
+**Próximo gargalo previsto:**
+
+Screen specs do Designer para STORY-019, STORY-020 e STORY-022 (todas `requires_design: true`). Sem isso o programador não pode iniciar a próxima leva. PO acompanha o backlog do Designer diariamente.
+
+**Ajuste de expectativa:**
+
+Em D+2 a sprint já tem 7/10 estórias `done` (3 spikes + 015 + 016 + 017 + 018). Restam 3 (019/020/022) — todas M ou S, todas com dependência só do Designer + RBAC já vivo. Soft-cap 2026-06-18 fica muito confortável; espaço amplo para puxar STORY-021 como stretch (fecha o ciclo de comunicação ao usuário aprovado).
+
+**Recomendação PO atualizada:**
+
+Priorizar com Designer a sequência **019 → 020 → 022** (ordem da dependência operacional: equipe Turni precisa de fila antes de editor; welcome só ganha tração quando há aprovados). Se 019/020 fecharem em ritmo semelhante a 017/018, **puxar STORY-021 (stretch)** na sequência para entregar a sprint com comunicação automática inclusa — Alexandro deixa de testar manualmente o login do aprovado.
 
 ### 2026-05-29 — D+2: STORY-016 (L) fechada, RBAC vivo em homolog
 

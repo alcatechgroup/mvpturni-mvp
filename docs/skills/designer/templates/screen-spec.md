@@ -10,6 +10,8 @@ related_ddrs: []             # DDRs que restringem este spec
 ds_components_used: []       # ids de componentes do Design System usados
 exceptions_to_ds: []         # divergências do DS justificadas neste spec
 viewports: [mobile, desktop] # tablet só se comportamento mudar relevantemente
+prototype_path: STORY-XXX-<slug>/index.html  # protótipo HTML fiel — obrigatório para sair de draft
+prototype_last_validated_at: null            # data da última validação humana do protótipo (preencher quando humano aprovar)
 ---
 
 # Spec de tela — <nome da tela>
@@ -184,18 +186,42 @@ Liste **toda** divergência do DS e justifique. Sem justificativa, não é exce�
 |---|---|---|
 | ... | ... | sim/não |
 
-## 9. Dependências e premissas
+## 9. Protótipo HTML fiel (validação humana)
+
+> Obrigatório — sem isto, spec não vai de `draft` para `ready`. Detalhe em `docs/skills/designer/references/html-prototype-craft.md`.
+
+- **Localização:** `STORY-XXX-<slug>/index.html` (sibling deste spec, mesma pasta `design/screens/`).
+- **Cobertura mínima:** todos os estados listados na seção 4 são alcançáveis via seletor visível (chips no topo ou `?state=...`); ambos os viewports da seção 3 (mobile + desktop, tablet se aplicável) são navegáveis.
+- **Fidelidade:** usa os tokens reais do DS (cores, tipografia, espaçamento, raios, motion). Microcopy = exatamente a tabela da seção 5. Identificadores estáveis da seção 7 aplicados como `id`/`data-testid` no HTML para o humano validar referindo-se ao mesmo nome.
+- **Restrições:** HTML/CSS/JS vanilla; sem rede em runtime; abre clicando no arquivo. Sem backend, sem chamada real de API — mocks inline. Topo do arquivo declara explicitamente "protótipo de validação, não código de produção".
+- **Como apresentar ao humano:** via `mcp__cowork__present_files` apontando para `index.html`. Captura sinal de "vai" (aprovado / ajustes / refaz) e registra data em `prototype_last_validated_at` do frontmatter + entrada na seção 11.
+
+### Checklist antes de marcar spec `ready`
+
+- [ ] `STORY-XXX-<slug>/index.html` existe e abre sem erro em navegador moderno.
+- [ ] Todos os estados da seção 4 acessíveis a partir do protótipo.
+- [ ] Viewport mobile e desktop (e tablet, se aplicável) navegáveis.
+- [ ] Microcopy do protótipo bate, palavra por palavra, com a seção 5.
+- [ ] Identificadores estáveis da seção 7 presentes no HTML.
+- [ ] Caminho feliz percorrível ponta a ponta (telas relacionadas conectadas por links).
+- [ ] Tokens reais do DS aplicados — não placeholders.
+- [ ] Protótipo apresentado ao humano (via `mcp__cowork__present_files`) e sinal de validação capturado.
+
+## 10. Dependências e premissas
 
 - API/endpoint esperado: <referência ao contrato — não duplicar>
 - Permissões necessárias: ...
 - Premissas sobre o estado do back: ...
 - Spec depende de DDR pendente? Liste em `related_ddrs` e marque `status: draft` até resolvido.
 
-## 10. Histórico de mudanças
+## 11. Histórico de mudanças
 
 | Data | Mudança | Quem | Motivo |
 |---|---|---|---|
 | YYYY-MM-DD | criação | <nome> | rabisco inicial pós-sync com Programador |
 | YYYY-MM-DD | refino | <nome> | adicionados estados de erro e microcopy completo |
+| YYYY-MM-DD | protótipo v1 | <nome> | `index.html` cobrindo caminho feliz mobile/desktop |
+| YYYY-MM-DD | protótipo refinado | <nome> | estados vazio/erro/loading; apresentado ao humano para validação |
+| YYYY-MM-DD | validação humana | <quem validou> | protótipo aprovado / ajustes pedidos: ... |
 
 > **Mudança depois que o código começou** é mudança consciente — registre aqui e em "Notas do agente" da estória. Sem registro, é silêncio que vira retrabalho.

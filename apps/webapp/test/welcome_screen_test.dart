@@ -32,7 +32,9 @@ void main() {
       expect(find.text('Match · PIN · Pix em 15 min'), findsOneWidget);
     });
 
-    testWidgets('renderiza link para /health com key e texto corretos', (tester) async {
+    testWidgets('renderiza link para /health com key e texto corretos', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(const WelcomeScreen()));
       await tester.pumpAndSettle();
 
@@ -51,7 +53,9 @@ void main() {
 
   group('WelcomeScreen — versão (lógica de negócio, cobertura ≥98%)', () {
     // APP_VERSION não está definido no ambiente de teste → deve mostrar fallback.
-    testWidgets('mostra fallback quando APP_VERSION está vazio', (tester) async {
+    testWidgets('mostra fallback quando APP_VERSION está vazio', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(const WelcomeScreen()));
       await tester.pumpAndSettle();
 
@@ -62,7 +66,9 @@ void main() {
       expect(text.data, 'versão indisponível');
     });
 
-    testWidgets('texto de versão usa token textMuted (não text.subtle)', (tester) async {
+    testWidgets('texto de versão usa token textMuted (não text.subtle)', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(const WelcomeScreen()));
       await tester.pumpAndSettle();
 
@@ -75,7 +81,9 @@ void main() {
   });
 
   group('WelcomeScreen — acessibilidade', () {
-    testWidgets('logomarca tem semanticsLabel "Turni" para leitores de tela', (tester) async {
+    testWidgets('logomarca tem semanticsLabel "Turni" para leitores de tela', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(const WelcomeScreen()));
       await tester.pumpAndSettle();
 
@@ -86,7 +94,9 @@ void main() {
       expect(brand.semanticsLabel, 'Turni');
     });
 
-    testWidgets('link tem alvo de toque com padding vertical adequado', (tester) async {
+    testWidgets('link tem alvo de toque com padding vertical adequado', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(const WelcomeScreen()));
       await tester.pumpAndSettle();
 

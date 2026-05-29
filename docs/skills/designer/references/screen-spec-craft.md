@@ -73,9 +73,15 @@ Além do piso (`accessibility-basics.md`), o que **desta tela** merece atenção
 
 Toda divergência do DS é declarada com justificativa. Sem justificativa = desvio, não exceção.
 
-### 11. Marque `status: ready` e avise no PR/estória
+### 11. Protótipo HTML fiel navegável
 
-Spec sai de `draft` quando todos os estados estão cobertos e microcopy está completo.
+Antes do `ready`, você produz o protótipo HTML em `design/screens/STORY-XXX-<slug>/index.html` cobrindo **todos** os estados especificados e ambos os viewports. Microcopy = exatamente a tabela da seção 5. Tokens reais do DS. Sem build, sem CDN — abre clicando. Detalhe completo em `html-prototype-craft.md`.
+
+Apresente o protótipo ao humano via `mcp__cowork__present_files` para captura de validação **antes** de marcar `ready`. Sem validação humana do protótipo, o spec continua em `draft`.
+
+### 12. Marque `status: ready` e avise no PR/estória
+
+Spec sai de `draft` quando todos os estados estão cobertos, microcopy está completo, **protótipo HTML foi entregue e validado pelo humano** (com data registrada em `prototype_last_validated_at` no frontmatter).
 
 ## Como escrever cada seção
 
@@ -187,6 +193,7 @@ Se a coluna "vai virar DDR" tem dois ou mais "sim" no mesmo spec, pare — você
 - Identificadores de teste sugeridos.
 - Acessibilidade revisada (contraste, foco, teclado, alvos de toque).
 - Exceções ao DS declaradas com justificativa.
+- **Protótipo HTML em `STORY-XXX-<slug>/index.html`** existe, cobre todos os estados, abre clicando, microcopy bate com a tabela, foi apresentado e validado pelo humano.
 
 ## Sinais de spec mal feito
 
@@ -195,3 +202,5 @@ Se a coluna "vai virar DDR" tem dois ou mais "sim" no mesmo spec, pare — você
 - Microcopy "lorem ipsum" ou genérico ("Erro!").
 - Sem referência a componente do DS — tudo "inventado para esta tela".
 - Spec atualizado pela última vez antes do código começar — não acompanhou a evolução.
+- **Spec marcado `ready` sem protótipo HTML** — ou com protótipo gerado e nunca apresentado ao humano para validação.
+- **Protótipo divergente do spec** (microcopy diferente, estado faltando, fluxo errado) — engana o validador.

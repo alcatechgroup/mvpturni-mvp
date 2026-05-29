@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/project-state/sprints/SPRINT-2026-W24-LANDING.md",
+                "file": "docs/project-state/sprints/SPRINT-2026-W24.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "SPRINT-2026-W24-LANDING"
+              "title": "SPRINT-2026-W24"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "docs/project-state/sprints/SPRINT-2026-W24-LANDING.md",
+                "file": "docs/project-state/sprints/SPRINT-2026-W24.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Links inversos para SPRINT-2026-W24-LANDING"
+              "title": "Links inversos para SPRINT-2026-W24"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "docs/project-state/sprints/SPRINT-2026-W24-LANDING.md",
+                "file": "docs/project-state/sprints/SPRINT-2026-W24.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Links de saída para SPRINT-2026-W24-LANDING"
+              "title": "Links de saída para SPRINT-2026-W24"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "docs/project-state/sprints/SPRINT-2026-W24-LANDING.md",
+                "file": "docs/project-state/sprints/SPRINT-2026-W24.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Sumário de SPRINT-2026-W24-LANDING"
+              "title": "Sumário de SPRINT-2026-W24"
             }
           }
         ]
@@ -185,51 +185,51 @@
   },
   "active": "26c17ef143bce144",
   "lastOpenFiles": [
-    "docs/project-state/decisions/idr/IDR-003-admin-homolog-ingress-all-para-e2e.md",
-    "docs/project-state/decisions/idr/IDR-007-cloud-run-cloud-sql-privado-e-migracao-no-pipeline.md",
-    "docs/project-state/README.md",
-    "docs/project-state/decisions/idr/IDR-005-firebase-multi-site-additional-sites-vs-n-chamadas.md",
-    "docs/project-state/decisions/idr/IDR-004-e2e-local-pipeline-smoke-curl.md",
-    "docs/project-state/decisions/idr/IDR-001-fundacao-ambiente-local.md",
-    "docs/project-state/decisions/adr/ADR-007-auth-base-e-roteamento.md",
+    "docs/project-state/sprints/SPRINT-2026-W23.md",
     "docs/project-state/sprints/SPRINT-2026-W24.md",
-    "apps/webapp/shot_homolog_webapp.mjs",
-    "apps/admin/shot_homolog.mjs",
-    "apps/admin/shot_dash.mjs",
-    "apps/admin/shot_fp.mjs",
-    "apps/admin/storage/framework/views/2061c53a4f563f25011b88b9bfa90f98.php",
-    "apps/admin/resources/views/auth/forgot-password.blade.php",
-    "apps/admin/storage/framework/views/4dcd9902d0142da2ea099afb39a5bb50.php",
-    "apps/admin/storage/framework/views/0589acf8bfff38b61a1ed98a31bd8891.php",
-    "apps/admin/storage/framework/views/8e1515a66fd7cf5ff64966a5a63cc134.php",
-    "apps/admin/storage/framework/views/424833f3bd03010c2779a1f20937d3b7.php",
-    "docs/project-state/decisions/idr/IDR-006-flutter-web-path-strategy-e-e2e-via-semantics.md",
-    "apps/webapp/playwright-report/trace/playwright-logo.svg",
-    "apps/webapp/playwright-report/data/b9adbcad5dbf191b0ef5eaea09009ea38e68e03a.md",
-    "apps/webapp/playwright-report/data/8a4373f37d5ce78da3ab99c44c2752d5e60ae5fc.png",
-    "apps/webapp/test-results/rbac-login-WebApp-—-tela-d-d228a--recuperação-e-botão-Entrar-chromium/error-context.md",
-    "apps/webapp/test-results/rbac-login-WebApp-—-tela-d-d228a--recuperação-e-botão-Entrar-chromium/test-failed-1.png",
-    "apps/webapp/playwright-report/data/e2f7c75b58e0c8eec56c1b971aced7fc37bcbe53.md",
-    "apps/webapp/playwright-report/data/c0c1046073f708f64d7dc5108c5b96dd81e831ff.png",
-    "apps/webapp/playwright-report/data/b734bf22ed3ae6afcefae382d954c89d5e9f1d22.png",
-    "apps/webapp/playwright-report/data/aac15e1fb091ce570429e55dec767ee57dab7cd1.md",
-    "apps/webapp/test-results/rbac-login-WebApp-—-admin--ae39e--banner-de-redirecionamento-chromium-retry1/error-context.md",
-    "apps/webapp/test-results/rbac-login-WebApp-—-admin--ae39e--banner-de-redirecionamento-chromium-retry1/test-failed-1.png",
-    "apps/webapp/test-results/rbac-login-WebApp-—-admin--ae39e--banner-de-redirecionamento-chromium/test-failed-1.png",
-    "apps/webapp/test-results/rbac-login-WebApp-—-admin--ae39e--banner-de-redirecionamento-chromium/error-context.md",
-    "apps/webapp/test-results/rbac-login-WebApp-—-profis-68ad6-o-loga-e-é-roteado-para-app-chromium-retry1/error-context.md",
-    "apps/webapp/test-results/rbac-login-WebApp-—-profis-68ad6-o-loga-e-é-roteado-para-app-chromium-retry1/test-failed-1.png",
-    "apps/webapp/test-results/rbac-login-WebApp-—-profis-68ad6-o-loga-e-é-roteado-para-app-chromium/error-context.md",
-    "apps/webapp/test-results/rbac-login-WebApp-—-profis-68ad6-o-loga-e-é-roteado-para-app-chromium/test-failed-1.png",
-    "docs/project-state/sprints/SPRINT-2026-W24-LANDING.md",
-    "apps/webapp/test-results/rbac-login-WebApp-—-admin--7e6cb-be-campos-de-e-mail-e-senha-chromium-retry1/error-context.md",
-    "apps/webapp/test-results/rbac-login-WebApp-—-admin--7e6cb-be-campos-de-e-mail-e-senha-chromium-retry1/test-failed-1.png",
-    "apps/webapp/test-results/rbac-login-WebApp-—-admin--7e6cb-be-campos-de-e-mail-e-senha-chromium/error-context.md",
+    "apps/api/storage/framework/testing/disks/local/profissionais/fotos/Uu2THe2Qj6lJQuMa4gkwF4AlERAWeOIOC3JOVb8d.jpg",
+    "apps/api/storage/framework/testing/disks/local/profissionais/fotos/wrXau5a8b0dS4g7gHjdjUOXg9XWJ3ts3wRYYkPCJ.jpg",
+    "apps/api/storage/framework/testing/disks/local/profissionais/fotos/3YUNsjhb3o94ImNcUfrqoSrrUWC2tnFqthqdedq2.jpg",
+    "apps/api/storage/framework/testing/disks/local/profissionais/fotos/LheCiHJ4OkHQhN4qt5itSDKY0LfkXga9TLMO6Bum.jpg",
+    "apps/api/storage/framework/testing/disks/local/profissionais/fotos/vRdoBZn12xpxphJB2U55eJhOMXdMAp5dcKxhqZu5.jpg",
+    "apps/api/storage/framework/testing/disks/local/profissionais/fotos/0jmqwd3ZoAKYgp6CQYOHbFW1vLD01MTTU9XQQ0gt.jpg",
+    "apps/api/storage/framework/testing/disks/local/profissionais/fotos/JVXx7zetOX2OYl7fxUzdmmLgVazbl2mWqji65WN8.jpg",
+    "apps/api/storage/framework/testing/disks/local/profissionais/fotos/4O9MRrtJJpQ8krqhbaexJMImCu3MzqRrzEqPEfDy.jpg",
+    "apps/api/storage/framework/testing/disks/local/profissionais/fotos",
+    "apps/api/storage/framework/testing/disks/local/profissionais",
+    "apps/api/storage/framework/testing/disks/local/contratantes/fotos/ZpxmJJGfs2Em3CzI5LYlqUEFLU6KqAVd2E2kfYmR.jpg",
+    "apps/api/storage/framework/testing/disks/local/contratantes/fotos",
+    "apps/api/storage/framework/testing/disks/local/contratantes",
+    "apps/api/storage/framework/testing/disks/local/contratantes/fotos/s2LwwPqWnIz7DuzVi8hQFOR0yRQ3DdhDGV5lnOLJ.jpg",
+    "apps/admin/test-results",
+    "apps/admin/tests/e2e/_shot.spec.ts",
+    "apps/admin/tests/Feature/Aprovacoes/NavegacaoTest.php",
+    "docs/project-state/decisions/idr/IDR-013-fila-aprovacao-acl-email-e-soft-delete.md",
+    "apps/admin/tests/Unit/EmailAclTest.php",
+    "apps/admin/test-results/rbac-login-Backoffice-—-lo-4b6e8--é-redirecionado-para-login-chromium-retry1/trace.zip",
+    "apps/admin/test-results/rbac-login-Backoffice-—-lo-4b6e8--é-redirecionado-para-login-chromium-retry1/error-context.md",
+    "apps/admin/test-results/rbac-login-Backoffice-—-lo-4b6e8--é-redirecionado-para-login-chromium-retry1",
+    "apps/admin/test-results/rbac-login-Backoffice-—-lo-4b6e8--é-redirecionado-para-login-chromium/error-context.md",
     "apps/admin/test-results/rbac-login-Backoffice-—-lo-f03c0--com-sucesso-e-vê-dashboard-chromium-retry1/error-context.md",
     "apps/admin/test-results/rbac-login-Backoffice-—-lo-f03c0--com-sucesso-e-vê-dashboard-chromium/error-context.md",
-    "apps/admin/playwright-report/data/0d6c153d79657d02f01dc2e6021d05f02a7b7e9e.md",
-    "apps/admin/test-results/admin-hello-world-Backoffi-9bb98-vice-backoffice-CA-4-CA-10--chromium-retry1/error-context.md",
-    "apps/admin/test-results/admin-hello-world-Backoffi-9bb98-vice-backoffice-CA-4-CA-10--chromium/error-context.md",
-    "apps/admin/test-results/admin-hello-world-Backoffi-7841d-á-presente-e-clicável-CA-1--chromium-retry1/error-context.md"
+    "apps/admin/test-results/fila-aprovacao-Backoffice--03c1c-astro-com-confirmação-dupla-chromium-retry1/error-context.md",
+    "apps/admin/test-results/fila-aprovacao-Backoffice--03c1c-astro-com-confirmação-dupla-chromium/error-context.md",
+    "apps/admin/test-results/fila-aprovacao-Backoffice--f9ffa--2ª-erra-com-mensagem-clara-chromium-retry1/error-context.md",
+    "apps/admin/test-results/fila-aprovacao-Backoffice--f9ffa--2ª-erra-com-mensagem-clara-chromium/error-context.md",
+    "apps/admin/test-results/fila-aprovacao-Backoffice--1a53e--fila-e-e-mail-é-despachado-chromium-retry1/error-context.md",
+    "apps/admin/test-results/fila-aprovacao-Backoffice--1a53e--fila-e-e-mail-é-despachado-chromium/error-context.md",
+    "apps/admin/test-results/fila-aprovacao-Backoffice--80171-filtra-por-profissional-MEI-chromium-retry1/error-context.md",
+    "apps/admin/test-results/fila-aprovacao-Backoffice--80171-filtra-por-profissional-MEI-chromium/error-context.md",
+    "docs/project-state/design/screens/SCREEN-STORY-019-fila-aprovacao.md",
+    "docs/project-state/sprints/SPRINT-2026-W24-LANDING.md",
+    "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-019-fila-aprovacao-backoffice.md",
+    "docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-018-pre-cadastro-contratante-webapp.md",
+    "docs/skills/designer/references/html-prototype-craft.md",
+    "docs/project-state/decisions/idr/IDR-012-tipo-operacao-enum-estatico-e-componentes-cadastro-compartilhados.md",
+    "docs/project-state/design/screens/SCREEN-STORY-018-pre-cadastro-contratante.md",
+    "docs/project-state/decisions/idr/IDR-011-padrao-teste-flutter-keys-mocks-helpers.md",
+    "docs/project-state/decisions/idr/IDR-010-e2e-hibrida-integration-test-playwright-patrol.md",
+    "apps/webapp/test-results/pre-cadastro-WebApp-—-pré--66ce3--PF-e-vê-a-tela-de-recebido-chromium/error-context.md",
+    "apps/webapp/playwright-report/data/6945ee113c5d1e7a5e396a193092a96246891a8e.md"
   ]
 }
