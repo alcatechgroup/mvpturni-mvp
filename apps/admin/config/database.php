@@ -87,7 +87,11 @@ return [
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
+            // DB_SOCKET (path do socket Cloud SQL, ex.: /cloudsql/<conn>) tem
+            // prioridade: o PostgreSQL trata host iniciado por "/" como diretório
+            // de socket Unix. Sem isto a app cai em 127.0.0.1 e não conecta no
+            // Cloud SQL (Cloud Run). Local e testes usam DB_HOST normalmente.
+            'host' => env('DB_SOCKET', env('DB_HOST', '127.0.0.1')),
             'port' => env('DB_PORT', '5432'),
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
