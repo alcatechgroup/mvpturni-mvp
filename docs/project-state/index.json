@@ -673,8 +673,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-017-pre-cadastro-profissional",
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_progress",
+      "owner_agent": "claude-opus-programador",
       "sprint_id": "SPRINT-2026-W24",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-017-pre-cadastro-profissional-webapp.md",
       "blocked_by": [
@@ -688,7 +688,7 @@
       ],
       "estimated_session_size": "M",
       "created_at": "2026-05-28",
-      "updated_at": "2026-05-28"
+      "updated_at": "2026-05-29"
     },
     {
       "id": "STORY-018",

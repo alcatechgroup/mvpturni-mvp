@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-017-pre-cadastro-profissional
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-programador
 created_at: 2026-05-28
-updated_at: 2026-05-28
+updated_at: 2026-05-29
 estimated_session_size: M
 ---
 
@@ -146,7 +146,23 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+**Data:** 2026-05-29 · **Agente:** programador sênior (claude-opus).
+
+**Documentos lidos:** estória inteira; `agent-task-format.md`; `programador/SKILL.md`; `domain/usuario.md` (§Tipos de pessoa, §Atributos por papel — Profissional); ADR-009 (Decisão 1C perfis 1:1, Decisão 2A status+timestamps); ADR-007 (Argon2id, Sanctum SPA, throttling, CSRF); ADR-004 (storage GCS prod / local em dev); código existente de STORY-016 (`User`, `ProfissionalProfile`, `ContratanteProfile`, `AuthController`, `FunnelGuard`, `WebAppOnly`, migrações de identidade, `UserFactory`).
+
+**Entendimento consolidado (minhas palavras):** O pré-cadastro cria um `User(role=profissional, status=pendente_aprovacao)` + `ProfissionalProfile(tipo_pessoa, telefone, cidade, bairro, funcao, foto, termos_aceitos_at)`. **Não coleta documento** (CPF/CNPJ vem só no completar cadastro — STORY-023). Senha Argon2id, nunca em log/response. Sem auto-login — usuário aguarda aprovação. Proteção contra enumeração de e-mail (erro genérico). Log estruturado `user.preregistered` com e-mail mascarado (ADR-008) — **não** é audit log de admin. A fundação de identidade (STORY-016) já está na main; construo em cima dela.
+
+**Plano (backend-first, enquanto design não chega):**
+1. Migração idempotente/reversível: adiciona `telefone, cidade, bairro, funcao_id, termos_aceitos_at` a `profissional_profiles`; cria tabela auxiliar `funcoes` + seed das funções pivotais (decisão minha → IDR).
+2. Alinhar `HASH_DRIVER=argon2id` no `.env`/config (CA-3 exige Argon2id; hoje `.env` cai no bcrypt default — `.env.example` já declara argon2id).
+3. `FormRequest` + `Action/Controller` + rota pública `POST /api/cadastro/profissional` (no grupo stateful — CSRF Sanctum). Transação; foto em path não-enumerável; enumeração de e-mail tratada com erro genérico; log estruturado mascarado.
+4. TDD por CA (3,4,5,6,9,11,12,14). Cobertura ≥80% / ≥98% núcleo.
+5. LGPD: registrar campos coletados + classificação.
+6. **UI Flutter + E2E + CA-8 (await approval) + CA-10 (a11y): BLOQUEADO** — ver Bloqueios.
+
+**Testes que pretendo escrever (backend):** happy path criando PF/MEI/PJ e verificando persistência + status (CA-9/CA-3); e-mail já existente → erro genérico sem leak (CA-4); checkbox de termos desmarcado → 422 server-side (CA-5); foto tipo/tamanho inválido → 422 (CA-6); senha nunca no response nem no log (CA-3); documento nunca persistido nesta tela (CA-14); log estruturado emite `event=user.preregistered` com `masked_email` (CA-12); bordas de validação (nome <3/>120, email malformado, telefone fora de formato, tipo_pessoa inválido).
+
+**Dúvidas:** nenhuma de produto — escopo e decisões já fechadas em PDR-001/ADR-009/domain. As escolhas técnicas (tabela `funcoes` vs enum, lib de upload, path da foto) são liberdade do agente e registrarei em IDR.
 
 ### Sync Designer↔Programador
 (a preencher)
@@ -158,7 +174,7 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 (a preencher)
 
 ### Bloqueios encontrados
-(a preencher)
+- **[DESIGN] Screen spec ausente (2026-05-29):** `requires_design: true` aponta `SCREEN-STORY-017-pre-cadastro-profissional`, mas o arquivo **não existe** em `docs/project-state/design/screens/` (só há SCREEN-016, SCREEN-028, STORY-008). Pelo protocolo, o Programador é dono mas **não toca a UI** até o Designer entregar a spec em `status: ready` + sync ≤15 min. **Decisão:** sigo backend-first (totalmente desbloqueado) e mantenho a parte de UI (CA-1, CA-2, CA-7, CA-8, CA-10 e o E2E de CA-9) pendente do design. Não está `blocked` no índice porque há trabalho substancial desbloqueado em andamento.
 
 ### IDRs criados
 (a preencher)
