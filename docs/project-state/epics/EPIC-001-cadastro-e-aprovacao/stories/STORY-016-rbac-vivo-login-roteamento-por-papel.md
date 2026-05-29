@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-016-login-e-rbac
-status: in_progress
-owner_agent: claude-sonnet-4-6-programador-2026-05-28
+status: done
+owner_agent: claude-opus-4-8-programador-2026-05-29
 created_at: 2026-05-28
-updated_at: 2026-05-28
+updated_at: 2026-05-29
 estimated_session_size: L
 ---
 
@@ -281,13 +281,27 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo:
   "acessa o Backoffice"; contratante→403; funnel guard redireciona).
 
 ### Resultado final / evidência
-- `migrate:rollback` em homolog: (link/log)
-- E2E na pipeline: (run ID)
-- Imutabilidade do audit log: (evidência)
-- URLs de homolog verificadas: (URLs + screenshots)
 
-### Pendências para fechar (in_review → done)
-(a preencher)
+**Fechamento — 2026-05-29 (aprovada pelo Alexandro em chat).**
+
+Homolog funcional de ponta a ponta, verificado em browser real:
+- **WebApp** `app.homolog.turni.com.br/login`: profissional → `/app` (Sanctum SPA
+  same-origin via Firebase rewrite — emenda ADR-007); admin → banner Backoffice.
+- **Backoffice** (Cloud Run URL `/login`): admin → dashboard; não-admin → 403 pt-BR.
+
+- **CA-2 (`migrate:rollback`/`reset` em homolog — F-NB-1):** execução
+  `turni-migrate-homolog-x476q` (rc.19) — `migrate:reset` reverteu as 10 migrações
+  (0 FAIL) + replay + seed. Evidência no runbook §rollback-migracoes. **Bug do
+  `down()` de add_identity_columns corrigido** (commit `806ce03`).
+- **CA-15 (imutabilidade do audit log):** execução `turni-migrate-homolog-6ksds` —
+  `update=BLOQUEADO delete=BLOQUEADO` (trigger). Evidência no runbook.
+- **Pipeline:** release rc.18/rc.19 verdes (build → migrate+seed → deploy → smoke).
+- **Conectividade homolog:** Direct VPC egress → Cloud SQL privado (IDR-007).
+
+### IDRs/ADR desta fase
+- IDR-006 (path strategy + E2E semantics), IDR-007 (Cloud Run↔Cloud SQL + migração
+  no pipeline), **emenda ADR-007** (API same-origin via Firebase rewrite).
 
 ### Links de evidência
-(a preencher — commit, PR, pipeline)
+- Commits-chave: `806ce03` (down fix), refator pipeline/infra na main; tags
+  `v0.1.0-rc.14`…`rc.19`. Runbook `docs/operacao/runbook-homolog.md`.

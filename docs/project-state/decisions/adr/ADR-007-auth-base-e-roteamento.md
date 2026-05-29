@@ -12,7 +12,7 @@ related_adrs: [ADR-001, ADR-002, ADR-003, ADR-004, ADR-008]
 related_pdrs: [PDR-003, PDR-001]
 related_epics: [EPIC-000, EPIC-001]
 created_at: 2026-05-27
-updated_at: 2026-05-27
+updated_at: 2026-05-29  # emenda STORY-016: API same-origin via Firebase rewrite
 ---
 
 # ADR-007 — Modelo de autenticação base e roteamento por papel
@@ -183,6 +183,25 @@ flowchart TB
 
 ---
 
+## Emenda — 2026-05-29 (STORY-016): exposição da API **same-origin** via Firebase Hosting rewrite
+
+> Emenda de arquitetura. Não reabre a decisão (Opção A — Sanctum SPA continua); **refina o §(b) e o §(d)** sobre *como* o WebApp alcança a `api`, à luz do que a STORY-016 expôs em homologação.
+
+**O que motivou.** A decisão original assumiu que o cookie SPA exige **mesmo domínio de topo** entre `app.` e `api.` (`session.domain=.turni.com.br`, `SANCTUM_STATEFUL_DOMAINS` com `api.turni.com.br`). Em **homologação** isso quebra: o Cloud Run não suporta domain mapping em `southamerica-east1` (IDR-003), então a `api` só tem URL `*.run.app` — **domínio diferente** do WebApp (`app.homolog.turni.com.br`). Cookie cross-site → login do WebApp não fechava em homolog. O "Sinal de revisão" desta ADR previa o atrito; a resposta abaixo **não** é migrar para Bearer (Opção B) — é remover o cross-domain.
+
+**Refinamento (vale para homolog e prod).** O WebApp **não chama um subdomínio próprio da API**. Ele chama **`/api/**` e `/sanctum/**` no seu próprio domínio**, e o **Firebase Hosting faz rewrite** dessas rotas para o serviço Cloud Run da `api` (`firebase.json`, targets homolog e prod → `turni-api-{homolog,prod}`). Efeito:
+
+- A requisição é **same-origin** (mesma host do WebApp) — o cookie de sessão é **first-party host-only**, sem depender de `session.domain=.turni.com.br` nem de cookie cross-subdomínio. **Mais simples e mais seguro** que o desenho original.
+- **Sem CORS**: não há mais chamada cross-origin do WebApp para a API.
+- `SANCTUM_STATEFUL_DOMAINS` passa a ser o **host do WebApp** (`app.<env>.turni.com.br`), não o host da API. O build do WebApp usa `API_BASE_URL` **vazio** (URLs relativas).
+- A URL `*.run.app` da `api` vira **detalhe de implementação** atrás do rewrite — some a dependência de DNS próprio para a API (esvazia ainda mais o IDR-003 e o trade-off "acopla ao mesmo domínio de topo" do §Contras).
+
+**Não muda:** Opção A (Sanctum SPA cookie `httpOnly`+`Secure`+`SameSite=Lax`), Argon2id, RBAC por `role`, segregação WebApp×Backoffice, caminho Bearer para o nativo futuro. O Backoffice (Livewire, guard `web`) segue independente, no seu próprio host.
+
+**Consequência operacional:** a `api` Cloud Run mantém `ingress=all` (o rewrite do Firebase a alcança como serviço público); o fechamento via IAP/LB de borda quando isso entrar (EPIC-001) precisa preservar o caminho do rewrite. Detalhes de conectividade (Cloud SQL privado, VPC egress, migração no pipeline) em **IDR-007**.
+
+---
+
 ## Aprovação humana
 
 > Esta seção é o registro formal do aceite. Não preencher sozinho — preencher quando o humano aprovar no chat ou via PR.
@@ -207,3 +226,4 @@ flowchart TB
 
 - 2026-05-27 — criada como `proposed` por Arquiteto (STORY-004). Decisão de sessão SPA-cookie (Sanctum) para o WebApp com caminho de token Bearer para o nativo futuro; Argon2id para hash; RBAC por coluna `role`; segregação de admin em duas camadas (cookie/host + IAP).
 - 2026-05-27 — `accepted` por Alexandro (aprovação em chat, junto de ADR-008; commit direto na `main`).
+- 2026-05-29 — **emenda** (STORY-016): API exposta **same-origin** via Firebase Hosting rewrite (`/api`, `/sanctum` → Cloud Run), em vez de subdomínio próprio da API. Refina §(b)/§(d); remove o cross-domain do cookie SPA (vale homolog e prod). Conectividade em IDR-007. Decisão registrada pelo arquiteto; ADR permanece `accepted`.

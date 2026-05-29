@@ -619,8 +619,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-016-login-e-rbac",
-      "status": "in_progress",
-      "owner_agent": "claude-sonnet-4-6-programador-2026-05-28",
+      "status": "done",
+      "owner_agent": "claude-opus-4-8-programador-2026-05-29",
       "sprint_id": "SPRINT-2026-W24",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-016-rbac-vivo-login-roteamento-por-papel.md",
       "blocked_by": [
@@ -1414,7 +1414,9 @@
         "approved_by": "Alexandro",
         "supersedes": null,
         "superseded_by": null,
-        "source_story": "STORY-004"
+        "source_story": "STORY-004",
+        "amended_at": "2026-05-29",
+        "amendment_note": "STORY-016: API exposta same-origin via Firebase Hosting rewrite (/api, /sanctum → Cloud Run), refina §b/§d; remove cross-domain do cookie SPA. Conectividade em IDR-007."
       },
       {
         "id": "ADR-008",
@@ -1539,6 +1541,24 @@
         "decided_at": "2026-05-28",
         "decided_by": "programador",
         "source_story": "STORY-029"
+      },
+      {
+        "id": "IDR-006",
+        "title": "WebApp Flutter — usePathUrlStrategy + padrão de E2E via árvore de semantics",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-006-flutter-web-path-strategy-e-e2e-via-semantics.md",
+        "decided_at": "2026-05-28",
+        "decided_by": "programador",
+        "source_story": "STORY-016"
+      },
+      {
+        "id": "IDR-007",
+        "title": "Cloud Run ↔ Cloud SQL de IP privado (Direct VPC egress) + migração/seed via Cloud Run Job no pipeline",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-007-cloud-run-cloud-sql-privado-e-migracao-no-pipeline.md",
+        "decided_at": "2026-05-29",
+        "decided_by": "programador",
+        "source_story": "STORY-016"
       }
     ],
     "ddr": [

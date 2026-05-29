@@ -218,12 +218,69 @@ curl -X POST \
 
 ### Banco de dados
 
-Sem rollback de schema — política forward-only (ADR-004 seção Rollback).
+Sem rollback de schema em produção — política forward-only (ADR-004 seção Rollback).
 Para dados corrompidos: point-in-time recovery via Cloud SQL (backup automático habilitado).
 
 ```bash
 gcloud sql backups list --instance=turni-homolog --project=SEU_PROJECT_ID
 ```
+
+---
+
+## Migrações em homologação (Cloud Run Job — IDR-007)
+
+O `release.yml` roda um **Cloud Run Job** (`turni-migrate-homolog`, imagem da release)
+que faz `migrate --force && db:seed --force` antes dos deploys fliparem tráfego. O job
+tem **Direct VPC egress** (Cloud SQL é IP privado) e liga a instância se o scheduler a
+desligou. Executar manualmente:
+
+```bash
+gcloud run jobs execute turni-migrate-homolog --region=southamerica-east1 --wait
+```
+
+> ⚠️ **Scheduler de economia:** o Cloud SQL `turni-homolog` desliga seg–sex 22h BRT e
+> fica desligado no fim de semana. Se o login der **500/502** ou `/health?deep=1` der
+> **503**, o banco provavelmente está desligado. Ligue:
+> `gcloud sql instances patch turni-homolog --activation-policy=ALWAYS` (o scheduler
+> volta a desligá-lo no próximo ciclo).
+
+### Rollback de migração — evidência F-NB-1 / CA-2 {#rollback-migracoes}
+
+`migrate:rollback`/`reset` exercido em homolog. Bug pego e corrigido aqui: o `down()` de
+`add_identity_columns_to_users_table` chamava `dropConstrainedForeignId` numa CHECK
+constraint e abortava o rollback (commit `806ce03`).
+
+**Evidência — 2026-05-29** (execução `turni-migrate-homolog-x476q`, imagem `v0.1.0-rc.19`):
+
+```
+>>> RESET (reverte TODAS as migracoes)
+   INFO  Rolling back migrations.
+  …add_identity_columns_to_users_table … DONE   # antes dava FAIL
+  …create_admin_audit_log_table … DONE
+  (todas as 10 migrações revertidas, 0 FAIL)
+>>> REPLAY
+   INFO  Running migrations.
+  (todas as 10 re-aplicadas, 0 FAIL)
+>>> SEED
+  AdminUserSeeder … DONE
+```
+
+Comando: `php artisan migrate:reset --force && php artisan migrate --force && php artisan db:seed --force` (via Cloud Run Job). `down()` reversível e replay sem erro confirmados.
+
+### Imutabilidade do audit log — evidência CA-15
+
+`admin_audit_log` é append-only (trigger `prevent_admin_audit_log_mutation` BEFORE
+UPDATE/DELETE + REVOKE — ADR-009 Decisão 4A). Tentativa de mutação em homolog:
+
+**Evidência — 2026-05-29** (execução `turni-migrate-homolog-6ksds`):
+
+```
+CA15_RESULT update=BLOQUEADO delete=BLOQUEADO id=1
+```
+
+INSERT permitido (append-only); UPDATE e DELETE **bloqueados** pelo trigger. Teste:
+inserir uma linha em `admin_audit_log` e tentar `update`/`delete` nela — ambos lançam
+exceção "Audit log is immutable".
 
 ---
 
