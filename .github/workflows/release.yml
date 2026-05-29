@@ -91,8 +91,12 @@ jobs:
       - name: Build web (release)
         working-directory: apps/webapp
         run: |
+          # API_BASE_URL vazio = mesma origem: o WebApp chama /api e /sanctum no
+          # próprio domínio e o Firebase Hosting faz rewrite p/ o Cloud Run da api
+          # (firebase.json). Resolve o cookie cross-domain do Sanctum SPA. STORY-016.
           flutter build web \
             --dart-define=APP_VERSION=${{ github.ref_name }} \
+            --dart-define=API_BASE_URL= \
             --no-tree-shake-icons \
             --release
       - name: Upload artefato web

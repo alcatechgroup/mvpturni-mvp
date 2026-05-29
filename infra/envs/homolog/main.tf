@@ -124,15 +124,21 @@ module "cloud_run_api" {
   vpc_subnetwork = google_compute_subnetwork.main.name
 
   env_vars = {
-    APP_ENV          = "production"
-    APP_DEBUG        = "false"
-    LOG_CHANNEL      = "stderr"
+    APP_ENV     = "production"
+    APP_DEBUG   = "false"
+    APP_URL     = "https://${local.webapp_host}"
+    LOG_CHANNEL = "stderr"
     DB_CONNECTION    = "pgsql"
     DB_SOCKET        = local.cloudsql_socket
     DB_DATABASE      = "turni"
     DB_USERNAME      = "turni"
     QUEUE_CONNECTION = "database"
     SESSION_DRIVER   = "database"
+    # Sanctum SPA: o WebApp é servido em app.homolog e chama /api no MESMO domínio
+    # (Firebase rewrite → este Cloud Run). Marca o domínio como stateful p/ usar a
+    # sessão por cookie. BACKOFFICE_URL alimenta o banner "Ir para o Backoffice".
+    SANCTUM_STATEFUL_DOMAINS = local.webapp_host
+    BACKOFFICE_URL           = "https://turni-admin-homolog-dnj2tcr2xa-rj.a.run.app"
   }
 
   secret_env_vars = {
