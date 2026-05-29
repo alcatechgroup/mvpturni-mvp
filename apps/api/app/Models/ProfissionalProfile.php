@@ -13,6 +13,11 @@ class ProfissionalProfile extends Model
     protected $fillable = [
         'user_id',
         'tipo_pessoa',
+        'telefone',
+        'cidade',
+        'bairro',
+        'funcao_id',
+        'termos_aceitos_at',
         'documento_encrypted',
         'documento_tipo',
         'nivel',
@@ -30,11 +35,17 @@ class ProfissionalProfile extends Model
         return [
             'dados_bancarios_encrypted' => 'array',
             'score' => 'decimal:2',
+            'termos_aceitos_at' => 'datetime',
         ];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function funcao(): BelongsTo
+    {
+        return $this->belongsTo(Funcao::class);
     }
 }
