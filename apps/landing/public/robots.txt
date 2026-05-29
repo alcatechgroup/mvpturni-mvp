@@ -1,13 +1,13 @@
 # robots.txt da landing institucional turni.com.br
 # TEMPLATE — engenharia (ADR-012 §2/§3, PDR-015 §3).
-# O token __LANDING_PATH__ é substituído em build-time pelo valor de
-# $FIREBASE_LANDING_PATH (GitHub Actions secret) no workflow de deploy
+# O placeholder na linha Disallow abaixo é substituído em build-time pelo
+# valor de FIREBASE_LANDING_PATH (GitHub Actions secret) no workflow de deploy
 # (STORY-031). O path real NUNCA é commitado neste repositório.
 #
-# Honestidade declarada (ADR-012 §2/§3): o Disallow abaixo "auto-revela" o
-# path a quem ler o robots.txt — isto é obfuscação, não segurança. A garantia
-# real de não-indexação da landing é o <meta name="robots" content="noindex,
-# nofollow"> injetado no HTML da landing (adaptação A3, STORY-030).
+# Honestidade declarada (ADR-012 §2/§3): o Disallow "auto-revela" o path a quem
+# ler o robots.txt — isto é obfuscação, não segurança. A garantia real de
+# não-indexação da landing é o <meta name="robots" content="noindex,nofollow">
+# injetado no HTML da landing (adaptação A3, STORY-030).
 
 User-agent: *
 Disallow: /__LANDING_PATH__/

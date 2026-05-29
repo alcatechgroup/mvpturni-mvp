@@ -84,7 +84,6 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "appAssociation": "NONE",
       "cleanUrls": false,
-      "trailingSlash": false,
       "headers": [
         {
           "source": "**/index.html",
@@ -125,7 +124,6 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "appAssociation": "NONE",
       "cleanUrls": false,
-      "trailingSlash": false,
       "headers": [
         {
           "source": "**/index.html",

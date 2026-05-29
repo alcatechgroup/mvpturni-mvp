@@ -150,13 +150,13 @@ jobs:
             if [ "$2" = "$3" ]; then echo "✓ $1"; else echo "✗ $1 (esperado=$2 obtido=$3)"; fail=1; fi
           }
           contains() { # nome, url, agulha
-            if curl -fsS "$2" | grep -q "$3"; then echo "✓ $1"; else echo "✗ $1 (sem marcador)"; fail=1; fi
+            if curl -fsSL "$2" | grep -q "$3"; then echo "✓ $1"; else echo "✗ $1 (sem marcador)"; fail=1; fi
           }
           # aguarda propagação do CDN
           sleep 8
-          code_apex=$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}/")
-          code_lp=$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}/${LANDING_SECRET_PATH}/")
-          code_rand=$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}/zzz-nao-existe-$(date +%s)/")
+          code_apex=$(curl -sL -o /dev/null -w '%{http_code}' "${BASE_URL}/")
+          code_lp=$(curl -sL -o /dev/null -w '%{http_code}' "${BASE_URL}/${LANDING_SECRET_PATH}/")
+          code_rand=$(curl -sL -o /dev/null -w '%{http_code}' "${BASE_URL}/zzz-nao-existe-$(date +%s)/")
           check "apex responde 200"            "200" "$code_apex"
           check "landing (path) responde 200"  "200" "$code_lp"
           check "path aleatório responde 404"  "404" "$code_rand"
