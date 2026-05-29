@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-028-em-breve
-status: in_progress
+status: done
 owner_agent: claude-opus-4-8-programador-2026-05-28
 created_at: 2026-05-28
-updated_at: 2026-05-28
+updated_at: 2026-05-29
 estimated_session_size: S
 ---
 
@@ -64,16 +64,16 @@ Direto: o visitante que digita `turni.com.br` no navegador vê uma página insti
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Arquivo `apps/landing/public/index.html` existe (ou no path equivalente decidido por ADR-012), self-contained, validado pelo W3C HTML validator (zero erros, warnings aceitáveis).
-- [ ] **CA-2:** Renderiza visualmente conforme `SCREEN-STORY-028-em-breve.md`: logo TURN**I.** centralizado, mensagem aprovada pelo PO, fundo conforme decisão do Designer, tipografia `Bebas Neue` no logo e `Inter` no corpo.
-- [ ] **CA-3:** Tokens CSS herdados da landing AS IS (`--logo-green`, `--black`, `--bg-cream`, `--text`) presentes; mudança de palette futura na landing reflete na "Em breve" sem refactor.
-- [ ] **CA-4:** **Sem** referência a `<path-secreto>` no HTML servido (verificável com `grep -i '<path-secreto>' index.html` — zero matches). Nenhum link interno. Nenhum comentário HTML revelando estrutura.
-- [ ] **CA-5:** **Sem** rastreamento: zero scripts de analytics, zero pixels, zero cookies setados, zero requisições para terceiros além das fontes do Google Fonts. Verificável com DevTools → Network e DevTools → Application → Cookies.
-- [ ] **CA-6:** Meta tags institucionais presentes: `title`, `description`, `theme-color`, Open Graph mínimo. **Sem** `<meta name="robots" content="noindex">` (página é indexável).
-- [ ] **CA-7:** Acessibilidade: Lighthouse Accessibility ≥ 95; contraste WCAG AA verificado nos elementos de texto; logo com `aria-label`; navegação por teclado funciona.
-- [ ] **CA-8:** Performance: Lighthouse Performance ≥ 90 em mobile 3G simulado. Bundle total < 50KB (HTML + CSS inline + fontes — fontes preconnect/preload).
-- [ ] **CA-9:** Tema funciona em claro/escuro respeitando `prefers-color-scheme` (decisão Designer: a página "Em breve" pode ter um único tema dark — coerente com o hero da landing AS IS que é preto — ou seguir DDR-001 dual; alinhar no sync).
-- [ ] **CA-10:** Sync registrado em "Notas do agente": Designer entregou `SCREEN-STORY-028-em-breve.md` em `status: ready` antes da primeira linha de código; copy default aprovada pelo PO (Alexandro) antes do merge.
+- [x] **CA-1:** Arquivo `apps/landing/public/index.html` existe (ou no path equivalente decidido por ADR-012), self-contained, validado pelo W3C HTML validator (zero erros, warnings aceitáveis).
+- [x] **CA-2:** Renderiza visualmente conforme `SCREEN-STORY-028-em-breve.md`: logo TURN**I.** centralizado, mensagem aprovada pelo PO, fundo conforme decisão do Designer, tipografia `Bebas Neue` no logo e `Inter` no corpo.
+- [x] **CA-3:** Tokens CSS herdados da landing AS IS (`--logo-green`, `--black`, `--bg-cream`, `--text`) presentes; mudança de palette futura na landing reflete na "Em breve" sem refactor.
+- [x] **CA-4:** **Sem** referência a `<path-secreto>` no HTML servido (verificável com `grep -i '<path-secreto>' index.html` — zero matches). Nenhum link interno. Nenhum comentário HTML revelando estrutura.
+- [x] **CA-5:** **Sem** rastreamento: zero scripts de analytics, zero pixels, zero cookies setados, zero requisições para terceiros além das fontes do Google Fonts. Verificável com DevTools → Network e DevTools → Application → Cookies.
+- [x] **CA-6:** Meta tags institucionais presentes: `title`, `description`, `theme-color`, Open Graph mínimo. **Sem** `<meta name="robots" content="noindex">` (página é indexável).
+- [x] **CA-7:** Acessibilidade: Lighthouse Accessibility ≥ 95; contraste WCAG AA verificado nos elementos de texto; logo com `aria-label`; navegação por teclado funciona.
+- [x] **CA-8:** Performance: Lighthouse Performance ≥ 90 em mobile 3G simulado. Bundle total < 50KB (HTML + CSS inline + fontes — fontes preconnect/preload).
+- [x] **CA-9:** Tema funciona em claro/escuro respeitando `prefers-color-scheme` (decisão Designer: a página "Em breve" pode ter um único tema dark — coerente com o hero da landing AS IS que é preto — ou seguir DDR-001 dual; alinhar no sync).
+- [x] **CA-10:** Sync registrado em "Notas do agente": Designer entregou `SCREEN-STORY-028-em-breve.md` em `status: ready` antes da primeira linha de código; copy default aprovada pelo PO (Alexandro) antes do merge.
 
 ## Fora de escopo
 
@@ -181,13 +181,14 @@ Spec `SCREEN-STORY-028-em-breve.md` entregue em `status: ready` (owner: claude-o
 - **Render real (Playwright/Chromium, fontes carregadas):** mobile 390×844 e desktop 1280×800 conferem com o spec — mark centralizado com `I` verde sólido e ponto verde vazado, "Em breve." branca, footer discreto no rodapé. Tema dark único.
 - **Lighthouse mobile (2026-05-29, throttling simulado, contra URL local `python -m http.server`):** Performance **99**, Accessibility **100**, Best Practices 96, SEO 100. `color-contrast` PASS (CA-7 — WCAG AA), `heading-order` PASS, FCP/LCP 2.7 s, CLS 0.004, TBT 0 ms. Os achados `uses-text-compression` e `render-blocking-resources` são artefatos do servidor local sem gzip — o Firebase Hosting aplica brotli/gzip e só melhora o número; `errors-in-console` = 404 de `favicon.ico` do servidor local. Screenshot do Chrome real (Lighthouse) confere com o spec.
 - **Correção de acessibilidade (2026-05-29):** removido `role="img"` do `<h1>` (uso de ARIA inválido apontado por `aria-allowed-role`; também tirava o `<h1>` da árvore de headings). Mantido `aria-label="Turni"` — o leitor de tela continua anunciando "Turni", agora como heading nível 1, e o ARIA fica válido. Sem mudança visual nem de copy (PO já aprovou a copy). Resultado: a11y 99→100, `aria-allowed-role` n/a, `heading-order` PASS.
-- **Lighthouse na URL de homolog:** pendente — gated em STORY-031 (URL servida pelo Firebase). Decisão do PO (2026-05-29): 028 permanece `in_progress`; a reconfirmação na homolog é **não-bloqueante** e será absorvida pela validação da STORY-033. Os números locais (Perf 99 / A11y 100) já satisfazem CA-7/CA-8 com margem; a homolog só tende a igualar ou superar.
-- **URL de homolog:** (após STORY-031 estar verde)
+- **Lighthouse na URL de homolog (2026-05-29, após STORY-031 deployar):** `https://landing.homolog.turni.com.br/` → Performance **98**, Accessibility **100**, Best Practices 96, SEO 100, `color-contrast` PASS, LCP 2.0 s. Confirma CA-7/CA-8 na URL real (igualou/superou os números locais, como previsto).
+- **Curl-gate (CA cruzado com STORY-031):** apex `/` → 200 servindo "Em breve" (smoke test do workflow `landing-v0.1.0-rc.4` verde; `data-screen="em-breve"` no ar). Sem `noindex` no apex (CA-6). Headers de segurança presentes.
+- **URL de homolog:** https://landing.homolog.turni.com.br/ (no ar desde 2026-05-29).
 
 ### Pendências para fechar
 - [x] **Aprovação da copy default "Em breve." pelo PO (Alexandro)** — aprovada em 2026-05-28 (CA-10).
 - [x] **Lighthouse mobile (Performance ≥ 90 / Accessibility ≥ 95)** — rodado em 2026-05-29 contra URL local (Perf 99 / A11y 100). Reconfirmação na URL de homolog é não-bloqueante (gated em STORY-031, absorvida pela STORY-033) — decisão do PO.
-- [ ] Validação `curl` do gate no apex — gated em STORY-031/033 (pertence ao gate, não à página).
+- [x] Validação `curl` do gate no apex — apex serve "Em breve" 200 em `https://landing.homolog.turni.com.br/` (smoke da STORY-031 verde, 2026-05-29). Estória pronta para `done`.
 - [ ] Commit (workflow Turni: direto na main, stageando **só** `apps/landing/public/index.html`, `SCREEN-STORY-028-em-breve.md`, esta estória e a entrada do `index.json` — há outros agentes na worktree).
 
 ### Links de evidência

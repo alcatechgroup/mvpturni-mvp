@@ -40,10 +40,10 @@ O sprint roda majoritariamente com **agentes** (programador para 5 das 8 estóri
 | --------- | -------------------------------------------------------------------------------------- | -------- | -------------- | ----------------------- | ------- | ----------------------------------- | ------------------------------------------------------------------ |
 | STORY-026 | Spike — gate Em breve + path secreto + topologia Firebase (ADR-012)                    | EPIC-006 | spike          | arquiteto               | M       | não                                 | **done**                                                           |
 | STORY-027 | PO — PDR-015 Fronteira marketing × engenharia × comercial                              | EPIC-006 | decision       | po                      | S       | não                                 | **done**                                                           |
-| STORY-028 | Página "Em breve" com identidade visual                                                | EPIC-006 | implementation | programador (+designer) | S       | **sim** (SCREEN-STORY-028-em-breve) | **in_progress** (Lighthouse local Perf 99/A11y 100 + ajuste ARIA OK; só falta curl-gate gated em 031) |
+| STORY-028 | Página "Em breve" com identidade visual                                                | EPIC-006 | implementation | programador (+designer) | S       | **sim** (SCREEN-STORY-028-em-breve) | **done** (no ar em homolog; Lighthouse Perf 98/A11y 100 na URL real) |
 | STORY-029 | Terraform multi-site + DNS apex/www/landing.homolog                                    | EPIC-006 | implementation | programador             | M       | não                                 | **done**                                                           |
 | STORY-030 | Scaffolding apps/landing/ + import AS IS + 4 adaptações + robots/404/README/CODEOWNERS | EPIC-006 | implementation | programador             | M       | não                                 | **done** (2026-05-29 — import AS IS em _lp/, 4 adaptações, CA-13 aprovado pelo PO) |
-| STORY-031 | firebase.json com rotas explícitas + .firebaserc + workflow GitHub Actions tag-based   | EPIC-006 | implementation | programador             | M       | não                                 | ready                                                              |
+| STORY-031 | firebase.json com rotas explícitas + .firebaserc + workflow GitHub Actions tag-based   | EPIC-006 | implementation | programador             | M       | não                                 | **done** (gate no ar em homolog; smoke + auto-rollback verdes; CA-8 www→apex deferido ao go-public) |
 | STORY-032 | Runbook operacional — publicar, rollback, rotação, go-public                           | EPIC-006 | implementation | programador             | S       | não                                 | ready                                                              |
 | STORY-033 | Validação final do EPIC-006                                                            | EPIC-006 | validation     | validador               | S       | não                                 | ready                                                              |
 
@@ -226,6 +226,24 @@ Sprint passou de 1/8 para 4/8 em D1. Soft-cap 2026-06-11 (~14 dias) muito confor
 **Estado resultante (5/8):** 4 done (026, 027, 029, 030), 1 in_progress validação-gated (028), 3 ready (031, 032, 033).
 
 **Gargalo atual:** STORY-031 (firebase.json rotas explícitas + .firebaserc + workflow tag-based + build step `_lp→path` / `__WEBAPP_URL__` / `__LANDING_PATH__`). 031 serve a URL real → fecha o Lighthouse de homolog da 028 e destrava 032/033.
+
+### 2026-05-29 — STORY-031 + STORY-028 done: gate "Em breve" + landing AS IS no ar em homolog
+
+**O que aconteceu:**
+
+- **STORY-031 done.** `firebase.json` (raiz, Opção A — landing-homolog/landing-prod/www-redirect-prod, sem rewrite genérico, headers de cache ADR §4 + segurança + CSP) e workflow `landing-deploy.yml` (tag-based, build step _lp→path/CTA/robots, smoke 5 checks, auto-rollback REST). Deploy verde em homolog na tag `landing-v0.1.0-rc.4` após 4 RCs de iteração (cada bug pego pelo próprio smoke).
+- **STORY-028 done.** Com a URL servida, Lighthouse na homolog real: Perf 98 / A11y 100 / SEO 100, contraste PASS. Curl-gate verde.
+- **Gate observável (métrica primária do sprint quase batida):** `landing.homolog.turni.com.br/` → "Em breve"; `/<uuid>/` → landing AS IS; path aleatório → 404 institucional; `robots.txt` Disallow; deploy isolado do WebApp; auto-rollback exercitado.
+
+**Descobertas/correções (relevantes para 032/033):**
+
+- **`firebase hosting:rollback` NÃO existe** no firebase-tools. Rollback real = re-release de versão via REST (`POST sites/SITE/releases?versionName=…`) ou botão Rollback do Console. **O runbook (STORY-032) precisa corrigir** — o ADR-012 e esta sprint citavam o comando inexistente.
+- **`trailingSlash:false`** fazia 301 no link `/<path>/`; removido (default serve 200).
+- **Cache de diretório:** `**/index.html` não casa `/` nem `/<path>/` → pegavam o default 1h do Firebase; corrigido com catch-all `**` no-cache + override de assets (merge + last-wins confirmado).
+- **Smoke `curl|grep -q` + pipefail** → `curl: (23)` (SIGPIPE) em página grande; corrigido baixando p/ arquivo.
+- **Topologia:** stub `apps/landing/firebase.json` da 029 superseded pela Opção A (root); CODEOWNERS ajustado.
+
+**Estado resultante (6/8):** 6 done (026, 027, 028, 029, 030, 031). Faltam STORY-032 (runbook) e STORY-033 (validação). CA-8 (www→apex) deferido ao go-public de prod (residual legítimo, como na 029).
 
 (próximo check em 2026-06-04 — D+7)
 
