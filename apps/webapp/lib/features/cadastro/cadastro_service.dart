@@ -96,29 +96,30 @@ class CadastroService {
     }
 
     // 2. POST multipart.
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('$_apiBase/api/cadastro/profissional'),
-    )
-      ..headers['Accept'] = 'application/json'
-      ..fields['name'] = name
-      ..fields['email'] = email
-      ..fields['telefone'] = telefone
-      ..fields['cidade'] = cidade
-      ..fields['bairro'] = bairro
-      ..fields['funcao_id'] = funcaoId.toString()
-      ..fields['tipo_pessoa'] = tipoPessoa
-      ..fields['password'] = password
-      ..fields['password_confirmation'] = passwordConfirmation
-      ..fields['termos_aceitos'] = termosAceitos ? '1' : '0'
-      ..files.add(
-        http.MultipartFile.fromBytes(
-          'foto',
-          foto.bytes,
-          filename: foto.filename,
-          contentType: _mediaTypeFor(foto.filename),
-        ),
-      );
+    final request =
+        http.MultipartRequest(
+            'POST',
+            Uri.parse('$_apiBase/api/cadastro/profissional'),
+          )
+          ..headers['Accept'] = 'application/json'
+          ..fields['name'] = name
+          ..fields['email'] = email
+          ..fields['telefone'] = telefone
+          ..fields['cidade'] = cidade
+          ..fields['bairro'] = bairro
+          ..fields['funcao_id'] = funcaoId.toString()
+          ..fields['tipo_pessoa'] = tipoPessoa
+          ..fields['password'] = password
+          ..fields['password_confirmation'] = passwordConfirmation
+          ..fields['termos_aceitos'] = termosAceitos ? '1' : '0'
+          ..files.add(
+            http.MultipartFile.fromBytes(
+              'foto',
+              foto.bytes,
+              filename: foto.filename,
+              contentType: _mediaTypeFor(foto.filename),
+            ),
+          );
 
     http.Response response;
     try {

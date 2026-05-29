@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-017-pre-cadastro-profissional
-status: in_progress
+status: in_review
 owner_agent: claude-opus-programador
 created_at: 2026-05-28
 updated_at: 2026-05-29
@@ -130,14 +130,14 @@ Você NÃO decide:
 
 ## Definição de Pronto (DoD)
 
-- [ ] CA-1 a CA-14 passam com evidência.
-- [ ] Cobertura unitária medida no PR.
-- [ ] E2E verde na pipeline de homolog.
-- [ ] LGPD: lista de campos coletados registrada.
-- [ ] Sync Designer↔Programador registrado em "Notas".
-- [ ] `index.json` atualizado.
-- [ ] "Notas" preenchida.
-- [ ] IDR se houve decisão técnica com impacto futuro.
+- [x] CA-1 a CA-14 passam com evidência (CA-1/2/7/8/10 via UI+E2E; demais via testes — ver Cobertura/Resultado).
+- [x] Cobertura unitária medida (api 95,1% global; widget 29 verdes).
+- [~] E2E verde **localmente** (gate IDR-004: PF+MEI+pública, 3/3). Em homolog: após deploy (pendência de fechamento).
+- [x] LGPD: lista de campos coletados registrada (`docs/especificacao/lgpd/campos-coletados.md`).
+- [x] Sync Designer↔Programador registrado em "Notas".
+- [x] `index.json` atualizado.
+- [x] "Notas" preenchida.
+- [x] IDR se houve decisão técnica com impacto futuro (IDR-008 funções, IDR-009 image_picker).
 
 ## Protocolo do agente (obrigatório)
 
@@ -193,6 +193,13 @@ Identificadores de teste, microcopy completo, estados e contrastes verificados e
 - O container `api` **não tem a extensão GD** → `UploadedFile::fake()->image()` quebra nos testes. Usei `->create($nome, $kb, $mime)` que exercita `image|mimes|max` sem gerar pixels. A validação `image` em produção usa fileinfo (não GD), então o upload real não é afetado.
 - O `.env` local **não tinha `HASH_DRIVER`** (caía no bcrypt default), embora `.env.example` e `phpunit.xml` já declarem `argon2id`. Adicionei ao `.env` local (git-ignored) para paridade. **Atenção infra:** homolog/prod precisam ter `HASH_DRIVER=argon2id` setado (vem do `.env.example`/Secret Manager).
 
+**Descobertas da fase de UI/E2E (2026-05-29):**
+- **GD ausente no container `api`:** `UploadedFile::fake()->image()` quebra; usei `->create($nome,$kb,$mime)` (a validação `image` em prod usa fileinfo, não GD).
+- **Bug sutil de reconciliação Flutter:** a inserção condicional dos erros de tipo/foto/termos reordenava os filhos do `Column`; sem `Key` nos wrappers (`Padding`) dos campos, o `FormFieldState` das senhas era recriado e **descartava o erro recém-validado**. Fix: keyar os wrappers (`Key('$key-field')`). Pego por widget test (CA-2).
+- **`image_picker` no web exigiu `flutter clean`:** após adicionar a dep, o `web_plugin_registrant.dart` ficou stale → `MissingPluginException(pickImage)`. `flutter clean && pub get && build web` regenerou o registrant. **Para CI/build de homolog:** garantir build limpo após mudança de deps.
+- **Semantics do Flutter Web (E2E):** `DropdownButtonFormField` expõe-se como `button` + `menu/menuitem` (usar `getByRole('menuitem')`), o `segmented` como `button`, a foto como `button`; o aceite como `checkbox` sem nome. Entrada de texto confiável só com `locator.focus()` (clicar por coordenada às vezes não focava o campo e a digitação poluía o e-mail). Padrões documentados no `pre-cadastro.spec.ts`.
+- **CA-8 já existia (SCREEN-016):** o banner `banner-pending` foi refinado para citar o SLA de 24h; nenhum teste assertava o texto antigo.
+
 ### Bloqueios encontrados
 - **[ESCALONAMENTO-DESIGN] Screen spec ausente (2026-05-29):** `requires_design: true` aponta `SCREEN-STORY-017-pre-cadastro-profissional`, mas o arquivo **não existe** em `docs/project-state/design/screens/` (só há SCREEN-016, SCREEN-028, STORY-008). Pelo protocolo, o Programador é dono mas **não toca a UI** até o Designer entregar a spec em `status: ready` + sync ≤15 min.
   - **Backend-first concluído** (totalmente desbloqueado, verde na `main`).
@@ -200,28 +207,30 @@ Identificadores de teste, microcopy completo, estados e contrastes verificados e
   - **✅ RESOLVIDO (2026-05-29):** o Designer entregou `SCREEN-STORY-017-pre-cadastro-profissional` em `status: ready` (registrada no `index.json`). Bloqueio levantado; estória volta a `in_progress`. Resta o Programador implementar a UI conforme o spec (ver §Sync) + E2E (CA-9) + deploy homolog → `in_review`/`done`.
 
 ### IDRs criados
-- **IDR-008** — Funções como tabela auxiliar `funcoes` com seed (vs enum). `status: accepted`. Registrado em `index.json`.
+- **IDR-008** — Funções como tabela auxiliar `funcoes` com seed (vs enum). `accepted`.
+- **IDR-009** — `image_picker` para upload de foto no WebApp. `accepted`. Ambos em `index.json`.
 
 ### Cobertura final
-- Suíte `api` completa: **96 testes, 0 falhas**; cobertura global **95%** (gate `--min=80` verde). `StoreProfissionalPreCadastroRequest` 100%, `Pii` 100%, `FuncaoSeeder` 100%, `ProfissionalCadastroController` 92,5% (3 linhas não cobertas = bloco `catch` de limpeza de foto órfã — defensivo, fora do núcleo de regra). `Funcao` 100%.
-- Lint (Pint): limpo.
-- Backend cobre por teste: CA-3, CA-4, CA-5, CA-6, CA-9 (persistência PF/MEI/PJ), CA-11 (cobertura), CA-12, CA-14.
+- **API**: 98 testes, 0 falhas; cobertura global **95,1%** (gate `--min=80` verde). `StoreProfissionalPreCadastroRequest` 100%, `FuncaoController` 100%, `Pii` 100%, `FuncaoSeeder` 100%, `Funcao` 100%, `ProfissionalCadastroController` 92,5% (3 linhas = `catch` de limpeza de foto órfã, defensivo). Pint limpo.
+- **WebApp**: `flutter analyze` limpo; **29 widget tests** verdes (5 novos da tela de cadastro: render/keys, validação+bloqueio, caminho feliz→recebido, e-mail genérico CA-4, senha fraca).
+- **E2E (Playwright, browser real)**: `pre-cadastro.spec.ts` **3/3 verdes** — pública carrega, **PF** e **MEI** enviam e veem "Cadastro recebido."; `rbac-login.spec.ts` 7/7 (CA-8 não regrediu). Persistência verificada no banco: `role=profissional, status=pendente_aprovacao, tipo_pessoa` correto (PF/MEI), `termos_aceitos_at` setado, foto salva.
 
 ### Resultado final / evidência
-**Backend concluído e verde localmente** (2026-05-29). Falta a camada de UI (bloqueada por design) e o deploy em homolog para evidência ao vivo + E2E em browser.
+**Estória concluída — backend + UI + E2E verdes localmente** (2026-05-29). `status: in_review`. Falta apenas o deploy em homolog para a evidência ao vivo (URL pública) e o E2E rodar contra homolog.
 
-**Status dos CAs:**
-- ✅ CA-3, CA-4, CA-5, CA-6, CA-9 (parte de persistência/backend), CA-11 (backend), CA-12, CA-14 — cobertos por teste e verdes.
-- ⏳ CA-1, CA-2, CA-7, CA-8, CA-10 e o **E2E em browser** de CA-9, CA-13 (verificação ao vivo de acesso à foto) — **pendentes da UI** (design spec).
+**Status dos CAs (todos cobertos):**
+- ✅ CA-1 (rota pública renderiza; E2E "pública carrega"), CA-2 (validação client+mensagens; widget+E2E), CA-3 (Argon2id, sem leak), CA-4 (erro genérico anti-enumeração; unit+widget), CA-5 (termos server-side), CA-6 (foto MIME/tamanho), CA-7 (tela recebido; widget+E2E), CA-8 (banner SLA 24h no login), CA-9 (E2E PF+MEI + persistência), CA-10 (a11y: Semantics, foco, contrastes DDR-001 dual-theme, alvos ≥48dp), CA-11 (cobertura), CA-12 (log mascarado), CA-13 (foto em disco privado, path não-enumerável), CA-14 (documento não coletado).
 
 ### Pendências para fechar
-1. **[DESIGN]** Designer entregar `SCREEN-STORY-017` em `ready` + sync ≤15 min.
-2. UI Flutter: rota pública `/cadastro/profissional` (tema profissional DDR-001), formulário com validação client-side (CA-1, CA-2), tela de sucesso (CA-7), mensagem "aguardando aprovação" no login de `pendente_aprovacao` (CA-8 — coordenar com STORY-016), a11y WCAG 2.1 AA dual-theme (CA-10).
-3. E2E em browser real cobrindo PF + MEI (CA-9) na pipeline de homolog.
-4. Deploy verde em homolog → evidência ao vivo (URL, screenshots, run E2E).
-5. Confirmar `HASH_DRIVER=argon2id` no ambiente homolog/prod (infra).
+1. **Deploy em homolog** (merge na main → pipeline) → evidência ao vivo em `app.homolog.turni.com.br/cadastro/profissional` + E2E contra homolog (`BASE_URL=...`).
+2. **Infra:** confirmar `HASH_DRIVER=argon2id` no ambiente homolog/prod.
+3. **Build de homolog do WebApp:** garantir build limpo (registrant de plugin web) — ver Descobertas (image_picker).
+4. **E-mail de confirmação** (item 6 §O quê): deferido para STORY-021 (infra de e-mail) — não-bloqueante.
+5. Designer revisa o implementado vs spec no PR (a11y/visual) — colaboração padrão.
 
 ### Links de evidência
-- Commits: `feat(STORY-017): endpoint de pré-cadastro de profissional (backend)`.
+- Commits `feat(STORY-017): ...` (backend, UI), `design(STORY-017): ...` (spec + preview).
+- Spec: `docs/project-state/design/screens/SCREEN-STORY-017-pre-cadastro-profissional.md` + preview HTML aprovado.
 - LGPD: `docs/especificacao/lgpd/campos-coletados.md` §STORY-017.
-- IDR: `docs/project-state/decisions/idr/IDR-008-funcoes-tabela-auxiliar-vs-enum.md`.
+- IDRs: `IDR-008-funcoes-tabela-auxiliar-vs-enum.md`, `IDR-009-image-picker-para-upload-de-foto.md`.
+- E2E: `apps/webapp/tests/e2e/pre-cadastro.spec.ts` (PF+MEI).

@@ -92,7 +92,13 @@ class _PreCadastroProfissionalScreenState
 
   Future<void> _pickFoto() async {
     final picker = widget.photoPicker ?? _defaultPhotoPicker;
-    final foto = await picker();
+    FotoUpload? foto;
+    try {
+      foto = await picker();
+    } catch (_) {
+      // Falha/cancelamento ao selecionar — mantém sem foto; a validação cobra.
+      return;
+    }
     if (foto == null || !mounted) return;
 
     final lower = foto.filename.toLowerCase();
@@ -382,7 +388,8 @@ class _PreCadastroProfissionalScreenState
             controller: _confirma,
             label: 'Confirmar senha',
             obscure: _obscureConfirma,
-            onToggle: () => setState(() => _obscureConfirma = !_obscureConfirma),
+            onToggle: () =>
+                setState(() => _obscureConfirma = !_obscureConfirma),
             field: 'password_confirmation',
             validator: (v) {
               if ((v ?? '') != _senha.text) return 'As senhas não conferem.';
@@ -423,7 +430,12 @@ class _PreCadastroProfissionalScreenState
 
           if (_banner != null) ...[
             const SizedBox(height: TurniSpacing.md),
-            _BannerWidget(banner: _banner!, isDark: isDark, onLogin: () => context.go('/login'), onRetry: _submit),
+            _BannerWidget(
+              banner: _banner!,
+              isDark: isDark,
+              onLogin: () => context.go('/login'),
+              onRetry: _submit,
+            ),
           ],
         ],
       ),
@@ -436,8 +448,9 @@ class _PreCadastroProfissionalScreenState
     label: 'Cidade',
     textCapitalization: TextCapitalization.words,
     field: 'cidade',
-    validator: (v) =>
-        (v?.trim().isEmpty ?? true) ? 'Informe sua cidade.' : _serverErrors['cidade'],
+    validator: (v) => (v?.trim().isEmpty ?? true)
+        ? 'Informe sua cidade.'
+        : _serverErrors['cidade'],
   );
 
   Widget _bairroField() => _textField(
@@ -446,8 +459,9 @@ class _PreCadastroProfissionalScreenState
     label: 'Bairro',
     textCapitalization: TextCapitalization.words,
     field: 'bairro',
-    validator: (v) =>
-        (v?.trim().isEmpty ?? true) ? 'Informe seu bairro.' : _serverErrors['bairro'],
+    validator: (v) => (v?.trim().isEmpty ?? true)
+        ? 'Informe seu bairro.'
+        : _serverErrors['bairro'],
   );
 
   Widget _funcaoField() {
@@ -479,12 +493,18 @@ class _PreCadastroProfissionalScreenState
       child: SegmentedButton<String>(
         key: const Key('segmented-tipo-pessoa'),
         segments: const [
-          ButtonSegment(value: 'PF', label: Text('PF', key: Key('segment-pf'))),
+          ButtonSegment(
+            value: 'PF',
+            label: Text('PF', key: Key('segment-pf')),
+          ),
           ButtonSegment(
             value: 'MEI',
             label: Text('MEI', key: Key('segment-mei')),
           ),
-          ButtonSegment(value: 'PJ', label: Text('PJ', key: Key('segment-pj'))),
+          ButtonSegment(
+            value: 'PJ',
+            label: Text('PJ', key: Key('segment-pj')),
+          ),
         ],
         selected: _tipoPessoa == null ? <String>{} : {_tipoPessoa!},
         emptySelectionAllowed: true,
@@ -530,6 +550,8 @@ class _PreCadastroProfissionalScreenState
         Semantics(
           button: true,
           label: 'Adicionar foto',
+          onTap: _pickFoto,
+          excludeSemantics: true,
           child: InkWell(
             key: const Key('input-foto'),
             onTap: _pickFoto,
@@ -645,7 +667,10 @@ class _PreCadastroProfissionalScreenState
   // ── helpers de UI ──
 
   Widget _section(String title) => Padding(
-    padding: const EdgeInsets.only(top: TurniSpacing.lg, bottom: TurniSpacing.sm),
+    padding: const EdgeInsets.only(
+      top: TurniSpacing.lg,
+      bottom: TurniSpacing.sm,
+    ),
     child: Text(
       title.toUpperCase(),
       style: const TextStyle(
@@ -848,10 +873,8 @@ class _Banner {
     _BannerKind.throttle,
     'Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.',
   );
-  factory _Banner.server() => const _Banner._(
-    _BannerKind.server,
-    'Não conseguimos enviar agora.',
-  );
+  factory _Banner.server() =>
+      const _Banner._(_BannerKind.server, 'Não conseguimos enviar agora.');
 }
 
 class _BannerWidget extends StatelessWidget {
