@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-017-pre-cadastro-profissional
-status: blocked
+status: in_progress
 owner_agent: claude-opus-programador
 created_at: 2026-05-28
 updated_at: 2026-05-29
@@ -165,7 +165,21 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 **Dúvidas:** nenhuma de produto — escopo e decisões já fechadas em PDR-001/ADR-009/domain. As escolhas técnicas (tabela `funcoes` vs enum, lib de upload, path da foto) são liberdade do agente e registrarei em IDR.
 
 ### Sync Designer↔Programador
-Pendente — screen spec `SCREEN-STORY-017` ainda não entregue (ver Bloqueios). O sync ≤15 min acontece quando o Designer publicar a spec em `ready`. Backend não depende do sync.
+**Spec entregue (2026-05-29) — `SCREEN-STORY-017-pre-cadastro-profissional` em `status: ready`.** Registrada em `index.json` (`design.screens[]`). Cobre Vista A (form), Vista B (recebido/sucesso — CA-7) e a emenda do banner "em análise" no login (CA-8). Desbloqueia a UI.
+
+**Decisões de design relevantes para o Programador:**
+- **Form único seccionado** (não wizard) — 6 seções, CTA único "Enviar cadastro". STORY-018 deve espelhar.
+- **Componentes:** `input.text`/`input.password` (já existem da STORY-016), `input.select` (DropdownButtonFormField), `segmented` (SegmentedButton PF/MEI/PJ, radiogroup), `input.checkbox` (termos com 2 links), **`input.photo` (novo)** — definições normativas mínimas no spec §"Componentes novos".
+- **Rota pública:** adicionar `/cadastro/profissional` ao `publicRoutes` do `router.dart`.
+- **Sucesso = estado interno** da mesma rota (sem rota própria → sem deep-link órfão).
+- **CA-8:** refinar o texto de `_BannerState.pending()` no `login_screen.dart` para **"Seu cadastro está em análise. Em até 24h enviaremos uma notificação por e-mail."** (sem mudar layout/ícone/key `banner-pending`). Ajustar o widget test que asserta o texto.
+
+**Pontos de sync ≤15 min (spec §13) — decisões de implementação do Programador:**
+1. **`GET /api/funcoes`** para popular o select (recomendado pelo Designer, coerente com IDR-008) **ou** lista estática espelhando o seed no MVP — registrar a escolha.
+2. Lib de upload de foto (`image_picker` ou equivalente) + montagem do `multipart` no Flutter Web — IDR se transversal.
+3. Máscara de telefone opcional (regex já cobre).
+
+Identificadores de teste, microcopy completo, estados e contrastes verificados estão no spec.
 
 ### Decisões tomadas
 - **Funções = tabela auxiliar `funcoes` + seed** (não enum) → **IDR-008**. FK `funcao_id` em `profissional_profiles`, validação exige `ativo=true`.
@@ -183,7 +197,7 @@ Pendente — screen spec `SCREEN-STORY-017` ainda não entregue (ver Bloqueios).
 - **[ESCALONAMENTO-DESIGN] Screen spec ausente (2026-05-29):** `requires_design: true` aponta `SCREEN-STORY-017-pre-cadastro-profissional`, mas o arquivo **não existe** em `docs/project-state/design/screens/` (só há SCREEN-016, SCREEN-028, STORY-008). Pelo protocolo, o Programador é dono mas **não toca a UI** até o Designer entregar a spec em `status: ready` + sync ≤15 min.
   - **Backend-first concluído** (totalmente desbloqueado, verde na `main`).
   - **Decisão do PO/Alexandro (2026-05-29):** **aguardar o Designer** — não construir UI sem spec formal nem produzir a spec eu mesmo.
-  - **Status da estória → `blocked`** até a entrega de `SCREEN-STORY-017` em `ready`. Quando chegar: sync ≤15 min → implemento CA-1, CA-2, CA-7, CA-8, CA-10 + E2E (CA-9) → deploy homolog → `in_review`/`done`.
+  - **✅ RESOLVIDO (2026-05-29):** o Designer entregou `SCREEN-STORY-017-pre-cadastro-profissional` em `status: ready` (registrada no `index.json`). Bloqueio levantado; estória volta a `in_progress`. Resta o Programador implementar a UI conforme o spec (ver §Sync) + E2E (CA-9) + deploy homolog → `in_review`/`done`.
 
 ### IDRs criados
 - **IDR-008** — Funções como tabela auxiliar `funcoes` com seed (vs enum). `status: accepted`. Registrado em `index.json`.
