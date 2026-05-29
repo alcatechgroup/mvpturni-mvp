@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-017-pre-cadastro-profissional
-status: in_progress
+status: blocked
 owner_agent: claude-opus-programador
 created_at: 2026-05-28
 updated_at: 2026-05-29
@@ -180,7 +180,10 @@ Pendente — screen spec `SCREEN-STORY-017` ainda não entregue (ver Bloqueios).
 - O `.env` local **não tinha `HASH_DRIVER`** (caía no bcrypt default), embora `.env.example` e `phpunit.xml` já declarem `argon2id`. Adicionei ao `.env` local (git-ignored) para paridade. **Atenção infra:** homolog/prod precisam ter `HASH_DRIVER=argon2id` setado (vem do `.env.example`/Secret Manager).
 
 ### Bloqueios encontrados
-- **[DESIGN] Screen spec ausente (2026-05-29):** `requires_design: true` aponta `SCREEN-STORY-017-pre-cadastro-profissional`, mas o arquivo **não existe** em `docs/project-state/design/screens/` (só há SCREEN-016, SCREEN-028, STORY-008). Pelo protocolo, o Programador é dono mas **não toca a UI** até o Designer entregar a spec em `status: ready` + sync ≤15 min. **Decisão:** sigo backend-first (totalmente desbloqueado) e mantenho a parte de UI (CA-1, CA-2, CA-7, CA-8, CA-10 e o E2E de CA-9) pendente do design. Não está `blocked` no índice porque há trabalho substancial desbloqueado em andamento.
+- **[ESCALONAMENTO-DESIGN] Screen spec ausente (2026-05-29):** `requires_design: true` aponta `SCREEN-STORY-017-pre-cadastro-profissional`, mas o arquivo **não existe** em `docs/project-state/design/screens/` (só há SCREEN-016, SCREEN-028, STORY-008). Pelo protocolo, o Programador é dono mas **não toca a UI** até o Designer entregar a spec em `status: ready` + sync ≤15 min.
+  - **Backend-first concluído** (totalmente desbloqueado, verde na `main`).
+  - **Decisão do PO/Alexandro (2026-05-29):** **aguardar o Designer** — não construir UI sem spec formal nem produzir a spec eu mesmo.
+  - **Status da estória → `blocked`** até a entrega de `SCREEN-STORY-017` em `ready`. Quando chegar: sync ≤15 min → implemento CA-1, CA-2, CA-7, CA-8, CA-10 + E2E (CA-9) → deploy homolog → `in_review`/`done`.
 
 ### IDRs criados
 - **IDR-008** — Funções como tabela auxiliar `funcoes` com seed (vs enum). `status: accepted`. Registrado em `index.json`.

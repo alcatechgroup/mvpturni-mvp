@@ -673,7 +673,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-017-pre-cadastro-profissional",
-      "status": "in_progress",
+      "status": "blocked",
       "owner_agent": "claude-opus-programador",
       "sprint_id": "SPRINT-2026-W24",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-017-pre-cadastro-profissional-webapp.md",
