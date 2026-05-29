@@ -7,10 +7,10 @@ sprint_id: SPRINT-2026-W24-LANDING
 type: implementation
 target_role: programador
 requires_design: false
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8-programador-2026-05-29
 created_at: 2026-05-28
-updated_at: 2026-05-28
+updated_at: 2026-05-29
 estimated_session_size: M
 ---
 

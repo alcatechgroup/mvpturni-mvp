@@ -1035,8 +1035,8 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_progress",
+      "owner_agent": "claude-opus-4-8-programador-2026-05-29",
       "sprint_id": "SPRINT-2026-W24-LANDING",
       "path": "epics/EPIC-006-landing-institucional/stories/STORY-031-firebase-json-rotas-explicitas-firebaserc-e-workflow-deploy.md",
       "blocked_by": [

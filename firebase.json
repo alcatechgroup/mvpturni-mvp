@@ -75,6 +75,99 @@
         { "source": "/sanctum/**", "run": { "serviceId": "turni-api-prod", "region": "southamerica-east1" } },
         { "source": "**", "destination": "/index.html" }
       ]
+    },
+
+    {
+      "//": "Landing institucional (EPIC-006 / ADR-012). SEM rewrite genérico ** → /index.html (seria leak): path desconhecido cai no 404.html. O <path-secreto> NUNCA aparece aqui — a pasta _lp/ é renomeada em build-time pelo workflow (ADR-012 §2); os headers usam globs path-agnósticos.",
+      "target": "landing-homolog",
+      "public": "apps/landing/public",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "appAssociation": "NONE",
+      "cleanUrls": false,
+      "trailingSlash": false,
+      "headers": [
+        {
+          "source": "**/index.html",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+          ]
+        },
+        {
+          "source": "/robots.txt",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+            { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
+          ]
+        },
+        {
+          "source": "**/*.@(js|css|jpg|jpeg|png|svg|avif|webp|gif|ico|woff2)",
+          "headers": [
+            { "key": "Cache-Control", "value": "public, max-age=3600" }
+          ]
+        },
+        {
+          "source": "**",
+          "headers": [
+            { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
+            { "key": "X-Content-Type-Options", "value": "nosniff" },
+            { "key": "X-Frame-Options", "value": "DENY" },
+            { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+            { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "//": "Landing prod — idem homolog. Gated por landing_prod_enabled=false (STORY-029): o site turni-landing-prod ainda não existe; deploy em prod é go-public (fora do EPIC-006).",
+      "target": "landing-prod",
+      "public": "apps/landing/public",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "appAssociation": "NONE",
+      "cleanUrls": false,
+      "trailingSlash": false,
+      "headers": [
+        {
+          "source": "**/index.html",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+          ]
+        },
+        {
+          "source": "/robots.txt",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+            { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
+          ]
+        },
+        {
+          "source": "**/*.@(js|css|jpg|jpeg|png|svg|avif|webp|gif|ico|woff2)",
+          "headers": [
+            { "key": "Cache-Control", "value": "public, max-age=3600" }
+          ]
+        },
+        {
+          "source": "**",
+          "headers": [
+            { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
+            { "key": "X-Content-Type-Options", "value": "nosniff" },
+            { "key": "X-Frame-Options", "value": "DENY" },
+            { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+            { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "//": "Micro-site de redirect www → apex (ADR-012 §6, fallback). Redirect 301 cobre tudo; gated por prod (turni-www-redirect-prod só existe no go-public).",
+      "target": "www-redirect-prod",
+      "public": "apps/landing/public",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "appAssociation": "NONE",
+      "redirects": [
+        { "source": "**", "destination": "https://turni.com.br", "type": 301 }
+      ]
     }
   ]
 }

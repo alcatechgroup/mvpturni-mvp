@@ -1,0 +1,219 @@
+name: Landing Deploy
+
+# Pipeline isolado da landing institucional (EPIC-006 / ADR-012 / ADR-004).
+#   push em main tocando apps/landing/** etc. → job de lint (CI)
+#   tag landing-vX.Y.Z-rc.N → deploy automático em homologação (sem gate)
+#   tag landing-vX.Y.Z (sem -rc) → deploy em prod com gate humano (Environment landing-prod)
+#
+# Isolamento: este workflow NÃO toca WebApp/API/Admin; o release.yml (tags v*) não
+# toca a landing (tags distintas: landing-v* vs v*).
+#
+# Build-time (ADR-012 §2/§7): a pasta-placeholder _lp/ é renomeada para o
+# <path-secreto> (secret LANDING_SECRET_PATH, mascarado), os CTAs __WEBAPP_URL__
+# são substituídos pela URL do WebApp do ambiente, e o robots.txt é gerado a
+# partir do template __LANDING_PATH__. O path real nunca está no repositório.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/landing/**"
+      - "firebase.json"
+      - ".firebaserc"
+      - ".github/workflows/landing-deploy.yml"
+    tags:
+      - "landing-v[0-9]*.[0-9]*.[0-9]*-rc.[0-9]*"
+      - "landing-v[0-9]*.[0-9]*.[0-9]*"
+
+permissions:
+  contents: read
+  id-token: write # Workload Identity Federation
+
+env:
+  FIREBASE_TOOLS_VERSION: "13.29.1"
+  LANDING_SITE_HOMOLOG: "turni-landing-homolog"
+  LANDING_SITE_PROD: "turni-landing-prod"
+
+jobs:
+  # ── CI: lint dos HTMLs de engenharia (Em breve + 404) em push de branch ──────
+  lint:
+    name: Lint HTML (engenharia)
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: htmlhint (Em breve + 404 — arquivos de engenharia)
+        run: |
+          npx --yes htmlhint@1 \
+            apps/landing/public/index.html \
+            apps/landing/public/404.html
+      - name: Conferência AS IS (não falha — só reporta; contrato AS IS)
+        run: |
+          echo "Landing AS IS (_lp/) é propriedade do marketing; lint informativo:"
+          npx --yes htmlhint@1 apps/landing/public/_lp/index.html || true
+
+  # ── Detecta ambiente a partir da tag ─────────────────────────────────────────
+  detect-env:
+    name: Detectar ambiente (homolog / prod)
+    if: startsWith(github.ref, 'refs/tags/landing-v')
+    runs-on: ubuntu-latest
+    outputs:
+      is_rc: ${{ steps.d.outputs.is_rc }}
+      webapp_url: ${{ steps.d.outputs.webapp_url }}
+    steps:
+      - id: d
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [[ "$TAG" =~ -rc\. ]]; then
+            echo "is_rc=true" >> "$GITHUB_OUTPUT"
+            echo "webapp_url=https://app.homolog.turni.com.br" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_rc=false" >> "$GITHUB_OUTPUT"
+            echo "webapp_url=https://app.turni.com.br" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ── Deploy homolog (tag -rc) ─────────────────────────────────────────────────
+  deploy-homolog:
+    name: Deploy landing → homolog
+    needs: [detect-env]
+    if: needs.detect-env.outputs.is_rc == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment:
+      name: homolog
+      url: https://landing.homolog.turni.com.br
+    env:
+      SITE: turni-landing-homolog
+      BASE_URL: https://landing.homolog.turni.com.br
+      WEBAPP_URL: ${{ needs.detect-env.outputs.webapp_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar bundle (rename _lp → path secreto, swap CTA, gerar robots)
+        env:
+          LANDING_SECRET_PATH: ${{ secrets.LANDING_SECRET_PATH }}
+        run: |
+          set -euo pipefail
+          test -n "$LANDING_SECRET_PATH" || { echo "::error::secret LANDING_SECRET_PATH vazio"; exit 1; }
+          echo "::add-mask::$LANDING_SECRET_PATH"
+          cd apps/landing/public
+          mv _lp "$LANDING_SECRET_PATH"
+          perl -pi -e "s|__WEBAPP_URL__|${WEBAPP_URL}|g" "$LANDING_SECRET_PATH/index.html"
+          perl -pi -e "s|__LANDING_PATH__|${LANDING_SECRET_PATH}|g" robots.txt
+          # validações: zero placeholders restantes; zero app.html
+          ! grep -q "__WEBAPP_URL__" "$LANDING_SECRET_PATH/index.html"
+          ! grep -q "__LANDING_PATH__" robots.txt
+          ! grep -q 'href="app.html' "$LANDING_SECRET_PATH/index.html"
+          echo "bundle preparado (path mascarado)"
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Setup firebase-tools
+        run: |
+          npm i -g firebase-tools@${FIREBASE_TOOLS_VERSION}
+          firebase --version
+
+      - name: Autenticar (service account Firebase) p/ firebase CLI + gcloud
+        run: |
+          set -euo pipefail
+          printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > "${RUNNER_TEMP}/fsa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/fsa.json" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file="${RUNNER_TEMP}/fsa.json"
+
+      - name: Capturar versão live atual (para rollback)
+        id: prev
+        run: |
+          set -euo pipefail
+          TOKEN="$(gcloud auth print-access-token)"
+          PREV="$(curl -fsS -H "Authorization: Bearer ${TOKEN}" \
+            "https://firebasehosting.googleapis.com/v1beta1/sites/${SITE}/releases?pageSize=1" \
+            | jq -r '.releases[0].version.name // empty' || true)"
+          echo "prev_version=${PREV}" >> "$GITHUB_OUTPUT"
+          echo "versão anterior: ${PREV:-<nenhuma — primeiro deploy>}"
+
+      - name: Deploy Firebase Hosting (landing-homolog)
+        run: |
+          set -euo pipefail
+          firebase deploy --only hosting:landing-homolog \
+            --project turni-mvp --non-interactive \
+            --message "${GITHUB_REF_NAME}"
+
+      - name: Smoke test pós-deploy (5 checks) + rollback automático em falha
+        env:
+          LANDING_SECRET_PATH: ${{ secrets.LANDING_SECRET_PATH }}
+          PREV_VERSION: ${{ steps.prev.outputs.prev_version }}
+        run: |
+          set -uo pipefail
+          echo "::add-mask::$LANDING_SECRET_PATH"
+          fail=0
+          check() { # nome, esperado, atual
+            if [ "$2" = "$3" ]; then echo "✓ $1"; else echo "✗ $1 (esperado=$2 obtido=$3)"; fail=1; fi
+          }
+          contains() { # nome, url, agulha
+            if curl -fsS "$2" | grep -q "$3"; then echo "✓ $1"; else echo "✗ $1 (sem marcador)"; fail=1; fi
+          }
+          # aguarda propagação do CDN
+          sleep 8
+          code_apex=$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}/")
+          code_lp=$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}/${LANDING_SECRET_PATH}/")
+          code_rand=$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}/zzz-nao-existe-$(date +%s)/")
+          check "apex responde 200"            "200" "$code_apex"
+          check "landing (path) responde 200"  "200" "$code_lp"
+          check "path aleatório responde 404"  "404" "$code_rand"
+          contains "apex serve 'Em breve'"           "${BASE_URL}/"                         "Em breve"
+          contains "landing serve 'TURNI · MVP Demo'" "${BASE_URL}/${LANDING_SECRET_PATH}/"  "TURNI · MVP Demo"
+          contains "robots.txt tem Disallow do path"  "${BASE_URL}/robots.txt"               "Disallow: /${LANDING_SECRET_PATH}/"
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::smoke test falhou — iniciando rollback"
+            if [ -n "${PREV_VERSION}" ]; then
+              TOKEN="$(gcloud auth print-access-token)"
+              curl -fsS -X POST -H "Authorization: Bearer ${TOKEN}" \
+                "https://firebasehosting.googleapis.com/v1beta1/sites/${SITE}/releases?versionName=${PREV_VERSION}" \
+                && echo "rollback: re-release da versão anterior OK"
+            else
+              echo "sem versão anterior (primeiro deploy) — nada a restaurar; falhando vermelho"
+            fi
+            exit 1
+          fi
+          echo "smoke test verde"
+
+  # ── Deploy prod (tag sem -rc) — gate humano + gated por landing_prod_enabled ──
+  deploy-prod:
+    name: Deploy landing → prod (gate humano)
+    needs: [detect-env]
+    if: needs.detect-env.outputs.is_rc == 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment:
+      name: landing-prod
+      url: https://turni.com.br
+    env:
+      SITE: turni-landing-prod
+      BASE_URL: https://turni.com.br
+      WEBAPP_URL: ${{ needs.detect-env.outputs.webapp_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar bundle (rename _lp → path secreto, swap CTA, gerar robots)
+        env:
+          LANDING_SECRET_PATH: ${{ secrets.LANDING_SECRET_PATH }}
+        run: |
+          set -euo pipefail
+          test -n "$LANDING_SECRET_PATH" || { echo "::error::secret LANDING_SECRET_PATH vazio"; exit 1; }
+          echo "::add-mask::$LANDING_SECRET_PATH"
+          cd apps/landing/public
+          mv _lp "$LANDING_SECRET_PATH"
+          perl -pi -e "s|__WEBAPP_URL__|${WEBAPP_URL}|g" "$LANDING_SECRET_PATH/index.html"
+          perl -pi -e "s|__LANDING_PATH__|${LANDING_SECRET_PATH}|g" robots.txt
+      - name: Setup firebase-tools
+        run: npm i -g firebase-tools@${FIREBASE_TOOLS_VERSION}
+      - name: Autenticar (service account Firebase)
+        run: |
+          printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > "${RUNNER_TEMP}/fsa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/fsa.json" >> "$GITHUB_ENV"
+      - name: Deploy Firebase Hosting (landing-prod)
+        run: |
+          set -euo pipefail
+          # Falha esperada se landing_prod_enabled=false (site turni-landing-prod inexistente) — go-public é fora do EPIC-006.
+          firebase deploy --only hosting:landing-prod \
+            --project turni-mvp --non-interactive \
+            --message "${GITHUB_REF_NAME}"

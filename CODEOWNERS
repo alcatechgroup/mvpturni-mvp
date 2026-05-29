@@ -21,7 +21,7 @@ apps/landing/public/404.html          @turni/engenharia
 apps/landing/public/robots.txt        @turni/engenharia   # template (path injetado no build)
 apps/landing/README.md                @turni/engenharia
 apps/landing/CHANGELOG.md             @turni/engenharia
-apps/landing/firebase.json            @turni/engenharia   # criado em STORY-031
+firebase.json                         @turni/engenharia   # raiz, multi-site (WebApp + landing); STORY-031
 .firebaserc                           @turni/engenharia
 .github/workflows/landing-*.yml       @turni/engenharia   # criado em STORY-031
 infra/modules/firebase/**             @turni/engenharia

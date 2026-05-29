@@ -1,7 +1,0 @@
-{
-  "//": "Stub mínimo da landing (STORY-029). Rotas explícitas (sem rewrite genérico ** → /index.html, ADR-012 §1), headers de cache/segurança, robots e 404 entram na STORY-031. O diretório public/ é criado na STORY-030 (import AS IS).",
-  "hosting": {
-    "public": "apps/landing/public",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
-  }
-}
