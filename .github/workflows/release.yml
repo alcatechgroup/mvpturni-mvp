@@ -102,11 +102,68 @@ jobs:
           path: apps/webapp/build/web/
           retention-days: 30
 
+  # ── Migração + seed do banco de homologação (Cloud Run Job) ──────────────────
+  # A imagem da api roda `php artisan migrate --force && db:seed --force` contra o
+  # Cloud SQL, ANTES dos deploys fliparem o tráfego (schema pronto p/ o código novo).
+  # Só homolog (is_rc): o seed cria os usuários de teste do CA-12 e NÃO vai p/ prod.
+  # (Prod terá seu próprio job migrate-only quando o deploy de produção for usado.)
+  migrate-homolog:
+    name: Migrar + seed (homolog)
+    runs-on: ubuntu-latest
+    needs: [build, detect-env]
+    if: needs.detect-env.outputs.is_rc == 'true'
+    timeout-minutes: 15
+    steps:
+      - name: Autenticar no GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Garantir Cloud SQL ligado
+        run: |
+          # O scheduler de economia pode estar com a instância desligada (noite/fim
+          # de semana). Migração exige o banco no ar; liga e aguarda RUNNABLE.
+          STATE=$(gcloud sql instances describe turni-homolog \
+            --project=${{ secrets.GCP_PROJECT_ID }} --format="value(state)")
+          echo "estado atual: $STATE"
+          if [ "$STATE" != "RUNNABLE" ]; then
+            gcloud sql instances patch turni-homolog \
+              --project=${{ secrets.GCP_PROJECT_ID }} --activation-policy=ALWAYS --quiet
+            for i in $(seq 1 30); do
+              ST=$(gcloud sql instances describe turni-homolog \
+                --project=${{ secrets.GCP_PROJECT_ID }} --format="value(state)")
+              [ "$ST" = "RUNNABLE" ] && { echo "RUNNABLE"; break; }
+              echo "aguardando RUNNABLE ($i/30) — $ST"; sleep 10
+            done
+          fi
+
+      - name: Deploy + executa job de migração (migrate + seed)
+        run: |
+          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/api:${{ github.ref_name }}"
+          CONN="${{ secrets.GCP_PROJECT_ID }}:${{ env.GCP_REGION }}:turni-homolog"
+          gcloud run jobs deploy turni-migrate-homolog \
+            --image="$IMAGE" \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --service-account=turni-apps@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
+            --set-cloudsql-instances="$CONN" \
+            --set-env-vars="APP_ENV=production,APP_DEBUG=false,LOG_CHANNEL=stderr,DB_CONNECTION=pgsql,DB_SOCKET=/cloudsql/${CONN},DB_DATABASE=turni,DB_USERNAME=turni,QUEUE_CONNECTION=database,SESSION_DRIVER=array" \
+            --set-secrets="APP_KEY=turni-homolog-app-key-api:latest,DB_PASSWORD=turni-homolog-db-password:latest" \
+            --command=sh \
+            --args='-c,php artisan migrate --force && php artisan db:seed --force' \
+            --max-retries=0 --task-timeout=300
+          gcloud run jobs execute turni-migrate-homolog \
+            --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} --wait
+
   # ── Deploy API em homologação ────────────────────────────────────────────────
   deploy-api-homolog:
     name: Deploy API → homolog
     runs-on: ubuntu-latest
-    needs: [build, detect-env]
+    needs: [build, detect-env, migrate-homolog]
     if: needs.detect-env.outputs.is_rc == 'true'
     environment:
       name: homolog
@@ -151,7 +208,7 @@ jobs:
   deploy-admin-homolog:
     name: Deploy Admin → homolog
     runs-on: ubuntu-latest
-    needs: [build, detect-env]
+    needs: [build, detect-env, migrate-homolog]
     if: needs.detect-env.outputs.is_rc == 'true'
     environment:
       name: homolog

@@ -42,11 +42,12 @@ FROM alpine:3.22 AS runtime
 
 RUN apk add --no-cache \
     nginx supervisor \
-    php84-fpm php84-pdo php84-pdo_pgsql php84-pcntl php84-opcache \
+    php84 php84-fpm php84-pdo php84-pdo_pgsql php84-pcntl php84-opcache \
     php84-mbstring php84-ctype php84-curl php84-dom php84-fileinfo \
     php84-openssl php84-session php84-tokenizer php84-xml php84-xmlwriter \
     php84-phar php84-posix php84-iconv \
     && adduser -D -u 1000 app \
+    && ln -sf /usr/bin/php84 /usr/bin/php \
     && ln -sf /usr/sbin/php-fpm84 /usr/sbin/php-fpm \
     && sed -i 's/^user = nobody/user = app/' /etc/php84/php-fpm.d/www.conf \
     && sed -i 's/^group = nobody/group = app/' /etc/php84/php-fpm.d/www.conf \
