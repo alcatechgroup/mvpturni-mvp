@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-020-editor-templates
-status: ready
-owner_agent: null
+status: in_review
+owner_agent: claude-opus-4-8-designer+programador-2026-05-29
 created_at: 2026-05-28
-updated_at: 2026-05-28
+updated_at: 2026-05-29
 estimated_session_size: M
 ---
 
@@ -145,31 +145,75 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+
+Sessão de 2026-05-29 (claude-opus-4-8) atuando nos dois papéis em paralelo (Designer + Programador), conforme pedido do usuário. Lidas antes de codar: PDR-012, ADR-010 (inteira), ADR-009 (audit log), `compliance.md §Placeholders`, os dois textos-seed de STORY-015, `preview-backoffice.html`, `SCREEN-STORY-019` (referência de formato + shell admin), SKILL do Designer, e o código existente do Backoffice (FilaAprovacao, ApprovalService, AuditLogService, migração do audit log).
 
 ### Sync Designer↔Programador
-(a preencher)
+
+Trabalho paralelo numa única sessão; pontos alinhados (registrados aqui no lugar de chat efêmero):
+
+1. **Plataforma do spec:** Backoffice é Laravel + Livewire (≠ Flutter do resto do produto). O Designer descreveu a tela em termos de Blade/Livewire e `data-testid` (não widgets/`Key()`), reusando os tokens DDR-001 admin do `preview-backoffice.html` — igual ao que `SCREEN-STORY-019` já fez.
+2. **Fronteira de componentes:** 3 componentes Livewire full-page (catálogo, detalhe, editor) com rotas próprias — confirmado como o caminho Livewire mais simples (cada um 1:1 com rota). Editor em rota separada (`/templates/{slug}/nova-versao`) para o side-by-side ganhar largura.
+3. **Frontmatter do texto-seed (descoberta crítica do Programador, levada ao spec):** os `.md` de STORY-015 contêm `{{namespace.campo}}` **só no frontmatter YAML** (`nota_rascunho`). O seeder **descarta o frontmatter** e carrega só o corpo — senão a validação de placeholder (CA-5) quebraria o próprio seed. Documentado no spec §10.
+4. **Preview ao vivo:** renderização Markdown server-side (CommonMark já embarcado via `Str::markdown`, sem nova dependência), com `wire:model.live.debounce.300ms`. Placeholders viram chips `⟦ns.campo⟧`; inválidos em vermelho.
 
 ### Decisões tomadas
-(a preencher)
+
+- **Onde vivem migração/seeder (descoberta de infra):** `make migrate`/`make seed` rodam contra o app **api** (dono do schema do banco compartilhado `turni`); o app **admin** mantém cópia paralela das migrações só para seu DB de teste (`turni_test`). Por isso a migração `2026_05_29_130000_create_templates_and_template_versoes_table` foi colocada **nos dois apps**, e o `TemplatesContratuaisSeeder` foi registrado no `DatabaseSeeder` do **api** (caminho canônico de dev/homolog/E2E).
+- **Texto-seed vendorado (CA-16):** `docs/` **não é montado** nos containers (deploy = imagem do app). Vendoramos o corpo fiel (frontmatter removido) em `database/seeders/contracts/template-*.md` nos dois apps; o seeder lê de lá e **loga o SHA-256** como evidência de fidelidade (`admin.template.seeded`). Hashes: PF `ad8ab0d9…`, MEI/PJ `f909d489…`.
+- **Models em `app/Models`** (não `packages/domain`): segue a convenção real de STORY-016 (User/AdminAuditLog/Funcao todos em `app/Models`); `packages/domain` é esqueleto. ADR-010 sugeria `packages/domain` mas consistência com o que está em produção venceu.
+- **Lista canônica de placeholders (17):** os 15 de `compliance.md` + `habitualidade.override_aceito` + `habitualidade.clausula_adicional` (ponto de injeção da cláusula condicional do ADR-010). Superset do que os seeds usam — seeds passam.
+- **REVOKE só de DELETE** em `template_versoes` no runtime (não UPDATE): a ativação precisa alterar a coluna `ativa`. Append-only (sem delete) + trigger de imutabilidade do conteúdo cobrem a invariante de PDR-012.
+- **Segurança da renderização:** `Str::markdown(..., ['html_input' => 'strip'])` — HTML bruto do admin é descartado; o motor só substitui/realça placeholders, nunca avalia código (§4 / ADR-010). Teste cobre `<script>` removido.
 
 ### Descobertas
-(a preencher)
+
+- `{{namespace.campo}}` no frontmatter dos textos-seed (acima) — teria quebrado o seed sem o strip.
+- Constraint/trigger do Postgres violada dentro de `RefreshDatabase` **envenena a transação do teste**; resolvido com helper `esperaErroDeBanco()` que dispara a violação dentro de um savepoint (`DB::transaction` aninhada).
+- `#[Computed]` do Livewire acessado como `$this->prop` **não** recebe injeção de dependência por argumento; resolver via `app(...)` dentro do método.
 
 ### Bloqueios encontrados
-(a preencher)
+
+Nenhum bloqueio duro. **Limite de escopo registrado (CA-15 item c):** a tabela `aceites_eletronicos` é criada por STORY-023/024 (ADR-010 §Para o time), não existe neste escopo. Portanto a asserção E2E "aceite pré-existente ainda referencia/renderiza a v1" não pôde ser feita ao nível de `AceiteEletronico`. O **núcleo de PDR-012 que sustenta essa garantia** está coberto aqui: após criar e ativar a v2, a **v1 permanece imutável** (trigger no banco) e **referenciável** como histórica — verificado em teste e no E2E. A asserção ao nível do aceite fica para STORY-023/024, que é dona daquela tabela e FK.
 
 ### IDRs criados
-(a preencher)
+
+Nenhum IDR formal aberto — as decisões técnicas relevantes (localização de migração/seeder por app, vendor do texto-seed por causa do mount, REVOKE só DELETE) estão registradas aqui e são consequência direta de ADR-010/ADR-009 já aceitos. Se a equipe quiser elevar "vendor de texto-seed no app por falta de mount de docs" a IDR, é candidato.
 
 ### Cobertura final
-(a preencher)
+
+`make test-admin` (Pest, Postgres `turni_test`): **91 testes verdes (201 asserções)**. Cobertura medida (`pest --coverage`): **Total 93.0%**; núcleo: `TemplateService` **98.3%**, `TemplateContentValidator` **100%**, `TemplateRenderer` **100%**, `Template`/`TemplateVersao` **100%**, `TemplatesCatalogo` **100%**, `TemplateEditor` 88.5%, `TemplateDetalhe` 82.8%. Atende ≥80% geral / ≥98% núcleo (CA-14). Suíte do **api** segue verde (128 testes) com a migração/seeder compartilhados.
 
 ### Resultado final / evidência
-(a preencher)
 
-### Pendências para fechar
-(a preencher)
+- **CA-1** ✓ `/templates` 200 para admin; guest→/login; não-admin→403 (testes `TemplatesLivewireTest`).
+- **CA-2** ✓ catálogo lista os 2 templates com versão ativa/autor/data (browser + teste).
+- **CA-3** ✓ detalhe renderiza versão ativa com placeholders como chips + histórico desc.
+- **CA-4** ✓ editor pré-carrega a versão ativa; preview side-by-side ao vivo (screenshot).
+- **CA-5** ✓ placeholder fora da lista bloqueia com mensagem citando o placeholder (teste + E2E item d).
+- **CA-6** ✓ salvar cria versão sequencial `ativa=false`, autor+timestamp.
+- **CA-7** ✓ `admin.template.version_created` / `version_activated` no audit log (testes).
+- **CA-8** ✓ ativação com confirmação dupla cujo texto explica que aceites passados não mudam.
+- **CA-9** ✓ ativação atômica (uma só ativa) — teste + partial unique index.
+- **CA-10** ✓ imutabilidade verificada em banco (trigger bloqueia UPDATE de `conteudo`; probe live + teste).
+- **CA-11** ✓ "voltar para versão anterior" reativa histórica pelo mesmo fluxo (teste).
+- **CA-12** ✓ seed idempotente carrega v1 ativa nos 2 templates (teste + `db:seed` no dev verde).
+- **CA-13** ✓ a11y: navegável por teclado, preview `aria-live`, status por ícone+texto, tema dual; chips/contraste DDR-001.
+- **CA-14** ✓ cobertura acima (93% / núcleo 98.3%).
+- **CA-15** ✓ E2E Playwright em browser real (a) catálogo 2 templates; (b) cria v(n) do PF; (c) ativa → catálogo aponta a nova ativa e a v1 segue histórica imutável; (d) placeholder inválido bloqueado. (item-c ao nível de `AceiteEletronico` diferido — ver Bloqueios.)
+- **CA-16** ✓ v1 carregada do texto-seed de STORY-015, frontmatter descartado, SHA-256 logado; teste assegura fidelidade ao arquivo + zero placeholder fora da lista.
+
+### Pendências para fechar (para `done`)
+
+1. ~~**Validação humana do protótipo**~~ — ✅ **aprovado por Alexandro em chat em 2026-05-29** (tela real em `localhost:8002/templates`, login `admin@turni.local`). `prototype_last_validated_at` preenchido.
+2. **Deploy homolog (tag rc.N) + E2E na pipeline** — a história só vira `done` após deploy verde (mesmo rito de STORY-019). **Único gate restante.**
+3. **CA-15(c) ao nível de `AceiteEletronico`** entra em STORY-023/024 (dona da tabela).
 
 ### Links de evidência
-(a preencher)
+
+- Migração: `apps/{api,admin}/database/migrations/2026_05_29_130000_create_templates_and_template_versoes_table.php`
+- Núcleo: `apps/admin/app/Services/TemplateService.php`, `app/Domain/Templates/{TemplateContentValidator,TemplateRenderer}.php`
+- UI: `apps/admin/app/Livewire/{TemplatesCatalogo,TemplateDetalhe,TemplateEditor}.php` + `resources/views/livewire/templates-*.blade.php`, `template-*.blade.php`
+- Seeder + texto-seed vendorado: `apps/{api,admin}/database/seeders/TemplatesContratuaisSeeder.php` + `seeders/contracts/template-*-v1.md`
+- Testes: `apps/admin/tests/Unit/Templates/*`, `tests/Feature/Templates/*`, `tests/e2e/templates-editor.spec.ts`
+- Spec + protótipo: `docs/project-state/design/screens/SCREEN-STORY-020-editor-templates.md` (+ `/index.html`)

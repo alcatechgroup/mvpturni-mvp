@@ -3,6 +3,9 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\AdminOnly;
 use App\Livewire\FilaAprovacao;
+use App\Livewire\TemplateDetalhe;
+use App\Livewire\TemplateEditor;
+use App\Livewire\TemplatesCatalogo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -47,4 +50,9 @@ Route::middleware([AdminOnly::class])->group(function () {
 
     // STORY-019 — Fila de aprovação (componente Livewire full-page).
     Route::get('/aprovacoes', FilaAprovacao::class)->name('aprovacoes');
+
+    // STORY-020 — Editor de templates contratuais (catálogo · detalhe · editor de nova versão).
+    Route::get('/templates', TemplatesCatalogo::class)->name('templates.catalogo');
+    Route::get('/templates/{slug}/nova-versao', TemplateEditor::class)->name('templates.editor');
+    Route::get('/templates/{slug}', TemplateDetalhe::class)->name('templates.detalhe');
 });

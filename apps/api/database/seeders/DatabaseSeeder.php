@@ -20,5 +20,8 @@ class DatabaseSeeder extends Seeder
 
         // STORY-019 — cadastros pendentes para a fila de aprovação (dev/homolog; nunca prod).
         $this->call(FilaAprovacaoPendentesSeeder::class);
+
+        // STORY-020 — catálogo de templates contratuais + versão 1 ativa (dev/homolog/prod).
+        $this->call(TemplatesContratuaisSeeder::class);
     }
 }

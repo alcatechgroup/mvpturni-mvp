@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<!--
+  PROTÓTIPO DE VALIDAÇÃO — NÃO É CÓDIGO DE PRODUÇÃO.
+  SCREEN-STORY-020 — Editor de templates contratuais (Backoffice).
+  HTML/CSS/JS vanilla, sem rede/build. Tokens reais DDR-001 (admin · azul-navy),
+  iguais ao preview-backoffice.html. Selecione tela/estado e tema no topo.
+-->
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo · STORY-020 · Editor de templates</title>
+<style>
+:root,[data-theme="light"]{
+  --page:#F7F4EC;--surface:#FFFFFF;--sunken:#F0EDE3;--muted-s:#E8E5DB;
+  --border:#E0DDD3;--border-strong:#C8C5BB;
+  --text:#0F1B2D;--text-muted:#42504A;--text-subtle:#6F7C72;
+  --shadow:0 1px 2px rgba(15,27,45,.04),0 8px 24px rgba(15,27,45,.06);
+  --success:#2D7A4F;--success-soft:#E2F0E5;--warning:#9A6E25;--warning-soft:#FBEED1;
+  --error:#B83A3A;--error-soft:#FBE2E2;--info:#4A6FA5;--info-soft:#E0E9F5;--sem-on:#FFFFFF;
+  --accent:#2A4D8F;--on-accent:#FFFFFF;--accent-soft:#E4EAF6;--accent-hover:#21407A;--chrome:#15233B;--main-tint:transparent;
+}
+[data-theme="dark"]{
+  --page:#0B1018;--surface:#141B26;--sunken:#1B2433;--muted-s:#26303F;
+  --border:#24324A;--border-strong:#34466A;
+  --text:#ECEDE5;--text-muted:#AFB8C6;--text-subtle:#8893A3;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+  --success:#5FA37C;--success-soft:rgba(95,163,124,.16);--warning:#D4A95C;--warning-soft:rgba(212,169,92,.16);
+  --error:#D85A5A;--error-soft:rgba(216,90,90,.16);--info:#6A8FCC;--info-soft:rgba(106,143,204,.16);--sem-on:#0E1626;
+  --accent:#5B8DEF;--on-accent:#0E1626;--accent-soft:rgba(91,141,239,.18);--accent-hover:#74A0F2;--chrome:#122039;--main-tint:radial-gradient(900px 500px at 100% 0,rgba(91,141,239,.12),transparent 60%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--page);color:var(--text);line-height:1.5}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+/* protótipo: barra de controle */
+.proto-bar{position:sticky;top:0;z-index:200;background:var(--chrome);color:#ECEDE5;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 14px;font-size:12px;font-family:'JetBrains Mono',monospace}
+.proto-bar b{letter-spacing:1px}
+.proto-bar select,.proto-bar button{background:rgba(255,255,255,.08);color:#ECEDE5;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:5px 10px;font-size:12px;font-family:inherit;cursor:pointer}
+.shell{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 38px)}
+.sidebar{background:var(--chrome);color:#ECEDE5;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.08)}
+.sb-head{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logo{font-family:'Bebas Neue','Impact',sans-serif;font-weight:700;letter-spacing:2px;font-size:22px}.sb-logo .i{color:#00A868}
+.sb-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(236,237,229,.55);margin-top:6px}
+.sb-user{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-av{width:36px;height:36px;border-radius:999px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px}
+.sb-uname{font-size:14px;font-weight:500}.sb-urole{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(236,237,229,.6);margin-top:2px}
+.sb-sec{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(236,237,229,.45);padding:18px 20px 6px}
+.sb-item{display:flex;align-items:center;gap:12px;margin:0 12px 2px;padding:10px 14px;border-radius:10px;color:rgba(236,237,229,.85);font-size:14px;font-weight:500;cursor:pointer;text-decoration:none}
+.sb-item:hover{background:rgba(255,255,255,.06)}
+.sb-item.active{background:rgba(91,141,239,.30);color:#fff}
+.sb-item .ic{width:16px;height:16px;border-radius:5px;background:currentColor;opacity:.55;flex-shrink:0}
+.sb-item.active .ic{opacity:1}
+.sb-foot{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.08)}
+.logout{width:100%;border:1px solid rgba(255,255,255,.16);background:transparent;color:rgba(236,237,229,.75);border-radius:999px;padding:9px;font-size:13px;cursor:pointer}
+.main{padding:28px 40px 64px;background-image:var(--main-tint);position:relative}
+.crumb{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-subtle)}
+.back{display:inline-block;font-size:13px;color:var(--accent);text-decoration:none;margin:8px 0 2px}
+.head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-top:6px}
+.main-h{font-size:28px;font-weight:600;letter-spacing:-.4px}
+.main-d{font-size:14px;color:var(--text-muted);margin-top:4px;margin-bottom:22px;max-width:620px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.panel-h{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
+.panel-h h3{font-size:16px;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-subtle);font-weight:500;padding:11px 20px;border-bottom:1px solid var(--border)}
+td{padding:14px 20px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--sunken)}
+.t-name{font-weight:500}.t-sub{font-size:12px;color:var(--text-subtle);margin-top:3px}
+td.right{text-align:right}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 11px;font-size:12px;font-weight:500}
+.chip .ic{width:8px;height:8px;border-radius:999px}
+.chip.active{background:var(--accent-soft);color:var(--accent)}.chip.active .ic{background:var(--accent)}
+.chip.hist{background:var(--sunken);color:var(--text-subtle)}.chip.hist .ic{background:var(--text-subtle)}
+.btn{border-radius:999px;padding:8px 16px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+.btn-primary{background:var(--accent);color:var(--on-accent)}.btn-primary:hover{background:var(--accent-hover)}
+.btn-success{background:var(--success);color:var(--sem-on)}
+.btn-outline{background:transparent;color:var(--text);border-color:var(--border-strong)}.btn-outline:hover{border-color:var(--text-muted)}
+.btn-ghost{background:transparent;color:var(--text);border-color:var(--border-strong)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+/* render do contrato + chips de placeholder */
+.doc{padding:22px 24px;font-size:14px;color:var(--text)}
+.doc h2{font-size:18px;margin:18px 0 8px;font-weight:600}
+.doc h3{font-size:15px;margin:14px 0 6px;font-weight:600}
+.doc p{margin:8px 0;color:var(--text-muted)}
+.doc hr{border:0;border-top:1px solid var(--border);margin:16px 0}
+.ph{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:1px 6px}
+.ph.bad{background:var(--error-soft);color:var(--error)}
+/* histórico */
+.hist-row{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border)}
+.hist-row:last-child{border-bottom:0}
+.hist-meta{flex:1;font-size:13px;color:var(--text-muted)}
+.hist-meta .v{font-weight:600;color:var(--text)}
+/* editor */
+.editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
+.pane{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:420px;overflow:hidden}
+.pane-h{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-subtle);padding:12px 16px;border-bottom:1px solid var(--border)}
+textarea{flex:1;border:0;background:var(--sunken);color:var(--text);padding:16px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;resize:none;outline:none}
+textarea:focus{box-shadow:inset 0 0 0 2px var(--accent)}
+.preview{flex:1;overflow:auto}
+.help{display:flex;gap:10px;align-items:flex-start;background:var(--info-soft);border-radius:12px;padding:12px 16px;font-size:13px;color:var(--text);margin-bottom:14px}
+.help .ic{width:18px;height:18px;border-radius:999px;background:var(--info);color:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.help a{color:var(--accent)}
+.editor-foot{display:flex;justify-content:space-between;align-items:center}
+.banner{display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:12px 16px;font-size:13px;margin-bottom:14px}
+.banner.err{background:var(--error-soft);color:var(--text)}
+.banner.warn{background:var(--warning-soft);color:var(--text)}
+.banner .ic{width:18px;height:18px;border-radius:999px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+.banner.err .ic{background:var(--error)}.banner.warn .ic{background:var(--warning)}
+.sk{height:14px;border-radius:6px;background:var(--muted-s)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}.sk{animation:pulse 1.4s ease-in-out infinite}
+/* dialog */
+.dlg-scrim{position:fixed;inset:0;background:rgba(15,27,45,.5);z-index:120;display:flex;align-items:center;justify-content:center;padding:20px}
+.dlg{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);max-width:460px;width:100%;padding:24px}
+.dlg h4{font-size:18px;font-weight:600}
+.dlg p{font-size:14px;color:var(--text-muted);margin:10px 0 20px}
+.dlg-actions{display:flex;gap:10px;justify-content:flex-end}
+.ph-list{list-style:none;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);columns:2;gap:18px}
+.ph-list li{margin:3px 0}
+/* toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:130;background:var(--text);color:var(--page);padding:13px 18px;border-radius:12px;font-size:14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px}
+.toast .dot{width:8px;height:8px;border-radius:999px;background:var(--success)}
+.narrow-warn{display:none;background:var(--warning-soft);color:var(--text);padding:10px 16px;font-size:13px;text-align:center;border-radius:10px;margin-bottom:16px}
+@media(max-width:1023px){.shell{grid-template-columns:1fr}.sidebar{display:none}.editor-grid{grid-template-columns:1fr}.narrow-warn{display:block}.main{padding:20px}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="proto-bar">
+  <b>STORY-020 ·</b>
+  <label>tela/estado
+    <select id="sel" onchange="render()">
+      <option value="catalogo">catálogo</option>
+      <option value="catalogo-loading">catálogo · loading</option>
+      <option value="detalhe">detalhe (v3 + histórico)</option>
+      <option value="detalhe-v1">detalhe · pós-seed (só v1)</option>
+      <option value="editor">editor + preview</option>
+      <option value="editor-erro-placeholder">editor · erro placeholder (CA-5)</option>
+      <option value="editor-aviso-secao">editor · aviso seção</option>
+      <option value="dialog-ativar">diálogo ativar (CA-8)</option>
+      <option value="toast-criada">toast · versão criada</option>
+      <option value="toast-ativada">toast · versão ativada</option>
+    </select>
+  </label>
+  <button onclick="toggleTheme()">tema claro/escuro</button>
+  <span style="opacity:.6">protótipo de validação — não é produção</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sb-head"><div class="sb-logo">TURN<span class="i">I</span>.</div><div class="sb-tag">Backoffice</div></div>
+    <div class="sb-user"><div class="sb-av">A</div><div><div class="sb-uname">Alexandro</div><div class="sb-urole">Admin</div></div></div>
+    <div class="sb-sec">Operação</div>
+    <a class="sb-item"><span class="ic"></span> Visão geral</a>
+    <a class="sb-item"><span class="ic"></span> Cadastros pendentes</a>
+    <div class="sb-sec">Cadastro</div>
+    <a class="sb-item active"><span class="ic"></span> Templates contratuais</a>
+    <div class="sb-foot"><button class="logout">Sair</button></div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+const PLACEHOLDERS = ['contratante.razao_social','contratante.cnpj','contratante.endereco_completo','profissional.nome','profissional.documento','profissional.endereco_completo','turno.funcao','turno.data_inicio','turno.data_fim','turno.valor','turno.taxa_turni','turno.total_contratante','aceite.timestamp','aceite.ip','aceite.fingerprint','habitualidade.override_aceito','habitualidade.clausula_adicional'];
+
+const SAMPLE = `## Seção 1 — Termos gerais aplicáveis a todo turno
+
+### 1. Identificação do Profissional
+Nome completo: **{{profissional.nome}}**
+CPF: {{profissional.documento}}
+Endereço: {{profissional.endereco_completo}}
+
+### 2. Natureza da relação
+Cada turno executado pelo Profissional tem caráter eventual e não habitual. A plataforma Turni atua como intermediadora tecnológica — não é empregadora.
+
+## Seção 2 — Termos do turno específico
+
+### 7. Identificação do Contratante
+Razão social: **{{contratante.razao_social}}** · CNPJ: {{contratante.cnpj}}
+Endereço: {{contratante.endereco_completo}}
+
+### 9. Remuneração
+Função: {{turno.funcao}} · de {{turno.data_inicio}} a {{turno.data_fim}}
+Valor ao profissional: {{turno.valor}} · Taxa Turni: {{turno.taxa_turni}} · Total: {{turno.total_contratante}}
+
+Aceito em {{aceite.timestamp}} — IP {{aceite.ip}} — sessão {{aceite.fingerprint}}.`;
+
+// markdown mínimo + chips de placeholder (apenas para o protótipo)
+function renderDoc(md, badPlaceholder){
+  let html = md
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/^### (.*)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.*)$/gm,'<h2>$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^\s*---\s*$/gm,'<hr>')
+    .split(/\n{2,}/).map(b=>/^<(h2|h3|hr)/.test(b.trim())?b:'<p>'+b.replace(/\n/g,'<br>')+'</p>').join('');
+  html = html.replace(/\{\{\s*([\w.]+)\s*\}\}/g,(m,p)=>{
+    const bad = (p===badPlaceholder)||!PLACEHOLDERS.includes(p);
+    return `<span class="ph${bad?' bad':''}" title="${bad?'placeholder inválido':'placeholder'}">⟦${p}⟧</span>`;
+  });
+  return html;
+}
+
+const catalogoRows = `
+  <tr data-testid="templates-catalogo-item-pf_autonomo_eventual">
+    <td><div class="t-name">Contrato PF — Autônomo eventual</div><div class="t-sub">Profissional Pessoa Física</div></td>
+    <td><span class="mono" style="font-size:13px;color:var(--text-muted)">pf_autonomo_eventual</span></td>
+    <td><span class="chip active" data-testid="templates-catalogo-item-pf_autonomo_eventual-ativa"><span class="ic"></span> v3 · ativa</span></td>
+    <td><div class="t-sub" style="margin:0">desde 28/05 · por Alexandro</div></td>
+    <td class="right"><a class="btn btn-outline" data-testid="templates-catalogo-item-pf_autonomo_eventual-abrir" href="#" onclick="go('detalhe');return false">Abrir</a></td>
+  </tr>
+  <tr data-testid="templates-catalogo-item-mei_pj_b2b">
+    <td><div class="t-name">Contrato MEI/PJ — B2B PJ↔PJ</div><div class="t-sub">Profissional MEI ou PJ</div></td>
+    <td><span class="mono" style="font-size:13px;color:var(--text-muted)">mei_pj_b2b</span></td>
+    <td><span class="chip active"><span class="ic"></span> v1 · ativa</span></td>
+    <td><div class="t-sub" style="margin:0">desde 28/05 · por Alexandro</div></td>
+    <td class="right"><a class="btn btn-outline" href="#" onclick="go('detalhe');return false">Abrir</a></td>
+  </tr>`;
+
+const VIEWS = {
+  catalogo: () => `
+    <div class="narrow-warn">Backoffice é desktop-first (≥1024px). Alargue a janela para ver o shell completo.</div>
+    <div class="crumb">Backoffice · Admin</div>
+    <h1 class="main-h">Templates contratuais</h1>
+    <p class="main-d">Edite os contratos sem precisar de deploy. Cada edição cria uma nova versão; a ativa vale para novos cadastros.</p>
+    <div class="panel" data-testid="templates-catalogo">
+      <div class="panel-h"><h3>Catálogo</h3></div>
+      <table><thead><tr><th>Template</th><th>Slug</th><th>Versão ativa</th><th>Ativada em</th><th></th></tr></thead>
+      <tbody>${catalogoRows}</tbody></table>
+    </div>`,
+
+  'catalogo-loading': () => `
+    <div class="crumb">Backoffice · Admin</div>
+    <h1 class="main-h">Templates contratuais</h1>
+    <p class="main-d">Edite os contratos sem precisar de deploy.</p>
+    <div class="panel"><div class="panel-h"><h3>Catálogo</h3></div>
+    <table><tbody>
+      ${[0,1].map(()=>'<tr><td><div class="sk" style="width:220px"></div><div class="sk" style="width:120px;margin-top:8px"></div></td><td><div class="sk" style="width:140px"></div></td><td><div class="sk" style="width:80px"></div></td><td><div class="sk" style="width:120px"></div></td><td class="right"><div class="sk" style="width:60px;margin-left:auto"></div></td></tr>').join('')}
+    </tbody></table></div>`,
+
+  detalhe: () => `
+    <div class="crumb">Backoffice · Admin · Templates</div>
+    <a class="back" data-testid="template-detalhe-voltar" href="#" onclick="go('catalogo');return false">‹ Voltar ao catálogo</a>
+    <div class="head-row">
+      <div><h1 class="main-h">Contrato PF — Autônomo eventual</h1>
+      <p class="main-d" style="margin-bottom:0">pf_autonomo_eventual · ativa: v3</p></div>
+      <a class="btn btn-primary" data-testid="template-detalhe-criar-versao" href="#" onclick="go('editor');return false">Criar nova versão</a>
+    </div>
+    <div class="panel" data-testid="template-detalhe-ativa" style="margin:18px 0">
+      <div class="panel-h"><h3>Versão ativa (v3)</h3><span class="chip active"><span class="ic"></span> ativa</span></div>
+      <div class="doc">${renderDoc(SAMPLE)}</div>
+    </div>
+    <div class="panel" data-testid="template-detalhe-historico">
+      <div class="panel-h"><h3>Histórico de versões</h3></div>
+      <div class="hist-row"><span class="chip active" data-testid="template-versao-3-status"><span class="ic"></span> v3 · ativa</span><div class="hist-meta"><span class="v">28/05 14:10</span> · Alexandro</div><button class="btn btn-ghost" data-testid="template-versao-3-ver">Ver completa</button></div>
+      <div class="hist-row"><span class="chip hist" data-testid="template-versao-2-status"><span class="ic"></span> v2 · histórica</span><div class="hist-meta"><span class="v">27/05 09:30</span> · Alexandro</div><button class="btn btn-ghost" data-testid="template-versao-2-ver">Ver completa</button><button class="btn btn-outline" data-testid="template-versao-2-ativar" onclick="go('dialog-ativar')">Ativar esta versão</button></div>
+      <div class="hist-row"><span class="chip hist" data-testid="template-versao-1-status"><span class="ic"></span> v1 · histórica</span><div class="hist-meta"><span class="v">26/05 11:00</span> · Alexandro</div><button class="btn btn-ghost" data-testid="template-versao-1-ver">Ver completa</button><button class="btn btn-outline" data-testid="template-versao-1-ativar" onclick="go('dialog-ativar')">Ativar esta versão</button></div>
+    </div>`,
+
+  'detalhe-v1': () => `
+    <div class="crumb">Backoffice · Admin · Templates</div>
+    <a class="back" href="#" onclick="go('catalogo');return false">‹ Voltar ao catálogo</a>
+    <div class="head-row">
+      <div><h1 class="main-h">Contrato MEI/PJ — B2B PJ↔PJ</h1>
+      <p class="main-d" style="margin-bottom:0">mei_pj_b2b · ativa: v1</p></div>
+      <a class="btn btn-primary" href="#" onclick="go('editor');return false">Criar nova versão</a>
+    </div>
+    <div class="panel" style="margin:18px 0"><div class="panel-h"><h3>Versão ativa (v1)</h3><span class="chip active"><span class="ic"></span> ativa</span></div><div class="doc">${renderDoc(SAMPLE)}</div></div>
+    <div class="panel"><div class="panel-h"><h3>Histórico de versões</h3></div>
+      <div class="hist-row"><span class="chip active"><span class="ic"></span> v1 · ativa</span><div class="hist-meta"><span class="v">28/05 09:00</span> · Alexandro</div><button class="btn btn-ghost">Ver completa</button></div>
+    </div>`,
+
+  editor: (opts={}) => `
+    <div class="crumb">Backoffice · Templates · Nova versão</div>
+    <h1 class="main-h" style="margin-top:6px">Nova versão de "Contrato PF — Autônomo eventual"</h1>
+    <p class="main-d">Partindo da v3 (ativa). Salvar cria a v4 como rascunho.</p>
+    ${opts.erro?`<div class="banner err" data-testid="template-editor-erro" role="alert"><span class="ic">!</span><div>O placeholder <span class="mono">{{contratante.razao_zocial}}</span> não existe. Use apenas os placeholders da lista (contratante.*, profissional.*, turno.*, aceite.*, habitualidade.*).</div></div>`:''}
+    ${opts.aviso?`<div class="banner warn" data-testid="template-editor-aviso" role="status"><span class="ic">!</span><div>Aviso: não encontrei a seção "Termos do turno específico". Confira a estrutura antes de ativar.</div></div>`:''}
+    <div class="editor-grid">
+      <div class="pane"><div class="pane-h">Editor (Markdown)</div>
+        <textarea data-testid="template-editor-textarea" oninput="live(this.value)" spellcheck="false">${opts.erro?SAMPLE.replace('{{contratante.razao_social}}','{{contratante.razao_zocial}}'):SAMPLE}</textarea>
+      </div>
+      <div class="pane"><div class="pane-h">Pré-visualização</div>
+        <div class="preview doc" id="preview" data-testid="template-editor-preview" aria-live="polite" aria-label="Pré-visualização do contrato">${renderDoc(opts.erro?SAMPLE.replace('{{contratante.razao_social}}','{{contratante.razao_zocial}}'):SAMPLE, opts.erro?'contratante.razao_zocial':null)}</div>
+      </div>
+    </div>
+    <div class="help"><span class="ic">ⓘ</span><div>Use Markdown. Placeholders no formato <span class="mono">{{namespace.campo}}</span>.<br>Disponíveis: contratante.* · profissional.* · turno.* · aceite.* · habitualidade.* — <a href="#" data-testid="template-editor-placeholders-link" onclick="showPlaceholders();return false">ver lista completa</a></div></div>
+    <div class="editor-foot">
+      <a class="btn btn-ghost" data-testid="template-editor-cancelar" href="#" onclick="go('detalhe');return false">Cancelar</a>
+      <button class="btn btn-success" data-testid="template-editor-salvar" onclick="go('toast-criada')">Salvar nova versão</button>
+    </div>`,
+
+  'editor-erro-placeholder': () => VIEWS.editor({erro:true}),
+  'editor-aviso-secao': () => VIEWS.editor({aviso:true}),
+  'dialog-ativar': () => VIEWS.detalhe() + `
+    <div class="dlg-scrim" role="alertdialog" aria-modal="true" aria-label="Confirmar ativação">
+      <div class="dlg">
+        <h4>Ativar a versão 2?</h4>
+        <p>A partir de agora, novos cadastros aprovados usarão a versão 2 deste contrato. Os aceites já assinados continuam apontando para a versão que estava ativa quando foram firmados — eles não mudam.</p>
+        <div class="dlg-actions">
+          <button class="btn btn-ghost" data-testid="dialog-ativar-cancel" onclick="go('detalhe')" autofocus>Cancelar</button>
+          <button class="btn btn-primary" data-testid="dialog-ativar-confirm" onclick="go('toast-ativada')">Ativar</button>
+        </div>
+      </div>
+    </div>`,
+  'toast-criada': () => VIEWS.detalhe() + `<div class="toast" data-testid="templates-toast" role="status"><span class="dot"></span>Versão 4 criada como rascunho. Ative quando quiser publicá-la.</div>`,
+  'toast-ativada': () => VIEWS.detalhe() + `<div class="toast" data-testid="templates-toast" role="status"><span class="dot"></span>Versão 2 ativada. Novos cadastros passam a usar esta versão.</div>`,
+};
+
+function live(v){ const p=document.getElementById('preview'); if(p) p.innerHTML=renderDoc(v); }
+function showPlaceholders(){
+  const wrap=document.createElement('div');
+  wrap.className='dlg-scrim'; wrap.setAttribute('data-testid','template-editor-placeholders-dialog');
+  wrap.onclick=e=>{if(e.target===wrap)wrap.remove()};
+  wrap.innerHTML=`<div class="dlg"><h4>Placeholders disponíveis</h4><p>Use exatamente estes. Qualquer outro bloqueia o salvamento.</p><ul class="ph-list">${PLACEHOLDERS.map(p=>'<li>{{'+p+'}}</li>').join('')}</ul><div class="dlg-actions"><button class="btn btn-ghost" onclick="this.closest('.dlg-scrim').remove()">Fechar</button></div></div>`;
+  document.body.appendChild(wrap);
+}
+function go(v){ document.getElementById('sel').value=v; render(); }
+function render(){ document.getElementById('main').innerHTML = VIEWS[document.getElementById('sel').value](); }
+function toggleTheme(){const n=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',n);}
+render();
+</script>
+</body>
+</html>

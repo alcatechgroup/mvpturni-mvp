@@ -156,6 +156,46 @@
             .stats{grid-template-columns:1fr}.narrow-warn{display:block}.main{padding:20px}
             .drawer{width:100%}
         }
+        /* STORY-020 — editor de templates */
+        .btn-primary{background:var(--accent);color:var(--on-accent)} .btn-primary:hover{background:var(--accent-hover)}
+        .back{display:inline-block;font-size:13px;color:var(--accent);text-decoration:none;margin:8px 0 2px} .back:hover{text-decoration:underline}
+        .head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-top:6px;margin-bottom:18px}
+        .t-name{font-weight:500} .t-sub{font-size:12px;color:var(--text-subtle);margin-top:3px}
+        .chip.active{background:var(--accent-soft);color:var(--accent)} .chip.active .ic{background:var(--accent);border-radius:999px}
+        .chip.hist{background:var(--sunken);color:var(--text-subtle)} .chip.hist .ic{background:var(--text-subtle);border-radius:999px}
+        .doc{padding:22px 24px;font-size:14px;color:var(--text);overflow-wrap:anywhere}
+        .doc h1{font-size:20px;margin:6px 0 10px;font-weight:600}
+        .doc h2{font-size:17px;margin:18px 0 8px;font-weight:600}
+        .doc h3{font-size:15px;margin:14px 0 6px;font-weight:600}
+        .doc p{margin:8px 0;color:var(--text-muted)}
+        .doc ul,.doc ol{margin:8px 0 8px 22px;color:var(--text-muted)}
+        .doc li{margin:4px 0}
+        .doc strong{color:var(--text)}
+        .doc hr{border:0;border-top:1px solid var(--border);margin:16px 0}
+        .ph{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:1px 6px;white-space:nowrap}
+        .ph-bad{background:var(--error-soft);color:var(--error)}
+        .hist-row{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+        .hist-row:last-child{border-bottom:0}
+        .hist-meta{flex:1;min-width:160px;font-size:13px;color:var(--text-muted)} .hist-meta .v{font-weight:600;color:var(--text)}
+        .hist-doc{flex-basis:100%;background:var(--sunken);border-radius:12px;margin-top:6px}
+        .editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
+        .pane{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:440px;overflow:hidden}
+        .pane-h{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-subtle);padding:12px 16px;border-bottom:1px solid var(--border)}
+        .pane textarea{flex:1;border:0;background:var(--sunken);color:var(--text);padding:16px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;resize:none;outline:none}
+        .pane textarea:focus{box-shadow:inset 0 0 0 2px var(--accent)}
+        .pane .preview{flex:1;overflow:auto}
+        .help{display:flex;gap:10px;align-items:flex-start;background:var(--info-soft);border-radius:12px;padding:12px 16px;font-size:13px;color:var(--text);margin-bottom:14px}
+        .help .ic{width:18px;height:18px;border-radius:999px;background:var(--info);color:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+        .help a{color:var(--accent)}
+        .editor-foot{display:flex;justify-content:space-between;align-items:center;gap:12px}
+        .banner{display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:12px 16px;font-size:13px;margin-bottom:14px}
+        .banner.err{background:var(--error-soft);color:var(--text)} .banner.warn{background:var(--warning-soft);color:var(--text)}
+        .banner .ic{width:18px;height:18px;border-radius:999px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+        .banner.err .ic{background:var(--error)} .banner.warn .ic{background:var(--warning)}
+        .ph-list{list-style:none;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);columns:2;gap:18px;margin:0;padding:0}
+        .ph-list li{margin:3px 0}
+        .btn[disabled]{opacity:.5;cursor:not-allowed}
+        @media(max-width:1023px){.editor-grid{grid-template-columns:1fr}}
         [x-cloak]{display:none!important}
         .hidden{display:none!important}
         .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -181,6 +221,10 @@
             </a>
             <a href="{{ route('aprovacoes') }}" class="sb-item {{ request()->routeIs('aprovacoes') ? 'active' : '' }}" wire:navigate data-testid="nav-aprovacoes">
                 <span class="ic"></span> Cadastros pendentes
+            </a>
+            <div class="sb-sec">Cadastro</div>
+            <a href="{{ route('templates.catalogo') }}" class="sb-item {{ request()->routeIs('templates.*') ? 'active' : '' }}" wire:navigate data-testid="nav-templates">
+                <span class="ic"></span> Templates contratuais
             </a>
             <div class="sb-foot">
                 <button type="button" class="theme-toggle" onclick="toggleTheme()">Alternar tema</button>

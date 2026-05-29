@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "generated_at": "2026-05-29T21:10:00Z",
+  "generated_at": "2026-05-29T22:50:00Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
@@ -755,8 +755,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-020-editor-templates",
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_review",
+      "owner_agent": "claude-opus-4-8-designer+programador-2026-05-29",
       "sprint_id": "SPRINT-2026-W24",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-020-editor-templates-contratuais-backoffice.md",
       "blocked_by": [
@@ -771,7 +771,7 @@
       ],
       "estimated_session_size": "M",
       "created_at": "2026-05-28",
-      "updated_at": "2026-05-28"
+      "updated_at": "2026-05-29"
     },
     {
       "id": "STORY-021",
@@ -1739,6 +1739,38 @@
           "banner"
         ],
         "owner_designer": "claude-opus-designer",
+        "created_at": "2026-05-29",
+        "updated_at": "2026-05-29"
+      },
+      {
+        "id": "SCREEN-STORY-020-editor-templates",
+        "story": "STORY-020",
+        "epic": "EPIC-001",
+        "status": "ready",
+        "path": "design/screens/SCREEN-STORY-020-editor-templates.md",
+        "prototype_path": "design/screens/SCREEN-STORY-020-editor-templates/index.html",
+        "viewports": [
+          "desktop",
+          "mobile"
+        ],
+        "related_ddrs": [
+          "DDR-001"
+        ],
+        "ds_components_used": [
+          "sidebar.admin",
+          "panel",
+          "data-table",
+          "chip",
+          "btn.primary",
+          "btn.success",
+          "btn.outline",
+          "btn.ghost",
+          "dialog-confirm",
+          "toast",
+          "code-block",
+          "feedback-banner"
+        ],
+        "owner_designer": "claude-opus-4-8",
         "created_at": "2026-05-29",
         "updated_at": "2026-05-29"
       }
