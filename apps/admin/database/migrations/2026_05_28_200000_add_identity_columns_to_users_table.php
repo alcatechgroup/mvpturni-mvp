@@ -37,10 +37,9 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('users_role_check');
-        });
-
+        // role/status são CHECK constraints (não FK) — basta dropá-las por nome.
+        // (Linha anterior usava dropConstrainedForeignId, que gerava DROP de uma
+        // constraint FK inexistente e quebrava o rollback — pego pelo F-NB-1/CA-2.)
         DB::statement('ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check');
         DB::statement('ALTER TABLE users DROP CONSTRAINT IF EXISTS users_status_check');
 
