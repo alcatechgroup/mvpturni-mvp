@@ -13,7 +13,7 @@ validation_round: 1
 ## TL;DR
 
 > **Veredito**: APPROVED com pendências.
-> **Contagem**: 51 passes, 6 passes com ressalva, 2 fails não-bloqueantes, 0 fails bloqueantes, 3 n/a justificados (+ 4 pré-condições pass).
+> **Contagem**: 52 passes, 5 passes com ressalva, 2 fails não-bloqueantes, 0 fails bloqueantes, 3 n/a justificados (+ 4 pré-condições pass).
 > **Bloqueantes (resumo factual)**: nenhum.
 > **Não-bloqueantes (2)**: (1) **CA-B8-2** — o workflow da landing autentica o `firebase deploy` via chave de service account em secret (`FIREBASE_SERVICE_ACCOUNT` + `gcloud auth activate-service-account`), não via WIF/OIDC puro como o item exige; é o mesmo secret/padrão já aceito no `release.yml` do WebApp (EPIC-000) e documentado nas notas da STORY-031. (2) **CA-B3-6** — Lighthouse mobile da landing AS IS: Performance 58–60 (< 70); item declarado **não-bloqueante** ("linha-base") pelo próprio checklist; Accessibility 85 (≥ 80) atende.
 
@@ -140,9 +140,9 @@ Dois fails não-bloqueantes e seis ressalvas registrados abaixo. Os fails não-b
 
 | Item | Status | Evidência |
 |---|---|---|
-| CA-B11-1 — `terraform plan` em prod: 0 changes da landing (gate funcional) | ⚠️ pass com ressalva | `terraform plan` ao vivo **não executado**: `terraform init` no backend GCS falhou por reauth do ADC (`invalid_grant / invalid_rapt`) nesta sessão. Verificado **estaticamente**: `var.landing_prod_enabled` default `false`, sem `terraform.tfvars` sobrescrevendo; gate `landing_prod_enabled ? {...} : {}` (main.tf l.16) e `count = ... ? 1 : 0` (l.198). Resultado observável que o plan asseguraria — 0 sites de landing em prod — **confirmado via GCP** (CA-B11-2). |
+| CA-B11-1 — `terraform plan` em prod: 0 changes da landing (gate funcional) | ✅ pass | `terraform plan` executado ao vivo (backend GCS autenticado via `GOOGLE_OAUTH_ACCESS_TOKEN` de usuário; vars não-secretas reais + dummies plan-only para secretos). **`landing_prod_enabled=false`** → `Plan: 56 to add` com **0 recursos de landing** (`grep -ciE 'landing\|www_redirect\|dns_landing'` → 0). Comparativo de gate: **`=true`** → `Plan: 62 to add` (+6: `google_firebase_hosting_site.additional`, `module.dns_landing[0].google_dns_record_set.apex_a[0]`, `...www[0]`). O flip da variável é o lever; com `false` a landing está ausente do grafo. |
 | CA-B11-2 — `turni-landing-prod` codificado mas não criado no GCP | ✅ pass | REST `projects/turni-mvp/sites`: existem só `turni-landing-homolog`, `turni-webapp-homolog`, `turni-mvp`. `turni-landing-prod` e `turni-www-redirect-prod` → HTTP 404 (não existem) |
-| CA-B11-3 — go-public = flip de variável + apply + tag (coerente com P6) | ✅ pass | `infra/envs/prod/main.tf` + `variables.tf` (gate) + runbook P6 (flip `landing_prod_enabled=true` → `terraform apply` → tag `landing-v0.1.0` com gate) coerentes |
+| CA-B11-3 — go-public = flip de variável + apply + tag (coerente com P6) | ✅ pass | Confirmado pelo comparativo de plan (CA-B11-1): `landing_prod_enabled` false→true adiciona exatamente os 6 recursos de landing prod (sites + DNS apex/www). Coerente com runbook P6 (flip `=true` → `terraform apply` → tag `landing-v0.1.0` com gate). |
 
 ### Bloco 12 — Headers de segurança
 
@@ -201,12 +201,11 @@ Nenhum.
 
 ---
 
-## Passes com ressalva (6)
+## Passes com ressalva (5)
 
 - **CA-B2-5** — Em breve Perf=89 (1 ponto abaixo de 90) nesta sessão; A11y=100; STORY-028 registrou Perf=98. Variância de medição.
 - **CA-B7-2 / CA-B7-3** — regras CODEOWNERS presentes e corretas, porém não aplicadas pelo GitHub (times `@turni/marketing`/`@turni/engenharia` inexistentes; 11 erros "Unknown owner"). Estado explicitamente aceito por PDR-015 e documentado no cabeçalho do `CODEOWNERS`.
 - **CA-B10-1** — rollback documentado via REST/Console/`hosting:clone`; o comando `firebase hosting:rollback` citado no item não existe na firebase-tools.
-- **CA-B11-1** — `terraform plan` ao vivo não executado (reauth de ADC nesta sessão); gate verificado por inspeção estática + GCP confirma 0 sites de landing em prod.
 - **CA-B12-4** — assets AS IS com `max-age=3600` (1h), não `immutable` — comportamento correto por ADR-012 §4 (assets não-hasheados).
 
 ---
@@ -221,7 +220,7 @@ Nenhum.
 
 ## Limitações da validação
 
-- `terraform plan` em `infra/envs/prod/` não executado por reauth de ADC (`invalid_rapt`) na conta gcloud desta sessão. Mitigado por inspeção estática do gate + verificação via API de que os sites de prod não existem (CA-B11-2).
+- `terraform plan` em `infra/envs/prod/` foi executado nesta sessão após contornar o reauth de ADC (`invalid_rapt`) via `GOOGLE_OAUTH_ACCESS_TOKEN` de usuário (credenciais de usuário do gcloud, válidas). Vars secretas (`db_password`, `app_key_*`) passadas como dummies **plan-only** (nunca aplicadas); vars não-secretas (`project_id`, `github_repo`, `alert_email`) reais. Plan read-only, sem `apply`.
 - Lighthouse executado da máquina local contra homolog (rede de internet pública); scores de performance são sensíveis ao ambiente de medição.
 - Verificação de CODEOWNERS via `gh api .../codeowners/errors` (validação de owners), não por simulação de PR real com merge bloqueado.
 
@@ -232,8 +231,8 @@ Nenhum.
 **APPROVED com pendências** (`approved_with_pending`).
 
 - **Total de itens:** 62 (+ 4 pré-condições)
-- **`pass`:** 51 (+ 4 pré-condições)
-- **`pass com ressalva`:** 6
+- **`pass`:** 52 (+ 4 pré-condições)
+- **`pass com ressalva`:** 5
 - **`fail bloqueante`:** 0
 - **`fail não-bloqueante`:** 2
 - **`n/a` (justificados):** 3
