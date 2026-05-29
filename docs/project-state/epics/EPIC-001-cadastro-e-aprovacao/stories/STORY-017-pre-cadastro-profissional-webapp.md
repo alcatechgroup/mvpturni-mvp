@@ -221,8 +221,12 @@ Identificadores de teste, microcopy completo, estados e contrastes verificados e
 **Status dos CAs (todos cobertos):**
 - ✅ CA-1 (rota pública renderiza; E2E "pública carrega"), CA-2 (validação client+mensagens; widget+E2E), CA-3 (Argon2id, sem leak), CA-4 (erro genérico anti-enumeração; unit+widget), CA-5 (termos server-side), CA-6 (foto MIME/tamanho), CA-7 (tela recebido; widget+E2E), CA-8 (banner SLA 24h no login), CA-9 (E2E PF+MEI + persistência), CA-10 (a11y: Semantics, foco, contrastes DDR-001 dual-theme, alvos ≥48dp), CA-11 (cobertura), CA-12 (log mascarado), CA-13 (foto em disco privado, path não-enumerável), CA-14 (documento não coletado).
 
+### Deploy em homolog (evidência)
+- **Tag `v0.1.0-rc.20`** (2026-05-29): pipeline `release.yml` **success** (build api/admin/webapp + migrate+seed homolog + deploy + smoke 3 interfaces).
+- Verificado ao vivo: `GET app.homolog.turni.com.br/cadastro/profissional` → 200; `GET /api/funcoes` (same-origin via Firebase rewrite) → funções seedadas; `version.json` → `v0.1.0-rc.20`.
+
 ### Pendências para fechar
-1. **Deploy em homolog** (merge na main → pipeline) → evidência ao vivo em `app.homolog.turni.com.br/cadastro/profissional` + E2E contra homolog (`BASE_URL=...`).
+1. ✅ **Deploy em homolog** — feito (rc.20), endpoints verificados. Falta apenas o teste manual no celular (em curso) e o veredito do Validador no fim do EPIC-001.
 2. **Infra:** confirmar `HASH_DRIVER=argon2id` no ambiente homolog/prod.
 3. **Build de homolog do WebApp:** garantir build limpo (registrant de plugin web) — ver Descobertas (image_picker).
 4. **E-mail de confirmação** (item 6 §O quê): deferido para STORY-021 (infra de e-mail) — não-bloqueante.
