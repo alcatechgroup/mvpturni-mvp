@@ -17,5 +17,8 @@ class DatabaseSeeder extends Seeder
 
         // STORY-017 — funções pivotais para o pré-cadastro de profissional.
         $this->call(FuncaoSeeder::class);
+
+        // STORY-019 — cadastros pendentes para a fila de aprovação (dev/homolog; nunca prod).
+        $this->call(FilaAprovacaoPendentesSeeder::class);
     }
 }

@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-019-fila-aprovacao
-status: ready
-owner_agent: null
+status: done
+owner_agent: programador+designer (claude-opus-4-8)
 created_at: 2026-05-28
-updated_at: 2026-05-28
+updated_at: 2026-05-29
 estimated_session_size: M
 ---
 
@@ -153,32 +153,64 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 
 ## Notas do agente (preenchido durante/após execução)
 
-### Entrada inicial
-(a preencher)
+### Entrada inicial (2026-05-29)
+Documentos lidos: estória inteira; ADR-009 (transições, audit log, lista canônica de eventos, soft-delete=`recusado`); ADR-011 (ACL `EnviaEmailTransacional`/`EmailTransacional`/`TipoEmail`, fila `database`); `tokens.md` (perfil admin navy) + `preview-backoffice.html` (já mockava a "Fila de análise"); código do app admin (User, AdminAuditLog, AuditLogService, AdminOnly, RequestLogMiddleware, rotas, login/dashboard blade) e da API (migrações de pré-cadastro 017/018, modelos ProfissionalProfile/ContratanteProfile/Funcao).
 
-### Sync Designer↔Programador
-(a preencher)
+Entendimento consolidado: a fila lê `users` pendentes (FIFO) + perfis; admin aprova (→`liberado` + audit `admin.user.approved` + dispatch e-mail) ou remove (→`recusado` + audit `admin.user.removed`, sem e-mail). Backoffice é Livewire/Blade desktop-first (PDR-003), não Flutter. STORY-013/014 foram **spikes** (sem código de Template/ACL) → CA-4 usa placeholder de template; CA-7 cria o **seam** da ACL com adapter log-only (entrega real é STORY-021).
+
+### Sync Designer↔Programador (2026-05-29, mesma sessão)
+Pontos alinhados antes de cristalizar a tela:
+- **Plataforma:** Backoffice é Livewire/Blade desktop-first — spec descreve componentes Blade e usa `data-testid` (não `Key()` Flutter). Registrado na nota de plataforma do spec.
+- **Detalhe:** drawer lateral (overlay, sem troca de rota) — mais simples em Livewire e preserva o contexto da fila. Aprovação **só no detalhe** (recomendação PO).
+- **Remoção:** soft-delete via `status='recusado'` (ADR-009), não hard delete. Spec §10 e IDR-013.
+- **Template aplicável (CA-4):** placeholder de leitura (link para texto-seed) — `TemplateVersao` é STORY-020. Aceito pela estória.
+- **E-mail (CA-7):** dispatch via seam de ACL + adapter log-only; entrega real (Mailpit/Resend) é STORY-021 — o spec não promete inbox visual nesta estória.
+- **Microcopy:** "Remover" (não "Recusar" do preview) — alinhado à estória/PDR-001.
 
 ### Decisões tomadas
-(a preencher)
+- Soft-delete por `status='recusado'`; lock otimista por UPDATE condicional; seam da ACL de e-mail no admin com adapter log-only + job na fila `database`; paridade de migração byte-idêntica entre API e admin. Detalhe e justificativa em **IDR-013**.
 
 ### Descobertas
-(a preencher)
+- API e Backoffice compartilham o banco `turni`; convenção de migrações byte-idênticas deduplicadas pelo runner.
+- `preview-backoffice.html` já continha o mock da fila (DDR-001) — reusado como base do spec/layout.
 
 ### Bloqueios encontrados
-(a preencher)
+- **Login do admin contra dados semeados quebrava (500 "password does not use the Bcrypt algorithm").** Causa: `apps/admin/.env` sem `HASH_DRIVER=argon2id` (ADR-007) → admin checava bcrypt enquanto a API gravava Argon2id. Corrigido (`.env`+`.env.example`). É **gap latente de STORY-016/Foundation** — sinalizar ao PO (ver Pendências). Desbloqueou a verificação em browser e o E2E.
+- **CA-1 — menu de navegação ausente no ponto de entrada (pego em teste manual do Alexandro).** O dashboard `/` era a página standalone da STORY-016, **sem a sidebar** — a fila só era acessível digitando a URL. Meu E2E inicial entrava com `goto('/aprovacoes')`, mascarando o problema (testei a tela e as ações, não o caminho login→dashboard→menu). Corrigido: dashboard passou a usar o layout `components.layouts.admin` (sidebar global com "Visão geral" + "Cadastros pendentes"); E2E `loginAndOpenQueue` agora **navega pelo menu** (`data-testid=nav-aprovacoes`), e `NavegacaoTest` cobre o link no dashboard. **Lição:** E2E deve exercitar o ponto de entrada real, não dar `goto()` direto na tela sob teste.
 
 ### IDRs criados
-(a preencher)
+- **IDR-013** — seam da ACL de e-mail, soft-delete por status, lock otimista, paridade de migração (+ a descoberta do HASH_DRIVER).
 
 ### Cobertura final
-(a preencher)
+- `vendor/bin/pest --coverage`: **Total 92.4%** (≥80 ✓). Núcleo **`ApprovalService` 98.4%** (≥98 ✓). ACL de e-mail (VO/interface/adapter/job/enum) **100%**. 55 testes Pest passando (116 asserções); suíte admin inteira verde.
 
 ### Resultado final / evidência
-(a preencher)
+- **CA-1** ✓ rota `/aprovacoes` 200 admin / 302→login não-auth / 403 não-admin (Pest).
+- **CA-2** ✓ lista FIFO de pendentes + paginação 20 (Pest + tela).
+- **CA-3** ✓ filtros papel/tipo_pessoa em querystring (`#[Url]`) + contador agregado (Pest + E2E).
+- **CA-4** ✓ detalhe com todos os campos do pré-cadastro, foto, timestamp dos termos, template aplicável (placeholder de leitura) — screenshot do drawer.
+- **CA-5** ✓ Aprovar com confirmação → transição + audit `admin.user.approved` + dispatch + toast + lista atualiza (Pest + E2E).
+- **CA-6** ✓ aprovar cadastro já processado → "Este cadastro já foi processado por outro admin." sem efeito colateral (Pest + E2E 2 abas).
+- **CA-7** ✓ dispatch `aprovacao_concedida` na fila `database` via ACL; log estruturado registra (Pest + IDR-013). Conteúdo/entrega = STORY-021.
+- **CA-8** ✓ Remover com confirmação dupla → `recusado` + audit `admin.user.removed` (previous_status) + toast; sem e-mail (Pest + E2E).
+- **CA-9** ✓ audit log imutável — UPDATE lança QueryException (Pest). REVOKE + trigger de STORY-016.
+- **CA-10** ✓ SLA verde/amarelo/vermelho com **ícone (forma) + cor + texto** (não só cor); tokens AA dual-theme — screenshot.
+- **CA-11** ✓ teclado (Esc fecha drawer/diálogo), `role=dialog/alertdialog`, `aria-live` na lista e toast, labels acessíveis.
+- **CA-12** ✓ cobertura acima.
+- **CA-13** ✓ E2E Playwright (a–d) **verde** em browser real (localhost:8002): `apps/admin/tests/e2e/fila-aprovacao.spec.ts`.
+- **CA-14** ✓ log estruturado por ação (`admin.user.approved`/`removed`) com `request_id`.
 
-### Pendências para fechar
-(a preencher)
+### Aprovação do PO
+- **Aprovada por Alexandro em chat em 2026-05-29**, após teste local da tela real no Backoffice (`localhost:8002/aprovacoes`) — incluindo o ajuste do menu de navegação (CA-1) pego no teste manual e a verificação de como o e-mail é despachado (job na fila `database` + log `email.transacional.dispatched`; entrega visual fica para STORY-021). Protótipo do Designer validado na mesma rodada. `status: done`.
+
+### Pendências carregadas (não-bloqueantes para o aceite; operacionais/futuras)
+- **Deploy em homolog + E2E na pipeline** (tag rc.N) — item operacional do fluxo de release; segue o padrão das STORY-017/018. Não executado nesta sessão.
+- **STORY-021** consome o dispatch (entrega real do e-mail + conteúdo + Mailpit/Resend) — trocar binding do adapter log-only.
+- **STORY-020** publica `TemplateVersao` ativo → substituir placeholder do CA-4 pela referência real.
+- **Gap de Foundation sinalizado ao PO**: `HASH_DRIVER=argon2id` ausente no admin (corrigido aqui) era defeito latente de STORY-016 — login do admin contra seeds compartilhados não estava coberto por E2E executado de fato. PO decide se registra como F-NB.
 
 ### Links de evidência
-(a preencher)
+- Spec + protótipo: `docs/project-state/design/screens/SCREEN-STORY-019-fila-aprovacao.md` (+ `STORY-019-fila-aprovacao/index.html`).
+- Código: `apps/admin/app/{Livewire/FilaAprovacao.php, Services/ApprovalService.php, Domain/Email/*, Jobs/EnviarEmailTransacionalJob.php, Exceptions/CadastroJaProcessadoException.php, Models/*}`, `resources/views/{components/layouts/admin.blade.php, livewire/fila-aprovacao.blade.php}`, rota em `routes/web.php`.
+- Testes: `apps/admin/tests/Feature/Aprovacoes/*`, `tests/Unit/EmailAclTest.php`, `tests/e2e/fila-aprovacao.spec.ts`; seed `apps/api/database/seeders/FilaAprovacaoPendentesSeeder.php`.
+- IDR-013.

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "generated_at": "2026-05-29T16:41:13Z",
+  "generated_at": "2026-05-29T21:10:00Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
@@ -141,7 +141,7 @@
       ],
       "validation_report": null,
       "validation_checklist_path": "epics/EPIC-001-cadastro-e-aprovacao/validation/checklist.md",
-      "next_action": "SPRINT-2026-W24 aberto com 10 estórias do EPIC-001 (012/013/014/015/016/017/018/019/020/022). STORY-021/023/024/025 ficam para SPRINT-2026-W25.",
+      "next_action": "SPRINT-2026-W24: 012-019 DONE. STORY-019 (fila de aprovação no Backoffice) aprovada por Alexandro em chat em 2026-05-29 após teste local da tela real (Designer: SCREEN-STORY-019 + protótipo validado; Programador: Livewire FilaAprovacao + ApprovalService + seam de ACL de e-mail; 57 testes Pest verdes, cobertura 92.4%/núcleo ApprovalService 98.4%/ACL e-mail 100%; E2E CA-13 a-d verde em browser via menu; IDR-013). Correção de gap de STORY-016: admin sem HASH_DRIVER=argon2id (login contra seeds quebrava). Pendências carregadas (não-bloqueantes): deploy homolog+E2E pipeline (tag rc.N), entrega real do e-mail (STORY-021), template real no CA-4 (STORY-020). Próximo na W24: STORY-020 e STORY-022 (Designer ainda deve as specs). STORY-021/023/024/025 ficam para SPRINT-2026-W25.",
       "in_progress_sprint": "SPRINT-2026-W24",
       "inherited_criteria": [
         {

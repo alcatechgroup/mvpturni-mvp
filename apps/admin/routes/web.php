@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\AdminOnly;
+use App\Livewire\FilaAprovacao;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -43,4 +44,7 @@ Route::middleware([AdminOnly::class])->group(function () {
     Route::get('/', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    // STORY-019 — Fila de aprovação (componente Livewire full-page).
+    Route::get('/aprovacoes', FilaAprovacao::class)->name('aprovacoes');
 });
