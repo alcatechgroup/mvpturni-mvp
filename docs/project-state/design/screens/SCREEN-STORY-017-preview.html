@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turni · Preview SCREEN-STORY-017 — Pré-cadastro de Profissional</title>
+<!--
+  PREVIEW NÃO-NORMATIVO. Renderiza SCREEN-STORY-017-pre-cadastro-profissional.md para
+  aprovação visual. Fonte de verdade = o .md do spec + tokens.md (DDR-001). Perfil:
+  profissional (verde). Abra no navegador e use "Alternar tema" (claro/escuro).
+-->
+<style>
+  :root{ --b:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --m:'JetBrains Mono',ui-monospace,monospace; }
+
+  /* ── Neutros + semânticas por TEMA (tokens.md §3/§4) ── */
+  [data-theme="light"]{
+    --page:#F7F4EC; --surface:#FFFFFF; --sunken:#F0EDE3; --muted-s:#E8E5DB;
+    --border:#E0DDD3; --border-strong:#C8C5BB;
+    --text:#0F1B2D; --text-muted:#42504A; --text-subtle:#6F7C72;
+    --shadow:0 1px 2px rgba(15,27,45,.04),0 8px 24px rgba(15,27,45,.06);
+    --success:#2D7A4F; --success-soft:#E2F0E5;
+    --warning:#9A6E25; --warning-soft:#FBEED1;
+    --error:#B83A3A;   --error-soft:#FBE2E2;
+    --info:#4A6FA5;    --info-soft:#E0E9F5;
+    --sem-on:#FFFFFF;
+    /* Perfil profissional · claro (tokens.md §2.2) */
+    --accent:#2D5F3F; --on-accent:#FFFFFF; --accent-soft:#E5F0E8; --accent-hover:#3A7050; --accent-ink:#2D5F3F;
+  }
+  [data-theme="dark"]{
+    --page:#0F1411; --surface:#1A2018; --sunken:#232A24; --muted-s:#2C342E;
+    --border:#2A322D; --border-strong:#3A4338;
+    --text:#ECEDE5; --text-muted:#A8B2A8; --text-subtle:#8B9590;
+    --shadow:0 1px 2px rgba(0,0,0,.2),0 8px 24px rgba(0,0,0,.2);
+    --success:#5FA37C; --success-soft:rgba(95,163,124,.16);
+    --warning:#D4A95C; --warning-soft:rgba(212,169,92,.16);
+    --error:#D85A5A;   --error-soft:rgba(216,90,90,.16);
+    --info:#6A8FCC;    --info-soft:rgba(106,143,204,.16);
+    --sem-on:#0F1411;
+    /* Perfil profissional · escuro */
+    --accent:#5FA37C; --on-accent:#0F1411; --accent-soft:rgba(95,163,124,.16); --accent-hover:#6CB089; --accent-ink:#5FA37C;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--b);background:var(--page);color:var(--text);padding:24px;transition:background .2s,color .2s;line-height:1.5}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;max-width:1280px;margin:0 auto 8px;flex-wrap:wrap;gap:12px}
+  .topbar h1{font-size:22px;font-weight:600;letter-spacing:-.3px}
+  .topbar .sub{font-size:13px;color:var(--text-muted);margin-top:2px}
+  .brand{font-weight:700;letter-spacing:1px}
+  .brand .i{color:#00A868}
+  .toggle{font-family:var(--m);font-size:12px;letter-spacing:.5px;text-transform:uppercase;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:999px;padding:10px 18px;cursor:pointer;box-shadow:var(--shadow)}
+  .legend{max-width:1280px;margin:0 auto 20px;font-size:13px;color:var(--text-muted)}
+
+  .section{max-width:1280px;margin:0 auto 14px}
+  .section > h2{font-size:15px;font-weight:600;margin:26px 0 4px;display:flex;align-items:center;gap:10px}
+  .section > h2 .tag{font-family:var(--m);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--accent-ink);background:var(--accent-soft);border-radius:999px;padding:3px 9px}
+  [data-theme="dark"] .section > h2 .tag{color:var(--accent)}
+  .section > p{font-size:13px;color:var(--text-muted);margin-bottom:14px;max-width:760px}
+  .stage{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+
+  /* ── Marca ── */
+  .logo{font-weight:700;letter-spacing:1px;font-size:34px;color:#00A868;line-height:1}
+  .logo.lg{font-size:26px}
+
+  /* ── Telefone (mockup mobile) ── */
+  .phone{width:360px;background:var(--page);border:10px solid #11140f;border-radius:38px;box-shadow:var(--shadow);overflow:hidden}
+  [data-theme="light"] .phone{border-color:#0f1b2d}
+  .phone .notch{height:26px;background:#11140f;border-radius:0 0 16px 16px;width:140px;margin:0 auto}
+  [data-theme="light"] .phone .notch{background:#0f1b2d}
+  .screen{padding:20px 18px 24px;max-height:760px;overflow-y:auto}
+
+  /* ── Card desktop ── */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:32px;width:560px;max-width:100%}
+
+  /* ── Tipografia ── */
+  .top-link{display:block;text-align:right;font-size:13px;color:var(--accent-ink);font-weight:500;text-decoration:underline;text-underline-offset:3px;margin-bottom:6px}
+  [data-theme="dark"] .top-link{color:var(--accent)}
+  .headline{font-size:24px;font-weight:600;letter-spacing:-.3px;margin-top:10px}
+  .subtitle{font-size:14px;color:var(--text-muted);margin-top:4px;margin-bottom:8px}
+  .sec-label{font-family:var(--b);font-size:12px;font-weight:600;letter-spacing:.3px;color:var(--text-muted);text-transform:uppercase;margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+  /* ── Campos ── */
+  .field{margin-bottom:14px}
+  .field > label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:5px;font-weight:500}
+  .control{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 14px;font-family:var(--b);font-size:15px;color:var(--text);min-height:48px;display:flex;align-items:center}
+  .control.ph{color:var(--text-subtle)}
+  .control.focus{border:2px solid var(--accent);padding:12px 13px}
+  .control.sel{justify-content:space-between}
+  .control.err{border:2px solid var(--error);padding:12px 13px}
+  .control .caret{color:var(--text-muted)}
+  .control .eye{margin-left:auto;color:var(--text-muted)}
+  .hint{font-size:12px;color:var(--text-muted);margin-top:5px}
+  .err-text{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--error);margin-top:5px;font-weight:500}
+  .err-text::before{content:"!";display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:999px;background:var(--error);color:#fff;font-size:10px;font-weight:700}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  /* ── Segmented (PF/MEI/PJ) ── */
+  .segmented{display:flex;border:1px solid var(--border-strong);border-radius:12px;overflow:hidden}
+  .segmented .seg{flex:1;text-align:center;padding:13px 0;font-size:14px;font-weight:500;color:var(--text-muted);background:var(--surface);cursor:pointer;border-right:1px solid var(--border-strong);min-height:48px}
+  .segmented .seg:last-child{border-right:0}
+  .segmented .seg.on{background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 2px var(--accent)}
+  [data-theme="dark"] .segmented .seg.on{color:var(--accent)}
+
+  /* ── Foto ── */
+  .photo-empty{display:flex;align-items:center;gap:14px;border:2px dashed var(--border-strong);border-radius:14px;padding:16px;color:var(--text-muted)}
+  .photo-empty .circ{width:56px;height:56px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+  [data-theme="dark"] .photo-empty .circ{color:var(--accent)}
+  .photo-sel{display:flex;align-items:center;gap:14px}
+  .photo-sel .pic{width:56px;height:56px;border-radius:999px;background:linear-gradient(135deg,#6CB089,#2D5F3F);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600}
+  .photo-sel .swap{color:var(--accent-ink);font-weight:500;text-decoration:underline;text-underline-offset:3px;font-size:14px}
+  [data-theme="dark"] .photo-sel .swap{color:var(--accent)}
+
+  /* ── Checkbox termos ── */
+  .check{display:flex;align-items:flex-start;gap:10px;margin:18px 0 6px;font-size:14px;color:var(--text)}
+  .check .box{width:22px;height:22px;border-radius:6px;border:2px solid var(--border-strong);flex-shrink:0;margin-top:1px}
+  .check .box.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+  .check a{color:var(--accent-ink);text-decoration:underline;text-underline-offset:2px}
+  [data-theme="dark"] .check a{color:var(--accent)}
+
+  /* ── CTA ── */
+  .cta{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:var(--on-accent);border:0;border-radius:999px;padding:15px 22px;font-family:var(--b);font-size:15px;font-weight:600;cursor:pointer;margin-top:16px;min-height:52px}
+  .cta:hover{background:var(--accent-hover)}
+  .cta.loading{opacity:.85}
+  .spin{width:20px;height:20px;border:2px solid var(--on-accent);border-right-color:transparent;border-radius:999px;display:inline-block;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* ── Banners (soft bg + ícone colorido + texto neutro) ── */
+  .banner{display:flex;gap:10px;border-radius:12px;padding:12px 14px;margin-top:16px;font-size:13px;color:var(--text);align-items:flex-start}
+  .banner .ic{width:18px;height:18px;border-radius:999px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700}
+  .banner b{font-weight:600}
+  .banner .lk{color:inherit;font-weight:600;text-decoration:underline;text-underline-offset:3px;display:inline-block;margin-top:4px}
+  .b-error{background:var(--error-soft)} .b-error .ic{background:var(--error)}
+  .b-warning{background:var(--warning-soft)} .b-warning .ic{background:var(--warning)}
+  .b-info{background:var(--info-soft)} .b-info .ic{background:var(--info)}
+
+  /* ── Vista B sucesso ── */
+  .success-wrap{text-align:center;padding:18px 6px}
+  .success-wrap .check-circ{width:64px;height:64px;border-radius:999px;background:var(--success-soft);color:var(--success);display:flex;align-items:center;justify-content:center;font-size:34px;margin:14px auto 16px}
+  .success-wrap .headline{margin-top:0}
+  .success-wrap p{font-size:15px;color:var(--text-muted);margin:10px auto 4px;max-width:300px}
+
+  .label-mini{font-family:var(--m);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-subtle);margin-bottom:8px}
+  .note{max-width:1280px;margin:28px auto 0;background:var(--sunken);border:1px solid var(--border);border-radius:12px;padding:16px 20px;font-size:13px;color:var(--text-muted)}
+  .note b{color:var(--text)}
+  .device-cap{font-family:var(--m);font-size:11px;letter-spacing:.5px;color:var(--text-subtle);margin-bottom:8px;text-transform:uppercase}
+  .mini-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:18px;width:340px}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div>
+      <h1><span class="brand">TURN<span class="i">I</span>.</span> · Pré-cadastro de Profissional</h1>
+      <div class="sub">SCREEN-STORY-017 · perfil profissional (verde) · preview não-normativo (fonte: o <code>.md</code> do spec + <code>tokens.md</code>)</div>
+    </div>
+    <button class="toggle" id="toggle">Alternar tema</button>
+  </div>
+  <div class="legend">Use o botão acima para ver <b>claro</b> e <b>escuro</b> (DDR-001 define os dois; o MVP liga só o claro). Todos os textos, estados e cores espelham o spec.</div>
+
+  <!-- ============ VISTA A — MOBILE ============ -->
+  <div class="section">
+    <h2><span class="tag">Vista A</span> Formulário — mobile (≥360dp) · CA-1, CA-2, CA-6</h2>
+    <p>A tela <b>é</b> o formulário (sem card no mobile). Form único seccionado, CTA único ao fim.</p>
+    <div class="stage">
+      <div>
+        <div class="device-cap">Caminho feliz (preenchível)</div>
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen">
+            <a class="top-link">Já tem conta? Entrar</a>
+            <div class="logo">TURNI.</div>
+            <div class="headline">Criar conta de profissional</div>
+            <div class="subtitle">Leva 2 minutos. A equipe Turni revisa em até 24h.</div>
+
+            <div class="sec-label">Seus dados</div>
+            <div class="field"><label>Nome completo</label><div class="control ph">Ex.: Diego Almeida</div></div>
+            <div class="field"><label>E-mail</label><div class="control ph">seunome@email.com</div></div>
+            <div class="field"><label>Telefone</label><div class="control ph">Ex.: (11) 91234-5678</div>
+              <div class="hint">Use o número com DDD que recebe WhatsApp.</div></div>
+
+            <div class="sec-label">Onde você atua</div>
+            <div class="field"><label>Cidade</label><div class="control">São Paulo</div></div>
+            <div class="field"><label>Bairro</label><div class="control">Pinheiros</div></div>
+            <div class="field"><label>Função pretendida</label><div class="control sel"><span>Garçom / Garçonete</span><span class="caret">▾</span></div></div>
+
+            <div class="sec-label">Tipo de cadastro</div>
+            <div class="segmented"><div class="seg on">PF</div><div class="seg">MEI</div><div class="seg">PJ</div></div>
+            <div class="hint">Você envia seu documento depois da aprovação.</div>
+
+            <div class="sec-label">Sua foto</div>
+            <div class="photo-sel"><div class="pic">DA</div><span class="swap">Trocar foto</span></div>
+            <div class="hint">JPG ou PNG, até 5 MB.</div>
+
+            <div class="sec-label">Sua senha</div>
+            <div class="field"><label>Senha</label><div class="control"><span>••••••••••</span><span class="eye">👁</span></div>
+              <div class="hint">Use 10+ caracteres, com letras maiúsculas, minúsculas e números.</div></div>
+            <div class="field"><label>Confirmar senha</label><div class="control"><span>••••••••••</span><span class="eye">👁</span></div></div>
+
+            <div class="check"><span class="box on">✓</span><span>Li e aceito os <a>Termos de Uso</a> e a <a>Política de Privacidade</a>.</span></div>
+
+            <button class="cta">Enviar cadastro</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="device-cap">Vazio / foco / loading</div>
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen">
+            <a class="top-link">Já tem conta? Entrar</a>
+            <div class="logo">TURNI.</div>
+            <div class="headline">Criar conta de profissional</div>
+            <div class="subtitle">Leva 2 minutos. A equipe Turni revisa em até 24h.</div>
+
+            <div class="sec-label">Seus dados</div>
+            <div class="field"><label>Nome completo</label><div class="control focus">Diego Almeida</div></div>
+            <div class="field"><label>E-mail</label><div class="control ph">seunome@email.com</div></div>
+            <div class="field"><label>Telefone</label><div class="control ph">Ex.: (11) 91234-5678</div></div>
+
+            <div class="sec-label">Tipo de cadastro</div>
+            <div class="segmented"><div class="seg">PF</div><div class="seg on">MEI</div><div class="seg">PJ</div></div>
+            <div class="hint">Você envia seu documento depois da aprovação.</div>
+
+            <div class="sec-label">Sua foto</div>
+            <div class="photo-empty"><div class="circ">＋</div><div><b style="color:var(--text)">Adicionar foto</b><div class="hint" style="margin-top:2px">JPG ou PNG, até 5 MB.</div></div></div>
+
+            <div class="check"><span class="box"></span><span>Li e aceito os <a>Termos de Uso</a> e a <a>Política de Privacidade</a>.</span></div>
+
+            <button class="cta loading"><span class="spin"></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ VISTA A — DESKTOP ============ -->
+  <div class="section">
+    <h2><span class="tag">Vista A</span> Formulário — desktop (≥840dp)</h2>
+    <p>Card centrado (máx 560dp). O espaço extra vira 2 colunas em pares curtos: <b>Cidade + Bairro</b> e <b>Senha + Confirmar</b> — não é "mobile esticado".</p>
+    <div class="stage">
+      <div class="card">
+        <div class="logo lg">TURNI.</div>
+        <div class="headline" style="font-size:22px">Criar conta de profissional</div>
+        <div class="subtitle">Leva 2 minutos. A equipe Turni revisa em até 24h.</div>
+
+        <div class="sec-label">Seus dados</div>
+        <div class="field"><label>Nome completo</label><div class="control">Diego Almeida</div></div>
+        <div class="field"><label>E-mail</label><div class="control">diego@email.com</div></div>
+        <div class="field"><label>Telefone</label><div class="control">(11) 91234-5678</div></div>
+
+        <div class="sec-label">Onde você atua</div>
+        <div class="two-col">
+          <div class="field"><label>Cidade</label><div class="control">São Paulo</div></div>
+          <div class="field"><label>Bairro</label><div class="control">Pinheiros</div></div>
+        </div>
+        <div class="field"><label>Função pretendida</label><div class="control sel"><span>Bartender</span><span class="caret">▾</span></div></div>
+
+        <div class="sec-label">Tipo de cadastro</div>
+        <div class="segmented"><div class="seg">PF</div><div class="seg">MEI</div><div class="seg on">PJ</div></div>
+        <div class="hint">Você envia seu documento depois da aprovação.</div>
+
+        <div class="sec-label">Sua foto</div>
+        <div class="photo-sel"><div class="pic">DA</div><span class="swap">Trocar foto</span></div>
+
+        <div class="sec-label">Sua senha</div>
+        <div class="two-col">
+          <div class="field"><label>Senha</label><div class="control"><span>••••••••••</span><span class="eye">👁</span></div></div>
+          <div class="field"><label>Confirmar senha</label><div class="control"><span>••••••••••</span><span class="eye">👁</span></div></div>
+        </div>
+
+        <div class="check"><span class="box on">✓</span><span>Li e aceito os <a>Termos de Uso</a> e a <a>Política de Privacidade</a>.</span></div>
+        <button class="cta">Enviar cadastro</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ VISTA B — SUCESSO ============ -->
+  <div class="section">
+    <h2><span class="tag">Vista B</span> Recebido — sucesso pós-submit · CA-7</h2>
+    <p>Substitui o form na mesma rota (sem deep-link órfão). Sucesso com discrição — sem emoji, sem confete.</p>
+    <div class="stage">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="success-wrap">
+            <div class="logo">TURNI.</div>
+            <div class="check-circ">✓</div>
+            <div class="headline" style="font-size:22px">Cadastro recebido.</div>
+            <p>Em até 24h a equipe Turni revisa seu cadastro e envia uma notificação por e-mail.</p>
+            <button class="cta">Voltar à home</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ESTADOS ============ -->
+  <div class="section">
+    <h2><span class="tag">Estados</span> Erros e validação · CA-2, CA-4, CA-6</h2>
+    <p>Todos os estados aplicáveis (Princípio #7). Banners com fundo suave + ícone colorido + texto neutro alto-contraste.</p>
+    <div class="stage">
+
+      <div class="mini-card">
+        <div class="label-mini">Erro genérico (CA-4 — anti-enumeração)</div>
+        <div class="banner b-error"><span class="ic">!</span><span><b>Não foi possível concluir o cadastro.</b><br>Verifique os dados e tente novamente.<br><a class="lk">Já tem conta? Entrar</a></span></div>
+        <div class="hint" style="margin-top:10px">Mensagem idêntica a qualquer falha — não revela se o e-mail já existe.</div>
+      </div>
+
+      <div class="mini-card">
+        <div class="label-mini">Throttle (429)</div>
+        <div class="banner b-error"><span class="ic">!</span><span><b>Muitas tentativas.</b><br>Aguarde alguns minutos antes de tentar novamente.</span></div>
+      </div>
+
+      <div class="mini-card">
+        <div class="label-mini">Erro de servidor / rede</div>
+        <div class="banner b-error"><span class="ic">!</span><span><b>Não conseguimos enviar agora.</b><br><a class="lk">Tentar de novo</a></span></div>
+        <div class="hint" style="margin-top:10px">Os dados do formulário permanecem preenchidos.</div>
+      </div>
+
+      <div class="mini-card">
+        <div class="label-mini">Validação por campo (blur)</div>
+        <div class="field"><label>E-mail</label><div class="control err">nao-eh-email</div><div class="err-text">Informe um e-mail válido (ex.: nome@dominio.com).</div></div>
+        <div class="field"><label>Confirmar senha</label><div class="control err"><span>••••••</span></div><div class="err-text">As senhas não conferem.</div></div>
+      </div>
+
+      <div class="mini-card">
+        <div class="label-mini">Tipo de pessoa não escolhido</div>
+        <div class="segmented" style="box-shadow:inset 0 0 0 2px var(--error);border-color:var(--error)"><div class="seg">PF</div><div class="seg">MEI</div><div class="seg">PJ</div></div>
+        <div class="err-text">Selecione o tipo de cadastro: PF, MEI ou PJ.</div>
+      </div>
+
+      <div class="mini-card">
+        <div class="label-mini">Foto inválida (CA-6)</div>
+        <div class="photo-empty" style="border-color:var(--error)"><div class="circ" style="background:var(--error-soft);color:var(--error)">!</div><div><b style="color:var(--text)">Adicionar foto</b></div></div>
+        <div class="err-text">A foto deve ter no máximo 5 MB.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============ CA-8 ============ -->
+  <div class="section">
+    <h2><span class="tag">Emenda · CA-8</span> Banner "em análise" no login</h2>
+    <p>Ao tentar logar em <code>pendente_aprovacao</code>. O banner já existe (SCREEN-016); o spec refina o texto para incluir o SLA de 24h.</p>
+    <div class="stage">
+      <div class="mini-card">
+        <div class="label-mini">Hoje (SCREEN-016)</div>
+        <div class="banner b-warning"><span class="ic">⏳</span><span>Sua conta está em análise. Você receberá um aviso quando for aprovada.</span></div>
+      </div>
+      <div class="mini-card">
+        <div class="label-mini">Proposto (CA-8) — adiciona o prazo</div>
+        <div class="banner b-warning"><span class="ic">⏳</span><span><b>Seu cadastro está em análise.</b> Em até 24h enviaremos uma notificação por e-mail.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <p><b>Como aprovar.</b> Verifique nos dois temas: (1) hierarquia e simplicidade do form único seccionado; (2) o acento verde só em CTA / seleção / link (a marca verde só na logo); (3) microcopy e tom; (4) os estados de erro e a tela de sucesso; (5) a emenda do banner CA-8. Divergências viram ajuste no <code>.md</code> do spec antes de o Programador implementar. Este HTML é só para leitura visual — a fonte de verdade é <code>SCREEN-STORY-017-pre-cadastro-profissional.md</code>.</p>
+  </div>
+
+<script>
+  document.getElementById('toggle').addEventListener('click', () => {
+    const html = document.documentElement;
+    html.dataset.theme = html.dataset.theme === 'light' ? 'dark' : 'light';
+  });
+</script>
+</body>
+</html>
