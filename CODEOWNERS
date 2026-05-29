@@ -1,0 +1,28 @@
+# CODEOWNERS — fronteira de propriedade do monorepo Turni
+#
+# Materializa a fronteira marketing × engenharia × comercial da landing
+# institucional (PDR-015), sobre a mecânica de gate da ADR-012 §9.
+#
+# Aliases (PDR-015): no time atual o PO/CEO chancela em nome dos três papéis;
+# os times do GitHub podem ainda não existir como entidades distintas — neste
+# caso o GitHub apenas não aplica a regra (vira documentação de intenção até os
+# times serem criados). Aprovações explícitas de leads são bem-vindas, não
+# bloqueantes (PDR-015).
+
+# ── Conteúdo da landing AS IS — propriedade do MARKETING ──────────────────────
+# Pasta-placeholder estável; o <path-secreto> real é injetado em build-time
+# (ADR-012 §2) e nunca commitado. O marketing edita HTML/CSS/JS/copy/imagens
+# sem revisão técnica de engenharia (PDR-015 §1).
+apps/landing/public/_lp/**            @turni/marketing
+
+# ── "Em breve", 404, robots, infra de routing e deploy — ENGENHARIA ───────────
+apps/landing/public/index.html        @turni/engenharia
+apps/landing/public/404.html          @turni/engenharia
+apps/landing/public/robots.txt        @turni/engenharia   # template (path injetado no build)
+apps/landing/README.md                @turni/engenharia
+apps/landing/CHANGELOG.md             @turni/engenharia
+apps/landing/firebase.json            @turni/engenharia   # criado em STORY-031
+.firebaserc                           @turni/engenharia
+.github/workflows/landing-*.yml       @turni/engenharia   # criado em STORY-031
+infra/modules/firebase/**             @turni/engenharia
+infra/modules/dns/**                  @turni/engenharia

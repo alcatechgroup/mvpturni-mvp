@@ -1,0 +1,4029 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>TURNI · MVP Demo</title>
+<meta name="description" content="Hospitalidade. Match IA · PIN Bilateral · Pix em 15min. A plataforma onde profissional vende turnos com autonomia e contratante cobre escala que muda.">
+<meta name="theme-color" content="#00A868">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TURNI">
+<link rel="apple-touch-icon" href="img/icon-192.png">
+<!-- Sprint B.1 · Performance mobile inferior · 3G/Android budget -->
+<link rel="preconnect" href="https://fonts.googleapis.com/" crossorigin="">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link rel="dns-prefetch" href="https://unpkg.com/">
+<!-- Critical font · Bebas Neue · usada acima da dobra (hero TURNI logo) -->
+<link rel="preload" as="font" type="font/woff2" crossorigin="" href="https://fonts.gstatic.com/s/bebasneue/v14/JTUSjIg69CK48gW7PXoo9Wlhyw.woff2">
+<!-- Fonts com display=swap para evitar FOIT em conexões lentas -->
+<link href="./turnioficial_files/fonts.css" rel="stylesheet">
+<script src="./turnioficial_files/lucide.js" defer=""></script>
+<style>
+  :root{
+    --black:#000000;
+    --bg-cream:#FAFAF7;
+    /* CURVA CROMÁTICA NARRATIVA · vermelho escuro → mostarda → verde */
+    --red-deep:#5A1518;       /* vermelho profundo · dor pura */
+    --red-burn:#7E1D22;       /* vermelho queimado · transição */
+    --red-glow:#E84545;       /* vermelho vivo · accent */
+    --red-soft:#F2D0D2;
+    --vinho:#B8842F;          /* mostarda dourado · empresário · meio do arco */
+    --vinho-2:#9A6E25;        /* mostarda escuro */
+    --vinho-soft:#F8EBD1;     /* creme dourado */
+    --green:#2D5F3F;
+    --green-2:#3A7050;
+    --green-soft:#E5F0E8;
+    --orange:#E76F2C;
+    --orange-soft:#FCE4D5;
+    --yellow:#C49339;
+    --logo-green:#00A868;
+    --text:#0F1B2D;
+    --text-2:#42504A;
+    --text-3:#6F7C72;
+    --border:#E8E5DD;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',-apple-system,sans-serif;background:var(--black);color:#fff;-webkit-font-smoothing:antialiased;line-height:1.5;overflow-x:hidden}
+  img{display:block;max-width:100%}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:0;background:transparent;color:inherit}
+  ::selection{background:var(--logo-green);color:#fff}
+
+  /* ════════════════════════════════════════════════════════════════
+     ATO 1 · HERO PRETO TALAMUS · O ENCONTRO · com foto de equipe
+     ════════════════════════════════════════════════════════════════ */
+  .hero{position:relative;background:var(--black);color:#fff;min-height:100vh;overflow:hidden}
+  /* ════════════════════════════════════════════════════════════════
+     HERO DIAGONAL · fotos cobrindo os triângulos · texto sobreposto
+     TURNI + app no centro · ponto de encontro
+     ════════════════════════════════════════════════════════════════ */
+  /* Triângulo superior-esquerdo · empresário · foto cobrindo
+     Posição puxa o personagem pro canto superior-esquerdo onde está o texto */
+  .hero-emp-bg{
+    position:absolute;inset:0;z-index:1;
+    background-image:url('img/04-hero-empresario.jpg');
+    background-size:cover;
+    background-position:25% 30%;
+    clip-path:polygon(0 0, 100% 0, 0 100%);
+    -webkit-clip-path:polygon(0 0, 100% 0, 0 100%);
+    filter:contrast(1.06) brightness(.78) saturate(1);
+    opacity:0;
+    animation:meet-emp 1.6s cubic-bezier(.16,1,.3,1) .3s forwards;
+  }
+  .hero-emp-bg::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,
+      rgba(120,80,0,.28) 0%,
+      rgba(184,132,47,.14) 30%,
+      rgba(10,8,2,.5) 75%,
+      rgba(0,0,0,.85) 100%);
+  }
+  /* Triângulo inferior-direito · trabalhador · foto cobrindo
+     Posição puxa o personagem pro canto inferior-direito onde está o texto */
+  .hero-pro-bg{
+    position:absolute;inset:0;z-index:1;
+    background-image:url('img/turnitrabalhadordiagonal.png');
+    background-size:cover;
+    background-position:75% 75%;
+    clip-path:polygon(100% 0, 100% 100%, 0 100%);
+    -webkit-clip-path:polygon(100% 0, 100% 100%, 0 100%);
+    filter:contrast(1.06) brightness(.85) saturate(1.1);
+    opacity:0;
+    animation:meet-pro 1.6s cubic-bezier(.16,1,.3,1) 1.5s forwards;
+  }
+  .hero-pro-bg::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,
+      rgba(0,0,0,.85) 0%,
+      rgba(8,18,12,.55) 25%,
+      rgba(45,95,63,.18) 65%,
+      rgba(58,170,104,.22) 100%);
+  }
+  /* Linha sutil da diagonal · ponto de encontro discreto e sofisticado */
+  .hero-diagonal-glow{
+    position:absolute;inset:0;pointer-events:none;z-index:3;
+    opacity:0;
+    animation:fade-glow 1.6s ease 2.4s forwards;
+  }
+  .hero-diagonal-glow::before{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,
+      transparent 49.85%,
+      rgba(255,255,255,.18) 49.97%,
+      rgba(255,255,255,.32) 50%,
+      rgba(255,255,255,.18) 50.03%,
+      transparent 50.15%);
+  }
+  .hero-diagonal-glow::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,
+      transparent 48%,
+      rgba(255,255,255,.05) 50%,
+      transparent 52%);
+    filter:blur(50px);
+  }
+
+  /* Animações do encontro */
+  @keyframes meet-emp{
+    0%{clip-path:polygon(0 0, 0 0, 0 0);-webkit-clip-path:polygon(0 0, 0 0, 0 0);opacity:0}
+    100%{clip-path:polygon(0 0, 100% 0, 0 100%);-webkit-clip-path:polygon(0 0, 100% 0, 0 100%);opacity:1}
+  }
+  @keyframes meet-pro{
+    0%{clip-path:polygon(100% 100%, 100% 100%, 100% 100%);-webkit-clip-path:polygon(100% 100%, 100% 100%, 100% 100%);opacity:0}
+    100%{clip-path:polygon(100% 0, 100% 100%, 0 100%);-webkit-clip-path:polygon(100% 0, 100% 100%, 0 100%);opacity:1}
+  }
+  @keyframes fade-glow{0%{opacity:0}100%{opacity:.5}}
+  /* Particulado por cima da foto · drift sutil */
+  .hero::before{
+    content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+    background-image:
+      radial-gradient(circle at 12% 18%,rgba(255,255,255,.04) 1px,transparent 1.5px),
+      radial-gradient(circle at 78% 42%,rgba(255,255,255,.05) 1px,transparent 1.5px),
+      radial-gradient(circle at 35% 76%,rgba(255,255,255,.03) 1px,transparent 1.5px),
+      radial-gradient(circle at 88% 88%,rgba(255,255,255,.04) 1px,transparent 1.5px),
+      radial-gradient(circle at 5% 92%,rgba(255,255,255,.03) 1px,transparent 1.5px);
+    background-size:600px 600px,400px 400px,500px 500px,700px 700px,300px 300px;
+    animation:drift 60s linear infinite;
+  }
+  @keyframes drift{0%{transform:translate(0,0)}100%{transform:translate(-60px,-40px)}}
+
+  /* Nav fixo · acompanha o scroll · ganha backdrop blur quando o user rola
+     Mantém TURN<span class="di">I</span><span class="de">.</span> + WORKFORCE PLATFORM como mensagem persistente no canto superior esquerdo */
+  .nav{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:24px 32px;
+    background:transparent;
+    transition:background .3s ease, backdrop-filter .3s ease, padding .25s ease, box-shadow .3s ease;
+  }
+  .nav.scrolled{
+    background:rgba(10,10,10,.72);
+    backdrop-filter:blur(16px) saturate(1.1);
+    -webkit-backdrop-filter:blur(16px) saturate(1.1);
+    padding:14px 32px;
+    box-shadow:0 1px 0 rgba(255,255,255,.06), 0 8px 28px rgba(0,0,0,.18);
+  }
+  /* Reduz tamanhos quando scrolled · mantém a hierarquia visual mais compacta */
+  .nav.scrolled .nav-logo{font-size:26px}
+  .nav.scrolled .nav-tag{font-size:8px;opacity:.85}
+  /* Logo wrapper · TURNI grande + workforce platform tag embaixo */
+  .nav-logo-wrap{display:flex;flex-direction:column;gap:5px;align-items:flex-start}
+  .nav-logo{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;color:#fff;line-height:1}
+  .nav-logo .di{color:var(--logo-green)}
+  .nav-logo .de{-webkit-text-stroke:1.5px var(--logo-green);color:transparent}
+  .nav-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:2.5px;text-transform:uppercase;
+    color:rgba(255,255,255,.6);
+    line-height:1;
+    margin-left:2px;
+    display:inline-flex;align-items:center;gap:7px;
+    white-space:nowrap;
+  }
+  .nav-tag .dot{
+    width:5px;height:5px;border-radius:50%;
+    background:#D9A441;
+    box-shadow:0 0 8px rgba(217,164,65,.7);
+    animation:pulse-dot 2s ease infinite;
+  }
+  /* Brand mark · I de TURNI sempre na cor do logo · uso global */
+  /* "i" verde da marca em texto corrido · padrão Turni
+     Mantido no flow natural do texto (sem inline-block que cria gap) · só herda peso + cor */
+  .t-i{
+    color:var(--logo-green);
+    font-weight:inherit;
+    font-style:normal;
+  }
+  /* "I" maiúsculo verde da marca · padrão da logomarca · usado em texto CAPS da identidade
+     Especificidade global · containers de logo (.nav-logo, .foot-logo, etc.) podem sobrescrever */
+  .di{color:var(--logo-green)}
+  /* Ponto outline default · usado em qualquer TURNI. fora dos logos hero · 1.5px stroke verde */
+  .de{-webkit-text-stroke:1.5px var(--logo-green);color:transparent;font-style:normal}
+
+  .nav-pill{background:#fff;color:#0A0A0A;border-radius:999px;padding:6px 6px 6px 24px;display:flex;align-items:center;gap:18px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+  /* nav-link vive DENTRO da .nav-pill (background:#fff) · cor preta sobre branco */
+  .nav-link{font-size:14px;font-weight:500;letter-spacing:-.1px;cursor:pointer;color:#0A0A0A;display:inline-flex;align-items:center;gap:5px;padding:8px 4px;transition:color .2s}
+  .nav-link:hover{color:var(--vinho)}
+  .nav-link svg{width:11px;height:11px;stroke-width:2.2;transition:transform .2s}
+  .nav-link.active svg{transform:rotate(180deg)}
+  .nav-link.active{color:var(--vinho)}
+  .nav-cta{background:#0A0A0A;color:#fff;padding:10px 22px;border-radius:999px;font-size:14px;font-weight:500;letter-spacing:-.1px;display:inline-flex;align-items:center;gap:6px;transition:background .15s}
+  .nav-cta:hover{background:#1A1A1A}
+  .nav-cta svg{width:13px;height:13px;stroke-width:2}
+  .nav-burger{width:40px;height:40px;border-radius:999px;background:#0A0A0A;color:#fff;display:flex;align-items:center;justify-content:center}
+  .nav-burger svg{width:18px;height:18px;stroke-width:1.8}
+
+  .nav-panel{position:absolute;top:80px;right:32px;width:min(900px,calc(100vw - 64px));background:#fff;color:#0A0A0A;border-radius:32px;padding:32px;z-index:15;transform:translateY(-20px);opacity:0;pointer-events:none;transition:all .35s cubic-bezier(.16,1,.3,1);box-shadow:0 32px 80px rgba(0,0,0,.5)}
+  .nav-panel.open{transform:translateY(0);opacity:1;pointer-events:auto}
+  .panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .panel-card{padding:24px;border-radius:20px;cursor:pointer;background:#FAFAF7;border:1px solid var(--border);transition:all .2s;display:flex;align-items:flex-start;gap:14px;color:inherit}
+  .panel-card:hover{background:#fff;border-color:#0A0A0A;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+  .panel-ic{width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .panel-card.emp .panel-ic{background:var(--vinho-soft);color:var(--vinho)}
+  .panel-card.pro .panel-ic{background:var(--green-soft);color:var(--green)}
+  .panel-card.login .panel-ic{background:rgba(0,168,104,.12);color:var(--logo-green)}
+  .panel-card.about .panel-ic{background:var(--orange-soft);color:var(--orange)}
+  .panel-ic svg{width:20px;height:20px;stroke-width:1.8}
+  .panel-card h3{font-size:16px;font-weight:600;letter-spacing:-.2px;margin-bottom:4px;color:var(--text)}
+  .panel-card p{font-size:13px;color:var(--text-3);line-height:1.5}
+  .panel-card .arr{margin-left:auto;color:#A0A8A0;align-self:center;flex-shrink:0;transition:transform .2s}
+  .panel-card:hover .arr{transform:translateX(4px);color:#0A0A0A}
+
+  .hero-content{
+    position:relative;z-index:10;
+    width:100%;
+    min-height:calc(100vh - 90px);
+    padding:104px 48px 80px;
+  }
+
+  /* WORKFORCE PLATFORM · eyebrow no topo central absoluto */
+  .hero-eyebrow{
+    position:absolute;
+    top:104px;left:50%;
+    transform:translateX(-50%);
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:4px;text-transform:uppercase;
+    color:rgba(255,255,255,.9);
+    padding:9px 20px;
+    border:1px solid rgba(255,255,255,.28);
+    border-radius:999px;
+    background:rgba(0,0,0,.35);
+    backdrop-filter:blur(12px);
+    z-index:8;
+    opacity:0;animation:fade-tag .9s ease .1s forwards;
+    white-space:nowrap;
+  }
+  .hero-eyebrow .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--red-glow);
+    box-shadow:0 0 12px var(--red-glow);
+    animation:pulse-dot 2s ease infinite;
+  }
+  @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.85)}}
+
+  /* CHAMADA CAIXA ALTA · 2 blocos posicionados + foto abaixo + app no centro */
+  /* Bloco empresário · canto superior-esquerdo · TAG + texto + foto */
+  .hero-emp-text{
+    position:absolute;
+    top:13%;left:4%;
+    z-index:5;text-align:left;
+    max-width:30%;
+    min-width:240px;
+  }
+  .hero-pro-text{
+    position:absolute;
+    bottom:7%;right:4%;
+    z-index:5;text-align:right;
+    max-width:30%;
+    min-width:240px;
+  }
+  /* Fotos pequenas abaixo dos textos foram removidas
+     (as fotos preenchem os triângulos diagonais agora) */
+  .hero-emp-photo,.hero-pro-photo{display:none}
+  @keyframes fade-up{
+    0%{opacity:0;transform:translateY(20px)}
+    100%{opacity:1;transform:translateY(0)}
+  }
+  .hero-side-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:3px;text-transform:uppercase;
+    color:rgba(255,255,255,.78);
+    margin-bottom:18px;
+    display:inline-flex;align-items:center;gap:12px;
+    opacity:0;
+  }
+  .hero-emp-text .hero-side-tag{animation:fade-tag .9s ease 1.0s forwards}
+  .hero-pro-text .hero-side-tag{animation:fade-tag .9s ease 2.2s forwards}
+  .hero-emp-text .hero-side-tag::before{
+    content:'';width:32px;height:1px;background:rgba(217,164,65,.8);
+  }
+  .hero-pro-text .hero-side-tag{flex-direction:row-reverse}
+  .hero-pro-text .hero-side-tag::before{
+    content:'';width:32px;height:1px;background:rgba(58,170,104,.7);
+  }
+
+  .word-emp{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(48px,8vw,120px);
+    letter-spacing:6px;line-height:.92;
+    color:#D9A441;
+    text-shadow:
+      0 2px 8px rgba(0,0,0,.95),
+      0 4px 28px rgba(217,164,65,.55),
+      0 8px 48px rgba(140,100,20,.8);
+    margin:0;
+    opacity:0;transform:translateX(-80px);
+    animation:slide-emp 1.4s cubic-bezier(.16,1,.3,1) .8s forwards;
+  }
+  @keyframes slide-emp{to{opacity:1;transform:translateX(0)}}
+
+  .word-pro{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(48px,8vw,120px);
+    letter-spacing:6px;line-height:.92;
+    color:#3AAA68;
+    text-shadow:
+      0 2px 8px rgba(0,0,0,.95),
+      0 4px 28px rgba(58,170,104,.55),
+      0 8px 48px rgba(0,168,104,.7);
+    margin:0 0 12px;
+    opacity:0;transform:translateX(80px);
+    animation:slide-pro 1.4s cubic-bezier(.16,1,.3,1) 2s forwards;
+  }
+  @keyframes slide-pro{to{opacity:1;transform:translateX(0)}}
+
+  /* CENTRO · só o app no centro · TURNI fica standalone fixed (turni-intro) */
+  .hero-center-block{
+    position:absolute;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    z-index:10;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:24px;
+  }
+  .turni-merge .di{color:var(--logo-green);font-weight:400}
+  .turni-merge .de{-webkit-text-stroke:3px var(--logo-green);color:transparent;font-weight:400}
+
+  /* TURNI INTRO · gigante centralizado · viaja pro canto virando logo do nav */
+  /* Aparece SOBRE o app + textos · ponto culminante da intro narrativa */
+  .turni-intro{
+    position:fixed;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(140px,22vw,300px);
+    letter-spacing:2px;
+    line-height:.9;
+    color:#fff;
+    text-shadow:
+      0 0 60px rgba(0,168,104,.5),
+      0 0 120px rgba(0,0,0,.95),
+      0 0 200px rgba(0,168,104,.25);
+    z-index:100;
+    opacity:0;
+    pointer-events:none;
+    white-space:nowrap;
+    animation:
+      intro-enter 1s cubic-bezier(.16,1,.3,1) 4s both,
+      intro-travel 1.6s cubic-bezier(.65,0,.35,1) 5.6s forwards;
+  }
+  /* Sprint B.3 · prefers-reduced-motion · respeita preferência do usuário · skip da animação */
+  @media (prefers-reduced-motion: reduce){
+    .turni-intro{
+      animation:none !important;
+      opacity:0;
+      visibility:hidden;
+    }
+    *, *::before, *::after{
+      animation-duration:.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.01ms !important;
+      scroll-behavior:auto !important;
+    }
+  }
+  /* Sprint B.3 · slow-connection · classe adicionada via JS quando 3G/2G detectado · skip animações pesadas */
+  body.slow-conn .turni-intro{
+    animation:none !important;
+    opacity:0;
+    visibility:hidden;
+  }
+  body.slow-conn .nav{opacity:1 !important}
+  .turni-intro .di{color:var(--logo-green);font-weight:400}
+  .turni-intro .de{-webkit-text-stroke:4px var(--logo-green);color:transparent;font-weight:400}
+  /* Anima font-size em vez de scale para que o layout posicione o canto top-left
+     corretamente em (top:24px, left:32px) que é onde o nav-logo fica.
+     scale() não muda o bounding-box · top:30px ficava medido contra o tamanho
+     original do elemento, gerando ~120px de offset visual. Animar font-size
+     reduz o elemento de verdade · alvo final = nav-logo (32px Bebas, letter-spacing:1px). */
+  @keyframes intro-enter{
+    0%{opacity:0;transform:translate(-50%,-50%) scale(.55);letter-spacing:40px}
+    100%{opacity:1;transform:translate(-50%,-50%) scale(1);letter-spacing:2px}
+  }
+  @keyframes intro-travel{
+    0%{
+      opacity:1;
+      top:50%;left:50%;
+      transform:translate(-50%,-50%);
+      font-size:clamp(140px,22vw,300px);
+      letter-spacing:2px;
+      text-shadow:
+        0 0 60px rgba(0,168,104,.5),
+        0 0 120px rgba(0,0,0,.95),
+        0 0 200px rgba(0,168,104,.25);
+    }
+    85%{
+      opacity:1;
+      top:24px;left:32px;
+      transform:translate(0,0);
+      font-size:32px;
+      letter-spacing:1px;
+      text-shadow:none;
+    }
+    100%{
+      opacity:0;
+      top:24px;left:32px;
+      transform:translate(0,0);
+      font-size:32px;
+      letter-spacing:1px;
+      text-shadow:none;
+    }
+  }
+
+  /* Nav · escondido durante a intro · aparece quando turni-intro chega no canto */
+  .nav{
+    opacity:0;
+    animation:nav-fade-in .6s ease 7s forwards;
+  }
+  @keyframes nav-fade-in{to{opacity:1}}
+
+  /* App mockup · entra com fade-up · 3.0s delay (depois do trabalhador) */
+  .hero-app-mockup{
+    width:clamp(180px,16vw,240px);
+    position:relative;
+    border-radius:32px;
+    border:6px solid #1A1A1A;
+    background:#000;
+    overflow:hidden;
+    box-shadow:
+      0 30px 80px rgba(0,168,104,.18),
+      0 20px 60px rgba(0,0,0,.7),
+      inset 0 0 0 1px rgba(255,255,255,.06);
+    opacity:0;transform:translateY(30px);
+    animation:fade-up 1s cubic-bezier(.16,1,.3,1) 3s forwards;
+  }
+  .hero-app-mockup::before{
+    content:'';
+    position:absolute;
+    top:0;left:50%;transform:translateX(-50%);
+    width:80px;height:18px;
+    background:#1A1A1A;
+    border-radius:0 0 14px 14px;
+    z-index:3;
+  }
+  .hero-app-mockup img{
+    width:100%;
+    display:block;
+    aspect-ratio:9/19;
+    object-fit:cover;
+    object-position:top;
+  }
+  /* Glow verde sutil ao redor do mockup · "Turni vivo" */
+  .hero-app-mockup::after{
+    content:'';
+    position:absolute;
+    inset:-40px;
+    background:radial-gradient(ellipse at center,
+      rgba(0,168,104,.15) 0%,
+      transparent 60%);
+    z-index:-1;
+    pointer-events:none;
+  }
+
+  /* Microcopy · oculta no novo layout (app no centro toma esse espaço) */
+  .hero-tag{display:none}
+  @keyframes fade-tag{to{opacity:1}}
+
+  /* ════════════════════════════════════════════════════════════════
+     STORY AREA · seção separada após o hero
+     Cards no centro · PORQUE atrás (topo transparente) · A TURNI EXISTE no rodapé
+     Navegação colada embaixo dos cards (não perde sentido)
+     ════════════════════════════════════════════════════════════════ */
+  .story-area{
+    position:relative;background:#000;color:#fff;
+    padding:80px 48px 100px;
+    overflow:hidden;
+  }
+  .story-area::before{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:
+      radial-gradient(circle at 20% 30%,rgba(255,255,255,.04) 1px,transparent 2px),
+      radial-gradient(circle at 80% 70%,rgba(255,255,255,.03) 1px,transparent 2px);
+    background-size:600px 600px,500px 500px;
+    animation:drift 100s linear infinite;
+  }
+
+  .story-stage{
+    position:relative;
+    width:100%;max-width:1100px;
+    margin:0 auto;
+    z-index:5; /* à frente do PORQUE */
+  }
+  /* Gap minúsculo · cards quase encostados (simboliza match) */
+  .story-split{display:grid;grid-template-columns:1fr 1fr;gap:4px;position:relative}
+  /* ════ MARCADOR DE ATO · UM dígito gigante invadindo lateral dos 2 cards ════ */
+  /* É o PORQUÊ da TURN<span class="di">I</span><span class="de">.</span> · narrativa em 5 atos · número conecta as 2 colunas */
+  .story-act-marker{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    z-index:6;pointer-events:none;text-align:center;
+    display:flex;flex-direction:column;align-items:center;gap:0;
+  }
+  .story-act-pre{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:3px;text-transform:uppercase;
+    color:rgba(255,255,255,.55);
+    text-shadow:0 2px 12px rgba(0,0,0,.95),0 0 30px rgba(0,0,0,.85);
+    margin-bottom:-12px;
+  }
+  /* Dígito ÚNICO · gigante · invade ~14% pra cada card · ponte visual */
+  /* T · U · R · N são brancos · I é verde (cor da marca · fechamento do logo) */
+  .story-act-num{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(180px,26vw,360px);
+    letter-spacing:0;line-height:.78;
+    color:#fff;
+    text-shadow:
+      0 8px 60px rgba(0,0,0,.98),
+      0 0 120px rgba(0,0,0,.85),
+      0 0 180px rgba(0,0,0,.6);
+    display:inline-block;
+    -webkit-text-stroke:1px rgba(255,255,255,.0);
+    transition:color .5s cubic-bezier(.16,1,.3,1);
+  }
+  .story-act-num.act-i{color:var(--logo-green)}
+  .story-act-num.swap{animation:swap-num .7s cubic-bezier(.16,1,.3,1)}
+  @keyframes swap-num{
+    0%{transform:translateY(28px) scale(.6);opacity:0}
+    60%{transform:translateY(0) scale(1.05);opacity:1}
+    100%{transform:translateY(0) scale(1);opacity:1}
+  }
+  /* Durante o intro preview: swap mais rápido + glow leve */
+  .story-stage.intro-playing .story-act-num.swap{animation:swap-num .35s cubic-bezier(.16,1,.3,1)}
+  .story-stage.intro-playing .story-act-num{
+    text-shadow:0 8px 60px rgba(0,0,0,.98),0 0 80px rgba(0,168,104,.35),0 0 120px rgba(0,0,0,.6);
+  }
+
+  /* ─── BARRA DE LETRAS ACUMULATIVAS · TURNi sendo montada no preview ─── */
+  .story-act-build{
+    margin-top:18px;
+    display:flex;justify-content:center;align-items:center;gap:8px;
+    font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:6px;line-height:1;
+    color:#fff;height:40px;
+    opacity:0;transform:translateY(8px);
+    transition:opacity .25s ease,transform .25s ease;
+    pointer-events:none;
+  }
+  .story-act-build.show{opacity:1;transform:translateY(0)}
+  .story-act-build span{
+    display:inline-block;
+    animation:build-pop .4s cubic-bezier(.16,1,.3,1) backwards;
+    text-shadow:0 4px 20px rgba(0,0,0,.7),0 0 30px rgba(0,168,104,.4);
+  }
+  .story-act-build span.green{color:var(--logo-green)}
+  .story-act-build.complete{
+    transform:scale(1.05) translateY(0);
+    transition:transform .35s cubic-bezier(.16,1,.3,1);
+  }
+  .story-act-build.complete span{
+    animation:build-glow .6s ease-in-out;
+  }
+  @keyframes build-pop{
+    0%{transform:translateY(-12px) scale(.6);opacity:0;filter:blur(4px)}
+    60%{transform:translateY(0) scale(1.15);opacity:1;filter:blur(0)}
+    100%{transform:translateY(0) scale(1);opacity:1;filter:blur(0)}
+  }
+  @keyframes build-glow{
+    0%,100%{text-shadow:0 4px 20px rgba(0,0,0,.7),0 0 30px rgba(0,168,104,.4)}
+    50%{text-shadow:0 4px 20px rgba(0,0,0,.7),0 0 50px rgba(0,168,104,.85),0 0 80px rgba(0,168,104,.5)}
+  }
+  .story-act-foot{
+    font-family:'Inter',sans-serif;
+    font-size:13px;font-weight:500;letter-spacing:-.2px;
+    color:var(--logo-green);
+    text-shadow:0 2px 12px rgba(0,0,0,.85);
+    margin-top:2px;
+    display:none; /* movido para a faixa "PORQUE A TURNI EXISTE" abaixo dos cards */
+  }
+  /* Esconde também o pre-label · ele migra pro bloco gigante abaixo */
+  .story-act-pre{display:none}
+
+  /* ════ STORY-FOOT · navegação colada nos cards (atos + setas juntos) ════ */
+  .story-foot{
+    margin-top:20px;
+    display:flex;align-items:center;justify-content:center;
+    gap:20px;
+    flex-wrap:wrap;
+    position:relative;z-index:6;
+  }
+
+  /* ════ "PORQUE" GIGANTE · posicionado ABAIXO DOS CARDS · topo transparente ════ */
+  /* Sobe atrás dos cards (z-index 0) · top mais transparente onde encontra os cards */
+  .story-porque{
+    position:relative;z-index:0;
+    margin-top:-160px;       /* puxa pra cima · sobrepõe a base dos cards */
+    text-align:center;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(180px,30vw,460px);
+    letter-spacing:clamp(8px,1.5vw,28px);
+    line-height:.82;
+    text-transform:uppercase;
+    /* Gradiente vertical · TOPO transparente (entra na parte inferior dos cards) → BASE solida */
+    background:linear-gradient(180deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0) 32%,
+      rgba(255,255,255,.18) 50%,
+      rgba(255,255,255,.55) 75%,
+      rgba(255,255,255,.92) 100%
+    );
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    color:transparent;
+    pointer-events:none;
+    user-select:none;
+  }
+
+  /* ════ "A TURNI EXISTE" · rodapé inferior · fechamento da seção ════ */
+  .story-existencia{
+    position:relative;z-index:5;
+    margin-top:24px;text-align:center;
+  }
+  .story-existencia-h{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(36px,6vw,84px);
+    letter-spacing:clamp(3px,.55vw,9px);
+    line-height:1;
+    text-transform:uppercase;
+    color:#fff;
+    text-shadow:0 4px 32px rgba(0,0,0,.6);
+  }
+  .story-existencia-h .accent{
+    background:linear-gradient(180deg,
+      var(--logo-green) 0%,
+      #7FCB95 100%
+    );
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+
+  .story-col{position:relative;min-height:520px}
+  .story-card{
+    position:absolute;inset:0;
+    background:rgba(255,255,255,.04);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:24px;
+    text-align:left;
+    opacity:0;
+    transform:scale(.97);
+    transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);
+    pointer-events:none;
+    overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .story-col.emp .story-card{transform:translateX(-30px) scale(.97)}
+  .story-col.pro .story-card{transform:translateX(30px) scale(.97)}
+  .story-card.active{
+    opacity:1;
+    transform:translateX(0) scale(1);
+    pointer-events:auto;
+  }
+  .story-col.emp .story-card.exit{transform:translateX(30px) scale(.97);opacity:0}
+  .story-col.pro .story-card.exit{transform:translateX(-30px) scale(.97);opacity:0}
+  /* Foto vertical maior · ocupa 60% da altura do card */
+  .story-card-photo{
+    height:300px;
+    background-size:cover;background-position:center 35%;
+    position:relative;flex-shrink:0;
+    transition:filter 1.2s cubic-bezier(.16,1,.3,1);
+  }
+  /* ════ REVELAÇÃO POR ATO · 6s linear preenchendo da esquerda pra direita ════ */
+  /* Empresário (esquerda) · entra sutil em PB e ganha cor cheia em 1.5s · simula "a cor já está aqui" */
+  .story-col.emp .story-card-photo{filter:saturate(0) brightness(.5)}
+  .story-col.emp .story-card.active .story-card-photo{
+    animation:reveal-emp 6s linear forwards;
+  }
+  @keyframes reveal-emp{
+    0%{filter:saturate(0) brightness(.5)}
+    25%{filter:saturate(1) brightness(.95)}
+    100%{filter:saturate(1.15) contrast(1.08) brightness(1)}
+  }
+
+  /* Trabalhador (direita) · começa PB e revela cor ao longo dos 6s do ato (com delay sutil) */
+  .story-col.pro .story-card-photo{filter:saturate(0) brightness(.5)}
+  .story-col.pro .story-card.active .story-card-photo{
+    animation:reveal-pro 6s linear forwards;
+  }
+  @keyframes reveal-pro{
+    0%{filter:saturate(0) brightness(.5)}
+    20%{filter:saturate(.05) brightness(.55)}
+    50%{filter:saturate(.45) brightness(.78)}
+    80%{filter:saturate(.85) brightness(.92)}
+    100%{filter:saturate(1.15) contrast(1.08) brightness(1)}
+  }
+
+  /* Overlays nos cards */
+  .story-col.emp .story-card-photo::after{
+    content:'';position:absolute;inset:0;opacity:0;
+    background:linear-gradient(180deg,transparent 50%,rgba(184,132,47,.65));
+  }
+  .story-col.emp .story-card.active .story-card-photo::after{
+    animation:reveal-overlay-emp 6s linear forwards;
+  }
+  @keyframes reveal-overlay-emp{
+    0%{opacity:0}
+    25%{opacity:.85}
+    100%{opacity:1}
+  }
+
+  .story-col.pro .story-card-photo::after{
+    content:'';position:absolute;inset:0;opacity:0;
+    background:linear-gradient(180deg,transparent 50%,rgba(45,95,63,.65));
+  }
+  .story-col.pro .story-card.active .story-card-photo::after{
+    animation:reveal-overlay-pro 6s linear forwards;
+  }
+  @keyframes reveal-overlay-pro{
+    0%{opacity:0}
+    50%{opacity:.4}
+    100%{opacity:1}
+  }
+  .story-card-tag{
+    position:absolute;top:14px;left:14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+    color:#fff;background:rgba(0,0,0,.55);
+    padding:5px 11px;border-radius:999px;backdrop-filter:blur(8px);
+    z-index:3;
+  }
+  .story-card-body{
+    padding:24px 26px 28px;
+    display:flex;flex-direction:column;
+    flex-grow:1;
+  }
+  /* Cor accent diferente por persona */
+  .story-col.emp .story-card{border-color:rgba(255,177,189,.2)}
+  .story-col.pro .story-card{border-color:rgba(127,203,149,.2)}
+
+  .story-eye{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:2px;text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .story-col.emp .story-eye{color:#F2D984}
+  .story-col.pro .story-eye{color:#7FCB95}
+
+  .story-h{
+    font-family:'Inter',sans-serif;
+    font-size:clamp(22px,2.4vw,28px);
+    font-weight:600;letter-spacing:-.6px;line-height:1.1;
+    color:#fff;margin-bottom:10px;
+  }
+  .story-h .br{display:block}
+  .story-p{
+    font-size:13px;
+    color:rgba(255,255,255,.7);
+    line-height:1.5;
+  }
+  .story-p b{color:#fff;font-weight:500}
+
+  /* Botões dos atos · pílulas com label · ATO 1 · ATO 2 · ATO 3 ... */
+  .story-progress{
+    display:flex;justify-content:center;gap:10px;margin-top:0;flex-wrap:wrap;
+  }
+  .story-progress button{
+    padding:9px 18px;
+    border-radius:999px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:2.2px;text-transform:uppercase;
+    background:rgba(255,255,255,.06);
+    color:rgba(255,255,255,.6);
+    border:1px solid rgba(255,255,255,.14);
+    cursor:pointer;
+    transition:all .25s cubic-bezier(.16,1,.3,1);
+    position:relative;overflow:hidden;
+  }
+  .story-progress button:hover{
+    color:#fff;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);
+    transform:translateY(-1px);
+  }
+  .story-progress button.active{
+    color:#fff;
+    background:rgba(255,255,255,.16);
+    border-color:rgba(255,255,255,.4);
+    box-shadow:0 4px 16px rgba(255,255,255,.08);
+  }
+  /* Barrinha de progresso embaixo do botão ativo · timing do auto-advance */
+  .story-progress button.active::before{
+    content:'';position:absolute;left:0;bottom:0;height:2px;
+    background:#fff;width:0%;
+    animation:progress-bar 6s linear forwards;
+  }
+  @keyframes progress-bar{0%{width:0}100%{width:100%}}
+
+  /* ════════════════════════════════════════════════════════════════
+     SOBRE A TURNI + MANIFESTO · seção institucional + missão filosófica
+     ════════════════════════════════════════════════════════════════ */
+  .sobre-manifesto{
+    background:#000;color:#fff;
+    padding:120px 48px;
+    position:relative;overflow:hidden;
+  }
+  .sobre-manifesto::before{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(circle at 50% 50%,rgba(0,168,104,.06) 1px,transparent 2px);
+    background-size:600px 600px;
+    animation:drift 110s linear infinite;
+  }
+  .sm-inner{max-width:1200px;margin:0 auto;position:relative;z-index:5}
+  .sm-block{padding:72px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+  .sm-block:last-child{border-bottom:0}
+  .sm-tag{
+    display:inline-flex;align-items:center;gap:14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:4px;text-transform:uppercase;
+    color:rgba(255,255,255,.55);
+    margin-bottom:24px;
+  }
+  .sm-tag::before{content:'';width:36px;height:1px;background:rgba(255,255,255,.3)}
+  /* Wrapper da logomarca · isola letter-spacing herdado de containers de texto */
+  .brand-mark{letter-spacing:0;display:inline-block}
+  .sm-h{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(48px,7vw,108px);
+    letter-spacing:clamp(3px,.6vw,8px);
+    line-height:.95;
+    color:#fff;
+    margin-bottom:28px;
+  }
+  .sm-h .accent{color:var(--logo-green)}
+  .sm-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
+  .sm-text{
+    font-size:clamp(16px,1.5vw,18px);
+    color:rgba(255,255,255,.78);
+    line-height:1.65;
+  }
+  .sm-text p{margin-bottom:16px}
+  .sm-text b{color:#fff;font-weight:600}
+  .sm-text .accent{color:#9DD9B0;font-weight:600}
+
+  /* Manifesto · 2 blocos verticais paralelos · tese das dores | tese da solução
+     A síntese fica isolada centralizada abaixo · ritmo editorial em 3 tempos */
+  .manifesto-text{max-width:1080px;margin:0 auto 48px}
+  .manifesto-grid{
+    display:grid;grid-template-columns:1fr 1fr;
+    gap:64px;
+    align-items:start;
+    margin-bottom:38px;
+    position:relative;
+  }
+  /* Linha vertical sutil entre as 2 colunas · marca o "encontro" simbólico */
+  .manifesto-grid::before{
+    content:'';position:absolute;
+    top:8px;bottom:8px;left:50%;width:1px;
+    background:linear-gradient(180deg, transparent 0%, rgba(157,217,176,.25) 30%, rgba(157,217,176,.25) 70%, transparent 100%);
+    transform:translateX(-50%);
+  }
+  .manifesto-col{position:relative}
+  .manifesto-col .col-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:2.5px;text-transform:uppercase;
+    color:rgba(255,255,255,.45);margin-bottom:18px;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .manifesto-col .col-tag::before{
+    content:'';width:18px;height:1px;background:rgba(157,217,176,.4);
+  }
+  .manifesto-text p{text-align:left;font-size:18px;line-height:1.7;color:rgba(255,255,255,.82);margin:0}
+  .manifesto-statement{
+    text-align:center;
+    font-family:'Fraunces',Georgia,serif;
+    font-size:28px;font-weight:400;
+    letter-spacing:-.4px;line-height:1.35;
+    color:#fff;
+    max-width:680px;margin:0 auto;
+    padding-top:28px;
+    border-top:1px solid rgba(255,255,255,.08);
+  }
+  .manifesto-statement .accent{color:#9DD9B0;font-style:italic}
+  @media(max-width:780px){
+    .manifesto-grid{grid-template-columns:1fr;gap:32px}
+    .manifesto-grid::before{display:none}
+    .manifesto-text p{font-size:16px}
+    .manifesto-statement{font-size:22px}
+  }
+
+  /* Manifesto · 2 flip cards interativos NÃO + SIM · clique vira o card */
+  .creed-flip-wrap{
+    display:grid;grid-template-columns:1fr 1fr;gap:24px;
+    margin-top:48px;perspective:1400px;
+    max-width:1080px;margin-left:auto;margin-right:auto;
+  }
+  .flip-card{
+    background:transparent;height:460px;cursor:pointer;
+    perspective:1400px;
+  }
+  .flip-card-inner{
+    position:relative;width:100%;height:100%;
+    transition:transform .8s cubic-bezier(.16,1,.3,1);
+    transform-style:preserve-3d;
+  }
+  .flip-card.flipped .flip-card-inner{transform:rotateY(180deg)}
+
+  .flip-card-front,.flip-card-back{
+    position:absolute;inset:0;border-radius:24px;
+    backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    overflow:hidden;display:flex;flex-direction:column;
+  }
+
+  /* FRENTE · letras gigantes NÃO / SIM */
+  .flip-card-front{
+    align-items:center;justify-content:center;
+    border:1px solid rgba(255,255,255,.10);
+    transition:transform .35s,border-color .25s,box-shadow .25s;
+  }
+  .flip-card:hover .flip-card-front{
+    border-color:rgba(255,255,255,.22);
+    box-shadow:0 24px 60px -20px rgba(0,0,0,.5);
+  }
+  .flip-card-no .flip-card-front{
+    background:linear-gradient(160deg,#3A1010 0%,#1F0606 100%);
+  }
+  .flip-card-yes .flip-card-front{
+    background:linear-gradient(160deg,#1F2E25 0%,#0F2918 100%);
+  }
+  .flip-front-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:3px;text-transform:uppercase;
+    color:rgba(255,255,255,.5);margin-bottom:18px;
+  }
+  .flip-front-word{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(96px,12vw,160px);letter-spacing:8px;line-height:1;
+    text-shadow:0 8px 40px rgba(0,0,0,.5);
+  }
+  .flip-card-no .flip-front-word{color:#E84545}
+  .flip-card-yes .flip-front-word{color:var(--logo-green)}
+  .flip-front-hint{
+    margin-top:24px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:2px;text-transform:uppercase;
+    color:rgba(255,255,255,.4);
+    display:inline-flex;align-items:center;gap:8px;
+    padding:8px 14px;border-radius:999px;
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.03);
+    transition:all .25s;
+  }
+  .flip-card:hover .flip-front-hint{
+    color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.25);
+  }
+
+  /* VERSO · lista de itens */
+  .flip-card-back{
+    transform:rotateY(180deg);
+    padding:32px 28px;justify-content:flex-start;
+    border:1px solid rgba(255,255,255,.10);
+  }
+  .flip-card-no .flip-card-back{
+    background:linear-gradient(160deg,#2A0808 0%,#1A0303 100%);
+  }
+  .flip-card-yes .flip-card-back{
+    background:linear-gradient(160deg,#1A2820 0%,#0A1A12 100%);
+  }
+  .flip-back-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:3px;text-transform:uppercase;
+    margin-bottom:18px;padding-bottom:14px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .flip-card-no .flip-back-tag{color:#E84545}
+  .flip-card-yes .flip-back-tag{color:var(--logo-green)}
+  .flip-back-list{display:flex;flex-direction:column;gap:0;flex:1}
+  .flip-back-item{
+    padding:14px 0;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    display:flex;align-items:flex-start;gap:14px;
+  }
+  .flip-back-item:last-child{border-bottom:0}
+  .flip-back-mark{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:3px;
+    margin-top:5px;min-width:32px;
+  }
+  .flip-card-no .flip-back-mark{color:rgba(232,69,69,.7)}
+  .flip-card-yes .flip-back-mark{color:var(--logo-green)}
+  .flip-back-text{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(15px,1.5vw,20px);
+    letter-spacing:1.2px;line-height:1.2;
+    color:#fff;text-transform:uppercase;
+  }
+  .flip-back-text .accent{color:var(--logo-green)}
+  .flip-card-no .flip-back-text{color:rgba(255,255,255,.7)}
+  .flip-back-close{
+    margin-top:14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:2px;text-transform:uppercase;
+    color:rgba(255,255,255,.4);text-align:center;
+    padding-top:12px;border-top:1px solid rgba(255,255,255,.06);
+  }
+
+  @media(max-width:760px){
+    .creed-flip-wrap{grid-template-columns:1fr;gap:18px;margin-top:32px}
+    .flip-card{height:auto;min-height:380px}
+    .flip-card-no{min-height:360px}
+    .flip-card-yes{min-height:420px}
+    .flip-front-word{font-size:96px;letter-spacing:6px}
+    .manifesto-text{margin-bottom:36px}
+  }
+
+  /* CTA editorial abaixo dos flip cards · "As cartas estão na mesa, mude o jogo" */
+  .creed-cta{
+    margin:56px auto 0;max-width:880px;text-align:center;
+    padding:40px 24px 16px;
+    border-top:1px solid rgba(255,255,255,.08);
+    position:relative;
+  }
+  .creed-cta::before{
+    content:'';position:absolute;top:-1px;left:50%;transform:translateX(-50%);
+    width:64px;height:1px;background:var(--logo-green);
+  }
+  .creed-cta-line{
+    font-family:'Fraunces',Georgia,serif;
+    font-size:clamp(28px,4vw,46px);font-weight:500;letter-spacing:-.6px;
+    line-height:1.18;color:#fff;font-style:italic;
+    margin-bottom:24px;
+  }
+  .creed-cta-line .accent{color:var(--logo-green);font-style:normal;font-weight:500}
+  .creed-cta-actions{
+    display:inline-flex;gap:12px;flex-wrap:wrap;justify-content:center;
+    margin-top:8px;
+  }
+  .creed-cta-btn{
+    font-family:'Inter',sans-serif;font-size:13px;font-weight:500;letter-spacing:-.1px;
+    padding:14px 26px;border-radius:999px;text-decoration:none;
+    display:inline-flex;align-items:center;gap:8px;
+    transition:all .2s;
+  }
+  .creed-cta-btn.solid{
+    background:var(--logo-green);color:#0F2918;
+    border:1px solid var(--logo-green);
+  }
+  .creed-cta-btn.solid:hover{background:#1FB873;border-color:#1FB873;transform:translateY(-1px)}
+  .creed-cta-btn.outline{
+    background:transparent;color:#fff;
+    border:1px solid rgba(255,255,255,.30);
+  }
+  .creed-cta-btn.outline:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.5);transform:translateY(-1px)}
+  .creed-cta-btn svg{width:14px;height:14px;stroke-width:2}
+
+  @media(max-width:600px){
+    .creed-cta{padding:32px 16px 12px;margin-top:40px}
+    .creed-cta-line{font-size:24px}
+    .creed-cta-actions{flex-direction:column;width:100%}
+    .creed-cta-btn{justify-content:center}
+  }
+
+  @media(max-width:900px){
+    .sobre-manifesto{padding:80px 24px}
+    .sm-grid{grid-template-columns:1fr;gap:32px}
+    .sm-block{padding:48px 0}
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     PERSONA-PICK · seção dedicada após o hero · pergunta gigante + botões coloridos
+     Botão verde = trabalhador · botão mostarda = empresário
+     ════════════════════════════════════════════════════════════════ */
+  .persona-pick{
+    background:#000;
+    color:#fff;
+    padding:140px 48px 120px;
+    min-height:80vh;
+    display:flex;align-items:center;justify-content:center;
+    text-align:center;
+    position:relative;overflow:hidden;
+  }
+  .persona-pick::before{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:
+      radial-gradient(circle at 25% 30%,rgba(184,132,47,.12) 1px,transparent 2px),
+      radial-gradient(circle at 75% 70%,rgba(45,95,63,.12) 1px,transparent 2px);
+    background-size:600px 600px,500px 500px;
+    animation:drift 100s linear infinite;
+  }
+  .persona-pick::after{
+    content:'';position:absolute;inset:0;pointer-events:none;z-index:1;
+    background:
+      radial-gradient(ellipse at 25% 50%,rgba(184,132,47,.15) 0%,transparent 50%),
+      radial-gradient(ellipse at 75% 50%,rgba(45,95,63,.18) 0%,transparent 50%);
+  }
+  .persona-pick-inner{
+    max-width:1180px;margin:0 auto;width:100%;
+    position:relative;z-index:5;
+  }
+  .persona-pick-tag{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:4px;text-transform:uppercase;
+    color:rgba(255,255,255,.7);
+    padding:8px 18px;
+    border:1px solid rgba(255,255,255,.18);
+    border-radius:999px;
+    background:rgba(255,255,255,.04);
+    margin-bottom:32px;
+  }
+  .persona-pick-tag .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:#fff;
+    animation:pulse-dot 2s ease infinite;
+  }
+  .persona-pick-h{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(56px,9.5vw,156px);
+    letter-spacing:clamp(4px,.7vw,12px);
+    line-height:.92;
+    color:#fff;
+    margin-bottom:24px;
+  }
+  .persona-pick-h .accent{color:var(--logo-green)}
+  .persona-pick-d{
+    font-size:clamp(15px,1.4vw,18px);
+    color:rgba(255,255,255,.7);
+    line-height:1.5;max-width:560px;
+    margin:0 auto 64px;
+  }
+  .persona-pick-d b{color:#fff;font-weight:600}
+
+  .persona-pick-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:18px;
+    max-width:1080px;margin:0 auto;
+  }
+  .persona-btn{
+    position:relative;
+    height:380px;
+    border-radius:28px;overflow:hidden;
+    cursor:pointer;
+    text-align:left;
+    display:flex;flex-direction:column;
+    transition:all .4s cubic-bezier(.16,1,.3,1);
+    border:0;
+    color:#fff;
+    text-decoration:none;
+  }
+  .persona-btn:hover{
+    transform:translateY(-6px);
+    box-shadow:0 32px 80px rgba(0,0,0,.6);
+  }
+  .p-btn-photo{
+    height:58%;
+    background-size:cover;
+    background-position:center 30%;
+    position:relative;
+    transition:transform .6s cubic-bezier(.16,1,.3,1);
+  }
+  .persona-btn:hover .p-btn-photo{transform:scale(1.05)}
+  .p-btn-photo::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.35) 100%);
+  }
+  .p-btn-content{
+    flex:1;
+    padding:28px 32px 28px;
+    display:flex;flex-direction:column;justify-content:center;
+    position:relative;
+  }
+  .p-btn-eye{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:3px;text-transform:uppercase;
+    color:rgba(255,255,255,.7);
+    margin-bottom:10px;
+  }
+  .p-btn-h{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(32px,3.5vw,48px);
+    letter-spacing:3px;
+    line-height:1;
+    color:#fff;
+    margin-bottom:8px;
+  }
+  .p-btn-d{
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    color:rgba(255,255,255,.85);
+    line-height:1.5;
+    max-width:320px;
+  }
+  .p-btn-arrow{
+    position:absolute;
+    top:50%;right:28px;transform:translateY(-50%);
+    width:52px;height:52px;border-radius:50%;
+    background:rgba(255,255,255,.95);
+    color:#0A0A0A;
+    display:flex;align-items:center;justify-content:center;
+    transition:all .3s cubic-bezier(.16,1,.3,1);
+    box-shadow:0 8px 24px rgba(0,0,0,.3);
+  }
+  .persona-btn:hover .p-btn-arrow{transform:translateY(-50%) translateX(6px)}
+  .p-btn-arrow svg{width:20px;height:20px;stroke-width:2}
+
+  /* CONTRATAR · mostarda dourado */
+  .persona-btn.p-emp{
+    background:linear-gradient(180deg,var(--vinho) 0%,var(--vinho-2) 60%,#5C3F0E 100%);
+  }
+  .persona-btn.p-emp .p-btn-eye{color:#FCEAB8}
+
+  /* TRABALHAR · verde */
+  .persona-btn.p-pro{
+    background:linear-gradient(180deg,var(--green-2) 0%,var(--green) 60%,#1A3A26 100%);
+  }
+  .persona-btn.p-pro .p-btn-eye{color:#A3DDB5}
+
+  @media(max-width:900px){
+    .persona-pick{padding:80px 24px}
+    .persona-pick-grid{grid-template-columns:1fr}
+    .persona-btn{height:300px}
+  }
+
+  /* Nav arrows · ao lado dos botões dos atos no story-foot */
+  .story-nav{
+    display:flex;align-items:center;gap:8px;
+  }
+  .story-nav button{
+    width:38px;height:38px;border-radius:999px;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:all .2s;
+  }
+  .story-nav button:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.32);transform:translateY(-1px)}
+  .story-nav button svg{width:14px;height:14px;stroke-width:2}
+
+  @media(max-width:720px){
+    .story-split{grid-template-columns:1fr;gap:14px}
+    .story-divider{display:none}
+    .story-col{min-height:300px}
+    .story-card-photo{height:120px}
+    .story-act-num{font-size:80px;letter-spacing:2px}
+    .story-h{font-size:20px}
+  }
+  .scroll-hint{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:10;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;color:rgba(255,255,255,.5);text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;animation:fade-tag 1s ease 2.6s forwards}
+  .scroll-hint::after{content:'';width:1px;height:30px;background:rgba(255,255,255,.3);animation:scrollLine 2s ease infinite}
+  @keyframes scrollLine{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+  /* ════════════════════════════════════════════════════════════════
+     CURVA CROMÁTICA NARRATIVA · vermelho-escuro → mostarda → verde
+     A cor caminha junto do storytelling: dor → transição → liberdade
+     ════════════════════════════════════════════════════════════════ */
+
+  /* ATO 2 · A DOR · preto → vermelho profundo (a dor pesa) */
+  .ato-dor{position:relative;background:linear-gradient(180deg,#000 0%,#1A0708 40%,var(--red-deep) 100%);padding:140px 48px 160px;color:#fff;overflow:hidden}
+  .ato-dor::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 30% 40%,rgba(255,255,255,.04) 1px,transparent 2px),radial-gradient(circle at 70% 70%,rgba(255,255,255,.05) 1px,transparent 2px);background-size:500px 500px,400px 400px;animation:drift 80s linear infinite}
+  .ato-dor .ato-eyebrow{color:#F2A8AB}
+  .ato-dor .ato-eyebrow::before{background:#F2A8AB}
+  .ato-inner{max-width:1300px;margin:0 auto;position:relative;z-index:5}
+  .ato-eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#F2D984;margin-bottom:24px;display:flex;align-items:center;gap:14px}
+  .ato-eyebrow::before{content:'';width:48px;height:1px;background:#F2D984}
+  .ato-h{font-size:clamp(56px,9vw,140px);font-weight:700;letter-spacing:-3px;line-height:.95;color:#fff;margin-bottom:48px}
+  .ato-lead{font-size:clamp(20px,2vw,28px);font-weight:400;line-height:1.4;max-width:760px;color:rgba(255,255,255,.85);margin-bottom:64px}
+  .ato-lead b{color:#fff;font-weight:600}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:32px;padding:48px 0;border-top:1px solid rgba(255,255,255,.15);border-bottom:1px solid rgba(255,255,255,.15)}
+  .stat-num{font-family:'Inter',sans-serif;font-size:64px;font-weight:700;letter-spacing:-2px;line-height:1;color:#fff;margin-bottom:12px}
+  .stat-num small{font-size:32px;font-weight:600;color:rgba(255,255,255,.65)}
+  .stat-l{font-size:14px;color:rgba(255,255,255,.7);line-height:1.5;max-width:240px}
+  .stat-l b{color:#fff;font-weight:500}
+
+  /* ATO 3 · O PROBLEMA · vermelho queimado → mostarda escuro (transição inicia) */
+  .ato-problema{background:linear-gradient(180deg,var(--red-deep) 0%,var(--red-burn) 50%,var(--vinho-2) 100%);padding:120px 48px;color:#fff;position:relative;overflow:hidden}
+  .ato-problema::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 80% 20%,rgba(255,255,255,.06) 2px,transparent 3px),radial-gradient(circle at 20% 80%,rgba(255,255,255,.04) 1.5px,transparent 2.5px);background-size:600px 600px,400px 400px;animation:drift 90s linear infinite}
+  .ato-problema .ato-eyebrow{color:#F8E2B8}
+  .ato-problema .ato-eyebrow::before{background:#F8E2B8}
+  .problemas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;max-width:1300px;margin:64px auto 0;border-radius:24px;overflow:hidden;background:rgba(255,255,255,.05);position:relative;z-index:5;border:1px solid rgba(255,255,255,.1)}
+  .problema{padding:36px 28px;border-right:1px solid rgba(255,255,255,.1)}
+  .problema:last-child{border-right:0}
+  .problema-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:#F8E2B8;letter-spacing:2px;margin-bottom:20px}
+  .problema-h{font-family:'Inter',sans-serif;font-size:22px;font-weight:600;letter-spacing:-.4px;line-height:1.2;color:#fff;margin-bottom:14px}
+  .problema-d{font-size:14px;color:rgba(255,255,255,.75);line-height:1.6}
+
+  /* ATO 4 · A TRANSIÇÃO · mostarda dourado puro (a virada · "e se?") */
+  .ato-transicao{background:linear-gradient(180deg,var(--vinho-2) 0%,var(--vinho) 45%,#8E5E1F 100%);padding:160px 48px;color:#fff;text-align:center;position:relative;overflow:hidden}
+  .ato-transicao::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 50% 50%,rgba(255,255,255,.05) 1px,transparent 2px);background-size:400px 400px;animation:drift 100s linear infinite}
+  .transicao-inner{max-width:900px;margin:0 auto;position:relative;z-index:5}
+  .transicao-q{font-family:'Bebas Neue',sans-serif;font-size:clamp(72px,12vw,180px);letter-spacing:8px;line-height:.95;color:#fff;margin-bottom:48px}
+  .transicao-q span{color:#7FCB95}
+  .transicao-list{display:flex;flex-direction:column;gap:20px;margin:48px 0;text-align:left;max-width:680px;margin-left:auto;margin-right:auto}
+  .transicao-item{display:flex;align-items:flex-start;gap:18px;font-size:18px;color:rgba(255,255,255,.85);line-height:1.6}
+  .transicao-item::before{content:'';width:8px;height:8px;border-radius:50%;background:#7FCB95;margin-top:10px;flex-shrink:0}
+  .transicao-item b{color:#fff;font-weight:500}
+  .transicao-promise{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:48px}
+  .promise-pill{padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.5px;color:#fff}
+  .promise-pill svg{width:13px;height:13px;vertical-align:middle;margin-right:6px;color:#7FCB95}
+
+  /* ATO 5 · A LIBERDADE · mostarda → verde (resolução) */
+  .ato-liberdade{position:relative;background:linear-gradient(180deg,#8E5E1F 0%,#1F4030 35%,var(--green) 100%);padding:140px 48px 160px;color:#fff;overflow:hidden}
+  .ato-liberdade::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 25% 25%,rgba(255,255,255,.04) 1px,transparent 2px),radial-gradient(circle at 75% 75%,rgba(255,255,255,.05) 1px,transparent 2px);background-size:500px 500px,600px 600px;animation:drift 70s linear infinite}
+  .ato-liberdade .ato-eyebrow{color:#7FCB95}
+  .ato-liberdade .ato-eyebrow::before{background:#7FCB95}
+
+  .beneficios-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;max-width:1300px;margin:64px auto 0;border-radius:24px;overflow:hidden;background:rgba(255,255,255,.05);position:relative;z-index:5;border:1px solid rgba(255,255,255,.1)}
+  .beneficio{padding:36px 28px;border-right:1px solid rgba(255,255,255,.1)}
+  .beneficio:last-child{border-right:0}
+  .beneficio-ic{width:44px;height:44px;border-radius:12px;background:rgba(127,203,149,.15);color:#7FCB95;display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+  .beneficio-ic svg{width:20px;height:20px;stroke-width:1.8}
+  .beneficio-h{font-family:'Inter',sans-serif;font-size:22px;font-weight:600;letter-spacing:-.4px;line-height:1.2;color:#fff;margin-bottom:14px}
+  .beneficio-d{font-size:14px;color:rgba(255,255,255,.75);line-height:1.6}
+
+  /* ════════════════════════════════════════════════════════════════
+     ATO 6 · A EQUIPE · verde escuro → preto · final do arco
+     ════════════════════════════════════════════════════════════════ */
+  .ato-equipe{background:linear-gradient(180deg,var(--green) 0%,#0F1F16 60%,var(--black) 100%);padding:140px 48px;color:#fff;text-align:center;position:relative;overflow:hidden}
+  .equipe-inner{max-width:1300px;margin:0 auto;position:relative;z-index:5}
+  .equipe-h{font-family:'Inter',sans-serif;font-size:clamp(48px,8vw,120px);font-weight:700;letter-spacing:-2.5px;line-height:.95;margin-bottom:24px}
+  .equipe-h .accent{color:var(--logo-green)}
+  .equipe-d{font-size:18px;color:rgba(255,255,255,.7);max-width:680px;margin:0 auto 64px;line-height:1.55}
+  .equipe-d b{color:#fff;font-weight:500}
+  .equipe-photo{width:100%;height:480px;border-radius:32px;overflow:hidden;background:#1A1A1A;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.5)}
+  .equipe-photo img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.05) brightness(.85)}
+  .equipe-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.5) 0%,transparent 50%)}
+  .equipe-credentials{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin-top:48px;padding-top:48px;border-top:1px solid rgba(255,255,255,.1)}
+  .cred{text-align:left}
+  .cred-num{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:1px;color:var(--logo-green);line-height:1;margin-bottom:10px}
+  .cred-d{font-size:13px;color:rgba(255,255,255,.7);line-height:1.5}
+  .cred-d b{color:#fff;font-weight:500}
+
+  /* ════════════════════════════════════════════════════════════════
+     ATO 7 · AS ROTAS · split vinho/verde · contratar | trabalhar
+     ════════════════════════════════════════════════════════════════ */
+  .ato-rotas{display:grid;grid-template-columns:1fr 1fr;min-height:780px}
+  .rota{padding:96px 64px;color:#fff;position:relative;overflow:hidden}
+  .rota::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 50% 50%,rgba(255,255,255,.05) 2px,transparent 3px);background-size:500px 500px;animation:drift 100s linear infinite}
+  .rota-emp{background:linear-gradient(180deg,var(--vinho) 0%,var(--vinho-2) 100%)}
+  .rota-pro{background:linear-gradient(180deg,var(--green-2) 0%,var(--green) 100%)}
+  .rota-inner{max-width:560px;position:relative;z-index:5;display:flex;flex-direction:column;height:100%}
+  .rota-tag{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:24px;display:flex;align-items:center;gap:14px}
+  .rota-tag::before{content:'';width:36px;height:1px;background:rgba(255,255,255,.5)}
+  .rota-h{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,7vw,96px);letter-spacing:4px;line-height:.95;color:#fff;margin-bottom:24px}
+  .rota-d{font-size:17px;color:rgba(255,255,255,.85);line-height:1.55;margin-bottom:36px}
+  .rota-list{display:flex;flex-direction:column;gap:14px;margin-bottom:48px;flex-grow:1}
+  .rota-item{display:flex;align-items:flex-start;gap:14px;font-size:15px;color:rgba(255,255,255,.85);line-height:1.5}
+  .rota-item svg{width:16px;height:16px;color:#fff;margin-top:3px;flex-shrink:0;stroke-width:2}
+  .rota-cta{align-self:flex-start;background:#fff;color:var(--text);padding:14px 28px;border-radius:999px;font-size:15px;font-weight:500;display:inline-flex;align-items:center;gap:8px;transition:all .15s;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+  .rota-cta:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+  .rota-cta svg{width:14px;height:14px;stroke-width:2}
+
+  /* ════════════════════════════════════════════════════════════════
+     JORNADAS POR PERSONA · CONTRATAR (mostarda) · TRABALHAR (verde)
+     Reaproveita textos da v6 estruturados nas seções pedidas
+     ════════════════════════════════════════════════════════════════ */
+  .journey{padding:0;color:#fff;position:relative}
+  .journey-hero{
+    padding:120px 48px 80px;text-align:center;position:relative;overflow:hidden;
+  }
+  .j-emp .journey-hero{background:linear-gradient(180deg,var(--vinho-2) 0%,#5C400F 100%)}
+  .j-pro .journey-hero{background:linear-gradient(180deg,var(--green) 0%,#1E4030 100%)}
+  .journey-hero::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 30% 50%,rgba(255,255,255,.05) 1px,transparent 2px),radial-gradient(circle at 70% 50%,rgba(255,255,255,.04) 1px,transparent 2px);background-size:500px 500px,400px 400px;animation:drift 90s linear infinite}
+  .journey-hero-inner{position:relative;z-index:5;max-width:920px;margin:0 auto}
+  .j-pretitle{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:4px;text-transform:uppercase;
+    color:rgba(255,255,255,.8);
+    display:inline-flex;align-items:center;gap:10px;
+    padding:8px 18px;border:1px solid rgba(255,255,255,.25);
+    border-radius:999px;background:rgba(255,255,255,.08);
+    margin-bottom:28px;
+  }
+  .j-pretitle .dot{width:6px;height:6px;border-radius:50%;background:#fff}
+  .j-emp .j-pretitle .dot{background:#F8E2B8}
+  .j-pro .j-pretitle .dot{background:#9DD9B0}
+  .j-title{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(56px,9vw,128px);letter-spacing:6px;line-height:.95;
+    color:#fff;margin-bottom:18px;
+  }
+  .j-sub{
+    font-size:clamp(17px,1.6vw,20px);color:rgba(255,255,255,.85);
+    line-height:1.55;max-width:680px;margin:0 auto;
+  }
+  .j-sub b{color:#fff;font-weight:600}
+
+  /* Tabs/Chips · navegação interna da jornada */
+  .j-chips{
+    display:flex;flex-wrap:wrap;justify-content:center;gap:8px;
+    margin-top:48px;
+  }
+  .j-chip{
+    padding:9px 18px;border-radius:999px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:2px;text-transform:uppercase;
+    color:rgba(255,255,255,.65);
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.15);
+    transition:all .2s;cursor:pointer;
+  }
+  .j-chip:hover{color:#fff;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3)}
+
+  /* Sections · cada bloco de conteúdo da jornada */
+  .j-section{padding:96px 48px;position:relative;overflow:hidden}
+  .j-emp .j-section:nth-child(odd){background:#1A1408}
+  .j-emp .j-section:nth-child(even){background:#221C0E}
+  .j-pro .j-section:nth-child(odd){background:#0A1F14}
+  .j-pro .j-section:nth-child(even){background:#0E261A}
+  .j-section::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 50% 30%,rgba(255,255,255,.025) 1px,transparent 2px);background-size:500px 500px;animation:drift 100s linear infinite}
+  .j-wrap{max-width:1180px;margin:0 auto;position:relative;z-index:5}
+  .j-eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:3px;text-transform:uppercase;
+    color:rgba(255,255,255,.5);margin-bottom:24px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .j-eyebrow .num{font-size:12px;color:#fff;letter-spacing:1.5px}
+  .j-eyebrow::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.15),transparent)}
+  .j-emp .j-eyebrow .num{color:#F8E2B8}
+  .j-pro .j-eyebrow .num{color:#9DD9B0}
+
+  .j-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
+  .j-h{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(38px,5vw,72px);letter-spacing:3px;line-height:1;
+    color:#fff;margin-bottom:24px;
+  }
+  .j-p{font-size:17px;color:rgba(255,255,255,.78);line-height:1.65;margin-bottom:18px}
+  .j-p b{color:#fff;font-weight:600}
+  .j-emp .j-p b{color:#F8E2B8}
+  .j-pro .j-p b{color:#9DD9B0}
+
+  /* Lista compacta · check + texto */
+  .j-list{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+  .j-list-item{
+    display:flex;align-items:flex-start;gap:14px;
+    padding:14px 16px;
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:12px;
+    font-size:14px;color:rgba(255,255,255,.85);line-height:1.5;
+  }
+  .j-list-item svg{width:16px;height:16px;flex-shrink:0;margin-top:3px;stroke-width:2}
+  .j-emp .j-list-item svg{color:#F8E2B8}
+  .j-pro .j-list-item svg{color:#9DD9B0}
+  .j-list-item b{color:#fff;font-weight:500}
+
+  /* Cenários · 4 quadros vazados em grid 2x2 com linhas de cruz */
+  .j-scenarios{
+    display:grid;grid-template-columns:1fr 1fr;
+    gap:0;
+    border:1px solid rgba(255,255,255,.1);
+  }
+  .j-scen{
+    padding:26px 22px;
+    background:transparent;
+    border:0;border-radius:0;
+  }
+  .j-scen:nth-child(2n+1){border-right:1px solid rgba(255,255,255,.08)}
+  .j-scen:nth-child(-n+2){border-bottom:1px solid rgba(255,255,255,.08)}
+  .j-scen-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:2px;text-transform:uppercase;
+    color:#F8E2B8;margin-bottom:10px;
+  }
+  .j-pro .j-scen-tag{color:#9DD9B0}
+  .j-scen-d{font-size:13px;color:rgba(255,255,255,.78);line-height:1.5}
+
+  /* Compliance zones · vazado · faixa colorida vertical à esquerda mantém semântica */
+  .j-zones{
+    display:grid;grid-template-columns:1fr;gap:0;margin-top:20px;
+    border-top:1px solid rgba(255,255,255,.1);
+  }
+  .j-zone{
+    padding:22px 20px 22px 24px;
+    background:transparent;
+    border:0;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    border-left:3px solid transparent;
+    border-radius:0;
+    display:flex;align-items:flex-start;gap:14px;
+    transition:background .3s,padding-left .3s;
+  }
+  .j-zone:hover{padding-left:32px}
+  .j-zone-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:5px;box-shadow:0 0 0 4px rgba(255,255,255,.04)}
+  .j-zone.zone-g{border-left-color:#3AAA68}
+  .j-zone.zone-g:hover{background:rgba(58,170,104,.04)}
+  .j-zone.zone-y{border-left-color:#E8A645}
+  .j-zone.zone-y:hover{background:rgba(232,166,69,.04)}
+  .j-zone.zone-r{border-left-color:#E84545}
+  .j-zone.zone-r:hover{background:rgba(232,69,69,.04)}
+  .j-zone.zone-g .j-zone-dot{background:#3AAA68}
+  .j-zone.zone-y .j-zone-dot{background:#E8A645}
+  .j-zone.zone-r .j-zone-dot{background:#E84545}
+  .j-zone-h{font-size:14px;font-weight:600;color:#fff;margin-bottom:4px;letter-spacing:-.2px}
+  .j-zone-d{font-size:13px;color:rgba(255,255,255,.7);line-height:1.5}
+
+  /* Checklist demo card */
+  .j-checklist{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:18px;padding:24px;
+  }
+  .j-checklist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .j-checklist-title{font-size:13px;color:#fff;font-weight:600;letter-spacing:-.2px}
+  .j-checklist-tag{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,.5);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px}
+  .j-checklist-pct{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:#fff}
+  .j-emp .j-checklist-pct{color:#F8E2B8}
+  .j-pro .j-checklist-pct{color:#9DD9B0}
+  .j-bar{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:18px}
+  .j-bar-fill{height:100%;width:75%;border-radius:2px}
+  .j-emp .j-bar-fill{background:linear-gradient(90deg,#F8E2B8,#B8842F)}
+  .j-pro .j-bar-fill{background:linear-gradient(90deg,#9DD9B0,#3AAA68)}
+  .j-cl-items{display:flex;flex-direction:column;gap:8px}
+  .j-cl-item{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:13px;color:rgba(255,255,255,.8)}
+  .j-cl-item.dim{color:rgba(255,255,255,.4)}
+  .j-cl-check{width:18px;height:18px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px}
+  .j-cl-item:not(.dim) .j-cl-check{background:rgba(58,170,104,.18);color:#7FCB95}
+  .j-cl-item.dim .j-cl-check{border:1px solid rgba(255,255,255,.15)}
+  .j-cl-time{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.5px}
+
+  /* Calculadora visual · trabalhador */
+  .j-calc{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:18px;padding:28px;
+  }
+  .j-calc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .j-calc-h{font-size:13px;font-weight:600;color:#fff;letter-spacing:-.2px}
+  .j-calc-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase;margin-top:3px}
+  .j-calc-result{text-align:right}
+  .j-calc-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,.5);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+  .j-calc-value{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:2px;color:#9DD9B0;line-height:1}
+  .j-calc-controls{display:flex;flex-direction:column;gap:18px;margin-bottom:20px}
+  .j-ctrl-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:rgba(255,255,255,.85);margin-bottom:6px}
+  .j-ctrl-val{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.5px;color:#fff}
+  .j-ctrl input[type=range]{width:100%;height:4px;background:rgba(255,255,255,.1);border-radius:2px;-webkit-appearance:none;outline:none}
+  .j-ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#3AAA68;cursor:pointer;box-shadow:0 0 12px rgba(58,170,104,.6)}
+  .j-ctrl input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#3AAA68;cursor:pointer;border:0}
+  .j-calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}
+  .j-calc-cell{text-align:center;padding:10px 6px;background:rgba(255,255,255,.03);border-radius:10px}
+  .j-calc-cell-n{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:#9DD9B0;line-height:1;margin-bottom:4px}
+  .j-calc-cell-l{font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase}
+  .j-calc-foot{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.3px;margin-top:14px;text-align:center}
+
+  /* Levels row · níveis do profissional · vazado com linha do active no rodapé */
+  .j-levels{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    gap:0;margin-top:32px;
+    border-top:1px solid rgba(255,255,255,.1);
+    border-bottom:1px solid rgba(255,255,255,.1);
+  }
+  .j-level{
+    padding:26px 22px;
+    background:transparent;
+    border:0;border-radius:0;
+    text-align:left;
+    position:relative;
+    transition:background .3s;
+  }
+  .j-level:not(:last-child){border-right:1px solid rgba(255,255,255,.08)}
+  .j-level:hover{background:rgba(255,255,255,.025)}
+  .j-level.active::after{
+    content:'';position:absolute;
+    left:22px;right:22px;bottom:-1px;
+    height:2px;background:#9DD9B0;border-radius:2px;
+  }
+  .j-level-num{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-bottom:8px}
+  .j-level-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#fff;margin-bottom:6px}
+  .j-level.active .j-level-name{color:#9DD9B0}
+  .j-level-pts{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,.55);letter-spacing:.5px;margin-bottom:14px}
+  .j-level-perks{display:flex;flex-direction:column;gap:6px}
+  .j-level-perk{font-size:11.5px;color:rgba(255,255,255,.7);line-height:1.4;display:flex;align-items:flex-start;gap:6px}
+  .j-level-perk::before{content:'•';color:#9DD9B0;flex-shrink:0}
+
+  /* Stat block (3 col) · vazado · linhas finíssimas separando */
+  .j-stats{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    gap:0;margin-top:32px;
+    border-top:1px solid rgba(255,255,255,.1);
+    border-bottom:1px solid rgba(255,255,255,.1);
+  }
+  .j-stat{
+    padding:28px 20px;
+    background:transparent;
+    border:0;border-radius:0;
+    text-align:center;
+  }
+  .j-stat:not(:last-child){border-right:1px solid rgba(255,255,255,.08)}
+  .j-stat-num{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:2px;color:#fff;line-height:1;margin-bottom:6px}
+  .j-emp .j-stat-num{color:#F8E2B8}
+  .j-pro .j-stat-num{color:#9DD9B0}
+  .j-stat-l{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,.55);letter-spacing:1.5px;text-transform:uppercase;line-height:1.4}
+
+  /* ════ PADRÃO VAZADO · plans/stats/scenarios/levels/zones ════ */
+  /* Cards transparentes separados por linhas finíssimas · estética editorial */
+
+  /* Plans · 3 cards vazados separados por linhas verticais */
+  .j-plans{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    gap:0;margin-top:32px;
+    border-top:1px solid rgba(255,255,255,.1);
+    border-bottom:1px solid rgba(255,255,255,.1);
+  }
+  .j-plans.j-plans-2{grid-template-columns:repeat(2,1fr)}
+  .j-plan{
+    padding:44px 32px;
+    background:transparent;
+    border:0;
+    border-radius:0;
+    display:flex;flex-direction:column;
+    position:relative;
+    transition:background .3s;
+  }
+  .j-plan:not(:last-child){border-right:1px solid rgba(255,255,255,.08)}
+  .j-plan:hover{background:rgba(255,255,255,.025)}
+  /* Featured · destacado por linha luminosa no rodapé */
+  .j-plan.featured{background:transparent}
+  .j-plan.featured::after{
+    content:'';position:absolute;
+    left:32px;right:32px;bottom:0;
+    height:2px;border-radius:2px;
+  }
+  .j-emp .j-plan.featured::after{background:linear-gradient(90deg,transparent,#F8E2B8 50%,transparent)}
+  .j-pro .j-plan.featured::after{background:linear-gradient(90deg,transparent,#9DD9B0 50%,transparent)}
+  .j-plan.featured:hover{background:rgba(255,255,255,.04)}
+  .j-plan-tag{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:14px;display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.06);align-self:flex-start}
+  .j-plan.featured .j-plan-tag{color:#fff;background:rgba(255,255,255,.12)}
+  .j-emp .j-plan.featured .j-plan-tag{color:#F8E2B8;background:rgba(232,166,69,.12)}
+  .j-pro .j-plan.featured .j-plan-tag{color:#9DD9B0;background:rgba(58,170,104,.12)}
+  .j-plan-price{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:2px;color:#fff;line-height:1;margin-bottom:6px}
+  .j-emp .j-plan.featured .j-plan-price{color:#F8E2B8}
+  .j-pro .j-plan.featured .j-plan-price{color:#9DD9B0}
+  .j-plan-period{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase;margin-bottom:18px}
+  .j-plan-desc{font-size:13.5px;color:rgba(255,255,255,.8);line-height:1.55;margin-bottom:22px;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .j-plan-feats{display:flex;flex-direction:column;gap:10px;flex-grow:1;margin-bottom:22px}
+  .j-plan-feat{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:rgba(255,255,255,.85);line-height:1.5}
+  .j-plan-feat svg{width:14px;height:14px;flex-shrink:0;margin-top:3px;stroke-width:2.2;color:#9DD9B0}
+  .j-emp .j-plan-feat svg{color:#F8E2B8}
+  .j-plan-feat.off{color:rgba(255,255,255,.35)}
+  .j-plan-feat.off svg{color:rgba(255,255,255,.25)}
+  .j-plan-feat.bold{color:#fff;font-weight:600}
+  .j-plan-cta{padding:13px 18px;border-radius:999px;text-align:center;font-size:14px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+  .j-plan-cta.outline{border:1px solid rgba(255,255,255,.25);color:#fff;background:transparent}
+  .j-plan-cta.outline:hover{background:rgba(255,255,255,.08)}
+  .j-plan-cta.solid{background:#fff;color:#0A0A0A}
+  .j-plan-cta.solid:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+  .j-plan-guarantee{margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,.5);letter-spacing:.5px;text-align:center}
+
+  /* ════ TURNI HUB · espaço físico no Itaim · bloco no ecossistema ════ */
+  .hub-block{
+    margin-top:64px;padding:48px;
+    border-radius:24px;
+    background:linear-gradient(135deg,rgba(58,170,104,.06) 0%,rgba(0,168,104,.04) 100%);
+    border:1px solid rgba(58,170,104,.18);
+    position:relative;overflow:hidden;
+  }
+  .hub-block::before{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(circle at 80% 20%,rgba(58,170,104,.06) 1px,transparent 2px);
+    background-size:400px 400px;
+  }
+  .hub-grid{
+    display:grid;grid-template-columns:1.2fr 1fr;gap:48px;
+    align-items:center;position:relative;z-index:2;
+  }
+  .hub-tag{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:2.5px;text-transform:uppercase;
+    color:#9DD9B0;padding:6px 14px;
+    border:1px solid rgba(58,170,104,.3);border-radius:999px;
+    background:rgba(58,170,104,.08);
+    margin-bottom:20px;
+  }
+  .hub-tag .dot{
+    width:6px;height:6px;border-radius:50%;background:#9DD9B0;
+    box-shadow:0 0 10px rgba(58,170,104,.6);
+    animation:pulse-dot 2s ease infinite;
+  }
+  .hub-h{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(32px,4.4vw,56px);letter-spacing:2px;line-height:1;
+    color:#fff;margin-bottom:20px;
+  }
+  .hub-p{font-size:15.5px;line-height:1.65;color:rgba(255,255,255,.82);margin-bottom:14px}
+  .hub-p b{color:#9DD9B0;font-weight:600}
+  .hub-list{margin-top:24px;display:grid;grid-template-columns:1fr;gap:8px}
+  .hub-li{
+    display:flex;align-items:flex-start;gap:12px;
+    font-size:13.5px;color:rgba(255,255,255,.85);line-height:1.55;
+  }
+  .hub-li svg{width:14px;height:14px;flex-shrink:0;margin-top:3px;stroke-width:2;color:#9DD9B0}
+
+  /* Hub photo · foto editorial do lounge real do HUB Itaim */
+  .hub-photo{
+    width:100%;
+    aspect-ratio:16/11;
+    background-size:cover;background-position:center;
+    border-radius:24px;
+    position:relative;overflow:hidden;
+    box-shadow:0 24px 60px rgba(0,168,104,.15),0 16px 40px rgba(0,0,0,.4);
+    border:1px solid rgba(58,170,104,.25);
+  }
+  .hub-photo::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.55) 100%);
+    pointer-events:none;
+  }
+  .hub-photo-cap{
+    position:absolute;top:18px;left:18px;z-index:2;
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 12px;border-radius:999px;
+    background:rgba(0,0,0,.55);backdrop-filter:blur(10px);
+    border:1px solid rgba(157,217,176,.35);
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:2px;text-transform:uppercase;
+    color:#9DD9B0;
+  }
+  .hub-photo-cap .dot{
+    width:6px;height:6px;border-radius:50%;background:#3AAA68;
+    box-shadow:0 0 10px #3AAA68;
+    animation:pulse-dot 2s ease infinite;
+  }
+  .hub-photo-stats{
+    position:absolute;left:18px;right:18px;bottom:18px;z-index:2;
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+  }
+  .hub-photo-stat{
+    background:rgba(0,0,0,.55);backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:14px;
+    padding:10px 12px;
+    text-align:center;
+  }
+  .hub-photo-stat-n{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:24px;letter-spacing:1px;
+    color:#9DD9B0;line-height:1;margin-bottom:3px;
+  }
+  .hub-photo-stat-l{
+    font-family:'JetBrains Mono',monospace;
+    font-size:8.5px;letter-spacing:1px;
+    color:rgba(255,255,255,.65);
+    text-transform:uppercase;line-height:1.3;
+  }
+
+  /* Hub visual card · representação do espaço físico (fallback) */
+  .hub-visual{
+    display:flex;justify-content:center;
+  }
+  .hub-card{
+    width:100%;max-width:340px;
+    padding:32px 28px;
+    border-radius:24px;
+    background:linear-gradient(180deg,rgba(58,170,104,.12) 0%,rgba(0,30,18,.6) 100%);
+    border:1px solid rgba(58,170,104,.35);
+    box-shadow:0 24px 60px rgba(0,168,104,.18),inset 0 1px 0 rgba(255,255,255,.1);
+    text-align:center;
+    backdrop-filter:blur(12px);
+  }
+  .hub-card-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:2.5px;text-transform:uppercase;
+    color:#9DD9B0;margin-bottom:14px;
+  }
+  .hub-card-h{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:44px;letter-spacing:6px;line-height:1;
+    color:#fff;margin-bottom:6px;
+  }
+  .hub-card-sub{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.6);
+    text-transform:uppercase;margin-bottom:24px;
+  }
+  .hub-card-line{
+    width:48px;height:1px;
+    background:linear-gradient(90deg,transparent,#9DD9B0,transparent);
+    margin:0 auto 24px;
+  }
+  .hub-card-stats{display:flex;flex-direction:column;gap:14px;margin-bottom:20px}
+  .hub-card-stat{
+    padding:14px 16px;border-radius:14px;
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.08);
+    text-align:left;
+    display:flex;align-items:center;gap:14px;
+  }
+  .hub-card-stat-n{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:28px;letter-spacing:1px;color:#9DD9B0;line-height:1;flex-shrink:0;min-width:60px;
+  }
+  .hub-card-stat-l{
+    font-size:11.5px;color:rgba(255,255,255,.7);line-height:1.4;letter-spacing:-.1px;
+  }
+  .hub-card-foot{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.5);
+    padding-top:14px;border-top:1px solid rgba(255,255,255,.08);
+  }
+
+  @media(max-width:900px){
+    .hub-block{padding:32px 24px}
+    .hub-grid{grid-template-columns:1fr;gap:32px}
+    .hub-card{max-width:100%}
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     QUEM TURNIFICA · prova social · operações ao vivo + parceiros tech
+     ════════════════════════════════════════════════════════════════ */
+  .quem-turnifica{
+    background:linear-gradient(180deg,#000 0%,#0A0A0A 60%,#000 100%);
+    color:#fff;
+    padding:120px 48px;
+    text-align:center;
+    position:relative;overflow:hidden;
+  }
+  .quem-turnifica::before{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(circle at 50% 50%,rgba(255,255,255,.04) 1px,transparent 2px);
+    background-size:600px 600px;
+    animation:drift 110s linear infinite;
+  }
+  .qt-inner{max-width:1200px;margin:0 auto;position:relative;z-index:5}
+  .qt-tag{
+    display:inline-flex;align-items:center;gap:14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:4px;text-transform:uppercase;
+    color:rgba(255,255,255,.6);
+    margin-bottom:24px;
+  }
+  .qt-tag::before,.qt-tag::after{
+    content:'';width:36px;height:1px;background:rgba(255,255,255,.3);
+  }
+  .qt-h{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(40px,6vw,84px);
+    letter-spacing:clamp(3px,.6vw,8px);
+    line-height:.95;
+    color:#fff;margin-bottom:20px;
+  }
+  .qt-h .accent{color:var(--logo-green)}
+  .qt-d{
+    font-size:clamp(15px,1.4vw,17px);
+    color:rgba(255,255,255,.72);
+    max-width:680px;margin:0 auto 56px;
+    line-height:1.6;
+  }
+  .qt-d b{color:#fff;font-weight:600}
+
+  /* ════ CONTADOR VIVO · contratantes + prestadores cadastrados ════ */
+  /* Transmite evolução e desejo de pertencimento. Anima na entrada e tic ao vivo. */
+  .qt-counters{
+    display:grid;grid-template-columns:1fr 1fr;
+    gap:0;
+    margin:0 auto 64px;
+    padding:48px 32px;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:24px;
+    background:linear-gradient(135deg,rgba(0,168,104,.05) 0%,rgba(184,132,47,.04) 100%);
+    position:relative;overflow:hidden;
+    max-width:920px;
+  }
+  .qt-counters::before{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(circle at 50% 50%,rgba(255,255,255,.04) 1px,transparent 2px);
+    background-size:300px 300px;
+  }
+  .qt-counter{
+    text-align:center;position:relative;
+    padding:8px 24px;
+  }
+  .qt-counter:first-child::after{
+    content:'';
+    position:absolute;
+    right:0;top:50%;transform:translateY(-50%);
+    width:1px;height:80%;
+    background:linear-gradient(180deg,transparent,rgba(255,255,255,.15) 30%,rgba(255,255,255,.15) 70%,transparent);
+  }
+  .qt-live-tag{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:3px;text-transform:uppercase;
+    color:#9DD9B0;
+    margin-bottom:14px;
+  }
+  .qt-live-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:#3AAA68;
+    box-shadow:0 0 12px #3AAA68,0 0 24px rgba(58,170,104,.45);
+    animation:live-pulse 1.4s ease infinite;
+  }
+  @keyframes live-pulse{
+    0%,100%{transform:scale(1);opacity:1}
+    50%{transform:scale(1.3);opacity:.5}
+  }
+  .qt-counter-num{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(64px,9vw,128px);
+    letter-spacing:3px;line-height:1;
+    color:#fff;
+    margin-bottom:14px;
+    font-variant-numeric:tabular-nums;
+    background:linear-gradient(180deg,#fff 0%,#A0E0BA 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    transition:transform .35s cubic-bezier(.16,1,.3,1);
+  }
+  .qt-counter-num.tick{animation:counter-tick .55s cubic-bezier(.16,1,.3,1)}
+  @keyframes counter-tick{
+    0%{transform:translateY(0) scale(1);filter:brightness(1)}
+    50%{transform:translateY(-6px) scale(1.04);filter:brightness(1.4)}
+    100%{transform:translateY(0) scale(1);filter:brightness(1)}
+  }
+  .qt-counter-l{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:2px;text-transform:uppercase;
+    color:rgba(255,255,255,.6);
+    line-height:1.5;
+  }
+  .qt-counter-l b{color:#fff;font-weight:500}
+
+  /* ════ Logos dos clientes que turnificam ════ */
+  .qt-logos-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:3px;text-transform:uppercase;
+    color:rgba(255,255,255,.4);
+    margin-bottom:32px;
+  }
+  .qt-logos-line{
+    width:48px;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
+    margin:0 auto 32px;
+  }
+  .qt-logos{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:1px;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:24px;
+    overflow:hidden;
+  }
+  .qt-logo{
+    background:#0A0A0A;
+    padding:36px 20px;
+    text-align:center;
+    display:flex;align-items:center;justify-content:center;
+    min-height:180px;
+    transition:all .3s cubic-bezier(.16,1,.3,1);
+    cursor:default;
+  }
+  .qt-logo:hover{
+    background:#131313;
+  }
+  .qt-logo img{
+    max-width:140px;max-height:120px;
+    width:auto;height:auto;
+    opacity:.85;
+    filter:brightness(2.2) contrast(.7);
+    transition:opacity .3s,filter .3s;
+  }
+  .qt-logo:hover img{opacity:1;filter:brightness(2.4) contrast(.8)}
+  .qt-logo-text{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:22px;letter-spacing:2.5px;
+    color:rgba(255,255,255,.55);
+    line-height:1;
+    transition:color .3s;
+  }
+  .qt-logo:hover .qt-logo-text{color:#fff}
+  .qt-logo-text small{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:1.5px;
+    color:rgba(255,255,255,.4);
+    margin-top:8px;
+    text-transform:uppercase;
+  }
+
+  @media(max-width:720px){
+    .quem-turnifica{padding:80px 24px}
+    .qt-counters{grid-template-columns:1fr;padding:32px 20px;gap:32px}
+    .qt-counter:first-child::after{display:none}
+    .qt-counter:first-child{padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,.1)}
+    .qt-logos{grid-template-columns:repeat(2,1fr)}
+    .qt-logo{padding:24px 14px;min-height:140px}
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     PERSONA LOCK TOTAL · 2 fluxos isolados, sem mistura
+     Estado inicial · só HERO + STORY + PERSONA-PICK + FOOTER aparecem
+     Após escolha · jornada da persona + QUEM TURNIFICA + NÚMEROS + CTA
+     ════════════════════════════════════════════════════════════════ */
+  /* Default · escondidos até a escolha de persona */
+  .journey,
+  .quem-turnifica,
+  .numeros-turni,
+  .ato-cta{
+    display:none;
+  }
+
+  /* Persona EMP escolhida · revela contratar + comum + esconde trabalhar */
+  body.persona-emp .journey.j-emp,
+  body.persona-emp .quem-turnifica,
+  body.persona-emp .numeros-turni,
+  body.persona-emp .ato-cta{
+    display:block;
+  }
+  body.persona-emp .journey.j-pro{display:none}
+
+  /* Persona PRO escolhida · revela trabalhar + comum + esconde contratar */
+  body.persona-pro .journey.j-pro,
+  body.persona-pro .quem-turnifica,
+  body.persona-pro .numeros-turni,
+  body.persona-pro .ato-cta{
+    display:block;
+  }
+  body.persona-pro .journey.j-emp{display:none}
+
+  /* ════ NÚMEROS TURNI · mesma identidade visual da QUEM TURNIFICA ════ */
+  .numeros-turni{
+    background:linear-gradient(180deg,#000 0%,#0A0A0A 60%,#000 100%);
+    color:#fff;
+    padding:120px 48px;
+    text-align:center;
+    position:relative;overflow:hidden;
+  }
+  .numeros-turni::before{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:
+      radial-gradient(circle at 30% 50%,rgba(58,170,104,.08) 1px,transparent 2px),
+      radial-gradient(circle at 70% 50%,rgba(58,170,104,.06) 1px,transparent 2px);
+    background-size:500px 500px,400px 400px;
+    animation:drift 100s linear infinite;
+  }
+  @media(max-width:720px){
+    .numeros-turni{padding:80px 24px}
+  }
+
+  /* ════ FOTOS EDITORIAIS · banner topo + coluna do grid ════ */
+  /* Banner editorial no topo da seção · imagem cinemática wide */
+  .j-photo-banner{
+    width:100%;
+    aspect-ratio:21/9;
+    max-height:420px;
+    background-size:cover;background-position:center;
+    border-radius:24px;
+    margin-bottom:56px;
+    position:relative;overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);
+  }
+  .j-photo-banner::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(0,0,0,.05) 0%,rgba(0,0,0,.15) 60%,rgba(0,0,0,.55) 100%);
+    pointer-events:none;
+  }
+  .j-photo-banner-cap{
+    position:absolute;left:24px;bottom:20px;z-index:2;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:2.5px;text-transform:uppercase;
+    color:rgba(255,255,255,.75);
+    padding:6px 12px;
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:999px;
+    background:rgba(0,0,0,.35);
+    backdrop-filter:blur(8px);
+  }
+
+  /* Foto vertical/4:5 ocupando uma coluna do j-grid */
+  .j-photo-col{
+    width:100%;
+    aspect-ratio:4/5;
+    background-size:cover;background-position:center;
+    border-radius:20px;
+    position:relative;overflow:hidden;
+    box-shadow:0 16px 48px rgba(0,0,0,.45);
+  }
+  .j-photo-col::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.45) 100%);
+    pointer-events:none;
+  }
+  .j-photo-col-cap{
+    position:absolute;left:18px;bottom:18px;z-index:2;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:2px;text-transform:uppercase;
+    color:rgba(255,255,255,.85);
+    padding:5px 11px;
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:999px;
+    background:rgba(0,0,0,.4);
+    backdrop-filter:blur(8px);
+  }
+
+  @media(max-width:900px){
+    .j-photo-banner{aspect-ratio:16/9;max-height:280px;margin-bottom:32px}
+    .j-photo-col{aspect-ratio:1/1;max-height:340px}
+  }
+
+  /* CTA bottom of journey */
+  .j-cta-strip{padding:80px 48px;text-align:center;background:rgba(0,0,0,.5)}
+  .j-cta-h{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,5vw,72px);letter-spacing:4px;line-height:1;color:#fff;margin-bottom:18px}
+  .j-cta-d{font-size:16px;color:rgba(255,255,255,.7);line-height:1.55;max-width:560px;margin:0 auto 32px}
+  .j-cta-btn{display:inline-flex;align-items:center;gap:10px;padding:16px 36px;border-radius:999px;background:#fff;color:#0A0A0A;font-size:15px;font-weight:500;letter-spacing:-.2px;transition:all .15s;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+  .j-cta-btn:hover{transform:translateY(-2px);box-shadow:0 16px 48px rgba(0,0,0,.5)}
+  .j-cta-btn svg{width:16px;height:16px;stroke-width:2}
+
+  /* RESPONSIVE jornada */
+  @media(max-width:900px){
+    .journey-hero{padding:80px 24px 60px}
+    .j-section{padding:64px 24px}
+    .j-grid{grid-template-columns:1fr;gap:32px}
+    .j-scenarios{grid-template-columns:1fr}
+    .j-stats{grid-template-columns:1fr 1fr}
+    .j-plans,.j-plans.j-plans-2{grid-template-columns:1fr}
+    .j-levels{grid-template-columns:1fr 1fr}
+    .j-calc-grid{grid-template-columns:1fr 1fr}
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     ATO 8 · O CTA FINAL · preto com call-to-action
+     ════════════════════════════════════════════════════════════════ */
+  .ato-cta{background:var(--black);padding:140px 48px;color:#fff;text-align:center;position:relative;overflow:hidden}
+  .ato-cta::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 50% 50%,rgba(255,255,255,.05) 2px,transparent 3px);background-size:500px 500px;animation:drift 120s linear infinite}
+  .cta-inner{max-width:760px;margin:0 auto;position:relative;z-index:5}
+  .cta-eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--logo-green);margin-bottom:24px}
+  .cta-h{font-family:'Inter',sans-serif;font-size:clamp(48px,7vw,84px);font-weight:700;letter-spacing:-2px;line-height:.95;color:#fff;margin-bottom:24px}
+  .cta-h .accent{color:var(--logo-green)}
+  .cta-d{font-size:18px;color:rgba(255,255,255,.65);line-height:1.55;margin-bottom:48px}
+  .cta-form{display:flex;max-width:520px;margin:0 auto;border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:6px 6px 6px 24px;background:rgba(255,255,255,.05);backdrop-filter:blur(8px);align-items:center;gap:8px}
+  .cta-form input{flex:1;background:transparent;border:0;padding:14px 8px;color:#fff;font-family:'Inter',sans-serif;font-size:15px;outline:none}
+  .cta-form input::placeholder{color:rgba(255,255,255,.4)}
+  .cta-form button{padding:14px 26px;border-radius:999px;background:#fff;color:var(--text);font-size:14px;font-weight:500;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+  .cta-form button:hover{background:#F0F0F0}
+  .cta-form button svg{width:14px;height:14px;stroke-width:2}
+  .cta-foot{margin-top:48px;display:flex;flex-wrap:wrap;justify-content:center;gap:24px;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.5px}
+  .cta-foot span{display:inline-flex;align-items:center;gap:6px}
+  .cta-foot svg{width:11px;height:11px;color:rgba(255,255,255,.5)}
+
+  /* ════════════════════════════════════════════════════════════════
+     FOOTER
+     ════════════════════════════════════════════════════════════════ */
+  footer{background:#000;border-top:1px solid rgba(255,255,255,.08);padding:64px 48px 48px;color:rgba(255,255,255,.5);font-size:13px}
+  .foot-inner{max-width:1300px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:48px}
+  .foot-col h4{font-family:'JetBrains Mono',monospace;font-size:11px;color:#fff;letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;font-weight:500}
+  .foot-col a{display:block;padding:6px 0;color:rgba(255,255,255,.5);transition:color .15s}
+  .foot-col a:hover{color:#fff}
+  .foot-bottom{max-width:1300px;margin:48px auto 0;padding-top:32px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.5px;color:rgba(255,255,255,.4)}
+  .foot-logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:#fff;margin-bottom:18px}
+  .foot-logo .di{color:var(--logo-green)}
+  .foot-logo .de{-webkit-text-stroke:1.5px var(--logo-green);color:transparent}
+
+  /* RESPONSIVE */
+  @media(max-width:900px){
+    .nav{padding:14px 16px;top:0}
+    .nav.scrolled{padding:8px 16px}
+    .nav-pill{padding:4px 4px 4px 14px;gap:8px}
+    .nav-link{font-size:12px}
+    .nav-cta{padding:8px 14px;font-size:12px}
+    .nav-burger{width:34px;height:34px}
+    .nav-panel{right:16px;left:16px;width:auto;padding:24px}
+    .panel-grid{grid-template-columns:1fr}
+    .hero-content,.ato-dor,.ato-problema,.ato-transicao,.ato-liberdade,.ato-equipe,.ato-cta{padding-left:24px;padding-right:24px}
+    .hero-content{padding:120px 20px 80px}
+    .word-emp,.word-pro{font-size:38px;letter-spacing:3px}
+    .hero-eyebrow{font-size:9px;letter-spacing:2px;padding:7px 14px;top:84px}
+    .turni-merge{font-size:62px;letter-spacing:4px}
+    .hero-emp-text{top:14%;left:5%;max-width:60%}
+    .hero-pro-text{bottom:10%;right:5%;max-width:60%}
+    .hero-side-tag{font-size:9px;letter-spacing:2px;margin-bottom:10px}
+    .hero-tag{font-size:11px;padding:6px 14px;white-space:normal;max-width:80%;top:auto;bottom:60px}
+    .story-act-num{font-size:140px}
+    .ato-h,.transicao-q,.equipe-h,.cta-h{letter-spacing:-1.5px}
+    .problemas-grid,.beneficios-grid{grid-template-columns:1fr}
+    .problema,.beneficio{border-right:0;border-bottom:1px solid rgba(255,255,255,.1)}
+    .problema:last-child,.beneficio:last-child{border-bottom:0}
+    .ato-rotas{grid-template-columns:1fr}
+    .rota{padding:64px 24px}
+    .equipe-photo{height:280px}
+    .foot-inner{grid-template-columns:1fr 1fr;gap:32px}
+  }
+  @media(max-width:600px){
+    .foot-inner{grid-template-columns:1fr}
+    .stats{gap:24px}
+    .stat-num{font-size:48px}
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     TESE FOLD · "A CLT continua sendo o que sempre foi. A TURN<span class="di">I</span><span class="de">.</span> é o que faltava."
+     Layout sereno · headline grande · sub com 2 conexões · convite à reflexão
+     ════════════════════════════════════════════════════════════════ */
+  .tese-fold{
+    padding:140px 24px 120px;
+    background:linear-gradient(180deg,#F7F4EC 0%,#F2EFE5 100%);
+    border-top:1px solid #E0DDD3;
+    border-bottom:1px solid #E0DDD3;
+    position:relative;
+    overflow:hidden;
+  }
+  .tese-fold::before{
+    content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:1px;height:64px;background:linear-gradient(180deg,#00A868 0%,transparent 100%);
+  }
+  .tese-inner{max-width:980px;margin:0 auto;text-align:center;position:relative;z-index:2}
+  .tese-eyebrow{
+    font-family:var(--M);font-size:11px;font-weight:500;letter-spacing:3px;text-transform:uppercase;
+    color:#5A7560;margin-bottom:32px;display:inline-flex;align-items:center;gap:10px;
+  }
+  .tese-eyebrow::before,.tese-eyebrow::after{content:'';display:inline-block;width:32px;height:1px;background:#5A7560;opacity:.4}
+  .tese-headline{
+    font-family:var(--F);font-weight:500;font-size:68px;letter-spacing:-1.6px;line-height:1.04;
+    color:#0F1B2D;margin:0 auto 36px;max-width:920px;
+  }
+  .tese-headline .accent{color:#00A868;font-style:italic;font-weight:500}
+  .tese-headline .ti{color:#00A868}
+  .tese-sub{
+    font-family:var(--B);font-size:18px;line-height:1.65;color:#4A5560;
+    max-width:760px;margin:0 auto 8px;
+  }
+  .tese-sub b{color:#0F1B2D;font-weight:500}
+  .tese-divider{
+    width:48px;height:1px;background:#C8C5BB;margin:48px auto 0;
+  }
+
+  @media(max-width:900px){
+    .tese-fold{padding:96px 20px 80px}
+    .tese-headline{font-size:48px;letter-spacing:-1.2px}
+    .tese-sub{font-size:16px}
+  }
+  @media(max-width:560px){
+    .tese-fold{padding:72px 18px 64px}
+    .tese-headline{font-size:36px;letter-spacing:-1px;line-height:1.1}
+    .tese-eyebrow{font-size:10px;letter-spacing:2.5px}
+    .tese-sub{font-size:15px;line-height:1.6}
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     ENCONTRO · 2 colunas paralelas convergentes
+     Empresário (mostarda) + Profissional (verde) · ponto de encontro = Turni
+     ════════════════════════════════════════════════════════════════ */
+  .encontro{
+    padding:120px 24px;
+    background:#F7F4EC;
+    position:relative;
+    overflow:hidden;
+  }
+  .encontro-inner{max-width:1280px;margin:0 auto;position:relative;z-index:2}
+  .encontro-eyebrow{
+    text-align:center;
+    font-family:var(--M);font-size:11px;font-weight:500;letter-spacing:3px;text-transform:uppercase;
+    color:#5A5A5A;margin-bottom:14px;
+  }
+  .encontro-title{
+    text-align:center;
+    font-family:var(--F);font-weight:500;font-size:42px;letter-spacing:-1px;line-height:1.12;
+    color:#0F1B2D;margin:0 auto 64px;max-width:820px;
+  }
+  .encontro-title .ti{color:#00A868}
+  .encontro-grid{
+    display:grid;grid-template-columns:1fr auto 1fr;gap:40px;align-items:stretch;
+  }
+  .encontro-col{
+    padding:48px 40px;border-radius:24px;position:relative;
+    display:flex;flex-direction:column;gap:20px;
+  }
+  .encontro-col.emp{
+    background:linear-gradient(160deg,#3A2A12 0%,#2E2010 60%,#1F1608 100%);
+    color:#fff;
+    border:1px solid rgba(255,255,255,.10);
+  }
+  .encontro-col.pro{
+    background:linear-gradient(160deg,#1F2E25 0%,#2A352D 60%,#1F2520 100%);
+    color:#fff;
+    border:1px solid rgba(255,255,255,.10);
+  }
+  .encontro-col-tag{
+    font-family:var(--M);font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;
+    padding:6px 14px;border-radius:999px;
+    align-self:flex-start;
+    background:rgba(255,255,255,.12);color:rgba(255,255,255,.92);
+    border:1px solid rgba(255,255,255,.18);
+  }
+  .encontro-col.emp .encontro-col-tag{background:rgba(244,201,91,.20);color:#F4C95B;border-color:rgba(244,201,91,.35)}
+  .encontro-col.pro .encontro-col-tag{background:rgba(95,163,124,.20);color:#7BC299;border-color:rgba(95,163,124,.35)}
+  .encontro-col-q{
+    font-family:var(--F);font-size:26px;font-weight:500;letter-spacing:-.4px;line-height:1.18;
+    font-style:italic;color:#fff;margin-top:8px;
+  }
+  .encontro-col-body{
+    font-family:var(--B);font-size:16px;line-height:1.65;color:rgba(255,255,255,.85);
+  }
+  .encontro-col-body p{margin-bottom:14px}
+  .encontro-col-body p:last-child{margin-bottom:0}
+  .encontro-col-body b{color:#fff;font-weight:500}
+  .encontro-col-body .accent{color:#F4C95B;font-weight:500}
+  .encontro-col.pro .encontro-col-body .accent{color:#7BC299}
+  .encontro-col-cta{
+    font-family:var(--B);font-size:15px;font-weight:500;letter-spacing:-.1px;
+    margin-top:14px;color:#fff;
+    display:inline-flex;align-items:center;gap:8px;align-self:flex-start;
+    padding:14px 24px;border-radius:999px;text-decoration:none;
+    transition:all .15s;
+  }
+  .encontro-col.emp .encontro-col-cta{background:#F4C95B;color:#1F1608;border:1px solid #F4C95B}
+  .encontro-col.emp .encontro-col-cta:hover{background:#FFD66B;border-color:#FFD66B;transform:translateY(-1px)}
+  .encontro-col.pro .encontro-col-cta{background:#7BC299;color:#0F2918;border:1px solid #7BC299}
+  .encontro-col.pro .encontro-col-cta:hover{background:#9DD4B0;border-color:#9DD4B0;transform:translateY(-1px)}
+
+  /* Centro · ponto de encontro · TURNI gigante */
+  .encontro-center{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:0 8px;position:relative;
+  }
+  .encontro-center::before,.encontro-center::after{
+    content:'';position:absolute;left:50%;width:1px;height:80px;
+    background:linear-gradient(180deg,transparent 0%,#00A868 50%,transparent 100%);
+    opacity:.4;
+  }
+  .encontro-center::before{top:0}
+  .encontro-center::after{bottom:0}
+  .encontro-center-tag{
+    font-family:var(--M);font-size:10px;font-weight:500;letter-spacing:3px;text-transform:uppercase;
+    color:#5A5A5A;margin-bottom:16px;writing-mode:vertical-rl;transform:rotate(180deg);
+  }
+  .encontro-center-logo{
+    font-family:'Bebas Neue',sans-serif;font-size:56px;letter-spacing:1px;line-height:1;color:#0F1B2D;
+    display:inline-block;font-weight:400;
+  }
+  .encontro-center-logo .di{color:var(--logo-green)}
+  .encontro-center-logo .de{-webkit-text-stroke:1.5px var(--logo-green);color:transparent}
+  .encontro-center-foot{
+    font-family:var(--M);font-size:10px;font-weight:500;letter-spacing:3px;text-transform:uppercase;
+    color:#5A5A5A;margin-top:16px;writing-mode:vertical-rl;
+  }
+
+  @media(max-width:980px){
+    .encontro{padding:80px 20px}
+    .encontro-title{font-size:32px;margin-bottom:48px}
+    .encontro-grid{grid-template-columns:1fr;gap:24px}
+    .encontro-center{flex-direction:row;padding:24px 0;justify-content:center;gap:18px}
+    .encontro-center::before,.encontro-center::after{display:none}
+    .encontro-center-tag,.encontro-center-foot{writing-mode:horizontal-tb;transform:none;margin:0}
+    .encontro-center-logo{font-size:42px}
+    .encontro-col{padding:32px 24px}
+    .encontro-col-q{font-size:22px}
+    .encontro-col-body{font-size:15px}
+  }
+  @media(max-width:560px){
+    .encontro-title{font-size:26px;line-height:1.2}
+    .encontro-col-q{font-size:20px}
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     CALCULADORA DE TURNOS · interativa · usuário manipula a simulação
+     Inserida dentro da jornada trabalhador (#pro-renda)
+     ════════════════════════════════════════════════════════════════ */
+  .calc-block{
+    background:linear-gradient(160deg,#1F2E25 0%,#181B17 100%);
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:24px;padding:40px 36px;
+    color:#fff;
+    box-shadow:0 1px 2px rgba(15,27,45,.08),0 16px 48px rgba(15,27,45,.10);
+    margin-top:24px;
+  }
+  .calc-eyebrow{
+    font-family:var(--M);font-size:10px;font-weight:500;letter-spacing:2.5px;text-transform:uppercase;
+    color:#7BC299;
+    display:inline-flex;align-items:center;gap:8px;
+    padding:5px 12px;border-radius:999px;
+    background:rgba(123,194,153,.12);border:1px solid rgba(123,194,153,.25);
+  }
+  .calc-h{
+    font-family:var(--F);font-size:28px;font-weight:500;letter-spacing:-.4px;line-height:1.18;
+    color:#fff;margin:14px 0 8px;
+  }
+  .calc-h .accent{color:#7BC299}
+  .calc-d{
+    font-family:var(--B);font-size:14px;color:rgba(255,255,255,.75);line-height:1.55;
+    margin-bottom:28px;max-width:540px;
+  }
+  .calc-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:flex-start;
+  }
+  .calc-controls{display:flex;flex-direction:column;gap:22px}
+  .calc-field{display:flex;flex-direction:column;gap:8px}
+  .calc-field label{
+    font-family:var(--M);font-size:11px;font-weight:500;letter-spacing:.3px;text-transform:uppercase;
+    color:rgba(255,255,255,.7);display:flex;justify-content:space-between;align-items:baseline;
+  }
+  .calc-field label .val{
+    font-family:var(--F);font-size:18px;font-weight:500;color:#7BC299;text-transform:none;letter-spacing:0;
+  }
+  .calc-field select{
+    appearance:none;-webkit-appearance:none;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+    border-radius:10px;padding:12px 14px;
+    font-family:var(--B);font-size:14px;color:#fff;
+    cursor:pointer;
+  }
+  .calc-field select:focus{outline:none;border-color:#7BC299}
+  .calc-field select option{background:#1F2E25;color:#fff}
+  .calc-field input[type="range"]{
+    -webkit-appearance:none;appearance:none;height:6px;padding:0;border:0;
+    background:rgba(255,255,255,.12);
+    border-radius:999px;cursor:pointer;
+  }
+  .calc-field input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+    background:#7BC299;cursor:pointer;border:2px solid #1F2E25;
+    box-shadow:0 2px 8px rgba(0,0,0,.3);
+  }
+  .calc-field input[type="range"]::-moz-range-thumb{
+    width:22px;height:22px;border-radius:50%;
+    background:#7BC299;cursor:pointer;border:2px solid #1F2E25;
+  }
+
+  .calc-result{
+    background:rgba(123,194,153,.06);
+    border:1px solid rgba(123,194,153,.22);
+    border-radius:18px;padding:24px 26px;
+    display:flex;flex-direction:column;gap:14px;
+  }
+  .calc-result-row{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .calc-result-row:last-child{border-bottom:0;padding-bottom:0;padding-top:6px}
+  .calc-result-row .label{
+    font-family:var(--M);font-size:11px;letter-spacing:.3px;text-transform:uppercase;
+    color:rgba(255,255,255,.65);
+  }
+  .calc-result-row .num{
+    font-family:var(--F);font-size:20px;font-weight:500;letter-spacing:-.2px;color:#fff;
+    font-variant-numeric:tabular-nums;
+  }
+  .calc-result-row.final .label{color:#7BC299;font-weight:500}
+  .calc-result-row.final .num{font-size:32px;color:#7BC299}
+  .calc-caveat{
+    margin-top:18px;
+    font-family:var(--M);font-size:10px;color:rgba(255,255,255,.5);font-style:italic;letter-spacing:.2px;line-height:1.55;
+  }
+
+  @media(max-width:760px){
+    .calc-block{padding:28px 22px}
+    .calc-h{font-size:22px}
+    .calc-d{font-size:13px}
+    .calc-grid{grid-template-columns:1fr;gap:22px}
+    .calc-result-row.final .num{font-size:26px}
+  }
+
+</style>
+</head>
+<body class="">
+
+<!-- ════════════════════════════════════════════════════════════════
+     ATO 1 · HERO · O ENCONTRO · foto de equipe ao fundo
+     ════════════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <!-- ════ HERO DIAGONAL SPLIT ════ -->
+  <!-- Triângulo superior-esquerdo · empresário com FALTOU GENTE -->
+  <div class="hero-emp-bg"></div>
+  <!-- Triângulo inferior-direito · trabalhador com O TURNO É SEU -->
+  <div class="hero-pro-bg"></div>
+  <!-- Linha luminosa da diagonal · ponto de encontro -->
+  <div class="hero-diagonal-glow"></div>
+
+  <nav class="nav scrolled">
+    <div class="nav-logo-wrap">
+      <div class="nav-logo">TURN<span class="di">I</span><span class="de">.</span></div>
+      <div class="nav-tag"><span class="dot"></span>WORKFORCE PLATFORM · HOSPITALITY</div>
+    </div>
+    <div class="nav-pill">
+      <a class="nav-link" id="navLink" onclick="toggleMenu(event)">Explorar a <span class="brand-mark">TURN<span class="di">I</span><span class="de">.</span></span> <i data-lucide="chevron-down"></i></a>
+      <a class="nav-link" href="__WEBAPP_URL__/#/cadastro" style="color:#0A0A0A;font-weight:500">Cadastre-se</a>
+      <a class="nav-cta" href="__WEBAPP_URL__/#/login">Já sou <span class="brand-mark">TURN<span class="di">I</span><span class="de">.</span></span> <i data-lucide="arrow-right"></i></a>
+      <button class="nav-burger" onclick="toggleMenu(event)"><i data-lucide="menu"></i></button>
+    </div>
+  </nav>
+
+  <div class="nav-panel" id="navPanel">
+    <div class="panel-grid">
+      <a class="panel-card emp" href="index.html#jornada-contratar">
+        <div class="panel-ic"><i data-lucide="briefcase"></i></div>
+        <div><h3>Jornada CONTRATAR</h3><p>O que é · mão de obra · compliance · gestão de tarefas · planos.</p></div>
+        <i data-lucide="arrow-right" class="arr"></i>
+      </a>
+      <a class="panel-card pro" href="index.html#jornada-trabalhar">
+        <div class="panel-ic"><i data-lucide="user-check"></i></div>
+        <div><h3>Jornada TRABALHAR</h3><p>O que é · seu turno · tarefas · renda e metas · ecossistema · planos.</p></div>
+        <i data-lucide="arrow-right" class="arr"></i>
+      </a>
+      <a class="panel-card login" href="index.html#sobre-turni">
+        <div class="panel-ic"><i data-lucide="info"></i></div>
+        <div><h3>Por que a TURN<span class="di">I</span><span class="de">.</span> existe</h3><p>A tese, a operação validada, o ecossistema FHP e a parceria Stone.</p></div>
+        <i data-lucide="arrow-right" class="arr"></i>
+      </a>
+      <a class="panel-card about" href="index.html#manifesto">
+        <div class="panel-ic"><i data-lucide="flame"></i></div>
+        <div><h3>Manifesto</h3><p>O que defendemos. O ponto de encontro entre quem precisa e quem pode.</p></div>
+        <i data-lucide="arrow-right" class="arr"></i>
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-content">
+    <!-- ▶ EMPRESA · canto superior-esquerdo · TAG + CRIE SEU TURNO + foto -->
+    <div class="hero-emp-text">
+      <div class="hero-side-tag">EMPRESA</div>
+      <h1 class="word-emp">CRIE SEU<br>TURNO.</h1>
+      <div class="hero-emp-photo"></div>
+    </div>
+
+    <!-- ◆ CENTRO · só o app no centro · TURNI vem standalone fixed (intro narrative) -->
+    <div class="hero-center-block">
+      <div class="hero-app-mockup">
+        <img src="./turnioficial_files/02-app-screenshot-emp.jpg" alt="App TURNI · painel do contratante" loading="eager" decoding="async">
+      </div>
+    </div>
+
+    <!-- ◆ TURNI INTRO · gigante sobreposto · viaja pro canto virando logo do nav -->
+    <div class="turni-intro">TURN<span class="di">I</span><span class="de">.</span></div>
+
+    <!-- ▶ PROFISSIONAL · canto inferior-direito · ESCOLHA SEU TURNO + foto + TAG -->
+    <div class="hero-pro-text">
+      <h1 class="word-pro">ESCOLHA<br>SEU TURNO.</h1>
+      <div class="hero-pro-photo"></div>
+      <div class="hero-side-tag">PROFISSIONAL</div>
+    </div>
+
+  </div>
+
+  <div class="scroll-hint">scroll · ver o porquê</div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     TESE FOLD · headline da tese + sub com 2 conexões emocionais
+     "A CLT continua sendo o que sempre foi. A TURN<span class="di">I</span><span class="de">.</span> é o que faltava."
+     ════════════════════════════════════════════════════════════════ -->
+<section class="tese-fold" id="tese">
+  <div class="tese-inner">
+    <div class="tese-eyebrow">a tese</div>
+    <h2 class="tese-headline">
+      A Hospitalidade vive<br>
+      de Turnos.<br>
+      A TURN<span class="di">I</span><span class="de">.</span> é <span class="accent">o que faltava.</span>
+    </h2>
+    <p class="tese-sub">
+      Para a <b>empresa</b> que quer planejar a operação, controlar o custo e ter o profissional certo em cada turno.
+    </p>
+    <p class="tese-sub">
+      Para o <b>profissional</b> que quer escolher onde trabalha, quando trabalha, quanto ganha — e construir uma carreira com a liberdade de quem é dono do próprio turno.
+    </p>
+    <div class="tese-divider"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     ENCONTRO · 2 colunas paralelas · empresário (mostarda) + profissional (verde)
+     Convergem no centro = ponto de encontro = Turni
+     ════════════════════════════════════════════════════════════════ -->
+<section class="encontro" id="encontro">
+  <div class="encontro-inner">
+    <div class="encontro-eyebrow">DUAS OFERTAS · A MESMA PLATAFORMA</div>
+    <h2 class="encontro-title">
+      Dois lados. Dois ganhos.<br>
+      Um turno.
+    </h2>
+    <p style="text-align:center;font-family:'Inter',sans-serif;font-size:16px;color:var(--text-3);max-width:560px;margin:0 auto 48px;line-height:1.6">A TURN<span class="t-i">I</span>. é onde empresa e profissional crescem juntos.</p>
+
+    <div class="encontro-grid">
+
+      <!-- COLUNA EMPRESA · DOURADO -->
+      <div class="encontro-col emp">
+        <span class="encontro-col-tag">EMPRESA</span>
+        <p class="encontro-col-q">"O que muda na sua operação."</p>
+        <div class="encontro-col-body">
+          <p>Planejamento de turno com inteligência. Profissional especializado em cada posição. Acesso a mão de obra qualificada exatamente quando a operação precisa.</p>
+          <p>Busque profissionais por características específicas do seu negócio. Monte suas escalas com match inteligente. Envie briefing do turno antes da chegada.</p>
+          <p>A TURN<span class="di">I</span><span class="de">.</span> é a infraestrutura que conecta sua escala ao profissional certo — com <b class="accent">gestão, controle e economia real</b> no custo de operação.</p>
+        </div>
+        <a class="encontro-col-cta" href="__WEBAPP_URL__/#/cadastro/emp">Cadastrar empresa <i data-lucide="arrow-right"></i></a>
+      </div>
+
+      <!-- CENTRO · ponto de encontro -->
+      <div class="encontro-center">
+        <div class="encontro-center-tag">o ponto de</div>
+        <div class="encontro-center-logo">TURN<span class="di">I</span><span class="de">.</span></div>
+        <div class="encontro-center-foot">o encontro</div>
+      </div>
+
+      <!-- COLUNA PROFISSIONAL · VERDE -->
+      <div class="encontro-col pro">
+        <span class="encontro-col-tag">PROFISSIONAL</span>
+        <p class="encontro-col-q">"O que muda na sua carreira."</p>
+        <div class="encontro-col-body">
+          <p>Você escolhe os turnos que quer trabalhar, os horários que cabem na sua vida e os lugares onde quer estar.</p>
+          <p>Trabalha mais quando o objetivo é maior. Folga quando precisa. Define o valor do serviço que vai prestar.</p>
+          <p>A cada turno, uma empresa nova, um cliente novo, uma habilidade nova. Cada experiência soma na sua reputação — e a sua reputação soma na sua renda. <b class="accent">Você é o dono do seu turno. Você é a sua própria empresa.</b></p>
+        </div>
+        <a class="encontro-col-cta" href="__WEBAPP_URL__/#/cadastro/wkr">Sou TURN<span class="di">I</span><span class="de">.</span> <i data-lucide="arrow-right"></i></a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- A seção MATEMÁTICA foi movida para uma calculadora interativa
+     dentro da jornada do trabalhador (#pro-renda) ·
+     Mais convidativa, menos panfletária, defensável legalmente
+     (usuário manipula a simulação · não é discurso plantado) -->
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     STORY AREA · seção dedicada · cards no centro · PORQUE atrás · nav colada
+     ════════════════════════════════════════════════════════════════ -->
+<section class="story-area">
+    <!-- ════ STORY STAGE · 5 atos × 2 personas SPLIT VIEW ════ -->
+    <!-- Esquerda: empresário · Direita: trabalhador · sincronizados ── -->
+    <div class="story-stage" id="storyStage" data-ato="0">
+
+      <div class="story-split">
+
+        <!-- MARCADOR DO ATO · LETRA gigante T·U·R·N·I que monta a marca ato a ato -->
+        <div class="story-act-marker">
+          <div class="story-act-pre">o porquê</div>
+          <div class="story-act-num swap" id="actNum">T</div>
+          <div class="story-act-foot">a TURN<span class="di">I</span><span class="de">.</span> existe</div>
+        <div class="story-act-build"></div></div>
+
+        <!-- ═══ COLUNA EMPRESA · dourado ═══ -->
+        <div class="story-col emp">
+          <article class="story-card active" data-ato="1">
+            <div class="story-card-photo" style="background-image:url(&#39;img/turniempresariodiagonal.png&#39;);background-position:center 30%">
+              <span class="story-card-tag">empresa</span>
+            </div>
+            <div class="story-card-body">
+              <div class="story-eye">ato 1 · operação planejada</div>
+              <h3 class="story-h">Operação planejada.</h3>
+              <p class="story-p">Você publica o turno. A TURN<span class="di">I</span><span class="de">.</span> entrega o profissional certo, orientado e com <b>pagamento já resolvido.</b> Sua operação não para.</p>
+            </div>
+          </article>
+
+          <article class="story-card" data-ato="2">
+            <div class="story-card-photo" style="background-image:url(&#39;img/05-editorial-empresario.jpg&#39;)">
+              <span class="story-card-tag">empresa</span>
+            </div>
+            <div class="story-card-body">
+              <div class="story-eye">ato 2 · profissional sob medida</div>
+              <h3 class="story-h">Profissional sob medida.</h3>
+              <p class="story-p">Mão de obra especializada para cada posição da sua operação. Profissional <b>avaliado, certificado e alinhado</b> com o padrão da sua empresa.</p>
+            </div>
+          </article>
+
+          <article class="story-card" data-ato="3">
+            <div class="story-card-photo" style="background-image:url(&#39;img/turnicompliance.png&#39;);background-position:center 50%">
+              <span class="story-card-tag">empresa</span>
+            </div>
+            <div class="story-card-body">
+              <div class="story-eye">ato 3 · segurança jurídica</div>
+              <h3 class="story-h">Segurança jurídica.</h3>
+              <p class="story-p">Documentação completa de cada turno. Pagamento integrado. <b>Conformidade fiscal e contratual</b> desde o início.</p>
+            </div>
+          </article>
+
+          <article class="story-card" data-ato="4">
+            <div class="story-card-photo" style="background-image:url(&#39;img/turnigestaotarefas.png&#39;);background-position:center 30%">
+              <span class="story-card-tag">empresa</span>
+            </div>
+            <div class="story-card-body">
+              <div class="story-eye">ato 4 · inteligência de operação</div>
+              <h3 class="story-h">Inteligência de operação.</h3>
+              <p class="story-p">Histórico, avaliação e dados de cada turno na palma da mão. Você opera com <b>previsibilidade e melhora a cada ciclo.</b></p>
+            </div>
+          </article>
+
+          <article class="story-card exit" data-ato="5">
+            <div class="story-card-photo" style="background-image:url(&#39;img/01-retrato-empresario.jpg&#39;)">
+              <span class="story-card-tag">empresa</span>
+            </div>
+            <div class="story-card-body">
+              <div class="story-eye">ato 5 · experimente</div>
+              <h3 class="story-h">Experimente.</h3>
+              <p class="story-p">Cadastre sua empresa, publique seu primeiro turno e veja a diferença. Só pague quando o profissional fizer check-in.</p>
+            </div>
+          </article>
+        </div>
+
+        <!-- ═══ COLUNA PROFISSIONAL · verde ═══ -->
+        <div class="story-col pro">
+          <article class="story-card active" data-ato="1">
+            <div class="story-card-photo" style="background-image:url(&#39;img/06-hero-trabalhador.jpg&#39;)">
+              <span class="story-card-tag">profissional</span>
+            </div>
+            <div class="story-card-body">
+              <div class="story-eye">ato 1 · o turno é seu</div>
+              <h3 class="story-h">O turno é seu.</h3>
+              <p class="story-p">Trabalhe quando quiser. Construa sua reputação. <b>Receba via Pix em até 15 min</b> após o check-out. A plataforma que transforma seu talento em escolha real.</p>
+            </div>
+          </article>
+
+          <article class="story-card" data-ato="2">
+            <div class="story-card-photo" style="background-image:url(&#39;img/07-editorial-trabalhador.jpg&#39;)">
+              <span class="story-card-tag">profissional</span>
+            </div>
+            <div class="story-card-body">
+              <div class="story-eye">ato 2 · onde você quer trabalhar</div>
+              <h3 class="story-h">Onde você quer trabalhar.</h3>
+              <p class="story-p">Acesse as melhores empresas do setor. Trabalhe nas casas que sempre quis. A TURN<span class="di">I</span><span class="de">.</span> é <b>o seu passe livre</b>.</p>
+            </div>
+          </article>
+
+          <article class="story-card" data-ato="3">
+            <div class="story-card-photo" style="background-image:url(&#39;img/08-manifesto-trabalhador-bg.jpg&#39;)">
+              <span class="story-card-tag">profissional</span>
+            </div>
+            <div class="story-card-body">
+              <div class="story-eye">ato 3 · liberdade real</div>
+              <h3 class="story-h">Liberdade real.</h3>
+              <p class="story-p">Você escolhe horário, dia, casa e função. Folga quando precisar. Trabalha quando quiser. <b>Sua agenda, suas regras.</b></p>
+            </div>
+          </article>
+
+          <article class="story-card" data-ato="4">
+            <div class="story-card-photo" style="background-image:url(&#39;img/turnirenda.png&#39;);background-position:center 35%">
+              <span class="story-card-tag">profissional</span>
+            </div>
+            <div class="story-card-body">
+              <div class="story-eye">ato 4 · carreira de verdade</div>
+              <h3 class="story-h">Carreira de verdade.</h3>
+              <p class="story-p">Reputação que cresce. Renda que acompanha. A cada turno, <b>uma habilidade nova e um cliente a mais.</b></p>
+            </div>
+          </article>
+
+          <article class="story-card exit" data-ato="5">
+            <div class="story-card-photo" style="background-image:url(&#39;img/09-app-screenshot-wkr.jpg&#39;);background-position:center top">
+              <span class="story-card-tag">profissional</span>
+            </div>
+            <div class="story-card-body">
+              <div class="story-eye">ato 5 · cadastre-se</div>
+              <h3 class="story-h">Cadastre-se.</h3>
+              <p class="story-p">Crie seu perfil, candidate-se aos turnos e comece a ganhar com a <b>liberdade de quem é dono do próprio turno.</b></p>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- ════ NAVEGAÇÃO COLADA NOS CARDS · ATO buttons + setas juntos ════ -->
+      <div class="story-foot">
+        <div class="story-progress" id="storyProgress">
+          <button class="active" data-i="0" style="">Ato 1</button>
+          <button data-i="1" class="" style="">Ato 2</button>
+          <button data-i="2" class="" style="">Ato 3</button>
+          <button data-i="3" class="" style="">Ato 4</button>
+          <button data-i="4" class="" style="">Ato 5</button>
+        </div>
+        <div class="story-nav">
+          <button id="storyPrev" aria-label="Ato anterior"><i data-lucide="arrow-left"></i></button>
+          <button id="storyNext" aria-label="Próximo ato"><i data-lucide="arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ PORQUE GIGANTE · sobe atrás dos cards · topo transparente ════ -->
+    <!-- Letras T·U·R·N·I no centro dos cards montam a marca ato a ato. PORQUE responde no rodapé. -->
+    <div class="story-porque">PORQUE</div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SOBRE A TURNI + MANIFESTO · seção institucional + filosófica
+     ════════════════════════════════════════════════════════════════ -->
+<section class="sobre-manifesto" id="sobre-turni">
+  <div class="sm-inner">
+
+    <!-- ═══ Por que a TURN<span class="di">I</span><span class="de">.</span> existe ═══ -->
+    <div class="sm-block">
+      <div class="sm-tag">Por que a <span class="brand-mark">TURN<span class="di">I</span><span class="de">.</span></span> existe</div>
+      <h2 class="sm-h">UMA <span class="accent">CAMADA NOVA</span><br>NO TRABALHO HOSPITALIDADE.</h2>
+      <div class="sm-grid">
+        <div class="sm-text">
+          <p>A TURN<span class="di">I</span><span class="de">.</span> é uma plataforma de gestão de turnos para Hospitalidade. Bares, restaurantes, hotéis, catering, eventos. Conecta empresas que precisam de profissionais qualificados com quem quer construir uma carreira com autonomia real.</p>
+          <p>Nasceu dentro do <b>Grupo Noiz</b>, validada em <b>5 operações reais ao vivo</b>, antes de abrir para o mercado. Pizza da Mooca, 7ª melhor pizzaria do Brasil, foi a primeira a turn<span class="t-i">i</span>ficar.</p>
+          <p>A plataforma é construída sobre o <span class="accent">Future Hospitality Platform (FHP)</span>, ecossistema tecnológico que organiza operações com inteligência, previsibilidade e controle. Pagamentos integrados via <b>Pagar.me</b>. Parceria estratégica com <b>Stone</b> desde o MVP.</p>
+        </div>
+        <div class="sm-text">
+          <p>Não somos uma agência. Não somos um app de mensagens turbinado. Somos infraestrutura de operação.</p>
+          <p>Somos a camada que faltava para a Hospitalidade brasileira <b>planejar cada turno com antecedência</b>, com checklist pronto, PIN bilateral de check-in, Pix em até 15 minutos e governança documentada.</p>
+          <p>Para o profissional, somos <span class="accent">a plataforma que transforma talento em escolha real</span>. Sua agenda. Seu preço. Sua reputação. <b>O turno é de quem escolhe.</b></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Manifesto ═══ -->
+    <div class="sm-block" id="manifesto">
+      <div class="sm-tag">O MANIFESTO</div>
+      <h2 class="sm-h">O QUE A <span class="brand-mark">TURN<span class="di">I</span><span class="de">.</span></span> <span class="accent">ACREDITA.</span></h2>
+
+      <div class="sm-text manifesto-text">
+        <p style="font-size:clamp(16px,2vw,20px);line-height:1.65;max-width:740px;color:rgba(255,255,255,.82)">Tem um setor que nunca para — e nunca foi feito de horário fixo. A <span class="brand-mark">TURN<span class="di">I</span><span class="de">.</span></span> é a plataforma que finalmente fala a língua do turno. <span class="accent">Empresa que opera com inteligência. Profissional que vive com liberdade.</span> O encontro perfeito entre quem precisa e quem escolhe.</p>
+      </div>
+
+      <!-- 5 PILARES -->
+      <div class="creed-flip-wrap" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px">
+
+          <div class="flip-card flip-card-yes" style="height:200px">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <div class="flip-front-tag">01 · Justiça</div>
+                <div class="flip-front-word" style="font-size:clamp(28px,4vw,40px)">JUSTO</div>
+              </div>
+              <div class="flip-card-back">
+                <div class="flip-back-tag">justiça</div>
+                <div class="flip-back-list">
+                  <div class="flip-back-item"><span class="flip-back-text">Um mercado mais justo, com mais liberdade de escolha para profissionais e empresas.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flip-card flip-card-yes" style="height:200px">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <div class="flip-front-tag">02 · Planejamento</div>
+                <div class="flip-front-word" style="font-size:clamp(22px,3vw,32px)">PLANEJAR</div>
+              </div>
+              <div class="flip-card-back">
+                <div class="flip-back-tag">planejamento</div>
+                <div class="flip-back-list">
+                  <div class="flip-back-item"><span class="flip-back-text">Profissionais que se planejam melhor ganham mais e têm mais qualidade de vida.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flip-card flip-card-yes" style="height:200px">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <div class="flip-front-tag">03 · Desenvolvimento</div>
+                <div class="flip-front-word" style="font-size:clamp(20px,2.5vw,28px)">CRESCER</div>
+              </div>
+              <div class="flip-card-back">
+                <div class="flip-back-tag">desenvolvimento</div>
+                <div class="flip-back-list">
+                  <div class="flip-back-item"><span class="flip-back-text">Profissionais mais valorizados. Empresas mais bem preparadas.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flip-card flip-card-yes" style="height:200px">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <div class="flip-front-tag">04 · Bem-estar</div>
+                <div class="flip-front-word" style="font-size:clamp(22px,3vw,36px)">VIVER</div>
+              </div>
+              <div class="flip-card-back">
+                <div class="flip-back-tag">bem-estar</div>
+                <div class="flip-back-list">
+                  <div class="flip-back-item"><span class="flip-back-text">Profissionais e empresas com mais tempo e dinheiro para viver.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flip-card flip-card-yes" style="height:200px">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <div class="flip-front-tag">05 · Segurança</div>
+                <div class="flip-front-word" style="font-size:clamp(22px,3vw,36px)">SEGURO</div>
+              </div>
+              <div class="flip-card-back">
+                <div class="flip-back-tag">segurança</div>
+                <div class="flip-back-list">
+                  <div class="flip-back-item"><span class="flip-back-text">Selo de qualidade. Garantia de trabalho bem feito. Garantia de receber o valor real — e receber na hora.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flip-card flip-card-no" style="display:none">
+            <div class="flip-card-inner">
+              <div class="flip-card-front"></div>
+              <div class="flip-card-back">
+                <div class="flip-back-tag"></div>
+                <div class="flip-back-list"></div>
+                <div class="flip-back-close">clique para virar</div>
+              </div>
+            </div>
+          </div>
+
+      </div>
+
+      <!-- CTA editorial · provoca ação após mostrar a tese -->
+      <div class="creed-cta">
+        <div class="creed-cta-line">O turno é de quem escolhe.<br><span class="accent">Dois lados. Dois ganhos. Um turno.</span></div>
+        <div class="creed-cta-actions">
+          <a class="creed-cta-btn solid" href="index.html#persona-pick">Escolher meu lado <i data-lucide="arrow-right"></i></a>
+          <a class="creed-cta-btn outline" href="__WEBAPP_URL__/#/cadastro">Já decidi, cadastrar <i data-lucide="arrow-right"></i></a>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     PERSONA-PICK · pergunta gigante · botão verde + botão mostarda
+     Visitante se posiciona aqui · cada botão direciona pra sua jornada
+     ════════════════════════════════════════════════════════════════ -->
+<section class="persona-pick" id="persona-pick">
+  <div class="persona-pick-inner">
+    <div class="persona-pick-tag"><span class="dot"></span>DUAS JORNADAS · UMA PLATAFORMA</div>
+    <h2 class="persona-pick-h">QUAL JORNADA<br>É A SUA <span class="accent">HOJE?</span></h2>
+    <p class="persona-pick-d">
+      A TURN<span class="di">I</span><span class="de">.</span> atende <b>empresa e profissional na mesma plataforma</b>. Escolha sua jornada.
+    </p>
+    <div class="persona-pick-grid">
+      <!-- BOTÃO MOSTARDA · empresa · CONTRATAR -->
+      <a class="persona-btn p-emp" onclick="choosePersona(&#39;emp&#39;)" href="index.html#jornada-contratar">
+        <div class="p-btn-photo" style="background-image:url(&#39;img/turniempresario.png&#39;)"></div>
+        <div class="p-btn-content">
+          <div class="p-btn-eye">SOU EMPRESA</div>
+          <div class="p-btn-h">EU CONTRATO TURNOS</div>
+          <div class="p-btn-d">vou para a <b>jornada CONTRATAR</b> · publique seu turno e encontre o profissional certo</div>
+          <span class="p-btn-arrow"><i data-lucide="arrow-right"></i></span>
+        </div>
+      </a>
+
+      <!-- BOTÃO VERDE · profissional · TRABALHAR -->
+      <a class="persona-btn p-pro" onclick="choosePersona(&#39;pro&#39;)" href="index.html#jornada-trabalhar">
+        <div class="p-btn-photo" style="background-image:url(&#39;img/turnitrabalhadora.png&#39;)"></div>
+        <div class="p-btn-content">
+          <div class="p-btn-eye">SOU PROFISSIONAL</div>
+          <div class="p-btn-h">EU TRABALHO TURNOS</div>
+          <div class="p-btn-d">vou para a <b>jornada TRABALHAR</b> · escolha turnos com a agenda na sua mão</div>
+          <span class="p-btn-arrow"><i data-lucide="arrow-right"></i></span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Atalho · pular direto pro cadastro sem ler a jornada -->
+    <div style="margin-top:48px;text-align:center">
+      <a href="__WEBAPP_URL__/#/cadastro" style="font-family:&#39;JetBrains Mono&#39;,monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.65);text-decoration:none;display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(255,255,255,.04);transition:all .2s">
+        Já sabe o que quer? cadastre-se direto <i data-lucide="arrow-right" style="width:13px;height:13px"></i>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     JORNADA CONTRATAR · empresário · O QUE É · MÃO DE OBRA · COMPLIANCE · GESTÃO · PLANOS
+     ════════════════════════════════════════════════════════════════ -->
+<div class="journey j-emp" id="jornada-contratar">
+
+  <section class="journey-hero">
+    <div class="journey-hero-inner">
+      <div class="j-pretitle"><span class="dot"></span>JORNADA CONTRATAR · PARA EMPRESAS</div>
+      <h2 class="j-title">PLANEJE SEU TURNO.<br>OPERE COM PRECISÃO.</h2>
+      <p class="j-sub">
+        Sem agência. Sem improviso de última hora. Sem surpresa no fim da noite. A TURN<span class="di">I</span><span class="de">.</span> conecta sua empresa ao profissional qualificado <b>com checklist pronto, PIN bilateral e pagamento integrado.</b>
+      </p>
+      <div class="j-chips">
+        <a class="j-chip" href="index.html#emp-oque%C3%A9">01 · O que é</a>
+        <a class="j-chip" href="index.html#emp-mao">02 · Mão de obra</a>
+        <a class="j-chip" href="index.html#emp-compliance">03 · Compliance</a>
+        <a class="j-chip" href="index.html#emp-tarefas">04 · Gestão de tarefas</a>
+        <a class="j-chip" href="index.html#emp-planos">05 · Planos</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 01 · O QUE É -->
+  <section class="j-section" id="emp-oqueé">
+    <div class="j-wrap">
+      <div class="j-eyebrow"><span class="num">01 / 05</span> O que é a TURN<span class="di">I</span><span class="de">.</span></div>
+      <div class="j-grid">
+        <div>
+          <h3 class="j-h">A plataforma que garante o profissional quando você precisar.</h3>
+          <p class="j-p">A TURN<span class="di">I</span><span class="de">.</span> é uma <b>plataforma de gestão de turnos</b> para Hospitalidade. Em uma única ferramenta você publica o turno, recebe candidatos qualificados, valida o check-in com PIN bilateral e paga via Pix com split automático.</p>
+          <p class="j-p">Tudo conectado ao Pagar.me. A pré-autorização fica ativa no aceite, débito real só quando o profissional faz check-in. Sem WhatsApp, sem agência, sem vínculo improvisado.</p>
+          <div class="j-list" style="margin-top:28px">
+            <div class="j-list-item"><i data-lucide="zap"></i><div><b>Match IA em até 2 horas</b>, profissional certo, perfil verificado, score público</div></div>
+            <div class="j-list-item"><i data-lucide="shield-check"></i><div><b>PIN bilateral</b> de check-in/check-out, geofencing 100m, cronômetro real</div></div>
+            <div class="j-list-item"><i data-lucide="dollar-sign"></i><div><b>Pagar.me nativo</b>, pré-autorização no aceite, Pix em 15 min após o turno</div></div>
+            <div class="j-list-item"><i data-lucide="clipboard-check"></i><div><b>Checklist Core FHP</b>, 40+ funções com tarefas prontas, tempo estimado, confirmação</div></div>
+          </div>
+        </div>
+        <div class="j-photo-col" style="background-image:url(&#39;img/turnicontratar.png&#39;)">
+          <div class="j-photo-col-cap">A TURN<span class="di">I</span><span class="de">.</span> na palma da mão</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 · MÃO DE OBRA -->
+  <section class="j-section" id="emp-mao">
+    <div class="j-wrap">
+      <div class="j-photo-banner" style="background-image:url(&#39;img/turnimaodeobra.png&#39;)">
+        <div class="j-photo-banner-cap">peak service · sexta noite</div>
+      </div>
+      <div class="j-eyebrow"><span class="num">02 / 05</span> Mão de obra</div>
+      <div class="j-grid">
+        <div>
+          <h3 class="j-h">Mão de obra que resolve.</h3>
+          <p class="j-p">Faltou garçom na sexta? Chef não apareceu? Evento chegando? <b>Em até 2 horas</b> a TURN<span class="di">I</span><span class="de">.</span> conecta você ao profissional certo, com briefing, tarefas definidas e check-in digital. Sua operação não trava.</p>
+          <p class="j-p">Os 4 cenários típicos onde a TURN<span class="di">I</span><span class="de">.</span> cobre, sem precisar de headcount fixo, sem custo de agência, sem risco trabalhista pra um turno só.</p>
+        </div>
+        <div class="j-scenarios">
+          <div class="j-scen">
+            <div class="j-scen-tag">Emergencial</div>
+            <div class="j-scen-d">Precisa de profissional agora. Abre um turno na plataforma. Confirmado em até 2h.</div>
+          </div>
+          <div class="j-scen">
+            <div class="j-scen-tag">Pico / Evento</div>
+            <div class="j-scen-d">Demanda que não justifica contratação. Reforço pontual com gente qualificada.</div>
+          </div>
+          <div class="j-scen">
+            <div class="j-scen-tag">Férias / Afastamento</div>
+            <div class="j-scen-d">Cobertura programada de quem está fora, sem assinar contrato fixo.</div>
+          </div>
+          <div class="j-scen">
+            <div class="j-scen-tag">Sazonalidade</div>
+            <div class="j-scen-d">Dezembro, carnaval, feriados. Variação previsível sem inflar headcount.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 · COMPLIANCE -->
+  <section class="j-section" id="emp-compliance">
+    <div class="j-wrap">
+      <div class="j-photo-banner" style="background-image:url(&#39;img/turnicompliance.png&#39;);background-position:center 40%">
+        <div class="j-photo-banner-cap">aceite eletrônico documentado</div>
+      </div>
+      <div class="j-eyebrow"><span class="num">03 / 05</span> Compliance e riscos</div>
+      <div class="j-grid">
+        <div>
+          <h3 class="j-h">Sem passivo trabalhista.</h3>
+          <p class="j-p">A TURN<span class="di">I</span><span class="de">.</span> <b>não terceiriza ilegalmente. Ela documenta</b>. Cada alocação tem trilha de auditoria, aceite eletrônico e controle automático de frequência para proteger você e o profissional.</p>
+          <div class="j-list">
+            <div class="j-list-item"><i data-lucide="shield"></i><div><b>Limitação de frequência automática</b> · evita que o mesmo profissional ultrapasse o limite de alocações no mesmo local</div></div>
+            <div class="j-list-item"><i data-lucide="file-text"></i><div><b>Aceite eletrônico por turno</b> · registro de autonomia, ausência de exclusividade, natureza eventual · tudo timestampado</div></div>
+            <div class="j-list-item"><i data-lucide="activity"></i><div><b>Trilha de auditoria completa</b> · check-in, check-out, checklist e avaliação registrados por turno</div></div>
+            <div class="j-list-item"><i data-lucide="alert-triangle"></i><div><b>Alerta de zona de risco</b> · padrão de habitualidade excessiva bloqueia novas alocações automaticamente</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="j-zones">
+            <div class="j-zone zone-g">
+              <div class="j-zone-dot"></div>
+              <div>
+                <div class="j-zone-h">Zona Verde · Permitido</div>
+                <div class="j-zone-d">Até 2 alocações/semana no mesmo local. Aceite voluntário. Profissional atende múltiplos clientes.</div>
+              </div>
+            </div>
+            <div class="j-zone zone-y">
+              <div class="j-zone-dot"></div>
+              <div>
+                <div class="j-zone-h">Zona Amarela · Atenção</div>
+                <div class="j-zone-d">Recorrência crescente no mesmo cliente. Concentração de renda acima de 60%. Plataforma alerta ambos os lados.</div>
+              </div>
+            </div>
+            <div class="j-zone zone-r">
+              <div class="j-zone-dot"></div>
+              <div>
+                <div class="j-zone-h">Zona Vermelha · Bloqueio Automático</div>
+                <div class="j-zone-d">Padrão de habitualidade excessiva detectado. Alocação bloqueada e plataforma redireciona para modelo formal (Lei 6.019/74) quando necessário.</div>
+              </div>
+            </div>
+          </div>
+          <p class="j-p" style="font-family:&#39;JetBrains Mono&#39;,monospace;font-size:10px;letter-spacing:.3px;color:rgba(255,255,255,.45);margin-top:14px;line-height:1.55">
+            * A TURN<span class="di">I</span><span class="de">.</span> não promete blindagem trabalhista, entrega governança documentada. Recomendamos sempre assessoria jurídica para casos específicos.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 · GESTÃO DE TAREFAS -->
+  <section class="j-section" id="emp-tarefas">
+    <div class="j-wrap">
+      <div class="j-photo-banner" style="background-image:url(&#39;img/turnigestaotarefas.png&#39;)">
+        <div class="j-photo-banner-cap">checklist em ação · tempo real</div>
+      </div>
+      <div class="j-eyebrow"><span class="num">04 / 05</span> Gestão de tarefas</div>
+      <div class="j-grid">
+        <div>
+          <h3 class="j-h">O profissional chega sabendo o que fazer.</h3>
+          <p class="j-p">Defina o checklist da sua operação <b>uma vez</b>. A partir daí, cada profissional que chega acessa as tarefas via token do turno, com sequência, tempo estimado e confirmação de execução.</p>
+          <p class="j-p">A camada de checklist é construída sobre o <b>core FHP</b>, ou Future Hospitality Platform. O mesmo motor que organiza equipes fixas orienta profissionais TURN<span class="di">I</span><span class="de">.</span>.</p>
+          <div class="j-stats">
+            <div class="j-stat">
+              <div class="j-stat-num">+40</div>
+              <div class="j-stat-l">Funções com<br>checklist pronto</div>
+            </div>
+            <div class="j-stat">
+              <div class="j-stat-num">100%</div>
+              <div class="j-stat-l">Personalizável<br>no plano Member</div>
+            </div>
+            <div class="j-stat">
+              <div class="j-stat-num">FHP</div>
+              <div class="j-stat-l">Infraestrutura<br>compartilhada</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="j-checklist">
+            <div class="j-checklist-head">
+              <div>
+                <div class="j-checklist-title">Bar Boteco SP · Garçom · Almoço</div>
+                <div class="j-checklist-tag">Core FHP · Checklist personalizado</div>
+              </div>
+              <div style="text-align:right">
+                <div class="j-checklist-tag" style="margin-bottom:4px">Progresso</div>
+                <div class="j-checklist-pct">6/8</div>
+              </div>
+            </div>
+            <div class="j-bar"><div class="j-bar-fill"></div></div>
+            <div class="j-cl-items">
+              <div class="j-cl-item"><div class="j-cl-check">✓</div>Check-in na plataforma<div class="j-cl-time">5 min</div></div>
+              <div class="j-cl-item"><div class="j-cl-check">✓</div>Leitura do briefing do turno<div class="j-cl-time">10 min</div></div>
+              <div class="j-cl-item"><div class="j-cl-check">✓</div>Mise en place das mesas<div class="j-cl-time">20 min</div></div>
+              <div class="j-cl-item"><div class="j-cl-check">✓</div>Atendimento e pedidos<div class="j-cl-time">em curso</div></div>
+              <div class="j-cl-item"><div class="j-cl-check">✓</div>Conferir comanda por mesa<div class="j-cl-time">5 min</div></div>
+              <div class="j-cl-item"><div class="j-cl-check">✓</div>Padrão de apresentação<div class="j-cl-time">contínuo</div></div>
+              <div class="j-cl-item dim"><div class="j-cl-check"></div>Fechamento e limpeza de área<div class="j-cl-time">15 min</div></div>
+              <div class="j-cl-item dim"><div class="j-cl-check"></div>Check-out + avaliação<div class="j-cl-time">5 min</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 · PLANOS -->
+  <section class="j-section" id="emp-planos">
+    <div class="j-wrap">
+      <div class="j-photo-banner" style="background-image:url(&#39;img/turniplanos.png&#39;)">
+        <div class="j-photo-banner-cap">planejamento de operação</div>
+      </div>
+      <div class="j-eyebrow"><span class="num">05 / 05</span> Planos</div>
+      <div class="j-grid" style="grid-template-columns:1fr;gap:32px">
+        <div style="text-align:center;max-width:680px;margin:0 auto">
+          <h3 class="j-h">Escolha como usar a TURN<span class="di">I</span><span class="de">.</span>.</h3>
+          <p class="j-p">Comece gratuitamente. Quando precisar de mais cultura, prioridade e analytics, evolua sob demanda.</p>
+        </div>
+      </div>
+
+      <div class="j-plans">
+        <!-- START · gratuito -->
+        <div class="j-plan">
+          <div class="j-plan-tag">● Member Start</div>
+          <div class="j-plan-price">GRÁTIS</div>
+          <div class="j-plan-period">Sem taxa · Sem contrato</div>
+          <p class="j-plan-desc">Cadastre seu empresa e publique turnos agora. Match IA com a base de profissionais, sem custo.</p>
+          <div class="j-plan-feats">
+            <div class="j-plan-feat"><i data-lucide="check"></i>Cadastro completo do empresa</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Publicação de turnos ilimitada</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Match IA com mão de obra qualificada</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Checklist padrão Core FHP</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Pagamento integrado + split automático</div>
+            <div class="j-plan-feat off"><i data-lucide="circle"></i>Checklists personalizados</div>
+            <div class="j-plan-feat off"><i data-lucide="circle"></i>Prioridade para profissionais Elite</div>
+            <div class="j-plan-feat off"><i data-lucide="circle"></i>Analytics por unidade</div>
+          </div>
+          <a class="j-plan-cta outline" href="__WEBAPP_URL__/#/cadastro/emp">Começar gratuitamente</a>
+        </div>
+
+        <!-- MEMBER · destaque -->
+        <div class="j-plan featured">
+          <div class="j-plan-tag">★ Recomendado · Member TURN<span class="di">I</span><span class="de">.</span></div>
+          <div class="j-plan-price">R$ 399</div>
+          <div class="j-plan-period">por mês · por unidade · cancele quando quiser</div>
+          <p class="j-plan-desc">Para operações que querem cultura própria, checklist personalizado e os melhores profissionais com prioridade.</p>
+          <div class="j-plan-feats">
+            <div class="j-plan-feat bold"><i data-lucide="check"></i>Tudo do Start, mais:</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Checklists personalizados por função</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Trilha de cultura e treinamento</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Prioridade para profissionais Destaque e Elite</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Histórico completo do profissional</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Analytics de operação por unidade</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Suporte prioritário</div>
+            <div class="j-plan-feat off"><i data-lucide="circle"></i>SLA de match &lt; 1h · garantido</div>
+            <div class="j-plan-feat off"><i data-lucide="circle"></i>API + integrações POS · Stone</div>
+          </div>
+          <a class="j-plan-cta solid" href="__WEBAPP_URL__/#/cadastro/emp">Assinar Member TURN<span class="di">I</span><span class="de">.</span> <i data-lucide="arrow-right"></i></a>
+          <div class="j-plan-guarantee">30 dias grátis · sem cartão para começar</div>
+        </div>
+
+        <!-- ENTERPRISE -->
+        <div class="j-plan">
+          <div class="j-plan-tag">◆ Enterprise</div>
+          <div class="j-plan-price">R$ 799</div>
+          <div class="j-plan-period">por mês · multi-unidade · contrato anual</div>
+          <p class="j-plan-desc">Para grupos e redes. Gestão centralizada de múltiplas unidades, SLA de match &lt; 1h e integração com seu POS.</p>
+          <div class="j-plan-feats">
+            <div class="j-plan-feat bold"><i data-lucide="check"></i>Tudo do Member, mais:</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Gestão centralizada multi-unidade</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>SLA de match &lt; 1h · garantido</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>API + integração com POS / Stone</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Dashboard executivo consolidado</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Gerente de conta dedicado</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Onboarding e treinamento presencial</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Relatórios de compliance por rede</div>
+          </div>
+          <a class="j-plan-cta outline" href="__WEBAPP_URL__/#/cadastro/emp">Falar com vendas <i data-lucide="arrow-right"></i></a>
+          <div class="j-plan-guarantee">demo personalizada · implementação assistida</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="j-cta-strip">
+    <h3 class="j-cta-h">Pronto para o primeiro turno em 2h?</h3>
+    <p class="j-cta-d">Comece gratuitamente. Sem contrato. Só pague quando o profissional chegar e fizer check-in.</p>
+    <a class="j-cta-btn" href="__WEBAPP_URL__/#/cadastro/emp">Cadastrar empresa <i data-lucide="arrow-right"></i></a>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     JORNADA TRABALHAR · profissional · O QUE É · SEU TURNO · TAREFAS · RENDA · ECOSSISTEMA · PLANOS
+     ════════════════════════════════════════════════════════════════ -->
+<div class="journey j-pro" id="jornada-trabalhar">
+
+  <section class="journey-hero">
+    <div class="journey-hero-inner">
+      <div class="j-pretitle"><span class="dot"></span>JORNADA TRABALHAR · PARA PROFISSIONAIS</div>
+      <h2 class="j-title">O TURNO É SEU.<br>A AGENDA TAMBÉM.</h2>
+      <p class="j-sub">
+        Sem vínculo fixo. Sem horário fixo. Sem depender de um único lugar. A TURN<span class="di">I</span><span class="de">.</span> conecta você às melhores operações de Hospitalidade. <b>Quando e onde você quiser trabalhar.</b>
+      </p>
+      <div class="j-chips">
+        <a class="j-chip" href="index.html#pro-oque%C3%A9">01 · O que é</a>
+        <a class="j-chip" href="index.html#pro-turno">02 · Seu turno</a>
+        <a class="j-chip" href="index.html#pro-tarefas">03 · Tarefas orientadas</a>
+        <a class="j-chip" href="index.html#pro-renda">04 · Renda e metas</a>
+        <a class="j-chip" href="index.html#pro-ecossistema">05 · Ecossistema</a>
+        <a class="j-chip" href="index.html#pro-planos">06 · Planos</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 01 · O QUE É -->
+  <section class="j-section" id="pro-oqueé">
+    <div class="j-wrap">
+      <div class="j-eyebrow"><span class="num">01 / 06</span> O que é a TURN<span class="di">I</span><span class="de">.</span></div>
+      <div class="j-grid">
+        <div>
+          <h3 class="j-h">A plataforma que transforma seu talento em turnos.</h3>
+          <p class="j-p">Você decide quando trabalhar, onde trabalhar e por quanto. <b>Sem vínculo fixo, sem patrão fixo, sem perder o turno do filho na escola.</b></p>
+          <p class="j-p">Cadastro com MEI, contrato B2B PJ↔PJ, score público que sobe com cada bom turno. Você constrói sua reputação enquanto ganha, e os melhores empresas te chamam primeiro.</p>
+          <div class="j-list" style="margin-top:28px">
+            <div class="j-list-item"><i data-lucide="calendar-check"></i><div><b>Sua agenda, suas regras</b>, trabalhe quando, onde e por quanto.</div></div>
+            <div class="j-list-item"><i data-lucide="trending-up"></i><div><b>Construa seu próprio mês</b>, defina sua meta, veja quantos turnos faltam.</div></div>
+            <div class="j-list-item"><i data-lucide="zap"></i><div><b>Pix em até 15 minutos</b>, check-out validado, dinheiro entra na hora.</div></div>
+            <div class="j-list-item"><i data-lucide="award"></i><div><b>Score recíproco</b>, você avalia o empresa, ele te avalia.</div></div>
+          </div>
+        </div>
+        <div class="j-photo-col" style="background-image:url(&#39;img/turnioquetrabalhador.png&#39;)">
+          <div class="j-photo-col-cap">a caminho do próximo turno</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 · SEU TURNO -->
+  <section class="j-section" id="pro-turno">
+    <div class="j-wrap">
+      <div class="j-eyebrow"><span class="num">02 / 06</span> Como funciona</div>
+      <div class="j-grid">
+        <div class="j-photo-col" style="background-image:url(&#39;img/turnitrabalhadorbusca.png&#39;)">
+          <div class="j-photo-col-cap">manhã · escolhendo o turno</div>
+        </div>
+        <div>
+          <h3 class="j-h">Seu turno em 3 passos.</h3>
+          <p class="j-p">A TURN<span class="di">I</span><span class="de">.</span> é simples por escolha. Cadastro inicial, escolha do turno e check-in com PIN. <b>O resto a plataforma cuida.</b></p>
+          <p class="j-p">Sem entrevistas longas. Sem agência cobrando porcentagem. Sem WhatsApp confuso. Você decide o turno, faz e recebe.</p>
+          <div class="j-list" style="margin-top:24px">
+            <div class="j-list-item"><i data-lucide="user-plus"></i><div><b>Passo 1, Cadastro MEI</b>, 3 minutos. Função, raio, preço por hora, dias indisponíveis, pronto.</div></div>
+            <div class="j-list-item"><i data-lucide="search"></i><div><b>Passo 2, Escolha o turno</b>, feed personalizado com vagas próximas e match IA, candidate em 1 toque.</div></div>
+            <div class="j-list-item"><i data-lucide="check-circle"></i><div><b>Passo 3, Check-in com PIN</b>, chega no local, mostra PIN bilateral, faz o turno, check-out, Pix em 15min.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 · TAREFAS ORIENTADAS -->
+  <section class="j-section" id="pro-tarefas">
+    <div class="j-wrap">
+      <div class="j-photo-banner" style="background-image:url(&#39;img/turnitarefas.png&#39;)">
+        <div class="j-photo-banner-cap">execução com confiança</div>
+      </div>
+      <div class="j-eyebrow"><span class="num">03 / 06</span> Tarefas orientadas</div>
+      <div class="j-grid">
+        <div>
+          <h3 class="j-h">Você não improvisa.</h3>
+          <p class="j-p">Cada turno tem um roteiro: <b>o que fazer, em que ordem, em quanto tempo</b>. Você chega orientado, executa com confiança, sai com a avaliação subindo.</p>
+          <p class="j-p">O checklist é montado pelo empresa e versionado no Core FHP, então mesmo na primeira vez naquele lugar, você atua como se já trabalhasse lá há meses.</p>
+          <div class="j-stats">
+            <div class="j-stat">
+              <div class="j-stat-num">+40</div>
+              <div class="j-stat-l">Funções<br>com checklist</div>
+            </div>
+            <div class="j-stat">
+              <div class="j-stat-num">XP</div>
+              <div class="j-stat-l">Cada tarefa<br>vira pontos</div>
+            </div>
+            <div class="j-stat">
+              <div class="j-stat-num">5★</div>
+              <div class="j-stat-l">Score sobe<br>com avaliação</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="j-checklist">
+            <div class="j-checklist-head">
+              <div>
+                <div class="j-checklist-title">Sua próxima tarefa · ato 4</div>
+                <div class="j-checklist-tag">Bar Boteco SP · Garçom · 18h–23h</div>
+              </div>
+              <div style="text-align:right">
+                <div class="j-checklist-tag" style="margin-bottom:4px">XP do turno</div>
+                <div class="j-checklist-pct">+45</div>
+              </div>
+            </div>
+            <div class="j-bar"><div class="j-bar-fill"></div></div>
+            <div class="j-cl-items">
+              <div class="j-cl-item"><div class="j-cl-check">✓</div>Briefing do turno aberto<div class="j-cl-time">+5 XP</div></div>
+              <div class="j-cl-item"><div class="j-cl-check">✓</div>Mise en place concluído<div class="j-cl-time">+10 XP</div></div>
+              <div class="j-cl-item"><div class="j-cl-check">✓</div>Atendimento ativo<div class="j-cl-time">+15 XP</div></div>
+              <div class="j-cl-item"><div class="j-cl-check">✓</div>Apresentação padrão<div class="j-cl-time">+5 XP</div></div>
+              <div class="j-cl-item"><div class="j-cl-check">✓</div>Comandas conferidas<div class="j-cl-time">+5 XP</div></div>
+              <div class="j-cl-item"><div class="j-cl-check">✓</div>Padrão sustentado<div class="j-cl-time">+5 XP</div></div>
+              <div class="j-cl-item dim"><div class="j-cl-check"></div>Fechamento e limpeza<div class="j-cl-time">+10 XP</div></div>
+              <div class="j-cl-item dim"><div class="j-cl-check"></div>Check-out + avaliação<div class="j-cl-time">bônus</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 · RENDA E METAS -->
+  <section class="j-section" id="pro-renda">
+    <div class="j-wrap">
+      <div class="j-photo-banner" style="background-image:url(&#39;img/turnirenda.png&#39;)">
+        <div class="j-photo-banner-cap">revisão de renda · pós-turno</div>
+      </div>
+      <div class="j-eyebrow"><span class="num">04 / 06</span> Planejamento de renda</div>
+      <div class="j-grid">
+        <div>
+          <h3 class="j-h">Defina suas metas. Escolha seus turnos.</h3>
+          <p class="j-p">Veja <b>quanto você pode ganhar antes</b> de aceitar qualquer turno. Quanto mais você trabalha, maior seu score. Quanto maior seu score, melhores os turnos disponíveis.</p>
+          <p class="j-p">Sem patrão. Sem horário fixo. Sem teto invisível. Você é seu próprio gerente de carreira. A TURN<span class="di">I</span><span class="de">.</span> só dá a infraestrutura.</p>
+        </div>
+      </div>
+
+      <!-- Níveis -->
+      <div class="j-eyebrow" style="margin-top:48px"><span class="num">trilha</span> Seus níveis</div>
+      <div class="j-levels">
+        <div class="j-level">
+          <div class="j-level-num">Nível 01</div>
+          <div class="j-level-name">INICIANTE</div>
+          <div class="j-level-pts">0 a 500 pts</div>
+          <div class="j-level-perks">
+            <div class="j-level-perk">Acesso a turnos básicos</div>
+            <div class="j-level-perk">Score público visível</div>
+          </div>
+        </div>
+        <div class="j-level active">
+          <div class="j-level-num">Nível 02</div>
+          <div class="j-level-name">CONFIÁVEL</div>
+          <div class="j-level-pts">500 a 1.000 pts</div>
+          <div class="j-level-perks">
+            <div class="j-level-perk">Plantões premium</div>
+            <div class="j-level-perk">Prioridade no match</div>
+            <div class="j-level-perk">Badge verificado</div>
+          </div>
+        </div>
+        <div class="j-level">
+          <div class="j-level-num">Nível 03</div>
+          <div class="j-level-name">DESTAQUE</div>
+          <div class="j-level-pts">1.000 a 3.000 pts</div>
+          <div class="j-level-perks">
+            <div class="j-level-perk">Eventos exclusivos</div>
+            <div class="j-level-perk">Taxa reduzida</div>
+            <div class="j-level-perk">Acesso antecipado</div>
+          </div>
+        </div>
+        <div class="j-level">
+          <div class="j-level-num">Nível 04</div>
+          <div class="j-level-name">ELITE</div>
+          <div class="j-level-pts">3.000+ pts</div>
+          <div class="j-level-perks">
+            <div class="j-level-perk">Operações premium</div>
+            <div class="j-level-perk">Renda recorrente</div>
+            <div class="j-level-perk">Mentor TURN<span class="di">I</span><span class="de">.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ CALCULADORA INTERATIVA · simule sua renda TURN<span class="di">I</span><span class="de">.</span> ═══ -->
+      <div class="calc-block">
+        <span class="calc-eyebrow">simule a sua renda</span>
+        <h3 class="calc-h">Faça <span class="accent">as contas</span>. Você decide.</h3>
+        <p class="calc-d">Ajuste os parâmetros abaixo conforme sua função, quantos turnos pretende vender no mês e o valor médio que costuma cobrar. O cálculo atualiza em tempo real.</p>
+
+        <div class="calc-grid">
+
+          <!-- CONTROLES -->
+          <div class="calc-controls">
+            <div class="calc-field">
+              <label>Função<span class="val" id="calcFuncaoVal">Garçom</span></label>
+              <select id="calcFuncao">
+                <option value="200">Garçom · médio R$200/turno</option>
+                <option value="180">Auxiliar de cozinha · médio R$180/turno</option>
+                <option value="240">Bartender · médio R$240/turno</option>
+                <option value="280">Pizzaiolo · médio R$280/turno</option>
+                <option value="220">Hostess · médio R$220/turno</option>
+                <option value="260">Cozinheira · médio R$260/turno</option>
+                <option value="200">Outros · médio R$200/turno</option>
+              </select>
+            </div>
+            <div class="calc-field">
+              <label>Turnos por mês<span class="val" id="calcTurnosVal">18</span></label>
+              <input type="range" id="calcTurnos" min="5" max="25" value="18" step="1">
+            </div>
+            <div class="calc-field">
+              <label>Valor médio por turno<span class="val" id="calcValorVal">R$ 200</span></label>
+              <input type="range" id="calcValor" min="80" max="350" value="200" step="10">
+            </div>
+          </div>
+
+          <!-- RESULTADO -->
+          <div class="calc-result">
+            <div class="calc-result-row">
+              <span class="label">Bruto / mês</span>
+              <span class="num" id="calcBruto">R$ 3.600</span>
+            </div>
+            <div class="calc-result-row">
+              <span class="label">Reserva ISS + INSS MEI</span>
+              <span class="num" id="calcDesc">– R$ 75</span>
+            </div>
+            <div class="calc-result-row">
+              <span class="label">Taxa TURN<span class="di">I</span><span class="de">.</span> (incluso)</span>
+              <span class="num">R$ 0</span>
+            </div>
+            <div class="calc-result-row final">
+              <span class="label">Líquido / mês</span>
+              <span class="num" id="calcLiquido">R$ 3.525</span>
+            </div>
+          </div>
+
+        </div>
+
+        <p class="calc-caveat">Cálculo simulado · base MEI 2026 (DAS-MEI R$75/mês como reserva fixa, valor varia conforme atividade) · não considera deduções específicas, gorjetas ou benefícios extras · resultado é estimativa orientativa, não substitui orientação contábil ou trabalhista individual.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05 · ECOSSISTEMA -->
+  <section class="j-section" id="pro-ecossistema">
+    <div class="j-wrap">
+      <div class="j-eyebrow"><span class="num">05 / 06</span> Ecossistema</div>
+      <div class="j-grid">
+        <div>
+          <h3 class="j-h">Você não está sozinho. Está num ecossistema.</h3>
+          <p class="j-p">A TURN<span class="di">I</span><span class="de">.</span> nasceu dentro do <b>Future Hospitality Platform (FHP)</b>, ecossistema do Grupo Noiz, com operação real em 5 empresas ao vivo. A Pizza da Mooca, 7ª melhor pizzaria do Brasil, está entre eles.</p>
+          <p class="j-p">Você não é só mais um app. É parte de uma comunidade que move <b>centenas de operações por mês</b>, com mentoria, treinamentos, benefícios reais e prioridade dentro do FHP para os melhores TURN<span class="di">I</span><span class="de">.</span>.</p>
+        </div>
+        <div>
+          <div class="j-list">
+            <div class="j-list-item"><i data-lucide="credit-card"></i><div><b>Cartão TURNI</b> · sua agenda de turnos cai direto no cartão e ainda dá descontos em redes conveniadas (combustível, mercado, farmácia, lazer).</div></div>
+            <div class="j-list-item"><i data-lucide="users"></i><div><b>Comunidade TURN<span class="di">I</span><span class="de">.</span></b> · grupo dos profissionais para troca de funções, dicas e suporte entre pares.</div></div>
+            <div class="j-list-item"><i data-lucide="graduation-cap"></i><div><b>Trilha de aprendizagem</b> · cursos curtos sobre função, atendimento, posicionamento de carreira.</div></div>
+            <div class="j-list-item"><i data-lucide="badge-check"></i><div><b>Selo TURN<span class="di">I</span><span class="de">.</span> Verified</b> · profissionais Elite recebem badge no perfil e indicações premium.</div></div>
+            <div class="j-list-item"><i data-lucide="building-2"></i><div><b>Eventos exclusivos</b> · operações premium do FHP só abrem para profissionais Destaque e Elite.</div></div>
+            <div class="j-list-item"><i data-lucide="heart-handshake"></i><div><b>Mentor TURN<span class="di">I</span><span class="de">.</span></b> · profissionais Elite mentoram iniciantes e ganham XP e reputação por isso.</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 06 · PLANOS -->
+  <section class="j-section" id="pro-planos">
+    <div class="j-wrap">
+      <div class="j-photo-banner" style="background-image:url(&#39;img/turniplanostrabalhar.png&#39;);background-position:center 30%">
+        <div class="j-photo-banner-cap">planos · comece grátis</div>
+      </div>
+      <div class="j-eyebrow"><span class="num">06 / 06</span> Planos</div>
+      <div class="j-grid" style="grid-template-columns:1fr;gap:32px">
+        <div style="text-align:center;max-width:760px;margin:0 auto">
+          <h3 class="j-h">Comece grátis. Cresça quando fizer sentido.</h3>
+          <p class="j-p">O cadastro TURN<span class="di">I</span><span class="de">.</span> é <b>gratuito para sempre</b>. Quando quiser acelerar seu volume de turnos, ative o TURN<span class="di">I</span><span class="de">.</span> Ads. E quando estiver rodando seu mês inteiro com TURN<span class="di">I</span><span class="de">.</span>, vire <b>TURN<span class="di">I</span>ficado</b> e ganhe benefícios que normalmente só vêm com vínculo fixo.</p>
+        </div>
+      </div>
+
+      <div class="j-plans">
+        <!-- FREE -->
+        <div class="j-plan">
+          <div class="j-plan-tag">● Profissional TURN<span class="di">I</span><span class="de">.</span></div>
+          <div class="j-plan-price">GRÁTIS</div>
+          <div class="j-plan-period">Incluído no cadastro</div>
+          <p class="j-plan-desc">Aparece na fila padrão de match. Quanto maior seu score, mais visibilidade natural.</p>
+          <div class="j-plan-feats">
+            <div class="j-plan-feat"><i data-lucide="check"></i>Perfil completo na plataforma</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Match por score e proximidade</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Checklist gamificado com XP</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Receba por Pix em 15 min</div>
+            <div class="j-plan-feat off"><i data-lucide="circle"></i>Prioridade no match</div>
+            <div class="j-plan-feat off"><i data-lucide="circle"></i>Badge TURN<span class="di">I</span><span class="de">.</span> Ads no perfil</div>
+            <div class="j-plan-feat off"><i data-lucide="circle"></i>Antecipação de turnos agendados</div>
+          </div>
+          <a class="j-plan-cta outline" href="__WEBAPP_URL__/#/cadastro/wkr">Cadastrar agora</a>
+        </div>
+
+        <!-- TURN<span class="di">I</span><span class="de">.</span> ADS -->
+        <div class="j-plan">
+          <div class="j-plan-tag">⚡ TURN<span class="di">I</span><span class="de">.</span> Ads</div>
+          <div class="j-plan-price">R$ 49</div>
+          <div class="j-plan-period">por mês · cancele quando quiser</div>
+          <p class="j-plan-desc">Seu perfil aparece no topo das buscas dos restaurantes. Mais visibilidade, mais turnos, mais renda.</p>
+          <div class="j-plan-feats">
+            <div class="j-plan-feat bold"><i data-lucide="check"></i>Tudo do gratuito, mais:</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Prioridade máxima no algoritmo de match</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Badge ⚡ TURN<span class="di">I</span><span class="de">.</span> Ads no perfil</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Aparece antes de profissionais sem ads</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Notificações antecipadas de novos turnos</div>
+            <div class="j-plan-feat"><i data-lucide="check"></i>Estatísticas de visibilidade do perfil</div>
+            <div class="j-plan-feat bold"><i data-lucide="trending-up"></i>Em média <b>3× mais propostas</b> por semana</div>
+          </div>
+          <a class="j-plan-cta outline" href="__WEBAPP_URL__/#/cadastro/wkr">Ativar TURN<span class="di">I</span><span class="de">.</span> Ads <i data-lucide="arrow-right"></i></a>
+          <div class="j-plan-guarantee">menos que 2 horas de trabalho por mês</div>
+        </div>
+
+        <!-- PLANO TURNIFICADO · destaque -->
+        <div class="j-plan featured">
+          <div class="j-plan-tag">★ Plano TURN<span class="di">I</span>ficado · para quem roda o mês</div>
+          <div class="j-plan-price">R$ 149</div>
+          <div class="j-plan-period">por mês · cancele quando quiser</div>
+          <p class="j-plan-desc">Para quem está rodando o mês inteiro com TURN<span class="di">I</span><span class="de">.</span> e quer visibilidade máxima, antecipação e prioridade nas operações premium.</p>
+          <div class="j-plan-feats">
+            <div class="j-plan-feat bold"><i data-lucide="check"></i>Tudo do TURN<span class="di">I</span><span class="de">.</span> Ads, mais:</div>
+            <div class="j-plan-feat"><i data-lucide="zap"></i><b>Antecipação de turnos</b> agendados em até 7 dias</div>
+            <div class="j-plan-feat"><i data-lucide="award"></i><b>Prioridade nas operações premium</b> do FHP</div>
+            <div class="j-plan-feat"><i data-lucide="shield-check"></i><b>Selo TURNIificado</b> · destaque visual no perfil</div>
+            <div class="j-plan-feat"><i data-lucide="bar-chart-2"></i><b>Dashboard de carreira</b> · histórico, renda acumulada e projeção</div>
+            <div class="j-plan-feat bold"><i data-lucide="trending-up"></i>Em média <b>5h de trabalho</b> cobrindo o mês inteiro do plano</div>
+          </div>
+          <a class="j-plan-cta solid" href="__WEBAPP_URL__/#/cadastro/wkr">Ser TURN<span class="di">I</span>ficado <i data-lucide="arrow-right"></i></a>
+          <div class="j-plan-guarantee">primeira mensalidade descontada do primeiro turno · sem cartão de crédito para começar</div>
+        </div>
+      </div>
+
+      <p class="j-calc-foot" style="margin-top:24px">* TURN<span class="di">I</span><span class="de">.</span> Ads aumenta sua visibilidade no algoritmo de match, sem garantia de quantidade de turnos.</p>
+    </div>
+  </section>
+
+  <div class="j-cta-strip">
+    <h3 class="j-cta-h">Pronto para ter o turno na sua mão?</h3>
+    <p class="j-cta-d">Cadastro em 3 minutos. MEI · contrato B2B PJ↔PJ · primeiro turno pode ser ainda essa semana.</p>
+    <a class="j-cta-btn" href="__WEBAPP_URL__/#/cadastro/wkr">Começar a trabalhar <i data-lucide="arrow-right"></i></a>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     QUEM TURNIFICA · prova social · só os logos dos clientes
+     ════════════════════════════════════════════════════════════════ -->
+<section class="quem-turnifica" id="quem-turnifica">
+  <div class="qt-inner">
+    <div class="qt-tag">Quem turnifica</div>
+    <h2 class="qt-h">OPERAÇÕES QUE JÁ <span class="accent">TURNIFICAM.</span></h2>
+    <p class="qt-d">
+      A TURN<span class="di">I</span><span class="de">.</span> nasceu rodando dentro do <b>Grupo Noiz</b>, com operação real validada antes de abrir para o mercado. Os empresas abaixo já contratam profissionais TURN<span class="di">I</span><span class="de">.</span> todo mês.
+    </p>
+
+    <!-- ════ Logos dos clientes que já turnificam ════ -->
+    <div class="qt-logos">
+      <!-- Logo 1 · Pizza da Mooca -->
+      <div class="qt-logo">
+        <img src="./turnioficial_files/10-logo-parceiro-1.png" alt="A Pizza da Mooca">
+      </div>
+      <!-- Logo 2 · Da Mooca Pizza Shop -->
+      <div class="qt-logo">
+        <img src="./turnioficial_files/11-logo-parceiro-2.png" alt="Da Mooca Pizza Shop">
+      </div>
+      <!-- Outras operações Grupo Noiz · sem logo ainda -->
+      <div class="qt-logo">
+        <div class="qt-logo-text">Boteco Noiz<small>cervejaria · cozinha</small></div>
+      </div>
+      <div class="qt-logo">
+        <div class="qt-logo-text">Cozinha Noiz<small>industrial · delivery</small></div>
+      </div>
+      <div class="qt-logo">
+        <div class="qt-logo-text">Eventos Noiz<small>catering · pontuais</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     NÚMEROS TURN<span class="di">I</span><span class="de">.</span> · contador vivo · evolução e pertencimento
+     ════════════════════════════════════════════════════════════════ -->
+<section class="numeros-turni" id="numeros-turni">
+  <div class="qt-inner">
+    <div class="qt-tag">Números TURN<span class="di">I</span><span class="de">.</span></div>
+    <h2 class="qt-h">A REDE PULSA EM <span class="accent">TEMPO REAL.</span></h2>
+    <p class="qt-d">
+      Cada turno fechado, cada profissional cadastrado, cada empresa aderindo ao ecossistema. <b>A TURN<span class="di">I</span><span class="de">.</span> é um movimento.</b> Veja a rede crescer agora.
+    </p>
+
+    <div class="qt-counters">
+      <div class="qt-counter">
+        <div class="qt-live-tag"><span class="qt-live-dot"></span>ao vivo</div>
+        <div class="qt-counter-num" id="counterEmp" data-target="32">0</div>
+        <div class="qt-counter-l">Contratantes <b>cadastrados</b></div>
+      </div>
+      <div class="qt-counter">
+        <div class="qt-live-tag"><span class="qt-live-dot"></span>ao vivo</div>
+        <div class="qt-counter-num" id="counterPro" data-target="847">0</div>
+        <div class="qt-counter-l">Prestadores <b>cadastrados</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     ATO 8 · CTA FINAL
+     ════════════════════════════════════════════════════════════════ -->
+<section class="ato-cta">
+  <div class="cta-inner">
+    <div class="cta-eyebrow">ato 6 · sua vez</div>
+    <h2 class="cta-h">Pronto para fazer parte<br>do <span class="accent">encontro?</span></h2>
+    <p class="cta-d">
+      Deixe seu e-mail e a gente te envia acesso antecipado. Ou clique acima para entrar direto na demo navegável.
+    </p>
+    <form class="cta-form" onsubmit="event.preventDefault();alert(&#39;Cadastro recebido! Em breve te chamamos.&#39;)">
+      <input type="email" placeholder="seu@email.com.br" required="">
+      <button type="submit">Quero entrar <i data-lucide="arrow-right"></i></button>
+    </form>
+    <div class="cta-foot">
+      <span><i data-lucide="zap"></i>Powered by Pagar.me</span>
+      <span><i data-lucide="shield-check"></i>Ecossistema FHP</span>
+      <span><i data-lucide="award"></i>Parceria Stone</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     FOOTER
+     ════════════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="foot-inner">
+    <div class="foot-col">
+      <div class="foot-logo">TURN<span class="di">I</span><span class="de">.</span></div>
+      <p style="line-height:1.55">Hospitalidade. Match IA · PIN Bilateral · Pix em 15min.</p>
+    </div>
+    <div class="foot-col">
+      <h4>Produto</h4>
+      <a href="index.html#rotas">Como contratar</a>
+      <a href="index.html#rotas">Como trabalhar</a>
+      <a href="__WEBAPP_URL__/#/login">Acessar conta</a>
+      <a href="index.html#equipe">Sobre a TURN<span class="di">I</span><span class="de">.</span></a>
+    </div>
+    <div class="foot-col">
+      <h4>Recursos</h4>
+      <a href="index.html#">Match por IA</a>
+      <a href="index.html#">PIN bilateral</a>
+      <a href="index.html#">Pagamentos Pagar.me</a>
+      <a href="index.html#">Compliance MEI</a>
+    </div>
+    <div class="foot-col">
+      <h4>Empresa</h4>
+      <a href="index.html#">Time fundador</a>
+      <a href="index.html#">Imprensa</a>
+      <a href="index.html#">Contato</a>
+      <a href="index.html#">Política de privacidade</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 TURN<span class="di">I</span><span class="de">.</span> · Alcatech Group + Grupo Noiz</span>
+    <span>São Paulo · Brasil</span>
+  </div>
+</footer>
+
+<script>
+  function toggleMenu(e){
+    e.preventDefault();e.stopPropagation();
+    document.getElementById('navPanel').classList.toggle('open');
+    document.getElementById('navLink').classList.toggle('active');
+  }
+
+  /* Escolha de persona · aplica classe ao body e direciona pra jornada correspondente
+     Lock total · só vê a jornada escolhida + quem turnifica + números + CTA */
+  function choosePersona(p){
+    document.body.classList.remove('persona-emp','persona-pro');
+    document.body.classList.add('persona-' + p);
+    // Aguarda 1 frame · display:none vira block antes do scrollIntoView
+    requestAnimationFrame(() => {
+      const target = document.getElementById(p === 'emp' ? 'jornada-contratar' : 'jornada-trabalhar');
+      if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  }
+  // Se entrar via URL com hash de jornada, ativa a persona correspondente
+  document.addEventListener('DOMContentLoaded', () => {
+    const h = (location.hash || '').toLowerCase();
+    if(h.includes('jornada-contratar') || h.includes('emp-')) document.body.classList.add('persona-emp');
+    else if(h.includes('jornada-trabalhar') || h.includes('pro-')) document.body.classList.add('persona-pro');
+
+    /* Nav fixo com backdrop blur · ativa após o user fazer scroll · usa rAF
+       para evitar layout thrashing em scrolls rápidos */
+    const nav = document.querySelector('.nav');
+    if(nav){
+      let ticking = false;
+      const onScroll = () => {
+        if(!ticking){
+          requestAnimationFrame(() => {
+            nav.classList.toggle('scrolled', window.scrollY > 60);
+            ticking = false;
+          });
+          ticking = true;
+        }
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll(); // estado inicial · caso a página carregue já scrollada (refresh no meio)
+    }
+
+    /* Sprint B.3 · slow-connection detection · Network Information API
+       Pula animações pesadas em 2G/3G slow ou save-data */
+    try{
+      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if(conn){
+        const slow = conn.saveData
+          || conn.effectiveType === 'slow-2g'
+          || conn.effectiveType === '2g'
+          || conn.effectiveType === '3g'
+          || (conn.downlink && conn.downlink < 1.5);
+        if(slow){
+          document.body.classList.add('slow-conn');
+          console.log('[Turni] modo lite ativado · effectiveType=' + conn.effectiveType + ' · saveData=' + !!conn.saveData);
+        }
+        // Reage a mudanças (entrar/sair de túnel)
+        conn.addEventListener && conn.addEventListener('change', () => {
+          const stillSlow = conn.saveData || ['slow-2g','2g','3g'].includes(conn.effectiveType);
+          document.body.classList.toggle('slow-conn', !!stillSlow);
+        });
+      }
+    }catch(e){ /* api ausente · ignore */ }
+  });
+  document.addEventListener('click',(e)=>{
+    const p=document.getElementById('navPanel'),l=document.getElementById('navLink');
+    if(p && l && !p.contains(e.target) && !l.contains(e.target)){
+      p.classList.remove('open');l.classList.remove('active');
+    }
+  });
+
+  /* ════════════ STORY STAGE · split view 5 atos × 2 personas ════════════ */
+  (function(){
+    const empCards = document.querySelectorAll('.story-col.emp .story-card');
+    const proCards = document.querySelectorAll('.story-col.pro .story-card');
+    const dots = document.querySelectorAll('#storyProgress button');
+    const prevBtn = document.getElementById('storyPrev');
+    const nextBtn = document.getElementById('storyNext');
+    const stage = document.getElementById('storyStage');
+    const TOTAL = 5;
+    if(!empCards.length || !proCards.length) return;
+
+    let current = 0;
+    let introPlayed = false;
+    const LETRAS = ['T','U','R','N','I'];
+
+    const actNum = document.getElementById('actNum');
+    function showAct(idx){
+      [empCards, proCards].forEach(group => {
+        group.forEach((c,i) => {
+          c.classList.remove('active','exit');
+          if(i === idx) c.classList.add('active');
+          else if(i === current) c.classList.add('exit');
+        });
+      });
+      dots.forEach((d,i) => d.classList.toggle('active', i === idx));
+      const activeDot = dots[idx];
+      if(activeDot){
+        activeDot.style.animation = 'none';
+        void activeDot.offsetWidth;
+        activeDot.style.animation = '';
+      }
+      // Atualiza letra gigante do ato · T·U·R·N·I monta a marca a cada ato
+      if(actNum){
+        actNum.classList.remove('swap');
+        void actNum.offsetWidth;
+        actNum.textContent = LETRAS[idx] || '';
+        actNum.classList.toggle('act-i', idx === 4);
+        actNum.classList.add('swap');
+      }
+      stage.setAttribute('data-ato', idx);
+      current = idx;
+    }
+
+    function next(){ showAct((current + 1) % TOTAL); }
+    function prev(){ showAct((current - 1 + TOTAL) % TOTAL); }
+
+    // ─── INTRO PREVIEW · monta TURNI rápido então pausa no ato 1 ───
+    // Dispara quando a story-stage entra no viewport pela 1ª vez
+    function playIntroPreview(){
+      if(introPlayed) return;
+      introPlayed = true;
+      stage.classList.add('intro-playing');
+
+      // Cria barra de letras "construindo" abaixo do letra principal
+      let buildEl = document.querySelector('.story-act-build');
+      if(!buildEl){
+        buildEl = document.createElement('div');
+        buildEl.className = 'story-act-build';
+        const marker = document.querySelector('.story-act-marker');
+        if(marker) marker.appendChild(buildEl);
+      }
+      buildEl.innerHTML = '';
+      buildEl.classList.remove('show','complete');
+
+      const STEP = 480; // 480ms por ato no preview
+      let i = 0;
+      function step(){
+        if(i >= TOTAL){
+          // Pausa final · TURNi completo brilha por 600ms
+          buildEl.classList.add('complete');
+          setTimeout(() => {
+            // Volta pro ato 1 (T) e libera controle
+            stage.classList.remove('intro-playing');
+            buildEl.classList.remove('show','complete');
+            buildEl.innerHTML = '';
+            showAct(0);
+          }, 900);
+          return;
+        }
+        showAct(i);
+        // Adiciona letra acumulativa na barra inferior
+        const letterSpan = document.createElement('span');
+        letterSpan.textContent = LETRAS[i];
+        if(i === 4) letterSpan.classList.add('green');
+        buildEl.appendChild(letterSpan);
+        buildEl.classList.add('show');
+        i++;
+        setTimeout(step, STEP);
+      }
+      // Pequeno delay inicial pra criar suspense
+      setTimeout(step, 350);
+    }
+
+    // Dispara o preview quando a stage entra no viewport
+    if('IntersectionObserver' in window){
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if(entry.isIntersecting && !introPlayed){
+            playIntroPreview();
+            io.disconnect();
+          }
+        });
+      }, { threshold: 0.3 });
+      io.observe(stage);
+    } else {
+      // Fallback · navegadores antigos
+      setTimeout(playIntroPreview, 1200);
+    }
+
+    // Navegação manual (sem autoplay · usuário comanda após o preview)
+    prevBtn.addEventListener('click', prev);
+    nextBtn.addEventListener('click', next);
+    dots.forEach((d,i) => d.addEventListener('click', () => showAct(i)));
+  })();
+
+  /* ════════════ CONTADOR VIVO · QUEM TURNIFICA ════════════ */
+  /* Anima de 0 ao target ao entrar no viewport · depois tics ao vivo */
+  (function(){
+    const counters = document.querySelectorAll('.qt-counter-num[data-target]');
+    if(!counters.length) return;
+    const liveTargets = {};
+
+    function fmt(n){ return n.toLocaleString('pt-BR'); }
+
+    function animate(el, target, duration){
+      const start = parseInt((el.textContent || '0').replace(/\D/g,''), 10);
+      const t0 = performance.now();
+      function step(now){
+        const t = Math.min((now - t0) / duration, 1);
+        const ease = 1 - Math.pow(1 - t, 3);
+        const cur = Math.round(start + (target - start) * ease);
+        el.textContent = fmt(cur);
+        if(t < 1) requestAnimationFrame(step);
+        else liveTargets[el.id] = target;
+      }
+      requestAnimationFrame(step);
+    }
+
+    function tick(el, by){
+      if(liveTargets[el.id] === undefined) return;
+      liveTargets[el.id] += by;
+      el.textContent = fmt(liveTargets[el.id]);
+      el.classList.remove('tick');
+      void el.offsetWidth;
+      el.classList.add('tick');
+    }
+
+    // Anima quando entra no viewport
+    const obs = new IntersectionObserver((entries)=>{
+      entries.forEach(e => {
+        if(e.isIntersecting){
+          const target = parseInt(e.target.dataset.target, 10);
+          animate(e.target, target, 1800);
+          obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    counters.forEach(el => obs.observe(el));
+
+    // Tics ao vivo · contratantes raros, prestadores frequentes
+    setInterval(() => {
+      const elEmp = document.getElementById('counterEmp');
+      if(elEmp && Math.random() > 0.65) tick(elEmp, 1);
+    }, 18000);
+
+    setInterval(() => {
+      const elPro = document.getElementById('counterPro');
+      if(elPro && Math.random() > 0.25) tick(elPro, Math.floor(Math.random() * 3) + 1);
+    }, 6500);
+  })();
+
+  /* ════════════ CALCULADORA DE RENDA · profissional ════════════ */
+  function calcRenda(){
+    const shifts = parseInt(document.getElementById('rngShifts').value, 10);
+    const value  = parseInt(document.getElementById('rngValue').value, 10);
+    const shiftsM = shifts * 4;
+    const total  = shiftsM * value;
+    const hours  = shiftsM * 4;
+    const perH   = Math.round(total / hours);
+    const score  = shiftsM * 30;
+    const fmt = (n)=> 'R$ ' + n.toLocaleString('pt-BR');
+    const setV = (id,v)=>{ const el = document.getElementById(id); if(el) el.textContent = v; };
+    setV('calcShifts', shifts);
+    setV('calcValue', fmt(value));
+    setV('calcShiftsM', shiftsM);
+    setV('calcHours', hours + 'h');
+    setV('calcPerHour', 'R$' + perH);
+    setV('calcScore', '+' + score);
+    setV('calcTotal', fmt(total));
+  }
+  document.addEventListener('DOMContentLoaded', () => { if(document.getElementById('rngShifts')) calcRenda(); });
+
+  // ─── CALCULADORA DE TURNOS · jornada trabalhador ───────────────
+  // Usuário manipula a simulação · resultado dinâmico em tempo real
+  (function(){
+    const fnSel = document.getElementById('calcFuncao');
+    const turnRng = document.getElementById('calcTurnos');
+    const valRng = document.getElementById('calcValor');
+    if(!fnSel || !turnRng || !valRng) return;
+
+    const fnVal = document.getElementById('calcFuncaoVal');
+    const turnVal = document.getElementById('calcTurnosVal');
+    const valVal = document.getElementById('calcValorVal');
+    const brutoEl = document.getElementById('calcBruto');
+    const descEl = document.getElementById('calcDesc');
+    const liquidoEl = document.getElementById('calcLiquido');
+
+    const fmt = n => 'R$ ' + Math.round(n).toLocaleString('pt-BR');
+
+    function update(){
+      const turnos = parseInt(turnRng.value, 10);
+      const valor = parseInt(valRng.value, 10);
+      const funcaoLabel = fnSel.options[fnSel.selectedIndex].text.split(' ·')[0];
+      const bruto = turnos * valor;
+      const desc = 75; // DAS-MEI fixo · base 2026 conservadora
+      const liquido = bruto - desc;
+
+      fnVal.textContent = funcaoLabel;
+      turnVal.textContent = turnos;
+      valVal.textContent = fmt(valor);
+      brutoEl.textContent = fmt(bruto);
+      descEl.textContent = '– ' + fmt(desc);
+      liquidoEl.textContent = fmt(liquido);
+    }
+
+    // Quando muda a função · sincroniza valor sugerido como referência
+    fnSel.addEventListener('change', () => {
+      const sugerido = parseInt(fnSel.value, 10);
+      valRng.value = sugerido;
+      update();
+    });
+    turnRng.addEventListener('input', update);
+    valRng.addEventListener('input', update);
+
+    update();
+  })();
+
+  lucide.createIcons();
+</script>
+
+
+
+</body></html>

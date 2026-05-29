@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Turni — página não encontrada</title>
+  <meta name="description" content="Página não encontrada.">
+  <meta name="theme-color" content="#00A868">
+
+  <!-- Fontes: mesmo padrão da landing AS IS / "Em breve" (preconnect + preload + display=swap) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="https://fonts.gstatic.com/s/bebasneue/v14/JTUSjIg69CK48gW7PXoo9Wlhyw.woff2">
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400&display=swap">
+
+  <style>
+    /* Tokens herdados da landing AS IS — mesma identidade da "Em breve" (ADR-012 §3). */
+    :root {
+      --black: #000000;
+      --logo-green: #00A868;
+      --message: #FFFFFF;   /* 21:1 sobre preto */
+      --muted: #8A8A82;     /* ~6.2:1 sobre preto — AA folgado */
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      background: var(--black);
+      display: flex;
+      flex-direction: column;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(16px, 3vh, 24px);
+      padding: 0 16px;
+      text-align: center;
+    }
+
+    /* Mark TURNI. — font-based (Bebas Neue), herdado da landing AS IS. */
+    .logo {
+      margin: 0;
+      font-family: 'Bebas Neue', sans-serif;
+      font-weight: 400;
+      font-size: clamp(72px, 12vw, 120px);
+      line-height: 1;
+      letter-spacing: 2px;
+      color: #FFFFFF;
+    }
+    .logo .di { color: var(--logo-green); }        /* o "I" — verde sólido */
+    .logo .de { color: var(--logo-green); }         /* fallback: ponto verde sólido */
+    @supports (-webkit-text-stroke: 1px) {          /* progressive enhancement: ponto vazado */
+      .logo .de {
+        -webkit-text-stroke: 3px var(--logo-green);
+        color: transparent;
+      }
+    }
+
+    .message {
+      margin: 0;
+      font-size: clamp(18px, 2.4vw, 24px);
+      font-weight: 400;
+      color: var(--message);
+    }
+
+    .home-link {
+      margin-top: 4px;
+      font-size: 15px;
+      color: var(--logo-green);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color .15s;
+    }
+    .home-link:hover,
+    .home-link:focus-visible { border-bottom-color: var(--logo-green); }
+
+    .footer {
+      padding: 16px;
+      padding-bottom: clamp(16px, 4vh, 24px);
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body data-screen="404">
+  <main class="wrap">
+    <h1 class="logo" aria-label="Turni">TURN<span class="di" aria-hidden="true">I</span><span class="de" aria-hidden="true">.</span></h1>
+    <p class="message">Página não encontrada.</p>
+    <a class="home-link" href="/">Voltar para o início</a>
+  </main>
+  <footer class="footer">© Turni · 2026</footer>
+</body>
+</html>

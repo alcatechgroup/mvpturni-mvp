@@ -7,7 +7,7 @@
     "current_sprint": "SPRINT-2026-W24",
     "last_closed_sprint": "SPRINT-2026-W23",
     "phase": "wave-2026-01-sprints-w24-e-w24-landing-em-paralelo",
-    "next_action": "DUAS sprints abertas em paralelo. (1) SPRINT-2026-W24 (EPIC-001): STORY-016 done em 2026-05-29 (aprovada por Alexandro em chat, F-NB-1 e CA-15 evidenciados em homolog) — desbloqueia 017/018/019/020/022. Gargalo agora é Designer: 5 screen specs restantes (017/018/019/020/022) precisam virar ready para 017/018/022 entrarem. (2) SPRINT-2026-W24-LANDING (EPIC-006): aberto; priorizar STORY-026 (ADR-012, arquiteto) e STORY-027 (PDR-015, PO) no D1 — ambas destravam as 6 estórias de implementação. Coordenação: PRs com prefixo [W24] ou [W24-LANDING]; touch points compartilhados (firebase.json, .firebaserc, CODEOWNERS, módulos Terraform firebase/dns) requerem rebase imediato entre as duas branches.",
+    "next_action": "DUAS sprints abertas em paralelo. (1) SPRINT-2026-W24 (EPIC-001): STORY-016 done em 2026-05-29 (aprovada por Alexandro em chat, F-NB-1 e CA-15 evidenciados em homolog) — desbloqueia 017/018/019/020/022. Gargalo agora é Designer: 5 screen specs restantes (017/018/019/020/022) precisam virar ready para 017/018/022 entrarem. (2) SPRINT-2026-W24-LANDING (EPIC-006): 5/8 — 4 done (026 ADR-012, 027 PDR-015, 029 Terraform+DNS, 030 scaffolding+import AS IS) + 1 in_progress (028 Em breve, Lighthouse local Perf 99/A11y 100 aprovado pelo PO; só falta curl-gate gated em 031). Próximo passo: STORY-031 (firebase.json rotas explícitas + .firebaserc + workflow tag-based + build step _lp→path/__WEBAPP_URL__/__LANDING_PATH__) — destrava o fechamento da 028 (Lighthouse na URL servida) e habilita 032/033. Coordenação: PRs com prefixo [W24] ou [W24-LANDING]; touch points compartilhados (firebase.json, .firebaserc, CODEOWNERS, módulos Terraform firebase/dns) requerem rebase imediato entre as duas branches.",
     "notes": "SPRINT-2026-W24 aberta em 2026-05-28 com 10 estórias no escopo (012/013/014/015/016/017/018/019/020/022). Goal: funil de identidade Turni vivo em homolog até a tela real de welcome — profissional (PF/MEI/PJ) e contratante completam pré-cadastro, equipe Turni aprova no Backoffice com audit log imutável, usuário aprovado loga no WebApp e vê welcome real; RBAC vivo nas duas interfaces; editor de templates contratuais com texto-seed v1 validado por Alexandro carregado; 3 ADRs aceitas (ADR-009/010/011); F-NB-1 do EPIC-000 (migrate:rollback em homolog) quitado na STORY-016. STORY-021 (e-mails) como stretch. STORY-023/024/025 ficam para SPRINT-2026-W25. Soft-cap em 2026-06-18 (~21 dias) — gatilho de reavaliação, não prazo. Sizing: 1L + 7M + 2S — primeira sprint com volume real de implementação pós-EPIC-000."
   },
   "product": {
@@ -240,7 +240,7 @@
       "created_at": "2026-05-28",
       "updated_at": "2026-05-28",
       "in_progress_sprint": "SPRINT-2026-W24-LANDING",
-      "next_action": "SPRINT-2026-W24-LANDING aberto com 8 estórias (026-033). Priorizar STORY-026 (ADR-012) e STORY-027 (PDR-015) no D1 — destravam as 6 estórias seguintes."
+      "next_action": "Estado 2026-05-29: 4 done (STORY-026 ADR-012, STORY-027 PDR-015, STORY-029 Terraform+DNS, STORY-030 scaffolding+import AS IS — 4 adaptações + robots/404/README/CHANGELOG/CODEOWNERS, CA-13 aprovado pelo PO) + 1 in_progress (STORY-028 Em breve — Lighthouse local Perf 99/A11y 100, ajuste ARIA aplicado; só falta curl-gate, gated em 031). Próximo passo: STORY-031 (firebase.json com rotas explícitas sem rewrite genérico + .firebaserc + workflow GitHub Actions tag-based + build step: renomeia _lp/→$FIREBASE_LANDING_PATH, substitui __WEBAPP_URL__ e gera robots.txt de __LANDING_PATH__). 031 serve a URL → fecha 028 (Lighthouse na homolog) e destrava 032/033."
     }
   ],
   "stories": [
@@ -1009,8 +1009,8 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-4-8-programador-2026-05-29",
       "sprint_id": "SPRINT-2026-W24-LANDING",
       "path": "epics/EPIC-006-landing-institucional/stories/STORY-030-scaffolding-apps-landing-import-as-is-adaptacoes-minimas.md",
       "blocked_by": [
@@ -1025,7 +1025,7 @@
       ],
       "estimated_session_size": "M",
       "created_at": "2026-05-28",
-      "updated_at": "2026-05-28"
+      "updated_at": "2026-05-29"
     },
     {
       "id": "STORY-031",

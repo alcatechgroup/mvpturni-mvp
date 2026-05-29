@@ -36,16 +36,16 @@ O sprint roda majoritariamente com **agentes** (programador para 5 das 8 estóri
 
 ## Estórias incluídas
 
-| ID | Título | Épico | Tipo | Papel | Tamanho | Design? | Status |
-|---|---|---|---|---|---|---|---|
-| STORY-026 | Spike — gate Em breve + path secreto + topologia Firebase (ADR-012) | EPIC-006 | spike | arquiteto | M | não | ready |
-| STORY-027 | PO — PDR-015 Fronteira marketing × engenharia × comercial | EPIC-006 | decision | po | S | não | ready |
-| STORY-028 | Página "Em breve" com identidade visual | EPIC-006 | implementation | programador (+designer) | S | **sim** (SCREEN-STORY-028-em-breve) | ready |
-| STORY-029 | Terraform multi-site + DNS apex/www/landing.homolog | EPIC-006 | implementation | programador | M | não | ready |
-| STORY-030 | Scaffolding apps/landing/ + import AS IS + 4 adaptações + robots/404/README/CODEOWNERS | EPIC-006 | implementation | programador | M | não | ready |
-| STORY-031 | firebase.json com rotas explícitas + .firebaserc + workflow GitHub Actions tag-based | EPIC-006 | implementation | programador | M | não | ready |
-| STORY-032 | Runbook operacional — publicar, rollback, rotação, go-public | EPIC-006 | implementation | programador | S | não | ready |
-| STORY-033 | Validação final do EPIC-006 | EPIC-006 | validation | validador | S | não | ready |
+| ID        | Título                                                                                 | Épico    | Tipo           | Papel                   | Tamanho | Design?                             | Status                                                             |
+| --------- | -------------------------------------------------------------------------------------- | -------- | -------------- | ----------------------- | ------- | ----------------------------------- | ------------------------------------------------------------------ |
+| STORY-026 | Spike — gate Em breve + path secreto + topologia Firebase (ADR-012)                    | EPIC-006 | spike          | arquiteto               | M       | não                                 | **done**                                                           |
+| STORY-027 | PO — PDR-015 Fronteira marketing × engenharia × comercial                              | EPIC-006 | decision       | po                      | S       | não                                 | **done**                                                           |
+| STORY-028 | Página "Em breve" com identidade visual                                                | EPIC-006 | implementation | programador (+designer) | S       | **sim** (SCREEN-STORY-028-em-breve) | **in_progress** (Lighthouse local Perf 99/A11y 100 + ajuste ARIA OK; só falta curl-gate gated em 031) |
+| STORY-029 | Terraform multi-site + DNS apex/www/landing.homolog                                    | EPIC-006 | implementation | programador             | M       | não                                 | **done**                                                           |
+| STORY-030 | Scaffolding apps/landing/ + import AS IS + 4 adaptações + robots/404/README/CODEOWNERS | EPIC-006 | implementation | programador             | M       | não                                 | **done** (2026-05-29 — import AS IS em _lp/, 4 adaptações, CA-13 aprovado pelo PO) |
+| STORY-031 | firebase.json com rotas explícitas + .firebaserc + workflow GitHub Actions tag-based   | EPIC-006 | implementation | programador             | M       | não                                 | ready                                                              |
+| STORY-032 | Runbook operacional — publicar, rollback, rotação, go-public                           | EPIC-006 | implementation | programador             | S       | não                                 | ready                                                              |
+| STORY-033 | Validação final do EPIC-006                                                            | EPIC-006 | validation     | validador               | S       | não                                 | ready                                                              |
 
 **Sem stretch.** Sprint pequeno por construção; melhor entregar 8/8 do que arriscar carry-over.
 
@@ -187,7 +187,47 @@ Regras específicas para W24-LANDING:
 
 > Para registrar conforme acontecem; consolidados na seção "Fechamento do sprint" no fim.
 
-(a preencher conforme a sprint avança — primeiro check em 2026-06-04)
+### 2026-05-28 — D+1: ADR-012, PDR-015 e Terraform fechados; "Em breve" implementada (validação gated em 031)
+
+**O que aconteceu:**
+
+Quatro estórias avançaram no D1 — bem acima do estimado (esperado: 026 e 027 fecharem; 028/029 começarem):
+
+- **STORY-026 (ADR-012) done** — gate "Em breve" + path secreto + topologia Firebase fixados. Decisão chave: site único + página em `apps/landing/public/index.html`, sem rewrite genérico, HTML `no-cache`, `sw.js` removido.
+- **STORY-027 (PDR-015) done** — fronteira marketing × engenharia × comercial estabelecida.
+- **STORY-029 (Terraform multi-site + DNS) done** — infra aplicada em homolog (apex/www/landing.homolog); IDR-004/005 registrados.
+- **STORY-028 (Em breve) in_progress** — `apps/landing/public/index.html` implementado e commitado (`db4a238`); 3.4 KB de HTML, render Playwright OK mobile/desktop, copy "Em breve." aprovada por Alexandro. **Pendências para fechar são gated em STORY-031** (Lighthouse mobile precisa de URL servida pelo Firebase + smoke curl do gate).
+
+**Estado resultante (4/8):**
+
+- 3 done (026, 027, 029), 1 in_progress validação-gated (028).
+- 4 ready: 030 (agora destravada — tem 026 + 027 + 028 atendidos para o código que precisa, mesmo com 028 pendente de Lighthouse), 031, 032, 033.
+
+**Gargalo atual:**
+
+STORY-030 (scaffolding + import AS IS + adaptações) é o caminho crítico. Destrava 031 e 032; 031 destrava o fechamento de 028 (Lighthouse contra URL real). Sem 030, fica tudo parado.
+
+**Decisão de fluxo:**
+
+028 fica `in_progress` formalmente (Disciplina §2 — CA-7/CA-8/CA-10 com pendência observável) até STORY-031 servir a URL e o Lighthouse rodar. Não devolvido para `ready` porque o código está pronto e aprovado; só falta evidência externa que depende de outra estória.
+
+**Ajuste de expectativa:**
+
+Sprint passou de 1/8 para 4/8 em D1. Soft-cap 2026-06-11 (~14 dias) muito confortável — 4 estórias restantes (030/031/032/033) podem fechar em sequência rápida. Coordenação com W24 (paralela) sem conflitos até aqui.
+
+### 2026-05-29 — STORY-030 done; STORY-028 com Lighthouse local verde
+
+**O que aconteceu:**
+
+- **STORY-030 (scaffolding + import AS IS) done.** Landing importada para `apps/landing/public/_lp/` com as **4 adaptações mecânicas** e nada mais (diff cirúrgico provado: A1 15 CTAs → `__WEBAPP_URL__`, A2 sem `app.html`/`manifest.json`, A3 `noindex`; A4 fica em 031). `robots.txt` (template `__LANDING_PATH__`), `404.html` institucional, `README.md`, `CHANGELOG.md` e `CODEOWNERS` (raiz, ADR §9 + aliases PDR-015) criados. CA-13: PO revisou o diff **e** a landing renderizada no browser — aprovado.
+  - Decisão de execução: `manifest.json` dropado (+ `<link rel=manifest>`) por ser artefato PWA do WebApp (`start_url`→`app.html`); tratado dentro da A2, aprovado pelo PO. `sw.js`/`tour.*` não copiados (do WebApp).
+- **STORY-028:** Lighthouse mobile local rodado (Perf 99 / A11y 100 / SEO 100, contraste PASS); corrigido um achado real de ARIA (`role="img"` inválido no `<h1>` → removido, mantido `aria-label`; a11y 99→100, heading restaurado). PO decidiu manter 028 `in_progress` — reconfirmação na URL de homolog é não-bloqueante, absorvida pela 033.
+
+**Estado resultante (5/8):** 4 done (026, 027, 029, 030), 1 in_progress validação-gated (028), 3 ready (031, 032, 033).
+
+**Gargalo atual:** STORY-031 (firebase.json rotas explícitas + .firebaserc + workflow tag-based + build step `_lp→path` / `__WEBAPP_URL__` / `__LANDING_PATH__`). 031 serve a URL real → fecha o Lighthouse de homolog da 028 e destrava 032/033.
+
+(próximo check em 2026-06-04 — D+7)
 
 ## Fechamento do sprint
 
