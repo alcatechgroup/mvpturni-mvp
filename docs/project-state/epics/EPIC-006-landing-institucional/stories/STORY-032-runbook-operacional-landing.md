@@ -7,10 +7,10 @@ sprint_id: SPRINT-2026-W24-LANDING
 type: implementation
 target_role: programador
 requires_design: false
-status: ready
-owner_agent: null
+status: done
+owner_agent: programador
 created_at: 2026-05-28
-updated_at: 2026-05-28
+updated_at: 2026-05-29
 estimated_session_size: S
 ---
 
@@ -125,15 +125,15 @@ Indireto, mas crítico: transforma operações de **risco moderado** (rollback s
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** `docs/operacao/runbook-landing.md` existe, no formato dos runbooks existentes (espelhar `docs/operacao/runbook-homolog.md`).
-- [ ] **CA-2:** Cada um dos 7 procedimentos (P1-P7) tem: título, pré-condições, passos numerados executáveis (com comandos exatos onde aplicável), verificações pós-execução, quem pode executar, SLA quando aplicável.
-- [ ] **CA-3:** Comandos exatos do Firebase CLI, gcloud, terraform, gh CLI estão presentes onde aplicável — copia-cola executável.
-- [ ] **CA-4:** Referências cruzadas: cada procedimento aponta para ADR-012/PDR-015/STORY relevante quando aplicável.
-- [ ] **CA-5:** Runbook **não vaza** o `<valor-real-do-path-secreto>` — usa placeholder `<path-secreto>` literal. Verificável com `grep`.
-- [ ] **CA-6:** Procedimento P6 (go-public) revisado pelo Alexandro (PO) com chancela informal — é o procedimento de maior risco e PDR-015 atribui a decisão ao comercial; o passo-a-passo precisa ser claro para todos os stakeholders.
-- [ ] **CA-7:** Pelo menos **um dos 7 procedimentos** exercitado para validar (idealmente P2 rollback emergencial, que tem baixo risco e alta confiança de funcionamento). Output do exercício anexado em "Notas".
-- [ ] **CA-8:** Link do runbook adicionado ao `apps/landing/README.md` (Programador da STORY-030 já criou; aqui apenas conecta).
-- [ ] **CA-9:** PR aprovado pelo PO.
+- [x] **CA-1:** `docs/operacao/runbook-landing.md` existe, no formato dos runbooks existentes (espelhar `docs/operacao/runbook-homolog.md`). Cabeçalho + Índice + procedimentos numerados + apêndice, como no `runbook-homolog.md`.
+- [x] **CA-2:** Cada um dos 7 procedimentos (P1-P7) tem: título, pré-condições, passos numerados executáveis (com comandos exatos onde aplicável), verificações pós-execução, quem pode executar, SLA quando aplicável.
+- [x] **CA-3:** Comandos exatos do Firebase CLI, gcloud, terraform, gh CLI estão presentes onde aplicável — copia-cola executável (REST do Firebase Hosting, `gh secret set`, `terraform plan/apply`, `git tag`, `dig`/`curl`).
+- [x] **CA-4:** Referências cruzadas: cada procedimento aponta para ADR-012/PDR-015/STORY relevante quando aplicável.
+- [x] **CA-5:** Runbook **não vaza** o path real — usa placeholder `<path-secreto>` literal. Verificado: o valor real nunca foi acessado nesta sessão e o repo só contém `_lp/`. `grep -rn "Disallow: /" docs/operacao/runbook-landing.md` só casa placeholders.
+- [x] **CA-6:** Procedimento P6 (go-public) **chancelado pelo Alexandro (PO)** em chat (2026-05-29): passo-a-passo aprovado; decisão de **NÃO ir para prod / NÃO publicar por ora** — estado atual (gate em homolog, `landing_prod_enabled=false`) está OK.
+- [x] **CA-7:** P2 (rollback) exercitado em homolog via REST — output anexado em "Notas". Estado restaurado.
+- [x] **CA-8:** Link do runbook adicionado ao `apps/landing/README.md` (agora link markdown clicável).
+- [x] **CA-9:** Aprovado pelo PO em chat (2026-05-29); commit direto na `main` (feedback-git-workflow — time solo, sem PR formal).
 
 ## Fora de escopo
 
@@ -196,25 +196,69 @@ Siga `docs/skills/programador/SKILL.md`. Resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+- **Documentos lidos:** esta estória inteira; `runbook-homolog.md` (formato precedente);
+  `SKILL.md` do programador; ADR-012 (9 decisões do gate); PDR-015 (8 dimensões de
+  processo); `firebase.json` (5 targets, incl. landing-homolog/prod/www-redirect);
+  `.firebaserc`; `.github/workflows/landing-deploy.yml`; `apps/landing/README.md`;
+  `infra/envs/prod/main.tf` + `variables.tf` (`landing_prod_enabled`, `dns_landing`);
+  `apps/landing/public/robots.txt`; entrada da STORY-032 no `index.json`.
+- **Entendimento consolidado:** estória de **redação de documentação** — nada novo é
+  decidido; o runbook escreve *como* executar os 7 procedimentos que ADR-012 e PDR-015
+  já decidiram *o quê/quem*. Não toca código de produção.
+- **Dúvidas:** nenhuma bloqueante. Resolvi divergências lendo a implementação real (ver
+  Descobertas) em vez de adivinhar.
+- **Plano:** (1) ler tudo; (2) exercitar P2 contra homolog real para validar comandos;
+  (3) redigir o runbook com comandos copia-cola; (4) linkar no README; (5) marcar CAs.
 
 ### Decisões tomadas
-(a preencher)
+- **Documentar o nome de secret REAL** (`LANDING_SECRET_PATH`) como autoritativo, não o
+  de design (`FIREBASE_LANDING_PATH`). O runbook serve para operar — tem de bater com o
+  que o pipeline lê. Divergência registrada no apêndice.
+- **P2 via REST** como caminho recomendado (não `firebase hosting:rollback`, que não
+  existe) — é exatamente o que o auto-rollback do pipeline faz, logo o mais exercitado.
+  Documentei também Console e `hosting:clone` como alternativas.
+- **Corrigi os passos da própria estória** quando a implementação os tornou obsoletos
+  (rotação **não** usa `git mv`; `robots.txt` é template) — registrado no apêndice em
+  vez de copiar passos que dariam erro a quem seguir.
+- **Arquivo único com TOC** (recomendação da estória), espelhando `runbook-homolog.md`.
 
 ### Descobertas
-(a preencher — ex: comando do Firebase CLI mudou desde a doc)
+1. **`firebase hosting:rollback` não existe** (firebase-tools 13.x e 15.15.0 testadas).
+   Confere com a descoberta já anotada no `index.json` (STORY-031). Rollback real =
+   REST / Console / `hosting:clone`.
+2. **Nome do secret:** workflow usa `LANDING_SECRET_PATH`; ADR-012/README/robots citam
+   `FIREBASE_LANDING_PATH`. Autoritativo p/ operar = `LANDING_SECRET_PATH`.
+3. **Rotação de path** não envolve `git mv` nem edição de `robots.txt`/Terraform — só
+   trocar o secret + redeploy via tag. Mais simples que a estória previa.
+4. Pendência menor herdada: o `runbook-homolog.md` ainda cita `firebase hosting:rollback`
+   para o webapp — anotado no apêndice para corrigir em passe futuro (fora do escopo desta estória).
 
 ### Bloqueios encontrados
-(a preencher)
+Nenhum bloqueio técnico. CA-6 (chancela do P6 pelo PO) e CA-9 (aprovação) são gates
+humanos pendentes — não bloqueiam a redação.
 
 ### Exercício de procedimento
-- P escolhido: (P2 sugerido)
-- Comandos executados: (texto)
-- Output: (texto)
-- Tempo total: (minutos)
+- **P escolhido:** P2 (rollback emergencial) — recomendado pela estória; baixo risco.
+- **Comandos executados:** REST do Firebase Hosting contra `turni-landing-homolog` —
+  listar releases, `POST .../releases?versionName=...` para re-release da versão anterior
+  (rc.3) e depois restaurar a original (rc.4).
+- **Output:**
+  ```
+  inicial: live = rc.4 (669a15851b894c1d), apex / → 200 "Em breve"
+  rollback → type=ROLLBACK version=.../4763dbf1246e681e (rc.3) @15:48:50Z; apex → 200 ✅
+  restore  → type=ROLLBACK version=.../669a15851b894c1d (rc.4) @15:49:08Z; apex → 200 ✅
+  ```
+- **Tempo total:** ~1 min. Homolog ficou 200 o tempo todo; estado restaurado ao original.
+  (Detalhe completo no runbook, seção "Exercício de validação — P2".)
 
 ### Pendências para fechar
-(a preencher)
+- Nenhuma. CA-6 chancelado e CA-9 aprovado pelo Alexandro em chat (2026-05-29).
+- **Decisão do PO:** **não** ir para prod nem publicar por ora — o estado atual (gate em
+  homolog, `landing_prod_enabled=false`) está OK. P6 (go-public) fica documentado e
+  pronto para quando o comercial autorizar.
 
 ### Links de evidência
-(a preencher — commit, PR, link do runbook mergeado)
+- Runbook: `docs/operacao/runbook-landing.md`.
+- Link no README: `apps/landing/README.md`.
+- Exercício P2: releases ROLLBACK de 2026-05-29T15:48–15:49Z no site `turni-landing-homolog`.
+- Commit/PR: (a preencher após commit).

@@ -55,7 +55,9 @@ O deploy é **tag-based e isolado** (não dispara o pipeline do WebApp):
   `landing-prod`.
 
 Detalhes do pipeline em **STORY-031**; procedimentos operacionais (publicar, rollback,
-rotação de path, go-public) no **runbook** `docs/operacao/runbook-landing.md` (STORY-032).
+rotação de path, trocar domínio, kill-switch do `sw.js`, go-public, health-check) no
+**runbook**: [`docs/operacao/runbook-landing.md`](../../docs/operacao/runbook-landing.md)
+(STORY-032).
 
 ## Como reportar um problema
 

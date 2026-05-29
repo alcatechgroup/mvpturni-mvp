@@ -1060,8 +1060,8 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-4-8-programador-2026-05-29",
       "sprint_id": "SPRINT-2026-W24-LANDING",
       "path": "epics/EPIC-006-landing-institucional/stories/STORY-032-runbook-operacional-landing.md",
       "blocked_by": [
@@ -1075,7 +1075,7 @@
       ],
       "estimated_session_size": "S",
       "created_at": "2026-05-28",
-      "updated_at": "2026-05-28"
+      "updated_at": "2026-05-29"
     },
     {
       "id": "STORY-033",
