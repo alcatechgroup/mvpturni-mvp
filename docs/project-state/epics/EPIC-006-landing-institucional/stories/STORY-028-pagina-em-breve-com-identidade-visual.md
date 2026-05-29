@@ -179,13 +179,15 @@ Spec `SCREEN-STORY-028-em-breve.md` entregue em `status: ready` (owner: claude-o
 ### Resultado final / evidência
 - **Verificações locais (grep):** bundle 3.4 KB; zero `<script>`/analytics/cookies/`new Date()` (CA-5); zero `<a>`/`<button>`/`<form>` ou link interno (CA-4); únicas requisições externas = Google Fonts (CA-5); sem `robots`/`noindex` (CA-6); meta `title`/`description`/`theme-color`/Open Graph presentes (CA-6).
 - **Render real (Playwright/Chromium, fontes carregadas):** mobile 390×844 e desktop 1280×800 conferem com o spec — mark centralizado com `I` verde sólido e ponto verde vazado, "Em breve." branca, footer discreto no rodapé. Tema dark único.
-- **Lighthouse mobile:** pendente — depende de URL servida (STORY-031). Performance ≥ 90 trivialmente atingível (3.4 KB, zero JS); registrar o número real quando o homolog estiver verde.
+- **Lighthouse mobile (2026-05-29, throttling simulado, contra URL local `python -m http.server`):** Performance **99**, Accessibility **100**, Best Practices 96, SEO 100. `color-contrast` PASS (CA-7 — WCAG AA), `heading-order` PASS, FCP/LCP 2.7 s, CLS 0.004, TBT 0 ms. Os achados `uses-text-compression` e `render-blocking-resources` são artefatos do servidor local sem gzip — o Firebase Hosting aplica brotli/gzip e só melhora o número; `errors-in-console` = 404 de `favicon.ico` do servidor local. Screenshot do Chrome real (Lighthouse) confere com o spec.
+- **Correção de acessibilidade (2026-05-29):** removido `role="img"` do `<h1>` (uso de ARIA inválido apontado por `aria-allowed-role`; também tirava o `<h1>` da árvore de headings). Mantido `aria-label="Turni"` — o leitor de tela continua anunciando "Turni", agora como heading nível 1, e o ARIA fica válido. Sem mudança visual nem de copy (PO já aprovou a copy). Resultado: a11y 99→100, `aria-allowed-role` n/a, `heading-order` PASS.
+- **Lighthouse na URL de homolog:** pendente — gated em STORY-031 (URL servida pelo Firebase). Decisão do PO (2026-05-29): 028 permanece `in_progress`; a reconfirmação na homolog é **não-bloqueante** e será absorvida pela validação da STORY-033. Os números locais (Perf 99 / A11y 100) já satisfazem CA-7/CA-8 com margem; a homolog só tende a igualar ou superar.
 - **URL de homolog:** (após STORY-031 estar verde)
 
 ### Pendências para fechar
 - [x] **Aprovação da copy default "Em breve." pelo PO (Alexandro)** — aprovada em 2026-05-28 (CA-10).
-- [ ] Lighthouse mobile (Performance ≥ 90 / Accessibility ≥ 95) rodado contra URL servida — gated em STORY-031.
-- [ ] Validação `curl` do gate no apex — gated em STORY-031/033.
+- [x] **Lighthouse mobile (Performance ≥ 90 / Accessibility ≥ 95)** — rodado em 2026-05-29 contra URL local (Perf 99 / A11y 100). Reconfirmação na URL de homolog é não-bloqueante (gated em STORY-031, absorvida pela STORY-033) — decisão do PO.
+- [ ] Validação `curl` do gate no apex — gated em STORY-031/033 (pertence ao gate, não à página).
 - [ ] Commit (workflow Turni: direto na main, stageando **só** `apps/landing/public/index.html`, `SCREEN-STORY-028-em-breve.md`, esta estória e a entrada do `index.json` — há outros agentes na worktree).
 
 ### Links de evidência
