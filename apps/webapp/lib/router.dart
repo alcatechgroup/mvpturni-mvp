@@ -5,6 +5,7 @@ import 'features/app/app_shell_screen.dart';
 import 'features/auth/auth_service.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
+import 'features/cadastro/pre_cadastro_profissional_screen.dart';
 import 'features/funnel/completar_cadastro_placeholder_screen.dart';
 import 'features/funnel/welcome_placeholder_screen.dart';
 import 'features/welcome/welcome_screen.dart';
@@ -22,7 +23,13 @@ String? _funnelGuard(BuildContext context, GoRouterState state) {
   final session = auth.session;
 
   // Rotas públicas — sem guard
-  const publicRoutes = {'/', '/login', '/esqueci-minha-senha', '/health'};
+  const publicRoutes = {
+    '/',
+    '/login',
+    '/esqueci-minha-senha',
+    '/cadastro/profissional',
+    '/health',
+  };
   if (publicRoutes.contains(state.matchedLocation)) return null;
 
   // Não logado → /login
@@ -69,6 +76,12 @@ final router = GoRouter(
     GoRoute(
       path: '/esqueci-minha-senha',
       builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+
+    // Pré-cadastro público de profissional (STORY-017)
+    GoRoute(
+      path: '/cadastro/profissional',
+      builder: (context, state) => const PreCadastroProfissionalScreen(),
     ),
 
     // Funnel guard — placeholders

@@ -1624,6 +1624,15 @@
         "decided_at": "2026-05-29",
         "decided_by": "programador",
         "source_story": "STORY-017"
+      },
+      {
+        "id": "IDR-009",
+        "title": "image_picker como biblioteca de seleção/upload de foto no WebApp Flutter",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-009-image-picker-para-upload-de-foto.md",
+        "decided_at": "2026-05-29",
+        "decided_by": "programador",
+        "source_story": "STORY-017"
       }
     ],
     "ddr": [

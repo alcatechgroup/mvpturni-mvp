@@ -42,7 +42,13 @@ dependencies:
   google_fonts: ^8.1.0
   url_launcher: ^6.3.2
   http: ^1.2.2
+  # MediaType para o contentType do multipart de upload (STORY-017). Já vem como
+  # transitivo do `http`; declarado para satisfazer depend_on_referenced_packages.
+  http_parser: ^4.1.2
   shared_preferences: ^2.3.2
+  # Upload de foto no pré-cadastro (STORY-017 / IDR-009). Cross-platform; em web usa
+  # image_picker_for_web (input file nativo). Reutilizável por STORY-018/023.
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

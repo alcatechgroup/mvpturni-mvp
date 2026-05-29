@@ -320,8 +320,9 @@ class _BannerState {
 
   factory _BannerState.pending() => _BannerState._(
     kind: _BannerKind.pending,
+    // STORY-017 CA-8 — inclui o SLA público de 24h (alinha com a tela de cadastro).
     message:
-        'Sua conta está em análise. Você receberá um aviso quando for aprovada.',
+        'Seu cadastro está em análise. Em até 24h enviaremos uma notificação por e-mail.',
   );
 
   factory _BannerState.rejected() => _BannerState._(
