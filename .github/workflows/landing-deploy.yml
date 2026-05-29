@@ -149,8 +149,9 @@ jobs:
           check() { # nome, esperado, atual
             if [ "$2" = "$3" ]; then echo "✓ $1"; else echo "✗ $1 (esperado=$2 obtido=$3)"; fail=1; fi
           }
-          contains() { # nome, url, agulha
-            if curl -fsSL "$2" | grep -q "$3"; then echo "✓ $1"; else echo "✗ $1 (sem marcador)"; fail=1; fi
+          contains() { # nome, url, agulha — baixa p/ arquivo (evita SIGPIPE com pipefail em páginas grandes)
+            if curl -fsSL "$2" -o "${RUNNER_TEMP}/smoke_body" && grep -q "$3" "${RUNNER_TEMP}/smoke_body"; then
+              echo "✓ $1"; else echo "✗ $1 (sem marcador)"; fail=1; fi
           }
           # aguarda propagação do CDN
           sleep 8
