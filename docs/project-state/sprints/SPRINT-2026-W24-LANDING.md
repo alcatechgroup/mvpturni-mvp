@@ -1,15 +1,19 @@
 ---
 sprint_id: SPRINT-2026-W24-LANDING
 wave: WAVE-2026-01
-status: open
+status: closed
 start_date: 2026-05-28
-end_date: null
+end_date: 2026-05-29
+closed_at: 2026-05-29
+closed_by: PO (Alexandro / Claude)
 soft_cap_date: 2026-06-11
 parallel_to: SPRINT-2026-W24
 closure_rule: "Fechamento por goal-atingido: encerra quando as 8 estórias do EPIC-006 estiverem `done` e a métrica primária (gate Em breve no apex respondendo + landing AS IS acessível via path secreto + pipeline isolado, tudo em `landing.homolog.turni.com.br`) for observada. Soft-cap em 2026-06-11 (~14 dias corridos) é gatilho de reavaliação, não prazo de entrega — sizing 3M+5S é folgado para 2 semanas se ADR-012 e PDR-015 fecharem cedo."
 goal: "Landing institucional do Turni viva em homologação atrás de gate: `https://landing.homolog.turni.com.br/` responde 'Em breve' com identidade visual da landing; `https://landing.homolog.turni.com.br/<path-secreto>/` responde a landing AS IS importada de `docs/prototipo/`; `robots.txt` bloqueia indexação do path secreto; meta noindex no HTML da landing; pipeline GitHub Actions tag-based isolado do WebApp; rollback exercitado; runbook documentado cobrindo publicação, rollback, rotação de path e protocolo de go-public; site `turni-landing-prod` codificado em Terraform mas gated por `landing_prod_enabled=false` aguardando autorização comercial. 1 ADR nova aceita (ADR-012). 1 PDR novo aceito (PDR-015)."
-goal_outcome: null
-verdict_resolution: null
+goal_outcome: achieved
+verdict_resolution: "approved_with_pending da STORY-033 tratado como goal atingido — 0 fails bloqueantes; 2 fails não-bloqueantes documentados e carregados como carry-forward para o go-public (decisão comercial em momento separado, fora desta sprint): (1) CA-B8-2 — workflow autentica `firebase deploy` via secret `FIREBASE_SERVICE_ACCOUNT` em vez de WIF/OIDC puro (mesmo padrão já aceito em `release.yml` do WebApp, EPIC-000); (2) CA-B3-6 — Lighthouse Perf da landing AS IS 58-60 < 70 (item declarado linha-base e não-bloqueante pelo próprio checklist; protótipo pesado em imagens). Métrica primária verificada no ar contra rc.4."
+delivered_story_ids: [STORY-026, STORY-027, STORY-028, STORY-029, STORY-030, STORY-031, STORY-032, STORY-033]
+carried_over_story_ids: []
 ---
 
 # SPRINT-2026-W24-LANDING
@@ -249,19 +253,70 @@ Sprint passou de 1/8 para 4/8 em D1. Soft-cap 2026-06-11 (~14 dias) muito confor
 
 ## Fechamento do sprint
 
-> Preencher quando o goal bater (ou no soft-cap se reavaliar antes).
+> Encerrado em 2026-05-29 por **goal atingido**. 8/8 estórias `done` (delivered 100 %); validação STORY-033 = `approved_with_pending` com **0 fails bloqueantes**; métrica primária observada no ar em homolog contra a tag `landing-v0.1.0-rc.4`. Duração efetiva: **2 dias corridos** (D+1: 4/8; D+2: 8/8) — sprint fechou **~13 dias antes do soft-cap** (2026-06-11).
 
 ### O que foi entregue
-(a preencher)
+
+- **Gate "Em breve" + landing AS IS no ar em homolog**:
+  - `landing.homolog.turni.com.br/` → 200 com "Em breve" institucional (Lighthouse Perf 98/A11y 100/SEO 100 na URL real).
+  - `landing.homolog.turni.com.br/<path-secreto>/` → 200 com landing AS IS importada de `docs/prototipo/` (`<title>TURNI · MVP Demo`, `noindex,nofollow`, 15 CTAs reescritos para `app.homolog`, 0 `href="app.html"` residual, 0 placeholders residuais).
+  - Paths aleatórios (`/qwertyuiop/`, `/foo/`, `/admin/`, `/api/`, `/dashboard/`) → 404 institucional na identidade da landing — sem vazar o marcador da landing real.
+  - `robots.txt` com `Disallow: /<path-secreto>/` (Content-Type `text/plain`).
+  - Headers de segurança (HSTS, CSP, X-Frame-Options DENY, X-Content-Type-Options, Referrer-Policy) presentes nas duas superfícies; cache HTML `no-cache` + assets `max-age=3600`.
+- **Pipeline isolado e exercitado**:
+  - Workflow `.github/workflows/landing-deploy.yml` com path filter `apps/landing/**`, tag-based (`landing-v*-rc.*` → homolog, `landing-v*` sem `-rc` → prod com gate humano no Environment `landing-prod`, reviewer `xandroalmeida`).
+  - 4 RCs de iteração (rc.1 → rc.4); cada bug pego pelo próprio smoke (5 checks); auto-rollback REST funcionando.
+  - Tags `landing-v*` **não** dispararam o `release.yml` do WebApp — isolamento confirmado (WebApp seguiu em `v0.1.0-rc.19`, 200, durante todo o exercício).
+  - Rollback P2 (rc.4 → rc.3 → rc.4) exercitado em homolog com apex 200 durante toda a janela.
+- **Terraform multi-site/multi-ambiente**:
+  - `turni-landing-homolog` + `turni-www-redirect-homolog` aplicados; `turni-landing-prod` + `turni-www-redirect-prod` codificados mas **gated por `landing_prod_enabled = false`** (confirmação: `terraform plan` em prod = 0 changes; flip simbólico no plan = +56 → +62 com as 6 resources de prod).
+  - DNS: `landing.homolog.turni.com.br` CNAME ativo; apex A/AAAA + `www→apex` codificados para o futuro flip de prod.
+- **Decisões aceitas e em vigor**:
+  - **ADR-012** (`accepted`) — gate "Em breve" + path secreto + topologia Firebase (site único, sem rewrite genérico, HTML `no-cache`, `sw.js` removido, política de CODEOWNERS por path).
+  - **PDR-015** (`accepted`) — fronteira marketing × engenharia × comercial, SLA de resposta, protocolo de rotação do `<path-secreto>` se vazar, protocolo de go-public.
+  - **IDR-004 / IDR-005** (registrados em STORY-029).
+- **Runbook operacional** (`docs/operacao/runbook-landing.md`) com os 7 procedimentos: P1 publicar, P2 rollback, P3 rotacionar path, P4 trocar/adicionar domínio, P5 remover sw.js de emergência, P6 go-public, P7 verificações periódicas. P2 exercitado em homolog. **Correção importante registrada no runbook**: `firebase hosting:rollback` **NÃO existe** no firebase-tools — rollback real é re-release de versão via REST (`POST sites/SITE/releases?versionName=…`) ou botão Rollback do Console; ADR-012 e textos anteriores que citavam o comando inexistente foram corrigidos.
+- **Fronteira de propriedade codificada**: `CODEOWNERS` da raiz dividido por path conforme PDR-015 — `apps/landing/public/<path-secreto>/**` → marketing; resto da pasta + infra → engenharia; aliases registrados.
+- **Validação aprovada**: relatório `epics/EPIC-006-landing-institucional/validation/report.md` — **52 passes, 5 com ressalva, 2 fails não-bloqueantes, 0 fails bloqueantes, 3 n/a justificados** (+ 4 pré-condições pass). EPIC-006 transicionado para `done` no `index.json`.
 
 ### O que ficou para trás (e por quê)
-(a preencher)
+
+Nada do escopo formal — 8/8 entregues. **Duas pendências não-bloqueantes** carregadas explicitamente como carry-forward para o go-public, ambas registradas no relatório do validador e no `verdict_resolution` desta sprint:
+
+- **CA-B8-2** — autenticação do `firebase deploy` via secret `FIREBASE_SERVICE_ACCOUNT` (chave SA + `gcloud auth activate-service-account`) em vez de WIF/OIDC puro. É o mesmo padrão já aceito no `release.yml` do WebApp (EPIC-000) e foi documentado nas notas da STORY-031. **Follow-up**: hardening (WIF puro) entra em ampliação separada quando o WebApp também migrar — não bloqueia go-public.
+- **CA-B3-6** — Lighthouse mobile da landing AS IS: Perf 58–60 (< 70); item declarado "linha-base, não-bloqueante" pelo próprio checklist. **Follow-up**: otimização de imagens é responsabilidade do marketing (PDR-015 §fronteira-conteúdo) — entra como story do EPIC-006 (ampliação) **quando** o comercial decidir go-public, junto do bundle de prontidão de produção.
+
+Também ficou explicitamente **fora desta sprint** (residual legítimo, sem custo de carry-over): **CA-8 (www→apex) em prod** — codificado em Terraform mas só observável após go-public; absorvido pelo procedimento P6 do runbook. **Produção da landing não está no ar** — go-public é decisão do comercial em momento separado (PDR-015), mecanismo está pronto.
 
 ### Aprendizados sobre rodar sprints em paralelo
-(a preencher — primeira vez no projeto; calibra para futuros paralelos)
+
+Primeira sprint paralela do projeto (W24 ⊕ W24-LANDING). O que funcionou e o que calibrar:
+
+- **Independência arquitetural funcionou como prometido.** EPIC-006 não cruzou com EPIC-001 em código de aplicação, banco, RBAC ou auth. Os touchpoints declarados na abertura (`firebase.json`, `.firebaserc`, `CODEOWNERS`, módulos Terraform `firebase`/`dns`) **realmente** foram conflitos triviais — zero rebases dolorosos. O critério "não cruza em domínio nem em código" é o que deve gatear futuros paralelos.
+- **Prefixo no título de PR (`[W24]` / `[W24-LANDING]`) pagou.** Revisão humana ficou triada sem esforço; auditoria pós-fato (qual sprint entregou o quê) ficou trivial. Adotar como regra padrão para qualquer paralelo futuro.
+- **Carga humana real subestimada para baixo, mas a favor do PO.** Estimativa de 2-3h espalhadas para o Alexandro provou-se generosa: ADR-012 + PDR-015 + aprovações de PRs com gate consumiram **menos** porque o agente programador entregou em rajada (4/8 em D+1, 8/8 em D+2). **Aprendizado**: quando um sprint paralelo tem 1 spike de arquitetura + 1 decisão de PO + restante implementation com escopo cirúrgico, a carga humana é dominada pela qualidade das decisões iniciais, não pelo volume de aprovações.
+- **Tags isoladas (`landing-v*` vs. `v*`) eliminaram cruzamento de pipeline na origem.** Não é "path filter cuidadoso" — é **espaço de nomes de tag distinto**. Padrão a replicar em futuros sites estáticos (blog, docs, status).
+- **Daily integrado (~15 min para as 2 sprints, não 2×10)** funcionou — context-switch foi menor do que rodar dois dailies separados. Manter para próximos paralelos.
+- **Risco real subestimado: a velocidade do agente.** O risco "Alexandro nos 5 papéis em DUAS sprints — fadiga" não se materializou porque o agente fechou W24-LANDING em D+2. **Implicação**: se outra sprint paralela for aberta com sizing similar (3M+5S, escopo cirúrgico, decisões claras), a expectativa razoável é **dias**, não semanas. Calibrar o `soft_cap` futuro com mais agressividade (~5-7 dias para sprints assim, não 14).
 
 ### Aprendizados sobre fronteira marketing × engenharia × comercial
-(a preencher — calibra PDR-015 na prática)
+
+PDR-015 saiu da prancheta e foi exercitado pela primeira vez no contexto real do EPIC-006. Calibração inicial:
+
+- **Path secreto como placeholder (`<path-secreto>`) em todo artefato commitado funcionou.** README, CHANGELOG, runbook, "Em breve", 404 — zero vazamento em texto versionado; grep no PR + máscara `::add-mask::` no log do CI (50 entradas `***`) provaram o padrão. **Padrão consolidado** para qualquer rotação futura (PDR-015 §rotação).
+- **Contrato AS IS aguentou pressão.** STORY-030 aplicou **exatamente** as 4 adaptações declaradas (A1 CTAs, A2 sem `app.html`/`manifest.json`, A3 `noindex`, A4 headers via firebase.json) e nada mais. `manifest.json` derivado do WebApp foi tratado como parte de A2 (não exceção nova) — registro pelo PO. **Aprendizado**: fronteira "AS IS = diff cirúrgico provado, qualquer melhoria entra como PR novo após import" precisa ficar explícita em PDRs de superfícies operadas por marketing — funcionou aqui porque PDR-015 antecipou.
+- **Decisão de "quem rotaciona o path se vazar" (PDR-015) provou-se mais valiosa do que o path em si.** O valor real do path foi commitado como placeholder até o go-public; o protocolo de rotação é o que dá tranquilidade ao comercial. Padrão a replicar em futuras superfícies gateadas.
+- **Honestidade arquitetural declarada (ADR-012 §0) — "path secreto é obfuscação, não segurança" — evitou expectativa errada do comercial.** Quando alguém perguntar "tem proteção real?", a resposta já está escrita. **Aprendizado**: declarar limitação arquitetural junto com o gate, no mesmo ADR, é mais barato do que ter que renegociar depois.
+- **Fronteira "marketing edita conteúdo, engenharia opera pipeline" aguentou em prática.** Marketing não tocou em `firebase.json`/`workflow`; engenharia não reescreveu copy da "Em breve" (Alexandro como PO aprovou texto). **Sinal a observar**: na primeira publicação real de marketing pós go-public, medir tempo "PR aberto → tag → 200 no ar" — calibra se P1 do runbook é mesmo executável por marketing sem assistência.
 
 ### Ajustes para o próximo sprint
-(a preencher)
+
+Sprint W24 (EPIC-001) segue aberta em paralelo; ajustes a aplicar lá e nas próximas sprints:
+
+- **Soft-cap mais agressivo para sprints com perfil "escopo cirúrgico + decisões claras"** (3M+5S, sem dependência externa nova): considerar 7 dias em vez de 14. Calibrar empiricamente em W25.
+- **Padrão "tag namespace isolado" vira default para qualquer superfície estática nova** (blog, docs públicas, status page). Inscrever em ADR-004 como ampliação (não requer ADR nova).
+- **Carry-forward de fail não-bloqueante de validação ganha campo explícito no frontmatter da sprint** (`verdict_resolution` + ownership do follow-up). Já aplicado aqui; replicar em W24 ao fechar.
+- **Daily integrado com bloco "PO bloqueado por quê" no topo** — em sprints paralelas, o PO é o recurso mais escasso; a pergunta primeira deve ser "o que está esperando o PO?", não "o que está esperando o agente?". Aplicar em W24 imediatamente.
+- **Para futuras superfícies operadas por marketing**: incluir desde a abertura do épico um item "Treino prático P1 com marketing" — primeira publicação real medida ponta-a-ponta. Padrão a inscrever no template de épico quando este tipo de superfície aparecer de novo.
+- **Linguagem de runbook**: validar comandos do runbook contra a documentação oficial **antes** de commitar (`firebase hosting:rollback` foi citado em ADR-012 sem teste). Pequeno checkpoint a adicionar em qualquer story de runbook futura: "comandos rodados pelo menos uma vez em dry-run antes do merge".
+- **Disciplina §2 (CAs `[x]` em estórias `done`) foi violada em 4 das 8 estórias** (026/027/029/033 têm CAs sem `[x]` apesar do `status: done`). Substantivamente os CAs foram cumpridos — o validador da STORY-033 aprovou (`approved_with_pending`) auditando evidências externas, não checkmarks — mas a disciplina formal não foi mantida. PO **não devolve** as estórias por isso a esta altura (o validador já cobriu o que importa), mas inscreve a regra como **gate de PR no próximo sprint**: PR que marca `status: done` sem `[x]` em todos os CAs atendidos é devolvido automaticamente pelo PO. Vale incluir um pequeno script de verificação (`grep -cE '^\s*-\s*\[ \]\s*\*\*CA-' STORY-*.md`) no CI ou no template de checklist de PR.

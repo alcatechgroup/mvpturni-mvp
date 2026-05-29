@@ -1,13 +1,13 @@
 {
   "version": 2,
-  "generated_at": "2026-05-29T12:00:00Z",
+  "generated_at": "2026-05-29T16:41:13Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W24",
-    "last_closed_sprint": "SPRINT-2026-W23",
-    "phase": "wave-2026-01-sprints-w24-e-w24-landing-em-paralelo",
-    "next_action": "DUAS sprints abertas em paralelo. (1) SPRINT-2026-W24 (EPIC-001): STORY-016 done em 2026-05-29 (aprovada por Alexandro em chat, F-NB-1 e CA-15 evidenciados em homolog) — desbloqueia 017/018/019/020/022. Gargalo agora é Designer: 5 screen specs restantes (017/018/019/020/022) precisam virar ready para 017/018/022 entrarem. (2) SPRINT-2026-W24-LANDING (EPIC-006): 6/8 — 6 done (026, 027, 028, 029, 030, 031). Gate NO AR em homolog: landing.homolog.turni.com.br/ → 200 'Em breve' (Lighthouse Perf 98/A11y 100), /<uuid>/ → 200 landing AS IS, path aleatório → 404, robots Disallow, headers de segurança OK, deploy isolado do WebApp, auto-rollback exercitado. Falta só STORY-032 (runbook) e STORY-033 (validação) — e o EPIC-006 fecha. Coordenação: PRs com prefixo [W24] ou [W24-LANDING]; touch points compartilhados (firebase.json, .firebaserc, CODEOWNERS, módulos Terraform firebase/dns) requerem rebase imediato entre as duas branches.",
+    "last_closed_sprint": "SPRINT-2026-W24-LANDING",
+    "phase": "wave-2026-01-sprint-w24-aberta-w24-landing-closed-epic-006-done",
+    "next_action": "SPRINT-2026-W24-LANDING ENCERRADA em 2026-05-29 por goal atingido (8/8 stories done; validação STORY-033 = approved_with_pending, 0 fails bloqueantes; métrica primária verificada no ar em homolog na tag landing-v0.1.0-rc.4). EPIC-006 done. Duração efetiva 2 dias (vs. soft-cap 14d) — sprint fechou ~13d antes do gatilho de reavaliação. 2 pendências não-bloqueantes carregadas como carry-forward para o go-public (decisão comercial em momento separado, PDR-015): (1) CA-B8-2 deploy via secret SA (mesmo padrão release.yml do WebApp); (2) CA-B3-6 Lighthouse Perf da landing AS IS 58-60 (item declarado não-bloqueante). Foco volta integralmente para SPRINT-2026-W24 (EPIC-001): gargalo segue Designer (5 screen specs 017/018/019/020/022 precisam virar ready). Aprendizados de paralelismo registrados no fechamento da W24-LANDING; aplicar ao calibrar W25.",
     "notes": "SPRINT-2026-W24 aberta em 2026-05-28 com 10 estórias no escopo (012/013/014/015/016/017/018/019/020/022). Goal: funil de identidade Turni vivo em homolog até a tela real de welcome — profissional (PF/MEI/PJ) e contratante completam pré-cadastro, equipe Turni aprova no Backoffice com audit log imutável, usuário aprovado loga no WebApp e vê welcome real; RBAC vivo nas duas interfaces; editor de templates contratuais com texto-seed v1 validado por Alexandro carregado; 3 ADRs aceitas (ADR-009/010/011); F-NB-1 do EPIC-000 (migrate:rollback em homolog) quitado na STORY-016. STORY-021 (e-mails) como stretch. STORY-023/024/025 ficam para SPRINT-2026-W25. Soft-cap em 2026-06-18 (~21 dias) — gatilho de reavaliação, não prazo. Sizing: 1L + 7M + 2S — primeira sprint com volume real de implementação pós-EPIC-000."
   },
   "product": {
@@ -653,8 +653,14 @@
           "ca14_cobertura": "API 94,2% (70 Pest) / Admin 30 Pest / WebApp 24 flutter test",
           "pipeline": "rc.18/rc.19 verdes (build → migrate+seed → deploy → smoke)"
         },
-        "idrs_e_emendas": ["IDR-006", "IDR-007", "ADR-007 (emenda: API same-origin via Firebase rewrite)"],
-        "commits_chave": ["806ce03 (fix down() add_identity_columns)"]
+        "idrs_e_emendas": [
+          "IDR-006",
+          "IDR-007",
+          "ADR-007 (emenda: API same-origin via Firebase rewrite)"
+        ],
+        "commits_chave": [
+          "806ce03 (fix down() add_identity_columns)"
+        ]
       },
       "created_at": "2026-05-28",
       "updated_at": "2026-05-29"
@@ -1218,14 +1224,14 @@
     {
       "id": "SPRINT-2026-W24-LANDING",
       "wave": "WAVE-2026-01",
-      "status": "open",
+      "status": "closed",
       "start_date": "2026-05-28",
-      "end_date": null,
+      "end_date": "2026-05-29",
       "soft_cap_date": "2026-06-11",
       "parallel_to": "SPRINT-2026-W24",
       "closure_rule": "goal-atingido (encerra quando as 8 estórias do EPIC-006 estiverem done e a métrica primária — gate Em breve no apex + landing AS IS acessível via path secreto + pipeline isolado em landing.homolog.turni.com.br — for observada); soft-cap em 2026-06-11 é gatilho de reavaliação, não prazo de entrega",
       "goal": "Landing institucional do Turni viva em homologação atrás de gate: landing.homolog.turni.com.br/ responde 'Em breve' com identidade visual da landing; landing.homolog.turni.com.br/<path-secreto>/ responde a landing AS IS importada de docs/prototipo/; robots.txt bloqueia indexação do path secreto; meta noindex no HTML da landing; pipeline GitHub Actions tag-based isolado do WebApp; rollback exercitado; runbook documentado cobrindo publicação, rollback, rotação de path e protocolo de go-public; site turni-landing-prod codificado em Terraform mas gated por landing_prod_enabled=false aguardando autorização comercial. 1 ADR nova aceita (ADR-012). 1 PDR novo aceito (PDR-015).",
-      "goal_outcome": null,
+      "goal_outcome": "achieved",
       "path": "sprints/SPRINT-2026-W24-LANDING.md",
       "story_ids": [
         "STORY-026",
@@ -1239,7 +1245,16 @@
       ],
       "stretch_story_ids": [],
       "deferred_story_ids": [],
-      "delivered_story_ids": [],
+      "delivered_story_ids": [
+        "STORY-026",
+        "STORY-027",
+        "STORY-028",
+        "STORY-029",
+        "STORY-030",
+        "STORY-031",
+        "STORY-032",
+        "STORY-033"
+      ],
       "carried_over_story_ids": [],
       "sizing_total": "3M + 5S",
       "risks_at_open": [
@@ -1254,7 +1269,33 @@
         "Alexandro nos 5 papéis em DUAS sprints paralelas — fadiga (mitigado: carga humana real ≈2-3h espalhadas; agente cobre 5 implementation stories)"
       ],
       "opened_at": "2026-05-28",
-      "opened_by": "PO (Alexandro / Claude)"
+      "opened_by": "PO (Alexandro / Claude)",
+      "closed_at": "2026-05-29",
+      "closed_by": "PO (Alexandro / Claude)",
+      "verdict_resolution": "approved_with_pending da STORY-033 tratado como goal atingido — 0 fails bloqueantes; 2 fails não-bloqueantes documentados e carregados como carry-forward para o go-public (decisão comercial em momento separado, fora desta sprint): (1) CA-B8-2 — workflow autentica firebase deploy via secret FIREBASE_SERVICE_ACCOUNT em vez de WIF/OIDC puro (mesmo padrão já aceito em release.yml do WebApp, EPIC-000); (2) CA-B3-6 — Lighthouse Perf da landing AS IS 58-60<70 (item declarado linha-base e não-bloqueante pelo próprio checklist; protótipo pesado em imagens). Métrica primária verificada no ar contra rc.4.",
+      "validation_report": "epics/EPIC-006-landing-institucional/validation/report.md",
+      "validation_verdict": "approved_with_pending",
+      "validated_at": "2026-05-29",
+      "carried_pending": [
+        {
+          "id": "CA-B8-2",
+          "origin": "EPIC-006/validation/report.md",
+          "category": "security-hardening-deferred",
+          "summary": "deploy autentica via secret FIREBASE_SERVICE_ACCOUNT (mesmo padrão release.yml WebApp), não WIF/OIDC puro",
+          "severity": "non-blocking",
+          "follow_up": "tratar no mesmo bundle que migrar release.yml do WebApp para WIF puro; não bloqueia go-public da landing",
+          "owner": "engenharia"
+        },
+        {
+          "id": "CA-B3-6",
+          "origin": "EPIC-006/validation/report.md",
+          "category": "performance-baseline-as-is",
+          "summary": "Lighthouse Perf mobile da landing AS IS 58-60 (<70); item declarado linha-base não-bloqueante pelo checklist",
+          "severity": "non-blocking",
+          "follow_up": "otimização de imagens é responsabilidade do marketing (PDR-015 §fronteira-conteúdo); entra como story do EPIC-006 ampliação no bundle de prontidão de produção, quando comercial autorizar go-public",
+          "owner": "marketing (via PO)"
+        }
+      ]
     }
   ],
   "decisions": {
