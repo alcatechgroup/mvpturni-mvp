@@ -119,6 +119,9 @@ module "cloud_run_api" {
   cloudsql_connection_name = module.cloud_sql.connection_name
   ingress                  = "INGRESS_TRAFFIC_ALL"
   allow_unauthenticated    = true
+  # Direct VPC egress: Cloud SQL é IP privado; sem isto o socket dá timeout (STORY-016).
+  vpc_network    = google_compute_network.main.name
+  vpc_subnetwork = google_compute_subnetwork.main.name
 
   env_vars = {
     APP_ENV          = "production"
@@ -129,7 +132,7 @@ module "cloud_run_api" {
     DB_DATABASE      = "turni"
     DB_USERNAME      = "turni"
     QUEUE_CONNECTION = "database"
-    SESSION_DRIVER   = "array"
+    SESSION_DRIVER   = "database"
   }
 
   secret_env_vars = {

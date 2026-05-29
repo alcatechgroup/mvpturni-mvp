@@ -60,6 +60,18 @@ variable "memory" {
   default = "512Mi"
 }
 
+# Direct VPC egress — necessário para alcançar Cloud SQL de IP privado (STORY-016).
+# Sem isto o connector cloudsql-instances dá "timeout" no socket. null = sem VPC.
+variable "vpc_network" {
+  type    = string
+  default = null
+}
+
+variable "vpc_subnetwork" {
+  type    = string
+  default = null
+}
+
 variable "env_vars" {
   type    = map(string)
   default = {}

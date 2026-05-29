@@ -26,8 +26,12 @@ resource "google_sql_database_instance" "main" {
     }
 
     ip_configuration {
-      ipv4_enabled    = false  # sem IP público; acesso via Cloud SQL connector
+      ipv4_enabled    = false # sem IP público; acesso via Cloud SQL connector
       private_network = var.vpc_network
+      # Hardening: permite serviços Google alcançarem a instância pelo path privado.
+      # (O que destrava Cloud Run → Cloud SQL de IP privado é o Direct VPC egress nas
+      # services/jobs — ver módulo cloud-run e release.yml. STORY-016.)
+      enable_private_path_for_google_cloud_services = true
     }
 
     database_flags {

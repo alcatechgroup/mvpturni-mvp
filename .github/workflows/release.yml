@@ -151,6 +151,8 @@ jobs:
             --project=${{ secrets.GCP_PROJECT_ID }} \
             --service-account=turni-apps@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
             --set-cloudsql-instances="$CONN" \
+            --network=turni-homolog --subnet=turni-homolog-${{ env.GCP_REGION }} \
+            --vpc-egress=private-ranges-only \
             --set-env-vars="APP_ENV=production,APP_DEBUG=false,LOG_CHANNEL=stderr,DB_CONNECTION=pgsql,DB_SOCKET=/cloudsql/${CONN},DB_DATABASE=turni,DB_USERNAME=turni,QUEUE_CONNECTION=database,SESSION_DRIVER=array" \
             --set-secrets="APP_KEY=turni-homolog-app-key-api:latest,DB_PASSWORD=turni-homolog-db-password:latest" \
             --command=sh \

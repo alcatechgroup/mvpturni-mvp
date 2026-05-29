@@ -24,6 +24,19 @@ resource "google_cloud_run_v2_service" "service" {
       }
     }
 
+    # Direct VPC egress — alcança o Cloud SQL de IP privado (STORY-016). Sem isto o
+    # connector cloudsql-instances dá timeout no socket. Só quando subnet é informada.
+    dynamic "vpc_access" {
+      for_each = var.vpc_subnetwork != null ? [1] : []
+      content {
+        network_interfaces {
+          network    = var.vpc_network
+          subnetwork = var.vpc_subnetwork
+        }
+        egress = "PRIVATE_RANGES_ONLY"
+      }
+    }
+
     containers {
       image = var.image
 
