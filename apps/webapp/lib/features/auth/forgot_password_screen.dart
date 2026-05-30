@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../ds/tokens.dart';
+import 'password_reset_service.dart';
 
-/// Stub de recuperação de senha (CA-5 — SCREEN-STORY-016 Tela E).
-/// Tela real com envio de e-mail chega em STORY-021.
+/// Recuperação de senha — "Esqueci minha senha" (STORY-021 CA-6 / SCREEN-STORY-016 Tela E).
+/// POST /forgot-password (Fortify via api). Resposta sempre neutra (CA-7).
 class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({super.key});
+  const ForgotPasswordScreen({super.key, this.service});
+
+  /// Injetável em testes; em runtime usa o cliente HTTP real.
+  final PasswordResetService? service;
 
   @override
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
@@ -15,8 +19,11 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
+  late final PasswordResetService _service =
+      widget.service ?? PasswordResetService();
   bool _loading = false;
   bool _sent = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -26,15 +33,24 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
-    // Stub: aguarda 1s simulando envio (Fortify real vem em STORY-021).
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() {
-        _loading = false;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    final result = await _service.requestReset(_emailCtrl.text.trim());
+
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      // Anti-enumeração (CA-7): qualquer e-mail mostra o mesmo banner neutro.
+      // Só falha de rede vira erro visível.
+      if (result is ResetNetworkError) {
+        _error = 'Não conseguimos enviar agora. Tente de novo em instantes.';
+      } else {
         _sent = true;
-      });
-    }
+      }
+    });
   }
 
   @override
@@ -110,6 +126,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             return null;
                           },
                         ),
+                        if (_error != null) ...[
+                          const SizedBox(height: TurniSpacing.md),
+                          Text(
+                            _error!,
+                            key: const Key('forgot-error'),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: TurniSpacing.lg),
                         SizedBox(
                           height: 52,

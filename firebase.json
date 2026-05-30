@@ -35,6 +35,8 @@
         { "source": "/health", "destination": "/health.json" },
         { "source": "/api/**", "run": { "serviceId": "turni-api-homolog", "region": "southamerica-east1" } },
         { "source": "/sanctum/**", "run": { "serviceId": "turni-api-homolog", "region": "southamerica-east1" } },
+        { "source": "/forgot-password", "run": { "serviceId": "turni-api-homolog", "region": "southamerica-east1" } },
+        { "source": "/reset-password", "run": { "serviceId": "turni-api-homolog", "region": "southamerica-east1" } },
         { "source": "**", "destination": "/index.html" }
       ]
     },
@@ -73,6 +75,8 @@
         { "source": "/health", "destination": "/health.json" },
         { "source": "/api/**", "run": { "serviceId": "turni-api-prod", "region": "southamerica-east1" } },
         { "source": "/sanctum/**", "run": { "serviceId": "turni-api-prod", "region": "southamerica-east1" } },
+        { "source": "/forgot-password", "run": { "serviceId": "turni-api-prod", "region": "southamerica-east1" } },
+        { "source": "/reset-password", "run": { "serviceId": "turni-api-prod", "region": "southamerica-east1" } },
         { "source": "**", "destination": "/index.html" }
       ]
     },

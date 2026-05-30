@@ -24,6 +24,16 @@ return Application::configure(basePath: dirname(__DIR__))
         // Sanctum SPA stateful API (ADR-007 §b): injeta EnsureFrontendRequestsAreStateful
         // no grupo `api` para que o WebApp Flutter use sessão por cookie same-site.
         $middleware->statefulApi();
+
+        // As rotas Fortify de reset (forgot-password/reset-password) ficam no grupo `web`
+        // (CSRF por token). O WebApp Flutter same-origin não envia X-XSRF-TOKEN (mesmo
+        // modelo do /api/login, que roda só com StartSession e sem CSRF — STORY-021 CA-13b).
+        // Excluímos esses 2 paths do CSRF; anti-enumeração + throttling do Fortify seguem
+        // protegendo. Firebase reescreve /forgot-password e /reset-password para este api.
+        $middleware->validateCsrfTokens(except: [
+            'forgot-password',
+            'reset-password',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

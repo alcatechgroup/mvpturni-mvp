@@ -100,7 +100,9 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token): void
     {
         $base = rtrim((string) config('app.webapp_url', config('app.url')), '/');
-        $url = $base.'/reset-password?token='.$token.'&email='.urlencode($this->email);
+        // Tela Flutter de redefinição (rota /redefinir-senha). NÃO usar /reset-password:
+        // esse path é reescrito pelo Firebase para o endpoint POST do api (STORY-021 CA-13b).
+        $url = $base.'/redefinir-senha?token='.$token.'&email='.urlencode($this->email);
 
         EnviarEmailTransacionalJob::dispatch(new EmailTransacional(
             destinatario: $this->email,

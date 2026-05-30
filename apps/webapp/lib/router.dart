@@ -5,6 +5,7 @@ import 'features/app/app_shell_screen.dart';
 import 'features/auth/auth_service.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
+import 'features/auth/redefinir_senha_screen.dart';
 import 'features/cadastro/pre_cadastro_contratante_screen.dart';
 import 'features/cadastro/pre_cadastro_profissional_screen.dart';
 import 'features/funnel/completar_cadastro_placeholder_screen.dart';
@@ -29,6 +30,7 @@ String? _funnelGuard(BuildContext context, GoRouterState state) {
     '/info',
     '/login',
     '/esqueci-minha-senha',
+    '/redefinir-senha',
     '/cadastro/profissional',
     '/cadastro/contratante',
     '/health',
@@ -82,6 +84,14 @@ final router = GoRouter(
     GoRoute(
       path: '/esqueci-minha-senha',
       builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    // Destino do link do e-mail recuperacao_senha (STORY-021 CA-6/CA-13b).
+    GoRoute(
+      path: '/redefinir-senha',
+      builder: (context, state) => RedefinirSenhaScreen(
+        token: state.uri.queryParameters['token'] ?? '',
+        email: state.uri.queryParameters['email'] ?? '',
+      ),
     ),
 
     // Pré-cadastro público de profissional (STORY-017)

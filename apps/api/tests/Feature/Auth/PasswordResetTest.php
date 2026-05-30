@@ -32,7 +32,7 @@ it('e-mail conhecido recebe recuperacao_senha pela ACL com link e TTL (CA-6)', f
         EnviarEmailTransacionalJob::class,
         fn ($job) => $job->email->tipo === TipoEmail::RecuperacaoSenha
             && $job->email->destinatario === 'existe@teste.local'
-            && str_contains($job->email->dados['link_redefinicao'], '/reset-password?token=')
+            && str_contains($job->email->dados['link_redefinicao'], '/redefinir-senha?token=')
             && str_contains($job->email->dados['link_redefinicao'], 'email=existe%40teste.local')
             && $job->email->dados['expiracao_minutos'] === 60,
     );
