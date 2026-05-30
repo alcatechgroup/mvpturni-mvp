@@ -111,7 +111,7 @@ it('envia pelo Mail e loga email.sent com destinatário mascarado (CA-9)', funct
         dados: ['nome' => 'Maria', 'link_acesso' => 'https://app.homolog.turni.com.br/login'],
     );
 
-    (new MailEnviaEmailTransacional())->enviar($email);
+    (new MailEnviaEmailTransacional)->enviar($email);
 
     Mail::assertSent(TransacionalMail::class, fn ($m) => $m->hasTo('maria.silva@example.com'));
 
@@ -133,7 +133,7 @@ it('relança falha do transporte como EmailTransacionalException e loga email.fa
         dados: ['nome' => 'Maria', 'link_acesso' => 'x'],
     );
 
-    expect(fn () => (new MailEnviaEmailTransacional())->enviar($email))
+    expect(fn () => (new MailEnviaEmailTransacional)->enviar($email))
         ->toThrow(EmailTransacionalException::class);
 
     $failed = collect($logs)->firstWhere('message', 'email.failed');
@@ -224,7 +224,7 @@ it('o job enfileira na conexão database e resolve a ACL do container', function
  */
 function capturaLogs(): ArrayObject
 {
-    $logs = new ArrayObject();
+    $logs = new ArrayObject;
     Log::listen(function ($log) use ($logs) {
         $logs->append(['message' => $log->message, 'context' => $log->context]);
     });

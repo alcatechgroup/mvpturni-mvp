@@ -8,10 +8,10 @@ use App\Models\ProfissionalProfile;
 use App\Models\User;
 use App\Services\ApprovalService;
 use Illuminate\Database\QueryException;
-use Turni\Domain\Email\EnviarEmailTransacionalJob;
-use Turni\Domain\Email\TipoEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use Turni\Domain\Email\EnviarEmailTransacionalJob;
+use Turni\Domain\Email\TipoEmail;
 
 uses(RefreshDatabase::class);
 
