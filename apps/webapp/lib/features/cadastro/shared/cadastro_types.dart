@@ -13,9 +13,13 @@ import 'package:http_parser/http_parser.dart';
 /// os campos já montados e o path como parâmetros.
 
 // URL base da API — injetada via dart-define em build/CI (mesma convenção do AuthService).
+// Default vazio = mesma origem (o WebApp chama /api e /sanctum no próprio host): em
+// produção o Firebase reescreve para o Cloud Run; em dev local o router.php do container
+// webapp faz o proxy para o container `api` (docker-compose). Same-origin é o que faz o
+// cookie de sessão Sanctum (SameSite=lax) trafegar.
 const cadastroApiBase = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://localhost:8001',
+  defaultValue: '',
 );
 
 /// Dados da foto selecionada (bytes + nome), desacoplado do image_picker para testes.

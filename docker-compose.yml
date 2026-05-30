@@ -91,11 +91,19 @@ services:
     ports:
       - "${PAGARME_MOCK_PORT:-8090}:8080"
 
-  # WebApp Flutter (web) — serve o build estático (apps/webapp/build/web).
+  # WebApp Flutter (web) — serve o build estático (apps/webapp/build/web) e faz
+  # proxy de /api e /sanctum para o container `api` via router.php, espelhando a
+  # topologia same-origin de produção (firebase.json reescreve /api → Cloud Run).
+  # Same-origin é o que permite o cookie de sessão Sanctum (SameSite=lax) trafegar.
   # `make setup` roda `flutter build web` no host (Flutter é pré-requisito).
   webapp:
     image: turni/php:dev
-    command: php -S 0.0.0.0:8000 -t /app/build/web
+    # PHP_CLI_SERVER_WORKERS dá concorrência ao servidor embutido: sem isso, o php -S
+    # é single-thread e uma chamada de proxy bloqueante (cURL ao container `api`)
+    # estarva o atendimento dos assets estáticos (CanvasKit) — o boot do Flutter estoura.
+    environment:
+      PHP_CLI_SERVER_WORKERS: "8"
+    command: php -S 0.0.0.0:8000 -t /app/build/web /app/router.php
     volumes:
       - ./apps/webapp:/app
     ports:

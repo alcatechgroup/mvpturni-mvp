@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Cadastro\ContratanteCadastroController;
 use App\Http\Controllers\Cadastro\FuncaoController;
 use App\Http\Controllers\Cadastro\ProfissionalCadastroController;
+use App\Http\Controllers\Usuario\WelcomeController;
 use App\Http\Middleware\FunnelGuard;
 use App\Http\Middleware\WebAppOnly;
 use Illuminate\Session\Middleware\StartSession;
@@ -30,6 +31,13 @@ Route::middleware([StartSession::class])->group(function () {
 
 // Lista pública de funções para o select do pré-cadastro (STORY-017). GET sem estado.
 Route::get('/funcoes', [FuncaoController::class, 'index']);
+
+// Welcome pós-aprovação (STORY-022). Protegida por sessão + WebApp-only, mas FORA do
+// FunnelGuard: o usuário que marca welcome está em `await_welcome` (o guard o bloquearia
+// com 423). Idempotente — ver WelcomeController.
+Route::middleware(['auth:web', WebAppOnly::class, StartSession::class])->group(function () {
+    Route::post('/usuarios/me/welcome-visto', [WelcomeController::class, 'markSeen']);
+});
 
 // Rotas protegidas — requerem sessão + WebApp-only + funnel guard
 Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSession::class])->group(function () {

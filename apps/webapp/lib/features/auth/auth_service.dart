@@ -3,11 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-// URL base da API — injetada via dart-define em build/CI.
-const _apiBase = String.fromEnvironment(
-  'API_BASE_URL',
-  defaultValue: 'http://localhost:8001',
-);
+// URL base da API — injetada via dart-define em build/CI. Default vazio = mesma
+// origem: em produção o Firebase reescreve /api e /sanctum para o Cloud Run; em dev
+// local o router.php do container webapp faz o proxy para o container `api`. Same-origin
+// é o que permite o cookie de sessão Sanctum (SameSite=lax) trafegar.
+const _apiBase = String.fromEnvironment('API_BASE_URL', defaultValue: '');
 
 /// Representa o estado do funil do usuário logado (ADR-009).
 enum FunnelState {
@@ -30,12 +30,14 @@ enum FunnelState {
 
 /// Sessão do usuário (payload do POST /api/login).
 class UserSession {
+  final String name;
   final String role;
   final String status;
   final bool welcomeVisto;
   final bool cadastroCompleto;
 
   const UserSession({
+    this.name = '',
     required this.role,
     required this.status,
     required this.welcomeVisto,
@@ -44,10 +46,24 @@ class UserSession {
 
   factory UserSession.fromJson(Map<String, dynamic> json) {
     return UserSession(
+      name: json['name'] as String? ?? '',
       role: json['role'] as String,
       status: json['status'] as String,
       welcomeVisto: json['welcome_visto'] as bool? ?? false,
       cadastroCompleto: json['cadastro_completo'] as bool? ?? false,
+    );
+  }
+
+  /// Primeiro nome para saudação ("Bem-vindo(a), {firstName}!"). Vazio se sem nome.
+  String get firstName => name.trim().split(RegExp(r'\s+')).first;
+
+  UserSession copyWith({bool? welcomeVisto, bool? cadastroCompleto}) {
+    return UserSession(
+      name: name,
+      role: role,
+      status: status,
+      welcomeVisto: welcomeVisto ?? this.welcomeVisto,
+      cadastroCompleto: cadastroCompleto ?? this.cadastroCompleto,
     );
   }
 
@@ -102,6 +118,14 @@ class AuthService extends ChangeNotifier {
   AuthService._();
 
   final _client = http.Client();
+
+  /// Injeta uma sessão diretamente — uso restrito a testes de widget, que
+  /// precisam montar telas pós-login sem passar pelo fluxo de rede do login.
+  @visibleForTesting
+  void debugSetSession(UserSession? session) {
+    _session = session;
+    notifyListeners();
+  }
 
   Future<void> loadFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
@@ -172,6 +196,35 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  /// Marca a tela de welcome como vista (STORY-022 CA-4).
+  /// POST /api/usuarios/me/welcome-visto — idempotente no servidor. Em sucesso,
+  /// atualiza a sessão local (welcome_visto=true) e notifica o router. Retorna
+  /// `true` em sucesso; `false` em erro de rede/servidor (a tela mostra banner).
+  Future<bool> markWelcomeSeen() async {
+    http.Response response;
+    try {
+      response = await _client.post(
+        Uri.parse('$_apiBase/api/usuarios/me/welcome-visto'),
+        headers: {'Accept': 'application/json'},
+      );
+    } catch (_) {
+      return false;
+    }
+
+    if (response.statusCode != 200) return false;
+
+    // Reidrata a sessão com o estado retornado pelo servidor (fonte de verdade).
+    final data = _parseJson(response.body);
+    final updated = (_session ?? UserSession.fromJson(data)).copyWith(
+      welcomeVisto: data['welcome_visto'] as bool? ?? true,
+      cadastroCompleto: data['cadastro_completo'] as bool?,
+    );
+    await _saveSession(updated);
+    _session = updated;
+    notifyListeners();
+    return true;
+  }
+
   Future<void> logout() async {
     try {
       await _client.post(
@@ -191,6 +244,7 @@ class AuthService extends ChangeNotifier {
     await prefs.setString(
       _sessionKey,
       jsonEncode({
+        'name': s.name,
         'role': s.role,
         'status': s.status,
         'welcome_visto': s.welcomeVisto,

@@ -8,7 +8,7 @@ import 'features/auth/login_screen.dart';
 import 'features/cadastro/pre_cadastro_contratante_screen.dart';
 import 'features/cadastro/pre_cadastro_profissional_screen.dart';
 import 'features/funnel/completar_cadastro_placeholder_screen.dart';
-import 'features/funnel/welcome_placeholder_screen.dart';
+import 'features/funnel/welcome_screen.dart' as funnel;
 import 'features/welcome/welcome_screen.dart';
 
 // ──────────────────────────────────────────────────────────────
@@ -96,11 +96,12 @@ final router = GoRouter(
       builder: (context, state) => const PreCadastroContratanteScreen(),
     ),
 
-    // Funnel guard — placeholders
+    // Welcome pós-aprovação (STORY-022 — tela real substitui o placeholder de STORY-016)
     GoRoute(
       path: '/welcome',
-      builder: (context, state) => const WelcomePlaceholderScreen(),
+      builder: (context, state) => const funnel.WelcomeScreen(),
     ),
+    // Funnel guard — placeholder (completar cadastro vem em STORY-023/024)
     GoRoute(
       path: '/completar-cadastro',
       builder: (context, state) => const CompletarCadastroPlaceholderScreen(),

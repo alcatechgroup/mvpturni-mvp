@@ -74,5 +74,24 @@ class AdminUserSeeder extends Seeder
             ['user_id' => $profissional->id],
             ['tipo_pessoa' => 'MEI'],
         );
+
+        // 4. Profissional recém-aprovado para o E2E da tela de welcome (STORY-022 CA-11):
+        //    status=liberado, welcome_seen_at=null → funnel guard manda para /welcome.
+        $bemVindo = User::updateOrCreate(
+            ['email' => 'bemvindo.profissional@turni.local'],
+            [
+                'name' => 'Bem-Vindo Teste (seed)',
+                'password' => $password,
+                'role' => 'profissional',
+                'status' => 'liberado',
+                'welcome_seen_at' => null,
+                'cadastro_completed_at' => null,
+            ],
+        );
+
+        ProfissionalProfile::updateOrCreate(
+            ['user_id' => $bemVindo->id],
+            ['tipo_pessoa' => 'MEI'],
+        );
     }
 }

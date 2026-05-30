@@ -65,6 +65,8 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         return response()->json([
+            // name alimenta a headline personalizada da tela de welcome (STORY-022).
+            'name' => $user->name,
             'role' => $user->role,
             'status' => $user->status,
             'welcome_visto' => $user->welcome_seen_at !== null,
