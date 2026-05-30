@@ -8,7 +8,9 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-021-emails-transacionais
-status: in_progress
+status: blocked
+blocked_by_runtime: [STORY-034]
+blocked_reason: "CA-13 (E2E real em homolog) exige worker funcional. Descoberta dos 5 gaps no GCE worker-vm (sem socket; sem segredos; sem Cloud NAT; SA sem artifactregistry.reader; COS /root quirk) invalidou a escada Fase A planejada. PO decidiu em 2026-05-30 bloquear STORY-021 até STORY-034 (Cloud Run Job + Scheduler) entregar a substituição. Demais CAs (1–12, 14) podem estar prontas; nenhum push para in_review antes do worker estar de pé."
 owner_agent: "Programador (claude-opus-4-8)"
 created_at: 2026-05-28
 updated_at: 2026-05-30
@@ -230,10 +232,9 @@ Sessão dupla (mesma sessão do agente, aprendizado #1 da W24). Sync ≤15 min �
 4. **[Requer Alexandro/deploy]** Estado externo:
    - ~~Terraform SPF/DKIM/DMARC~~ **(feito + aplicado, resolvendo no NS)**; falta **Verify** no painel Resend + print mxtoolbox no runbook (CA-3).
    - **`RESEND_API_KEY` no Secret Manager (CA-2): Terraform escrito** (`modules/secrets` + secret_env_var no Cloud Run `api` + `MAIL_MAILER=resend`/`MAIL_FROM_ADDRESS` em `envs/homolog`; valor no `terraform.tfvars` gitignored). `terraform validate` OK e `plan` targeted = **2 to add** (secret+versão). **Falta aplicar** (aguardando autorização).
-   - **Gap do worker (achado) — corrigido no código (caminho A):** o `modules/worker-vm` (GCE, o **sender** real em homolog) subia o `queue:work` só com `APP_ENV` + `DB_SOCKET`, **sem proxy do Cloud SQL e sem carregar segredo nenhum** (`DB_PASSWORD`/`APP_KEY`/`RESEND_API_KEY`) — ou seja, **nenhum** job de fila funcionava em homolog (precede a STORY-021). Endurecido: conecta o Cloud SQL por **IP privado** (`module.cloud_sql.private_ip`, mesma VPC, sem proxy); o `cloud-init` busca os 3 segredos no Secret Manager no boot (via container `google/cloud-sdk` — o host COS não tem curl/gcloud) e escreve um env-file em tmpfs; sobe o worker com `--env-file` + `MAIL_MAILER=resend`. `terraform validate` OK.
-     - **Caveat de rollout:** `lifecycle.ignore_changes=[metadata]` faz o `apply` ser **no-op** para a VM existente; um `-replace` puro recriaria com a imagem bootstrap (`api_image` = hello). Logo, o rollout deve vir do **deploy/CI** com a imagem real **recriando** a VM (`-replace=module.worker.google_compute_instance.worker` com `api_image=<imagem real>`).
-   - Deploy homolog + **E2E browser** de entrega real (CA-13).
-5. Suíte completa verde + cobertura medida no PR; PR aberto; `status: in_review`.
+   - **⚠️ Gap do worker — STORY-021 BLOQUEADA por STORY-034 (decisão PO 2026-05-30):** o `modules/worker-vm` foi investigado e mostrou **5 gaps** (1) sem socket Cloud SQL criado; (2) sem segredos no `docker run`; (3) **sem Cloud NAT** — VM sem IP público não alcança Artifact Registry, Docker Hub nem Resend; (4) SA sem `roles/artifactregistry.reader`; (5) `/root` read-only no COS. A escada Fase A (endurecer o GCE worker) **foi descartada** porque cobrir gaps 3–5 exigiria infra permanente (Cloud NAT) + IAM extra + workaround do COS — todo descartável quando a VM sair. Decisão: ir direto para Fase B em **STORY-034 — Worker em Cloud Run Job + Cloud Scheduler**, que resolve os 5 gaps de uma vez reusando a fiação já provada (IDR-007). **STORY-021 fica `blocked` até STORY-034 entregar a substituição** (CA-13 só fecha após o Cloud Run Job estar de pé em homolog). As tentativas locais de endurecer o worker GCE listadas nesta pendência (cloud-init buscando segredos via container `google/cloud-sdk` etc.) **não serão integradas**; o caminho é Fase B direto.
+   - Deploy homolog + **E2E browser** de entrega real (CA-13) — destrancado por STORY-034 `done`.
+5. Suíte completa verde + cobertura medida no PR; PR aberto após STORY-034 `done`; `status: in_review`.
 
 ### Validação humana (Designer↔Alexandro)
 
