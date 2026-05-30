@@ -792,7 +792,7 @@
         "STORY-019",
         "STORY-034"
       ],
-      "blocked_reason": "DESTRAVADA em 2026-05-30: STORY-034 (worker em Cloud Run Job + Scheduler) entregue e validada — worker processa a fila e envia e-mail real em homolog (email.sent com message_id Resend, e-mail recebido). CA-13 da STORY-021 já pode rodar. Nota: a correção do empacotamento (symlink:false do packages/domain — sem ela a imagem da api/admin não carrega Turni\\Domain) foi commitada junto da STORY-034; a STORY-021 deve confirmar que o release rc seguinte deploya a imagem corrigida em api+admin (admin dispara a aprovação real).",
+      "blocked_reason": "DESTRAVADA em 2026-05-30: STORY-034 (worker em Cloud Run Job + Scheduler) entregue e validada — worker processa a fila e envia e-mail real em homolog (email.sent com message_id Resend, e-mail recebido). Fix de empacotamento (symlink:false do packages/domain) commitado junto e ROLADO via release v0.1.0-rc.24 (CI/CD verde): api+admin+worker no ar em rc.24 carregando Turni\\Domain. CA-13 da STORY-021 pode rodar agora; resta validar o fluxo real de aprovação no Backoffice e a reputação do remetente (e-mail caiu em Spam/Lixeira — SPF/DKIM/DMARC).",
       "blocks": [
         "STORY-022",
         "STORY-025"
