@@ -13,6 +13,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Cloud Run termina o TLS na borda e encaminha HTTP com X-Forwarded-Proto=https.
+        // Confia no proxy serverless para o Laravel gerar URLs https:// (links de e-mail,
+        // cookies secure, redirects) e tratar o request como seguro. Paridade com o admin.
+        $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_FOR
+            | Request::HEADER_X_FORWARDED_HOST
+            | Request::HEADER_X_FORWARDED_PORT
+            | Request::HEADER_X_FORWARDED_PROTO);
+
         // Sanctum SPA stateful API (ADR-007 §b): injeta EnsureFrontendRequestsAreStateful
         // no grupo `api` para que o WebApp Flutter use sessão por cookie same-site.
         $middleware->statefulApi();
