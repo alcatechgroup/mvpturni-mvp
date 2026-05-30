@@ -782,7 +782,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-021-emails-transacionais",
-      "status": "in_progress",
+      "status": "done",
       "owner_agent": "Programador (claude-opus-4-8)",
       "sprint_id": "SPRINT-2026-W25",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-021-emails-transacionais.md",
@@ -792,7 +792,7 @@
         "STORY-019",
         "STORY-034"
       ],
-      "blocked_reason": "DESTRAVADA em 2026-05-30: STORY-034 (worker em Cloud Run Job + Scheduler) entregue e validada — worker processa a fila e envia e-mail real em homolog (email.sent com message_id Resend, e-mail recebido). Fix de empacotamento (symlink:false do packages/domain) commitado junto e ROLADO via release v0.1.0-rc.24 (CI/CD verde): api+admin+worker no ar em rc.24 carregando Turni\\Domain. CA-13 da STORY-021 pode rodar agora; resta validar o fluxo real de aprovação no Backoffice e a reputação do remetente (e-mail caiu em Spam/Lixeira — SPF/DKIM/DMARC).",
+      "blocked_reason": "RESOLVIDO 2026-05-30: CA-13 fechada ponta a ponta em homolog via releases rc.24/25/26. CA-13a: aprovação real no Backoffice (Playwright) → email.sent aprovacao_concedida → inbox. CA-13b: forgot→worker→e-mail→/reset-password (200)→login com nova senha (200). Bugs achados+corrigidos: empacotamento packages/domain (STORY-034), TrustProxies/Mixed-Content no Backoffice (rc.25), UI de reset do WebApp era stub (rc.26). Pendência não-bloqueante: reputação do remetente (e-mail em Spam — warmup).",
       "blocks": [
         "STORY-022",
         "STORY-025"
@@ -1138,6 +1138,25 @@
       "produces_idr": "IDR-016",
       "created_at": "2026-05-30",
       "updated_at": "2026-05-30"
+    },
+    {
+      "id": "STORY-037",
+      "epic_id": "EPIC-001",
+      "title": "Auto-atualização do WebApp Flutter (consumidor do version.json) + versão visível na UI",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W25",
+      "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-037-auto-atualizacao-webapp-e-versao-visivel-na-ui.md",
+      "blocked_by": [],
+      "blocks": [],
+      "estimated_session_size": "M",
+      "produces_idr": "IDR-017",
+      "created_at": "2026-05-30",
+      "updated_at": "2026-05-30"
     }
   ],
   "sprints": [
@@ -1355,10 +1374,11 @@
         "STORY-023",
         "STORY-024",
         "STORY-025",
-        "STORY-034"
+        "STORY-034",
+        "STORY-037"
       ],
       "stretch_story_ids": [],
-      "sizing_total": "1L + 4M",
+      "sizing_total": "1L + 5M",
       "scope_changes": [
         {
           "date": "2026-05-30",
@@ -1371,6 +1391,12 @@
           "change": "STORY-034 colapsada para Fase B único (escada Fase A descartada); STORY-021 movida de in_progress → blocked por STORY-034",
           "reason": "Investigação aprofundada revelou 5 gaps no GCE worker-vm (sem socket Cloud SQL, sem segredos, sem Cloud NAT, SA sem artifactregistry.reader, COS /root quirk). Os gaps 3-5 invalidaram a escada: cobri-los exigiria Cloud NAT permanente (módulo Terraform que não desaparece com a VM) + IAM extra + workaround do COS — investimento descartável. Fase B (Cloud Run Job + Scheduler) elimina os 5 gaps de uma vez reusando IDR-007 e o padrão de secret_env_vars do cloud_run_api. PO decidiu bloquear STORY-021 até STORY-034 entregar — sem trabalho-ponte.",
           "approved_by": "PO + Arquiteto (Alexandro) — chat 2026-05-30"
+        },
+        {
+          "date": "2026-05-30",
+          "change": "Adicionada STORY-037 (auto-atualização do WebApp Flutter + versão visível na UI) ao escopo; sizing total 1L+4M → 1L+5M",
+          "reason": "Reportado pelo PO em chat: acessar https://app.homolog.turni.com.br pelo browser do mobile nunca atualiza o app após uma nova release — bundle Flutter Web + service worker padrão ficam pinados no dispositivo. Sem isso, a homologação pelo celular do EPIC-001 é impossível (STORY-021/023/024/025 só seriam testáveis pelo desktop, descaracterizando a métrica primária do épico que assume uso mobile-first). Diretriz já decidida em ADR-001 §Plano de verificação 'Auto-atualização do WebApp' (linhas 130-133), aprovada por Alexandro em 2026-05-27 — STORY-037 implementa fielmente: polling do version.json (já publicado por IDR-002 + STORY-007), banner 'Nova versão disponível', SKIP_WAITING + reload, e label discreta de versão no rodapé das telas de login, cadastro PF, cadastro contratante e área logada (app_shell). Risco já registrado em STORY-001 §Riscos linha 159. Vira IDR-017, sem reabrir ADR. Sem blocked_by — infra do servidor já é viva.",
+          "approved_by": "PO (Alexandro) — chat 2026-05-30"
         }
       ],
       "risks_at_open": [
@@ -1384,7 +1410,9 @@
         "Alexandro nos 5 papéis com validador entrando — risco de auto-validação relaxada",
         "Lembretes de completar cadastro (STORY-021 CA-5) — primeira regra com janelas 48h/5d/14d",
         "STORY-034 Fase B é caminho único após queda da escada — primeira vez exercitando --stop-when-empty + cron 1 min em Cloud Run Job (fiação herda IDR-007); falha empurra STORY-021/022/025 em cadeia, mas soft-cap 2026-06-19 absorve",
-        "Latência de pickup do Job (até ~60s) — aceitável pelo SLO, mas registrar no IDR-016 para evitar regressão futura"
+        "Latência de pickup do Job (até ~60s) — aceitável pelo SLO, mas registrar no IDR-016 para evitar regressão futura",
+        "STORY-037 banner percebido como intrusivo no mobile (primeira notificação não-bloqueante em homolog) — mitigado por microcopy fixo aprovado pelo PO + sinal de revisão no IDR-017 + smoke CA-17 pelo PO no celular",
+        "STORY-037 SKIP_WAITING + reload pode invalidar sessão Sanctum (regressão em ADR-007 §F5) — mitigado por CA-6 explícita exigindo que sessão sobreviva ao reload + E2E (login → forçar update → ver tela logada de novo); cookie same-site app.homolog.turni.com.br cobre"
       ]
     }
   ],

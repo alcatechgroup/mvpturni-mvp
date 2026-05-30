@@ -328,6 +328,37 @@ gcloud logging read \
 
 ---
 
+## E-mail transacional — verificação do remetente (STORY-021 CA-3)
+
+Remetente: `no-reply@mail.homolog.turni.com.br` (Resend — ADR-011). SPF/DKIM/DMARC
+aplicados via Terraform (`infra/modules/dns` + `infra/envs/homolog`) e domínio
+**verificado no painel Resend** ("ready to send"). Verificação externa por `dig`:
+
+```bash
+dig +short TXT  send.mail.homolog.turni.com.br        # SPF
+dig +short TXT  resend._domainkey.mail.homolog.turni.com.br  # DKIM (chave pública)
+dig +short TXT  _dmarc.mail.homolog.turni.com.br       # DMARC
+dig +short MX   send.mail.homolog.turni.com.br         # MX (bounces)
+```
+
+**Evidência — 2026-05-30** (resolvendo no NS autoritativo):
+
+```
+SPF   → "v=spf1 include:amazonses.com ~all"
+DKIM  → "p=MIGfMA0GCSqGSIb3DQEB...QAB"  (RSA pública gerada pelo Resend)
+DMARC → "v=DMARC1; p=none;"             (escopado no subdomínio, não toca o apex)
+MX    → 10 feedback-smtp.sa-east-1.amazonses.com.
+```
+
+Envios reais confirmados com DKIM assinado (`message_id` `…@mail.homolog.turni.com.br`):
+`aprovacao_concedida` (aprovação real no Backoffice) e `recuperacao_senha` (reset E2E),
+ambos entregues à inbox de teste. **Pendência de reputação:** o e-mail caiu em
+Spam/Lixeira no Gmail — esperado para subdomínio remetente novo (warmup). Mitigações
+(p=quarantine no DMARC após warmup, aquecimento de volume, eventual IP dedicado) ficam
+para acompanhamento operacional pós go-live, não bloqueiam o EPIC-001.
+
+---
+
 ## Acessar logs (CA-12, CA-13)
 
 ```bash
