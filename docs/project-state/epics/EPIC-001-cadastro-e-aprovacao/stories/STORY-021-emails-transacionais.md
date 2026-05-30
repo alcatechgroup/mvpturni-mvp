@@ -239,6 +239,12 @@ Sessão dupla (mesma sessão do agente, aprendizado #1 da W24). Sync ≤15 min �
 
 - **2026-05-30:** Alexandro abriu os 3 e-mails renderizados no Mailpit (`localhost:8025`, entrega real via worker) e **aprovou layout e identidade** dos três; **links dos CTAs funcionando**. Identidade DDR-001 (esquema neutro/profissional) confirmada no client real — não só em teste verde (feedback recorrente do usuário).
 
+### Validação do provedor (CA-2/CA-3) — 2026-05-30
+
+- Secret `turni-homolog-resend-api-key` aplicado no Secret Manager e lido de volta (chave válida, `re_…`).
+- Domínio `mail.homolog.turni.com.br` **verificado no Resend** ("ready to send emails").
+- **Envio real confirmado**: POST `api.resend.com/emails` com a chave do Secret Manager, from `no-reply@mail.homolog.turni.com.br` → aceito, `id=d6197ebb-7561-42a4-b237-a69f245e310d`. DKIM/SPF/DMARC ativos (DNS aplicado). Falta anexar print do mxtoolbox + cabeçalho DKIM da mensagem recebida ao runbook.
+
 ### Links de evidência
 
 - Spec: `docs/project-state/design/screens/SCREEN-STORY-021-emails-transacionais.md` (+ `/index.html`).
