@@ -246,3 +246,55 @@ resource "google_monitoring_alert_policy" "error_rate" {
 
   notification_channels = [google_monitoring_notification_channel.email.name]
 }
+
+# ── Falha persistente de e-mail crítico (STORY-021 CA-8/CA-9 + ADR-011 §g) ───────
+# O worker (Cloud Run Job) emite log ERROR `email.aprovacao.falhou` /
+# `email.recuperacao.falhou` quando o job esgota as 3 tentativas (dead letter). Worker
+# loga JSON estruturado em stderr (LOG_STDERR_FORMATTER) → jsonPayload.event. O lembrete
+# (warning) é deliberadamente excluído: não é fluxo crítico (ADR-011 §g).
+resource "google_logging_metric" "email_failures" {
+  project = var.project_id
+  name    = "turni_${var.env}_email_failures"
+  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND (jsonPayload.event=\"email.aprovacao.falhou\" OR jsonPayload.event=\"email.recuperacao.falhou\")"
+
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "INT64"
+    unit        = "1"
+    labels {
+      key         = "tipo"
+      value_type  = "STRING"
+      description = "Tipo do e-mail crítico que falhou (aprovacao_concedida | recuperacao_senha)"
+    }
+  }
+
+  label_extractors = {
+    "tipo" = "EXTRACT(jsonPayload.tipo)"
+  }
+}
+
+resource "google_monitoring_alert_policy" "email_failure" {
+  project      = var.project_id
+  display_name = "Turni falha de e-mail crítico (${var.env})"
+  combiner     = "OR"
+
+  conditions {
+    display_name = "E-mail de aprovação/reset falhou após retries"
+    condition_threshold {
+      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_email_failures\" AND resource.type=\"cloud_run_job\""
+      comparison      = "COMPARISON_GT"
+      threshold_value = 0
+      duration        = "0s"
+      aggregations {
+        alignment_period   = "300s"
+        per_series_aligner = "ALIGN_SUM"
+      }
+    }
+  }
+
+  notification_channels = [google_monitoring_notification_channel.email.name]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+}

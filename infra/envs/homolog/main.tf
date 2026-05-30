@@ -226,6 +226,10 @@ module "worker_job" {
     MAIL_MAILER       = "resend"
     MAIL_FROM_ADDRESS = local.mail_from_address
     MAIL_FROM_NAME    = "Turni"
+    # Log JSON estruturado em stderr → Cloud Logging parseia como jsonPayload, o que
+    # alimenta a métrica/alerta de falha de e-mail crítico (STORY-021 CA-8/CA-9) e as
+    # log-based metrics. Sem rebuild: o canal `stderr` lê o formatter desta env.
+    LOG_STDERR_FORMATTER = "Monolog\\Formatter\\JsonFormatter"
   }
 
   secret_env_vars = {
