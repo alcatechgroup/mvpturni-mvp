@@ -3,7 +3,7 @@ story_id: STORY-021
 slug: emails-transacionais
 title: E-mails transacionais (aprovação concedida + lembrete completar cadastro + reset de senha)
 epic_id: EPIC-001
-sprint_id: null
+sprint_id: SPRINT-2026-W25
 type: implementation
 target_role: programador
 requires_design: true
@@ -11,7 +11,7 @@ design_screen_id: SCREEN-STORY-021-emails-transacionais
 status: ready
 owner_agent: null
 created_at: 2026-05-28
-updated_at: 2026-05-28
+updated_at: 2026-05-30
 estimated_session_size: M
 ---
 

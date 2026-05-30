@@ -3,14 +3,14 @@ story_id: STORY-025
 slug: validacao-final-epic-001
 title: Validação final do EPIC-001 Cadastro e aprovação
 epic_id: EPIC-001
-sprint_id: null
+sprint_id: SPRINT-2026-W25
 type: validation
 target_role: validador
 requires_design: false
 status: ready
 owner_agent: null
 created_at: 2026-05-28
-updated_at: 2026-05-28
+updated_at: 2026-05-30
 estimated_session_size: M
 ---
 

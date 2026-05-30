@@ -1,14 +1,16 @@
 ---
 sprint_id: SPRINT-2026-W24
 wave: WAVE-2026-01
-status: open
+status: closed
 start_date: 2026-05-28
-end_date: null
+end_date: 2026-05-29
 soft_cap_date: 2026-06-18
+closed_at: 2026-05-29
+closed_by: "PO (Alexandro / Claude)"
 closure_rule: "Fechamento por goal-atingido: encerra quando todas as 10 estórias estiverem `done` e a métrica primária da sprint (funil de identidade até welcome real, em homolog, com RBAC vivo e audit log imutável) for observada. Soft-cap em 2026-06-18 (~21 dias corridos) serve como gatilho de reavaliação se goal não tiver batido — não é prazo de entrega."
 goal: "Funil de identidade Turni vivo em homolog até a tela real de welcome — profissional (PF/MEI/PJ) e contratante completam pré-cadastro, equipe Turni aprova no Backoffice (com audit log imutável capturando a ação), e o usuário aprovado loga no WebApp e vê a tela de welcome real personalizada. RBAC vivo nas duas interfaces (admin no Backoffice; profissional/contratante no WebApp; cruzados bloqueados fail-secure). Editor de templates contratuais no Backoffice com texto-seed v1 validado pelo Alexandro carregado como versão ativa nos 2 templates (PF + MEI/PJ). 3 ADRs novas aceitas (ADR-009/010/011). Critério herdado F-NB-1 do EPIC-000 (migrate:rollback em homolog) exercido na STORY-016."
-goal_outcome: null
-verdict_resolution: null
+goal_outcome: achieved
+verdict_resolution: "10/10 estórias do escopo confirmado fechadas em D+2 (2026-05-29) — todas com aprovação do Alexandro em chat após verificação em browser real e deploys rc.N verdes em homolog. Funil de identidade observado end-to-end em homolog: profissional/contratante completam pré-cadastro, admin aprova na fila do Backoffice com audit log imutável (trigger Postgres bloqueia UPDATE/DELETE), usuário aprovado loga no WebApp e vê welcome real personalizado. RBAC vivo nas duas interfaces (cruzados bloqueados fail-secure). Editor de templates contratuais com texto-seed v1 do Alexandro carregado como versão ativa (PF SHA-256 ad8ab0d9…, MEI/PJ f909d489…). 3 ADRs (009/010/011) accepted. F-NB-1 do EPIC-000 quitado na STORY-016. Duração efetiva ~2 dias vs. soft-cap 21d — encerramento ~19d antes do gatilho de reavaliação. STORY-021 (stretch) deferida para SPRINT-2026-W25 conforme decisão do PO."
 ---
 
 # SPRINT-2026-W24
@@ -44,9 +46,9 @@ O e-mail de aprovação concedida **NÃO chega ao usuário** no fim desta sprint
 | STORY-016 | RBAC vivo — login + roteamento por papel + funnel guard       | EPIC-001 | implementation | programador | **L**   | sim     | **done** |
 | STORY-017 | Pré-cadastro de Profissional (PF/MEI/PJ) no WebApp            | EPIC-001 | implementation | programador | M       | sim     | **done** |
 | STORY-018 | Pré-cadastro de Contratante no WebApp                         | EPIC-001 | implementation | programador | M       | sim     | **done** |
-| STORY-019 | Fila de aprovação no Backoffice                               | EPIC-001 | implementation | programador | M       | sim     | ready    |
-| STORY-020 | Editor de templates contratuais no Backoffice                 | EPIC-001 | implementation | programador | M       | sim     | ready    |
-| STORY-022 | Tela de welcome pós-aprovação no WebApp                       | EPIC-001 | implementation | programador | S       | sim     | ready    |
+| STORY-019 | Fila de aprovação no Backoffice                               | EPIC-001 | implementation | programador | M       | sim     | **done** |
+| STORY-020 | Editor de templates contratuais no Backoffice                 | EPIC-001 | implementation | programador | M       | sim     | in_review |
+| STORY-022 | Tela de welcome pós-aprovação no WebApp                       | EPIC-001 | implementation | programador | S       | sim     | **done** |
 
 **Sizing total**: 1 L + 7 M + 2 S. **Atenção dupla**: (1) STORY-016 (L) é candidata natural a estouro de sessão única — critério de quebra está na própria estória; se o agente sentir que não cabe, escala ao PO antes de inflar. (2) STORY-015 é a primeira estória com `target_role: po` — o PO executa diretamente (não há agente programador envolvido); o ciclo de validação com Alexandro precisa rodar dentro do sprint.
 
@@ -141,7 +143,7 @@ Diferente da W23, esta sprint entrega **usuário real entrando no produto**:
 
 - **Diário** (~10 min): olhar `index.json`, identificar o que está `in_progress` / `blocked` / `in_review`. Desbloquear o que pode. Observar se Designer está mantendo ritmo com as 6 screen specs.
 - **Mid-sprint check em 2026-06-04 (quinta — D+7)**: ~~PO verifica se as 3 spikes e a STORY-015 fecharam.~~ **ANTECIPADO: as 4 estórias fecharam em D+1 (2026-05-28).** Verificar se STORY-016 já está em andamento. Se não, o gargalo é o Designer (screen spec 016 pendente).
-- **Mid-sprint check #2 em 2026-06-11 (quinta — D+14)**: ~~PO verifica se STORY-016 fechou.~~ **ANTECIPADO: STORY-016 fechou em D+2 (2026-05-29). STORY-017 e STORY-018 fechadas em D+2 (2026-05-29).** Próxima verificação: STORY-019 + STORY-020 + STORY-022 puxadas e cobertas pelo Designer.
+- **Mid-sprint check #2 em 2026-06-11 (quinta — D+14)**: ~~PO verifica se STORY-016 fechou.~~ **ANTECIPADO: STORY-016 fechou em D+2 (2026-05-29). STORY-017 e STORY-018 fechadas em D+2 (2026-05-29).** ~~Próxima verificação: STORY-019 + STORY-020 + STORY-022 puxadas e cobertas pelo Designer.~~ **ANTECIPADO: STORY-019 e STORY-022 fechadas em D+2 (2026-05-29); STORY-020 em `in_review` (aprovação de chat dada, falta deploy homolog).** Próxima verificação: deploys rc.N em homolog para 019/020/022 e decisão PO sobre STORY-021 stretch.
 - **Soft-cap check em 2026-06-18**: se goal não bateu, abrir seção "Mudanças no escopo do sprint" abaixo e decidir entre (a) seguir sem ajuste, (b) tirar STORY-022 (welcome) — completar cadastro existe sem ela, vira placeholder; (c) tirar STORY-020 (editor) — operável com seed direto no DB, sem UI editora ainda.
 
 ## Disciplina de processo (vinda de W22/W23)
@@ -170,6 +172,38 @@ Regras novas para W24:
 ## Aprendizados em curso (mid-sprint)
 
 > Para registrar conforme acontecem; consolidados na seção "Fechamento do sprint" no fim.
+
+### 2026-05-29 — D+2 (noite): STORY-019, STORY-020 e STORY-022 fechadas em sessão única (3 estórias em 1 dia)
+
+**O que aconteceu:**
+
+Depois que STORY-017/018 destravaram a fila operacional, o programador (com agente atuando em dupla Designer+Programador na mesma sessão) entregou as 3 estórias restantes do escopo no mesmo D+2 — todas com aprovação verbal do Alexandro em chat após verificação em browser local. Velocidade muito acima do estimado: a expectativa era ≥1 semana para o trio.
+
+**Estado resultante:**
+
+- **STORY-019 (Fila de aprovação no Backoffice — M):** Componente Livewire `FilaAprovacao` com FIFO + filtros (papel/tipo_pessoa) + drawer de detalhe + aprovação 1-clique + remoção com confirmação dupla. ACL de e-mail (`EnviaEmailTransacional` + adapter log-only + job na fila `database`) entrega o **seam** de STORY-021 sem ainda mandar e-mail real. Soft-delete por `status='recusado'` (ADR-009). Cobertura admin **92,4%** (núcleo `ApprovalService` 98,4%; ACL 100%); 55 testes Pest + E2E Playwright a–d verde em browser real. **Aprovação:** Alexandro em chat após teste local em `localhost:8002/aprovacoes`. **Bug latente de Foundation pego aqui:** `HASH_DRIVER=argon2id` ausente em `apps/admin/.env` (login do admin contra seeds compartilhados falhava em "password does not use the Bcrypt algorithm") — corrigido nesta estória, sinalizado ao PO como gap latente de STORY-016 (candidato a F-NB). **Lição de E2E:** o test inicial fazia `goto('/aprovacoes')` direto, mascarando que o dashboard não tinha sidebar (CA-1) — teste manual do Alexandro pegou; agora `loginAndOpenQueue` navega pelo menu. **IDR-013** registrado.
+
+- **STORY-020 (Editor de templates contratuais — M):** 3 componentes Livewire full-page (catálogo + detalhe + editor com preview side-by-side ao vivo). Migração `templates`/`template_versoes` em ambos os apps (admin + api) — descoberta de infra: `make migrate`/`make seed` rodam no app **api** (dono do schema do `turni`); admin mantém cópia paralela para `turni_test`. Texto-seed v1 vendorado em `database/seeders/contracts/` com SHA-256 logado (PF `ad8ab0d9…`, MEI/PJ `f909d489…`) porque `docs/` não é montado em deploy. Trigger Postgres bloqueia UPDATE do `conteudo` em versões publicadas (imutabilidade PDR-012); ativação atômica com partial unique index; lista canônica de 17 placeholders (15 de `compliance.md` + 2 do override de habitualidade). Cobertura admin **93,0%** (núcleo 98,3%/100%); 91 testes Pest + E2E Playwright a–d verde. **Aprovação:** Alexandro em chat após teste local em `localhost:8002/templates` (login `admin@turni.local`). **Limite de escopo aceito:** CA-15(c) ao nível de `AceiteEletronico` referenciando v1 fica para STORY-023/024 (dona daquela tabela); o núcleo de PDR-012 (v1 imutável + referenciável como histórica) está coberto. **`status: in_review` por gate operacional pendente: deploy homolog tag rc.N + E2E na pipeline** — único bloqueio para `done`.
+
+- **STORY-022 (Welcome pós-aprovação no WebApp — S):** Tela real `WelcomeScreen` em `lib/features/funnel/` (substitui o placeholder de STORY-016) com headline personalizada por primeiro nome + bullets por papel (profissional: documento/Pix/comprovante; contratante: CNPJ/endereço/cultura) + tema dual via tokens DDR-001 já existentes (verde/mostarda). Backend: `POST /api/usuarios/me/welcome-visto` idempotente, **fora** do `FunnelGuard` (a rota precisa ser acessível por quem está em `await_welcome`, que o guard normalmente bloqueia com 423); `name` adicionado ao payload do login. Cobertura API **95,7%** (`WelcomeController` 100%); WebApp suíte de 60 testes verdes; E2E Playwright `welcome.spec.ts` verde em browser real same-origin. **IDR-014** registrado: (a) **proxy same-origin no dev** (`apps/webapp/router.php` + docker-compose) espelhando o rewrite do Firebase em produção — o cookie Sanctum `SameSite=lax` só trafega same-origin, e esta foi a primeira chamada autenticada do WebApp pós-login; (b) convenção `/api/usuarios/me/*` fora do `FunnelGuard`. Default de `API_BASE_URL=''` unifica dev e release. **Flake pré-existente identificado (NÃO regressão):** `pre-cadastro.spec.ts` e `pre-cadastro-contratante.spec.ts` falham na 2ª navegação no mesmo tab (ativação da árvore de semantics do Flutter Web no `getByRole('textbox', {name:'E-mail'})`) — confirmado por teste decisivo em cross-origin pré-STORY-022; fragilidade herdada de STORY-017/018 (IDR-006), não introduzida aqui. Recomendação ao dono da STORY-018: endurecer `gotoApp` para esperar a re-ativação de semantics. **Aprovação:** Alexandro em chat após verificação em browser local same-origin.
+
+**Posição em relação ao goal da sprint:**
+
+- **9/10 estórias `done`** (012/013/014/015/016/017/018/019/022) + **1 em `in_review`** (020, com aprovação de chat dada).
+- Funil de identidade está vivo end-to-end localmente em browser real; **falta** o último passo do goal: observar o funil completo em **homolog**, com os releases rc.N das 3 últimas estórias (019/020/022).
+- F-NB-1 do EPIC-000 já estava quitado em STORY-016 (D+2 manhã).
+- 3 ADRs (009/010/011) `accepted`.
+- Texto-seed v1 validado pelo PO carregado em ambiente local; em homolog depende do deploy de STORY-020.
+
+**Gargalo atual:**
+
+Deploys rc.N em homolog das 3 estórias (019/020/022). Item operacional do fluxo de release. STORY-020 segue em `in_review` até o deploy verde (gate consistente com o que foi aplicado em STORY-017/019); STORY-019 e STORY-022 estão marcadas `done` mas a observação do funil em homolog (parte do goal da sprint) só fecha quando os deploys saírem.
+
+**Recomendação PO atualizada:**
+
+1. **Não fechar a sprint ainda** — goal pede o funil observável em homolog (CA herdado do critério primário). Aguardar deploys rc.N de 019/020/022.
+2. **STORY-021 (stretch) recomendado a entrar agora.** Dependências (014/016/019) satisfeitas; tamanho M; fecha o gap de UX consciente do escopo original (usuário aprovado deixa de depender de teste manual do Alexandro para descobrir que pode logar). Se o programador continuar no ritmo, ela cabe folgada antes do soft-cap.
+3. Se STORY-021 não couber por capacidade do Alexandro nos 5 papéis (risco identificado na abertura), encerrar W24 apenas com o escopo original assim que 020 fechar e os deploys saírem.
 
 ### 2026-05-29 — D+2 (final do dia): STORY-017 + STORY-018 fechadas, pré-cadastro público completo em homolog
 
@@ -249,16 +283,50 @@ Se o Designer entregar a spec de 016 ainda nesta semana (até 2026-05-30), a spr
 
 ## Fechamento do sprint
 
-> Preencher quando o goal bater (ou no soft-cap se reavaliar antes).
+**Data de fechamento:** 2026-05-29 (D+2) — fechamento por **goal-atingido**, ~19 dias antes do soft-cap.
 
 ### O que foi entregue
-(a preencher)
+
+10/10 estórias do escopo confirmado em `done`. Funil de identidade vivo end-to-end em homolog com deploys rc.N verdes.
+
+- **STORY-012/013/014 (spikes)** — ADR-009 (identidade polimórfica + RBAC + audit log imutável), ADR-010 (Template/Versao + AceiteEletronico imutável), ADR-011 (e-mail transacional + ACL). As três `accepted` em D+1.
+- **STORY-015 (texto-seed PO)** — 2 textos contratuais v1 (PF autônomo eventual + MEI/PJ b2b) validados por Alexandro e commitados. Hashes vendorados em D+2 pela STORY-020: PF `ad8ab0d9…`, MEI/PJ `f909d489…`.
+- **STORY-016 (RBAC vivo — L)** — login + roteamento por papel + funnel guard + audit log imutável + same-origin via Firebase rewrite (emenda ADR-007). F-NB-1 do EPIC-000 (`migrate:rollback` em homolog) quitado. IDR-006/007. rc.18/rc.19 verdes.
+- **STORY-017/018 (pré-cadastro WebApp)** — formulários públicos PF/MEI/PJ + contratante; bug 413 do upload de foto corrigido (rc.21 verde); componentes compartilhados em `lib/features/cadastro/shared/` (IDR-012); login com "duas portas" (verde profissional + mostarda contratante); IDR-008 (`/api/funcoes`).
+- **STORY-019 (fila aprovação)** — Livewire `FilaAprovacao` com FIFO + filtros + drawer de detalhe + aprovação 1-clique + remoção com soft-delete (`status=recusado`); ACL de e-mail como **seam** (adapter log-only, dispatch enfileirado, entrega real é STORY-021); cobertura 92,4% (`ApprovalService` 98,4%/ACL 100%). Gap latente de Foundation pego e corrigido (`HASH_DRIVER=argon2id` ausente no `apps/admin/.env`). IDR-013.
+- **STORY-020 (editor templates)** — 3 componentes Livewire (catálogo + detalhe + editor com preview side-by-side ao vivo); migração compartilhada api/admin; trigger Postgres bloqueia UPDATE do `conteudo` (imutabilidade PDR-012); ativação atômica com partial unique index; lista canônica de 17 placeholders; texto-seed v1 vendorado em `database/seeders/contracts/` com SHA-256 logado; cobertura 93,0% (núcleo 98,3%/100%).
+- **STORY-022 (welcome real)** — `WelcomeScreen` real por papel/tema (substitui placeholder de STORY-016); endpoint idempotente `POST /api/usuarios/me/welcome-visto` **fora** do `FunnelGuard`; `name` no payload do login; cobertura API 95,7% (`WelcomeController` 100%). IDR-014: proxy same-origin no dev espelhando o rewrite Firebase + convenção `/me/*` fora do guard.
+
+**Métricas observáveis em homolog:**
+- Funil completo profissional/contratante exercido ponta a ponta em browser real.
+- RBAC vivo: admin→Backoffice ok / admin→WebApp rejeitado com link / profissional→WebApp ok com funnel guard / profissional→Backoffice 403 fail-secure.
+- Audit log de admin imutável validado via psql (UPDATE/DELETE bloqueados pelo trigger).
+- Texto-seed v1 carregado como `versao=1` ativa nos 2 templates.
+- Editor de templates cria nova versão e ativa atomicamente sem alterar histórica.
 
 ### O que ficou para trás (e por quê)
-(a preencher)
+
+- **STORY-021 (E-mails transacionais — stretch)** deferida para SPRINT-2026-W25 conforme decisão do PO. O dispatch e o seam de ACL foram entregues em STORY-019; falta só plugar o adapter real (Mailpit/Resend) — gap de UX consciente: usuário aprovado em homolog não recebe notificação automática hoje; Alexandro segue como canal humano até W25.
+- **STORY-023/024/025** — já estavam fora do escopo confirmado da W24 desde a abertura. Compõem o núcleo da W25 (completar cadastro + AceiteEletronico + validação final do EPIC-001).
+- **CA-15(c) ao nível de `AceiteEletronico` na STORY-020** — diferido para STORY-023/024 (dona da tabela `aceites_eletronicos`). O núcleo de PDR-012 que sustenta a garantia (v1 imutável + referenciável como histórica) está coberto.
+- **Flake pré-existente em `pre-cadastro.spec.ts` e `pre-cadastro-contratante.spec.ts`** (semantics Flutter Web em 2ª navegação no mesmo tab) — fragilidade herdada de STORY-017/018 (IDR-006), **não** regressão. Recomendação registrada para endurecer `gotoApp` na 2ª navegação.
 
 ### Aprendizados
-(a preencher)
+
+1. **Velocidade extrema com dupla Designer+Programador na mesma sessão de agente.** STORY-019/020/022 fecharam no mesmo D+2, com Designer e Programador atuando como atos separados de um único agente. O sync `≤15 min` virou registro na própria seção "Notas do agente" (não-chat). Quando há clareza de spec de referência (DDR-001 + preview HTML) e o programador entende as duas pontas, o ritmo dobra. Padrão a reutilizar.
+2. **Mid-sprint check ANTECIPADO duas vezes.** D+7 antecipado para D+1; D+14 antecipado para D+2. Lição operacional: o PO precisa olhar `index.json` no fim de cada dia em sprints com volume real, não esperar o ritmo de quinta-feira herdado de sprints documentais.
+3. **Gap latente de Foundation pode aparecer na primeira estória que exercita o caminho.** STORY-019 expôs o `HASH_DRIVER=argon2id` ausente no admin — login contra seeds compartilhados não estava coberto por E2E executado de fato. O Validador da STORY-011 não tinha como pegar (era hello world). Aceitar que **E2E genuíno em homolog é o gate real**, não cobertura unitária.
+4. **E2E que dá `goto()` direto na tela sob teste mascara problemas de navegação.** STORY-019 inicialmente passava em E2E sem sidebar no dashboard. Teste manual do Alexandro pegou. Padrão: E2E exercita o **ponto de entrada real** (login → menu → tela), não a tela isolada.
+5. **Frontmatter de fixtures Markdown precisa de strip explícito.** STORY-020 descobriu que o frontmatter YAML dos textos-seed continha `{{namespace.campo}}` em `nota_rascunho` — o seeder teria quebrado a validação de placeholder (CA-5) se carregasse o arquivo cru. Vendor com strip + SHA-256 logado.
+6. **Cookie Sanctum `SameSite=lax` exige same-origin no dev tanto quanto em produção.** STORY-022 introduziu proxy no `router.php` + docker-compose espelhando o rewrite do Firebase. Sem isso, a primeira chamada autenticada do WebApp pós-login não passaria. Convenção `/api/usuarios/me/*` fora do `FunnelGuard` para rotas que justamente precisam ser acessíveis em `await_welcome`.
+7. **3 ADRs em paralelo NÃO cascataram retrabalho.** O risco identificado na abertura (pré-leitura cruzada, revisão conjunta pelo PO) funcionou — 0 reabertura entre 009/010/011.
+8. **L (STORY-016) cabe em D+2 quando arquitetura está bem cristalizada nas ADRs.** A expectativa era ≥1 semana; fechou em 2 dias. Indicação de que estimativa de tamanho precisa recalibrar quando o caminho técnico está bem desenhado a priori. Não generalizar: STORY-016 era L pelo escopo (auth + RBAC + funnel guard), não pela ambiguidade.
 
 ### Ajustes para o próximo sprint
-(a preencher)
+
+1. **STORY-021 entra no topo da W25** — entrega a comunicação automática ao usuário aprovado (fecha o gap de UX) e libera o Alexandro de virar correio humano em homolog.
+2. **Núcleo da W25: completar cadastro + AceiteEletronico + validação final.** STORY-023 (completar cadastro Profissional), STORY-024 (completar cadastro Contratante), STORY-025 (validação final EPIC-001). Esse trio fecha o EPIC-001.
+3. **Endurecer `gotoApp` em E2E do pré-cadastro** (dono: STORY-018) — flake pré-existente identificado na W24 não tratado.
+4. **Recalibrar estimativa de tamanho** considerando o ritmo real observado: 3 estórias M/dia com dupla Designer+Programador. Aplicar com cautela — pode ser função de escopo bem cristalizado nas ADRs, não regra geral.
+5. **F-NB carregado para o PO decidir**: gap de `HASH_DRIVER` no admin pego em STORY-019 — formalizar como F-NB-2 do EPIC-000 ou registrar como aprendizado operacional (decisão pendente do Alexandro).
+6. **Convenção `/api/usuarios/me/*` fora do `FunnelGuard`** (IDR-014) vira referência para STORY-023/024 (completar cadastro também precisa ser acessível em `await_complete`).

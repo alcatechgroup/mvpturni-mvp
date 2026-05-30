@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-05-29T22:50:00Z",
+  "generated_at": "2026-05-30",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
-    "current_sprint": "SPRINT-2026-W24",
-    "last_closed_sprint": "SPRINT-2026-W24-LANDING",
-    "phase": "wave-2026-01-sprint-w24-aberta-w24-landing-closed-epic-006-done",
-    "next_action": "SPRINT-2026-W24-LANDING ENCERRADA em 2026-05-29 por goal atingido (8/8 stories done; validação STORY-033 = approved_with_pending, 0 fails bloqueantes; métrica primária verificada no ar em homolog na tag landing-v0.1.0-rc.4). EPIC-006 done. Duração efetiva 2 dias (vs. soft-cap 14d) — sprint fechou ~13d antes do gatilho de reavaliação. 2 pendências não-bloqueantes carregadas como carry-forward para o go-public (decisão comercial em momento separado, PDR-015): (1) CA-B8-2 deploy via secret SA (mesmo padrão release.yml do WebApp); (2) CA-B3-6 Lighthouse Perf da landing AS IS 58-60 (item declarado não-bloqueante). Foco volta integralmente para SPRINT-2026-W24 (EPIC-001): gargalo segue Designer (5 screen specs 017/018/019/020/022 precisam virar ready). Aprendizados de paralelismo registrados no fechamento da W24-LANDING; aplicar ao calibrar W25.",
-    "notes": "SPRINT-2026-W24 aberta em 2026-05-28 com 10 estórias no escopo (012/013/014/015/016/017/018/019/020/022). Goal: funil de identidade Turni vivo em homolog até a tela real de welcome — profissional (PF/MEI/PJ) e contratante completam pré-cadastro, equipe Turni aprova no Backoffice com audit log imutável, usuário aprovado loga no WebApp e vê welcome real; RBAC vivo nas duas interfaces; editor de templates contratuais com texto-seed v1 validado por Alexandro carregado; 3 ADRs aceitas (ADR-009/010/011); F-NB-1 do EPIC-000 (migrate:rollback em homolog) quitado na STORY-016. STORY-021 (e-mails) como stretch. STORY-023/024/025 ficam para SPRINT-2026-W25. Soft-cap em 2026-06-18 (~21 dias) — gatilho de reavaliação, não prazo. Sizing: 1L + 7M + 2S — primeira sprint com volume real de implementação pós-EPIC-000."
+    "current_sprint": null,
+    "last_closed_sprint": "SPRINT-2026-W24",
+    "phase": "wave-2026-01-sprint-w24-closed-goal-achieved-aguarda-abertura-w25",
+    "next_action": "SPRINT-2026-W24 ENCERRADA em 2026-05-29 por goal atingido. 10/10 estórias do escopo confirmado em done; funil de identidade observado end-to-end em homolog (pré-cadastro → fila aprovação com audit log imutável → login → welcome real); RBAC vivo nas duas interfaces; editor de templates com texto-seed v1 carregado; 3 ADRs (009/010/011) accepted; F-NB-1 do EPIC-000 quitado. Duração efetiva ~2 dias vs. soft-cap 21d. Próximo passo: abrir SPRINT-2026-W25 com núcleo STORY-021 (stretch da W24 promovida ao topo — fecha o gap de UX de e-mail) + STORY-023/024 (completar cadastro PF/Contratante + AceiteEletronico) + STORY-025 (validação final EPIC-001). Aprendizados detalhados na seção 'Fechamento do sprint' do SPRINT-2026-W24.md. Decisão pendente Alexandro: formalizar gap do HASH_DRIVER no admin (pego em STORY-019) como F-NB-2 do EPIC-000 ou registrar só como aprendizado operacional.",
+    "notes": "SPRINT-2026-W24 fechada em 2026-05-29 por goal-atingido (10/10 estórias done; goal_outcome=achieved). Sprint aberta em 2026-05-28 com 10 estórias (012/013/014/015/016/017/018/019/020/022). Duração efetiva 2 dias — ~19 dias antes do soft-cap (2026-06-18). Funil de identidade vivo em homolog: pré-cadastro PF/MEI/PJ + contratante → fila de aprovação no Backoffice com audit log imutável → login → welcome real personalizado. RBAC vivo nas duas interfaces (cruzados bloqueados fail-secure). Editor de templates com texto-seed v1 carregado como versão ativa (PF/MEI-PJ). 3 ADRs aceitas (ADR-009/010/011). F-NB-1 do EPIC-000 quitado em STORY-016. IDRs novos: 006 (path strategy), 007 (Cloud Run↔Cloud SQL privado), 008 (/api/funcoes), 012 (componentes compartilhados cadastro), 013 (ACL e-mail + soft-delete), 014 (proxy same-origin + /me/* fora do guard). Emenda ADR-007 (Sanctum SPA via Firebase rewrite). STORY-021 (e-mails — stretch) deferida para SPRINT-2026-W25 conforme decisão PO. STORY-023/024/025 também na W25. Aprendizados, ajustes e o que ficou para trás detalhados na seção 'Fechamento do sprint' do SPRINT-2026-W24.md."
   },
   "product": {
     "vision": "product/vision.md",
@@ -141,8 +141,8 @@
       ],
       "validation_report": null,
       "validation_checklist_path": "epics/EPIC-001-cadastro-e-aprovacao/validation/checklist.md",
-      "next_action": "SPRINT-2026-W24: 012-019 DONE. STORY-019 (fila de aprovação no Backoffice) aprovada por Alexandro em chat em 2026-05-29 após teste local da tela real (Designer: SCREEN-STORY-019 + protótipo validado; Programador: Livewire FilaAprovacao + ApprovalService + seam de ACL de e-mail; 57 testes Pest verdes, cobertura 92.4%/núcleo ApprovalService 98.4%/ACL e-mail 100%; E2E CA-13 a-d verde em browser via menu; IDR-013). Correção de gap de STORY-016: admin sem HASH_DRIVER=argon2id (login contra seeds quebrava). Pendências carregadas (não-bloqueantes): deploy homolog+E2E pipeline (tag rc.N), entrega real do e-mail (STORY-021), template real no CA-4 (STORY-020). Próximo na W24: STORY-020 e STORY-022 (Designer ainda deve as specs). STORY-021/023/024/025 ficam para SPRINT-2026-W25.",
-      "in_progress_sprint": "SPRINT-2026-W24",
+      "next_action": "SPRINT-2026-W24 ENCERRADA em 2026-05-29 por goal-atingido (10/10 estórias done; goal_outcome=achieved). Funil de identidade vivo em homolog (pré-cadastro → fila de aprovação com audit log imutável → login → welcome real). Estado do EPIC-001 ao fim da W24: 10/14 estórias done (012-020, 022), 4 ainda a entregar (021/023/024/025). Próximo: abrir SPRINT-2026-W25 com STORY-021 (e-mails — promovida do stretch, fecha gap de UX consciente) + STORY-023/024 (completar cadastro PF/Contratante + AceiteEletronico gerado no clique do usuário, consumindo ADR-010 e templates de STORY-020) + STORY-025 (validação final EPIC-001). EPIC-001 fica concluído ao fim da W25.",
+      "last_sprint": "SPRINT-2026-W24",
       "inherited_criteria": [
         {
           "source": "EPIC-000 F-NB-1",
@@ -723,8 +723,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-019-fila-aprovacao",
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "programador+designer (claude-opus-4-8)",
       "sprint_id": "SPRINT-2026-W24",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-019-fila-aprovacao-backoffice.md",
       "blocked_by": [
@@ -745,7 +745,7 @@
       ],
       "estimated_session_size": "M",
       "created_at": "2026-05-28",
-      "updated_at": "2026-05-28"
+      "updated_at": "2026-05-29"
     },
     {
       "id": "STORY-020",
@@ -755,7 +755,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-020-editor-templates",
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-opus-4-8-designer+programador-2026-05-29",
       "sprint_id": "SPRINT-2026-W24",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-020-editor-templates-contratuais-backoffice.md",
@@ -783,7 +783,7 @@
       "design_screen_id": "SCREEN-STORY-021-emails-transacionais",
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W25",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-021-emails-transacionais.md",
       "blocked_by": [
         "STORY-014",
@@ -796,7 +796,7 @@
       ],
       "estimated_session_size": "M",
       "created_at": "2026-05-28",
-      "updated_at": "2026-05-28"
+      "updated_at": "2026-05-30"
     },
     {
       "id": "STORY-022",
@@ -833,7 +833,7 @@
       "design_screen_id": "SCREEN-STORY-023-completar-cadastro-profissional",
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W25",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-023-completar-cadastro-profissional-com-aceite.md",
       "blocked_by": [
         "STORY-012",
@@ -850,7 +850,7 @@
       ],
       "estimated_session_size": "L",
       "created_at": "2026-05-28",
-      "updated_at": "2026-05-28"
+      "updated_at": "2026-05-30"
     },
     {
       "id": "STORY-024",
@@ -862,7 +862,7 @@
       "design_screen_id": "SCREEN-STORY-024-completar-cadastro-contratante",
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W25",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-024-completar-cadastro-contratante-com-aceite.md",
       "blocked_by": [
         "STORY-012",
@@ -879,7 +879,7 @@
       ],
       "estimated_session_size": "M",
       "created_at": "2026-05-28",
-      "updated_at": "2026-05-28"
+      "updated_at": "2026-05-30"
     },
     {
       "id": "STORY-025",
@@ -891,7 +891,7 @@
       "design_screen_id": null,
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W25",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-025-validacao-final-epic-001.md",
       "blocked_by": [
         "STORY-012",
@@ -913,7 +913,7 @@
       "validation_checklist_path": "epics/EPIC-001-cadastro-e-aprovacao/validation/checklist.md",
       "validation_report_path": "epics/EPIC-001-cadastro-e-aprovacao/validation/report.md",
       "created_at": "2026-05-28",
-      "updated_at": "2026-05-28"
+      "updated_at": "2026-05-30"
     },
     {
       "id": "STORY-026",
@@ -1177,13 +1177,16 @@
     {
       "id": "SPRINT-2026-W24",
       "wave": "WAVE-2026-01",
-      "status": "open",
+      "status": "closed",
       "start_date": "2026-05-28",
-      "end_date": null,
+      "end_date": "2026-05-29",
       "soft_cap_date": "2026-06-18",
+      "closed_at": "2026-05-29",
+      "closed_by": "PO (Alexandro / Claude)",
       "closure_rule": "goal-atingido (encerra quando as 10 estórias estiverem done e a métrica primária — funil de identidade até welcome real, em homolog, com RBAC vivo e audit log imutável — for observada); soft-cap em 2026-06-18 é gatilho de reavaliação, não prazo de entrega",
       "goal": "Funil de identidade Turni vivo em homolog até a tela real de welcome — profissional (PF/MEI/PJ) e contratante completam pré-cadastro, equipe Turni aprova no Backoffice (com audit log imutável), usuário aprovado loga no WebApp e vê welcome real. RBAC vivo nas duas interfaces. Editor de templates contratuais carregando texto-seed v1 validado por Alexandro. 3 ADRs novas aceitas (ADR-009/010/011). F-NB-1 do EPIC-000 (migrate:rollback em homolog) quitado na STORY-016.",
-      "goal_outcome": null,
+      "goal_outcome": "achieved",
+      "verdict_resolution": "10/10 estórias do escopo confirmado em done. Funil de identidade observado end-to-end em homolog: pré-cadastro PF/MEI/PJ + contratante, aprovação na fila do Backoffice com audit log imutável, login e welcome real personalizado. RBAC vivo nas duas interfaces (cruzados bloqueados fail-secure). Editor de templates com texto-seed v1 carregado (PF SHA-256 ad8ab0d9…, MEI/PJ f909d489…). 3 ADRs (009/010/011) accepted. F-NB-1 do EPIC-000 quitado em STORY-016. Duração efetiva ~2 dias vs. soft-cap 21d — ~19 dias antes do gatilho. STORY-021 (stretch) deferida para SPRINT-2026-W25 conforme decisão do PO.",
       "path": "sprints/SPRINT-2026-W24.md",
       "story_ids": [
         "STORY-012",
@@ -1206,7 +1209,19 @@
         "STORY-024",
         "STORY-025"
       ],
-      "delivered_story_ids": [],
+      "delivered_story_ids": [
+        "STORY-012",
+        "STORY-013",
+        "STORY-014",
+        "STORY-015",
+        "STORY-016",
+        "STORY-017",
+        "STORY-018",
+        "STORY-019",
+        "STORY-020",
+        "STORY-022"
+      ],
+      "in_review_story_ids": [],
       "carried_over_story_ids": [],
       "sizing_total": "1L + 7M + 2S",
       "risks_at_open": [
@@ -1295,6 +1310,38 @@
           "follow_up": "otimização de imagens é responsabilidade do marketing (PDR-015 §fronteira-conteúdo); entra como story do EPIC-006 ampliação no bundle de prontidão de produção, quando comercial autorizar go-public",
           "owner": "marketing (via PO)"
         }
+      ]
+    },
+    {
+      "id": "SPRINT-2026-W25",
+      "wave": "WAVE-2026-01",
+      "status": "active",
+      "start_date": "2026-05-30",
+      "end_date": null,
+      "soft_cap_date": "2026-06-19",
+      "opened_at": "2026-05-30",
+      "opened_by": "PO (Alexandro / Claude)",
+      "closure_rule": "goal-atingido (encerra quando STORY-021/023/024 estiverem done e STORY-025 tiver emitido veredito aceitável pelo PO em validation/report.md); soft-cap em 2026-06-19 é gatilho de reavaliação, não prazo de entrega",
+      "goal": "Fechar o EPIC-001 — funil de identidade Turni completo em homolog: profissional (PF/MEI/PJ) e contratante percorrem pré-cadastro → aprovação → welcome → completar cadastro com AceiteEletronico imutável → ativo. E-mails transacionais ao vivo (aprovação concedida + lembrete de completar cadastro + reset de senha) com SPF/DKIM/DMARC configurados. Validador independente emite veredito em validation/report.md cobrindo a métrica primária do épico, imutabilidade do aceite em uso real, RBAC vivo, LGPD básica, observabilidade e acessibilidade.",
+      "path": "sprints/SPRINT-2026-W25.md",
+      "story_ids": [
+        "STORY-021",
+        "STORY-023",
+        "STORY-024",
+        "STORY-025"
+      ],
+      "stretch_story_ids": [],
+      "sizing_total": "1L + 3M",
+      "risks_at_open": [
+        "STORY-023 (L) candidata a estouro de sessão única — multi-step + preview + aceite atômico",
+        "Designer entrega 3 screen specs (021/023/024) — gargalo possível no dia 1",
+        "SPF/DKIM/DMARC em DNS de homolog (STORY-021 CA-3) — primeira vez tocando DNS; propagação pode atrasar",
+        "Criptografia em repouso (STORY-023/024 CA-6) — primeira implementação em uso real do mecanismo de ADR-009",
+        "AceiteEletronico imutável em uso real — trigger Postgres só foi testado contra tabela vazia",
+        "Validador encontra fail bloqueante (rejected) em STORY-025 — replanejamento necessário",
+        "Decisão pendente do PO sobre F-NB-2 (HASH_DRIVER no admin) não fechada antes de STORY-025",
+        "Alexandro nos 5 papéis com validador entrando — risco de auto-validação relaxada",
+        "Lembretes de completar cadastro (STORY-021 CA-5) — primeira regra com janelas 48h/5d/14d"
       ]
     }
   ],

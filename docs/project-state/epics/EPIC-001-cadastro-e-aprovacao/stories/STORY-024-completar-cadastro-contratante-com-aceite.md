@@ -3,7 +3,7 @@ story_id: STORY-024
 slug: completar-cadastro-contratante-com-aceite
 title: Completar cadastro de Contratante no WebApp + geração do AceiteEletronico
 epic_id: EPIC-001
-sprint_id: null
+sprint_id: SPRINT-2026-W25
 type: implementation
 target_role: programador
 requires_design: true
@@ -11,7 +11,7 @@ design_screen_id: SCREEN-STORY-024-completar-cadastro-contratante
 status: ready
 owner_agent: null
 created_at: 2026-05-28
-updated_at: 2026-05-28
+updated_at: 2026-05-30
 estimated_session_size: M
 ---
 

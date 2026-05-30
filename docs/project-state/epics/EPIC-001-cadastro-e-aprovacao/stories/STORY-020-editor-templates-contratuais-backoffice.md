@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-020-editor-templates
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-designer+programador-2026-05-29
 created_at: 2026-05-28
 updated_at: 2026-05-29
