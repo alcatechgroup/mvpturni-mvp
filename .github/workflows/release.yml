@@ -165,6 +165,18 @@ jobs:
           gcloud run jobs execute turni-migrate-homolog \
             --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} --wait
 
+      - name: Atualizar imagem do worker job (Cloud Run Job — IDR-016)
+        run: |
+          # O Terraform é dono da DEFINIÇÃO do worker job (env, secrets, VPC, Cloud SQL —
+          # módulo worker-job, ignore_changes=[image]); o pipeline só atualiza a imagem
+          # a cada release, igual ao api/admin. O Cloud Scheduler dispara o job a cada
+          # 1 min (queue:work --stop-when-empty). O worker roda a MESMA imagem da api.
+          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/api:${{ github.ref_name }}"
+          gcloud run jobs update turni-worker-job-homolog \
+            --image="$IMAGE" \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }}
+
   # ── Deploy API em homologação ────────────────────────────────────────────────
   deploy-api-homolog:
     name: Deploy API → homolog

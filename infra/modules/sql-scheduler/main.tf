@@ -1,11 +1,14 @@
-# Agendamento de liga/desliga do Cloud SQL + GCE worker para redução de custo em homolog.
-# Desliga: segunda a sexta às 22h BRT (worker e SQL juntos); finais de semana ficam off.
-# Liga: SQL às 06h BRT, worker às 06h05 BRT (5 min de buffer para o DB subir).
+# Agendamento de liga/desliga do Cloud SQL para redução de custo em homolog.
+# Desliga: segunda a sexta às 22h BRT; finais de semana ficam off.
+# Liga: SQL às 06h BRT.
 # Usa Cloud Scheduler → REST API diretamente (sem Cloud Functions).
+#
+# NOTA (IDR-016): o ramo de liga/desliga do GCE worker saiu deste módulo. O worker
+# agora é um Cloud Run Job acionado pelo Scheduler a cada 1 min (`--stop-when-empty`),
+# sem instância sempre-ligada a gerenciar — ver modules/worker-job.
 
 locals {
-  sql_url    = "https://sqladmin.googleapis.com/v1/projects/${var.project_id}/instances/${var.instance_name}"
-  worker_url = "https://compute.googleapis.com/compute/v1/projects/${var.project_id}/zones/${var.worker_zone}/instances/${var.worker_instance_name}"
+  sql_url = "https://sqladmin.googleapis.com/v1/projects/${var.project_id}/instances/${var.instance_name}"
 }
 
 # ── Service account dedicada (princípio do menor privilégio) ──────────────────
@@ -21,16 +24,7 @@ resource "google_project_iam_member" "sql_scheduler_admin" {
   member  = "serviceAccount:${google_service_account.sql_scheduler.email}"
 }
 
-# Permissão de start/stop na instância GCE específica (sem instanceAdmin no projeto inteiro)
-resource "google_compute_instance_iam_member" "scheduler_worker" {
-  project       = var.project_id
-  zone          = var.worker_zone
-  instance_name = var.worker_instance_name
-  role          = "roles/compute.instanceAdmin.v1"
-  member        = "serviceAccount:${google_service_account.sql_scheduler.email}"
-}
-
-# ── STOP: SQL às 22:00 BRT, worker junto ─────────────────────────────────────
+# ── STOP: SQL às 22:00 BRT ───────────────────────────────────────────────────
 resource "google_cloud_scheduler_job" "sql_stop" {
   project     = var.project_id
   region      = var.region
@@ -52,28 +46,7 @@ resource "google_cloud_scheduler_job" "sql_stop" {
   }
 }
 
-resource "google_cloud_scheduler_job" "worker_stop" {
-  project     = var.project_id
-  region      = var.region
-  name        = "turni-${var.env}-worker-stop"
-  description = "Para GCE worker ${var.env} às 22h BRT (seg–sex + weekend off)"
-  schedule    = "0 22 * * 1-5"
-  time_zone   = "America/Sao_Paulo"
-
-  http_target {
-    uri         = "${local.worker_url}/stop"
-    http_method = "POST"
-    body        = base64encode("{}")
-    headers     = { "Content-Type" = "application/json" }
-
-    oauth_token {
-      service_account_email = google_service_account.sql_scheduler.email
-      scope                 = "https://www.googleapis.com/auth/compute"
-    }
-  }
-}
-
-# ── START: SQL às 06:00 BRT, worker às 06:05 (aguarda DB subir) ───────────────
+# ── START: SQL às 06:00 BRT ──────────────────────────────────────────────────
 resource "google_cloud_scheduler_job" "sql_start" {
   project     = var.project_id
   region      = var.region
@@ -91,27 +64,6 @@ resource "google_cloud_scheduler_job" "sql_start" {
     oauth_token {
       service_account_email = google_service_account.sql_scheduler.email
       scope                 = "https://www.googleapis.com/auth/sqlservice.admin"
-    }
-  }
-}
-
-resource "google_cloud_scheduler_job" "worker_start" {
-  project     = var.project_id
-  region      = var.region
-  name        = "turni-${var.env}-worker-start"
-  description = "Inicia GCE worker ${var.env} às 06h05 BRT — 5 min após o SQL (seg–sex)"
-  schedule    = "5 6 * * 1-5"
-  time_zone   = "America/Sao_Paulo"
-
-  http_target {
-    uri         = "${local.worker_url}/start"
-    http_method = "POST"
-    body        = base64encode("{}")
-    headers     = { "Content-Type" = "application/json" }
-
-    oauth_token {
-      service_account_email = google_service_account.sql_scheduler.email
-      scope                 = "https://www.googleapis.com/auth/compute"
     }
   }
 }

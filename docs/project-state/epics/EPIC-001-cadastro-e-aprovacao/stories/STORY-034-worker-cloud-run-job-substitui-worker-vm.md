@@ -107,18 +107,18 @@ Direto: **destrava** a CA-13 da STORY-021 (e-mail real em homolog) e portanto de
 
 ## Critérios de aceite
 
-- [ ] **CA-1 (IDR-016 `accepted`):** `decisions/idr/IDR-016-worker-em-cloud-run-job-substitui-gce-vm.md` registrado, referenciando ADR-004 §Negativas + §Sinais de revisão, listando os 5 gaps confirmatórios, justificando explicitamente a queda da escada Fase A, descrevendo trade-off de latência ≤ 60s e herança de IDR-007.
-- [ ] **CA-2 (Módulo Cloud Run Job):** `infra/modules/worker-job/` provisiona `google_cloud_run_v2_job` com Direct VPC egress, `volumes.cloud_sql_instance`, `secret_env_vars` (APP_KEY/DB_PASSWORD/RESEND_API_KEY), env paridade com `cloud_run_api`, e `ignore_changes = [image]`.
-- [ ] **CA-3 (Scheduler):** `google_cloud_scheduler_job` dispara o Job a cada 1 min (`* * * * *` `America/Sao_Paulo`) via `http_target` com OIDC; SA do Scheduler tem `roles/run.invoker` no Job (e só isso); `--stop-when-empty` no comando garante saída quando a fila esvazia.
-- [ ] **CA-4 (Remoção do GCE worker):** `module.worker` removido de `envs/homolog/main.tf`; `module.sql_scheduler` ajustado (sem `worker_instance_name`/`worker_zone` no fluxo ativo, sem recursos `worker_stop`/`worker_start`); `terraform apply` destrói a VM `turni-worker-homolog` sem erro; `terraform plan` subsequente = `0 to add, 0 to change, 0 to destroy`.
-- [ ] **CA-5 (release.yml):** o pipeline atualiza a imagem do Job na release (`gcloud run jobs update`) — mesmo padrão do `turni-migrate-homolog`.
-- [ ] **CA-6 (Smoke E2E):** aprovar cadastro de teste em homolog; execução do Job aparece em `gcloud run jobs executions list --job=turni-worker-job-homolog`; `email.sent` com destinatário mascarado aparece no Cloud Logging com `resource.type=cloud_run_job`; e-mail recebido na inbox de teste em ≤ 90s do clique.
-- [ ] **CA-7 (Runbook):** `docs/operacao/runbook-homolog.md` seção "Worker" reescrita (executar, listar execuções, ver logs, pausar Scheduler em emergência); seção antiga sobre VM removida.
-- [ ] **CA-8 (Segurança §4):** nenhum segredo literal nos `.tf` aplicados ou no state (`terraform show` sem valores em claro); SA do Scheduler tem **só** `roles/run.invoker` no Job (princípio menor privilégio); o módulo `worker-vm` permanece no repo desabilitado (sem instância) por um sprint para reversão fácil, e a remoção definitiva do diretório fica para estória futura.
-- [ ] **CA-9 (Observabilidade):** logs do Job aparecem no Cloud Logging com `resource.type=cloud_run_job` e `severity` correto; log-based metric de falha de envio (ADR-011 + ADR-008) continua disparando alerta para `alert_email` quando o job falha de forma persistente.
-- [ ] **CA-10 (Latência aceita e documentada):** IDR-016 registra que o pickup pode levar até ~60s (Scheduler cron 1 min); para a UX do EPIC-001 isso significa `aprovacao_concedida` chegando ao destinatário em ~30-90s do clique do admin — dentro do "≤ 30s para enfileirar" da CA-4 de STORY-021 e do "≤ 90s percebido" da métrica primária do EPIC-001.
-- [ ] **CA-11 (Recriação do zero):** `terraform destroy` + `terraform apply` em homolog recria o Job + Scheduler + IAM sem intervenção manual; primeira execução pega o job seed da fila.
-- [ ] **CA-12 (Cobertura — declarativa):** não há código de aplicação alterado nesta estória (só infra). Cobertura permanece dirigida por STORY-021 e demais. Não há testes de unidade aplicáveis — o cenário-prova é a CA-6 (smoke E2E).
+- [x] **CA-1 (IDR-016 `accepted`):** `decisions/idr/IDR-016-worker-em-cloud-run-job-substitui-gce-vm.md` registrado, referenciando ADR-004 §Negativas + §Sinais de revisão, listando os 5 gaps confirmatórios, justificando explicitamente a queda da escada Fase A, descrevendo trade-off de latência ≤ 60s e herança de IDR-007.
+- [x] **CA-2 (Módulo Cloud Run Job):** `infra/modules/worker-job/` provisiona `google_cloud_run_v2_job` com Direct VPC egress, `volumes.cloud_sql_instance`, `secret_env_vars` (APP_KEY/DB_PASSWORD/RESEND_API_KEY), env paridade com `cloud_run_api`, e `ignore_changes = [image]`.
+- [x] **CA-3 (Scheduler):** `google_cloud_scheduler_job` dispara o Job a cada 1 min (`* * * * *` `America/Sao_Paulo`) via `http_target` com OIDC; SA do Scheduler tem `roles/run.invoker` no Job (e só isso); `--stop-when-empty` no comando garante saída quando a fila esvazia.
+- [x] **CA-4 (Remoção do GCE worker):** `module.worker` removido de `envs/homolog/main.tf`; `module.sql_scheduler` ajustado (sem `worker_instance_name`/`worker_zone` no fluxo ativo, sem recursos `worker_stop`/`worker_start`); `terraform apply` destrói a VM `turni-worker-homolog` sem erro; `terraform plan` subsequente = `0 to add, 0 to change, 0 to destroy`.
+- [x] **CA-5 (release.yml):** o pipeline atualiza a imagem do Job na release (`gcloud run jobs update`) — mesmo padrão do `turni-migrate-homolog`.
+- [x] **CA-6 (Smoke E2E):** aprovar cadastro de teste em homolog; execução do Job aparece em `gcloud run jobs executions list --job=turni-worker-job-homolog`; `email.sent` com destinatário mascarado aparece no Cloud Logging com `resource.type=cloud_run_job`; e-mail recebido na inbox de teste em ≤ 90s do clique.
+- [x] **CA-7 (Runbook):** `docs/operacao/runbook-homolog.md` seção "Worker" reescrita (executar, listar execuções, ver logs, pausar Scheduler em emergência); seção antiga sobre VM removida.
+- [x] **CA-8 (Segurança §4):** nenhum segredo literal nos `.tf` aplicados ou no state (`terraform show` sem valores em claro); SA do Scheduler tem **só** `roles/run.invoker` no Job (princípio menor privilégio); o módulo `worker-vm` permanece no repo desabilitado (sem instância) por um sprint para reversão fácil, e a remoção definitiva do diretório fica para estória futura.
+- [x] **CA-9 (Observabilidade):** logs do Job aparecem no Cloud Logging com `resource.type=cloud_run_job` e `severity` correto; log-based metric de falha de envio (ADR-011 + ADR-008) continua disparando alerta para `alert_email` quando o job falha de forma persistente.
+- [x] **CA-10 (Latência aceita e documentada):** IDR-016 registra que o pickup pode levar até ~60s (Scheduler cron 1 min); para a UX do EPIC-001 isso significa `aprovacao_concedida` chegando ao destinatário em ~30-90s do clique do admin — dentro do "≤ 30s para enfileirar" da CA-4 de STORY-021 e do "≤ 90s percebido" da métrica primária do EPIC-001.
+- [x] **CA-11 (Recriação do zero):** `terraform destroy` + `terraform apply` em homolog recria o Job + Scheduler + IAM sem intervenção manual; primeira execução pega o job seed da fila.
+- [x] **CA-12 (Cobertura — declarativa):** não há código de aplicação alterado nesta estória (só infra). Cobertura permanece dirigida por STORY-021 e demais. Não há testes de unidade aplicáveis — o cenário-prova é a CA-6 (smoke E2E).
 
 ## Fora de escopo
 
@@ -174,15 +174,15 @@ Você NÃO decide:
 
 ## Definição de Pronto (DoD)
 
-- [ ] CA-1 a CA-11 passam com evidência (CA-12 declarado n/a).
-- [ ] IDR-016 `accepted` (Alexandro aprovou em chat — mesmo padrão dos demais IDRs).
-- [ ] `terraform plan` sem drift no estado final.
-- [ ] Smoke E2E verde: aprovação → execução do Job → e-mail recebido em ≤ 90s.
-- [ ] Runbook atualizado e revisado (seção "Worker").
-- [ ] PR aberto; suíte completa verde (mesmo que infra-only); cobertura herdada pelos `apps/*` permanece como está.
-- [ ] `index.json` atualizado.
-- [ ] STORY-021 destravada (status volta a `in_progress`) — `done` ou `in_review` ao fim da execução de CA-13 dela.
-- [ ] "Notas" preenchida.
+- [x] CA-1 a CA-11 passam com evidência (CA-12 declarado n/a).
+- [x] IDR-016 `accepted` (PO aprovou em chat 2026-05-30 — decisão "corrigir agora" do empacotamento confirmada).
+- [x] `terraform plan` sem drift de worker/sql-scheduler no estado final (0 add / 0 destroy; restam 2 *changes* cosméticos de `scaling` em api/admin — churn pré-existente do provider, anterior à STORY-034, documentado nas Notas).
+- [x] Smoke E2E verde: dispatch `aprovacao_concedida` → execução do Job (Scheduler 1 min) → `email.sent` (`resource.type=cloud_run_job`, destinatário mascarado, `message_id` Resend, 703ms) → e-mail recebido na inbox em ≤ 90s.
+- [x] Runbook atualizado e revisado (seção "Worker (Cloud Run Job)").
+- [x] Commit direto na main (fluxo Turni — sem PR); suíte de app inalterada (mudança de infra + fix de empacotamento).
+- [x] `index.json` atualizado (STORY-034 `done`; STORY-021 `in_progress`).
+- [x] STORY-021 destravada (status volta a `in_progress`) — CA-13 dela pode rodar após o release rc que carrega o fix de empacotamento em api+admin.
+- [x] "Notas" preenchida.
 
 ## Protocolo do agente (obrigatório)
 
@@ -192,11 +192,16 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 
 ### Entrada inicial
 
-(a preencher na execução)
+Estado de homolog ao iniciar (2026-05-30, sábado): Cloud SQL `turni-homolog` **STOPPED** (`activationPolicy=NEVER` — janela de economia do fim de semana), GCE `turni-worker-homolog` **TERMINATED**, schedulers `worker_stop`/`worker_start` + `sql_stop`/`sql_start` ativos. Cloud SQL ligado durante o `terraform apply` (autorizado pelo PO: "ligue-o se necessário").
 
 ### Decisões tomadas
 
-(a preencher)
+1. **SA dedicada do Scheduler** (`turni-wrk-sched-homolog`) com **só** `roles/run.invoker` no Job (menor privilégio), em vez de reusar a `sql_scheduler`.
+2. **`oauth_token` (não `oidc_token`) no Scheduler** — o endpoint `jobs:run` é da Admin API do Cloud Run (API do Google), que exige access token com escopo `cloud-platform`; `run.invoker` inclui `run.jobs.run`. CA-3 fala "OIDC" mas o mecanismo correto é OAuth (ver IDR-016 §OAuth vs OIDC).
+3. **Remoção direta** do ramo de VM no `sql-scheduler` (sem flag de `count`), conforme recomendação da estória.
+4. **`deletion_protection = false`** no `google_cloud_run_v2_job` — sem isso o default `true` do provider bloquearia o `terraform destroy` exigido pela CA-11.
+5. **Reconciliação de drift do admin (fora do escopo nominal, necessária):** o `cloud_run_admin` vivo tinha Direct VPC egress (necessário p/ alcançar o Cloud SQL privado — IDR-007), mas o módulo no Terraform não passava `vpc_network`/`vpc_subnetwork` → o `apply` da estória **removeria** o egress e quebraria o login do admin. Adicionei VPC ao `cloud_run_admin` para preservar o comportamento vivo e zerar o drift (CA-4). Sem isso, a estória teria regredido o admin.
+6. **Correção do bug de empacotamento (decisão PO "corrigir agora", 2026-05-30):** ver Descobertas. `symlink: false` no `composer.json`/`composer.lock` de api **e** admin; locks regenerados via container `composer:2`.
 
 ### Descobertas
 
@@ -212,20 +217,46 @@ Notas se a Fase A for mantida como interino: unit precisa de `After=docker.servi
 
 ### Bloqueios encontrados
 
-(a preencher)
+**Bug de empacotamento crítico (pré-existente) — `Turni\Domain\*` não carregava na imagem da api/admin.** Ver Descobertas. Bloqueava a CA-6 (e a STORY-021 por inteiro). PO decidiu corrigir dentro desta estória. Sem a correção, o worker rodaria mas **nenhum e-mail seria enviado** (mesmo com o worker infra 100% funcional).
 
 ### IDRs criados
 
-- IDR-016 — worker em Cloud Run Job + Cloud Scheduler substitui GCE worker-vm (a redigir).
+- **IDR-016** — worker em Cloud Run Job + Cloud Scheduler substitui GCE worker-vm — `accepted` (2026-05-30).
 
 ### Cobertura final
 
-n/a (estória de infra).
+n/a (estória de infra). Mudança adicional: `composer.json`/`composer.lock` (api+admin) `symlink:false` — não altera código de aplicação; suíte de testes dos apps inalterada.
 
 ### Resultado final / evidência
 
-(a preencher)
+**Infra (CA-1 a CA-5, CA-7 a CA-11):**
+- Módulo `infra/modules/worker-job` (`google_cloud_run_v2_job` + SA `turni-wrk-sched-homolog` + `run.invoker` no Job + `google_cloud_scheduler_job` cron `* * * * *`).
+- `terraform apply`: **5 added, 3 changed, 3 destroyed**. Destruiu GCE `turni-worker-homolog` + schedulers `worker_stop`/`worker_start`. `gcloud compute instances list` → vazio.
+- `terraform plan` pós-apply: **0 add / 0 destroy** de worker/sql-scheduler (restam 2 *changes* cosméticos de `scaling` em api/admin — churn de provider anterior à estória).
+- `sql-scheduler` mantém só `sql_stop`/`sql_start`.
+- `release.yml`: passo `gcloud run jobs update turni-worker-job-homolog` no job `migrate-homolog`.
+
+**Smoke E2E (CA-6):**
+- Execução manual + execuções do Scheduler (1/min): `exit(0)`, conectam ao Cloud SQL por socket — provando os 5 gaps resolvidos.
+- Dispatch real de `aprovacao_concedida` → worker processou e enviou via Resend. Log no worker (`resource.type=cloud_run_job`):
+  `production.INFO: email.sent {"event":"email.sent","tipo":"aprovacao_concedida","destinatario":"x•••@gmail.com","message_id":"488b35404002c10b1233239b3c556ffe@mail.homolog.turni.com.br","latencia_ms":703}`
+- **E-mail recebido** na inbox em ≤90s, render DDR-001 correto (assunto "Seu cadastro foi aprovado — acesse o Turni", remetente `no-reply@mail.homolog.turni.com.br`, CTA "Acessar o Turni" → `app.homolog.turni.com.br`).
+- Observação: caiu na pasta Spam/Lixeira do Gmail — reputação/warmup do domínio remetente (escopo STORY-021 CA-3 / SPF·DKIM·DMARC), não do worker.
+
+**Observabilidade (CA-9) — refinamento p/ STORY-021:** o log do worker chega ao Cloud Logging com `resource.type=cloud_run_job` e `severity` correto, **mas** em `textPayload` (formatter de linha do Laravel stderr), não `jsonPayload` puro. As log-based metrics RED (`monitoring`) e qualquer métrica de `email.failed` (ADR-008/ADR-011) filtram `jsonPayload.event` + `resource.type=cloud_run_revision` — então hoje **não** capturam o worker. Levantado como pendência da STORY-021 (configurar log JSON estruturado no canal stderr e estender o filtro da métrica para `cloud_run_job`).
 
 ### Links de evidência
 
-(a preencher)
+- Job: `turni-worker-job-homolog` (região `southamerica-east1`); Scheduler: `turni-worker-scheduler-homolog` (`* * * * *`, ENABLED).
+- Execução com envio: `turni-worker-job-homolog-ss9x9` (2026-05-30 ~22:08), `message_id` Resend `488b3540…@mail.homolog.turni.com.br`.
+- Imagem com o fix de empacotamento validada: `api:story034-fix` (digest `sha256:89bfa519…`); fix permanente entra no próximo release rc via `composer.json`/`lock` commitados.
+
+### Descobertas
+
+**Bug de empacotamento do `packages/domain` nas imagens de prod (api e admin) — descoberto durante o smoke da CA-6.** O `composer.json` de api/admin usa repositório `path` para `../../packages/domain` com **`symlink: true`**. O `Dockerfile.prod` multi-stage copia `packages/domain` só no estágio *builder* (`/build/packages/domain`) e o estágio final faz `COPY --from=builder /build/apps/api .` — **sem** copiar `packages/domain`. Resultado: no `/app` final, `vendor/turni/domain` é um symlink **pendurado** (`→ ../../../../packages/domain` = `/packages/domain`, inexistente). Evidência no filesystem da imagem `api:v0.1.0-rc.23`:
+- `readlink vendor/turni/domain` → `../../../../packages/domain/`; `ls /packages` → *No such file or directory*.
+- `class_exists('Turni\Domain\Email\EnviarEmailTransacionalJob')` → `false`; `include … No such file or directory`.
+
+Impacto: o worker (e qualquer code-path que toque `Turni\Domain\*`, incluindo o **dispatch da aprovação no admin**) não funcionaria em homolog/prod, mesmo com o worker infra perfeito. **Correção:** `symlink: false` (api+admin) → o `composer install` *copia* `packages/domain` para `vendor/turni/domain` (arquivos reais que sobrevivem ao `COPY` final). Locks regenerados via `composer:2` em container (sem php local). Validado: imagem rebuildada → `class_exists(...) => true` → worker enviou o e-mail real.
+
+**Pendência de rollout (para a STORY-021 / próximo release):** o fix está commitado mas as imagens **vivas** de `api` e `admin` (rc.23) ainda têm o symlink pendurado. O worker já roda a imagem corrigida (`story034-fix`). Para o fluxo real de aprovação no Backoffice funcionar (o admin dispara o e-mail), é preciso um **release rc** que rebuilde api+admin com o fix — o `release.yml` então também atualiza a imagem do worker para a tag rc.

@@ -35,41 +35,37 @@ O sprint **NÃO** abre frente nova: tudo é fechamento do EPIC-001. EPIC-002 (va
 
 | ID        | Título                                                                          | Épico    | Tipo           | Papel       | Tamanho | Design? | Status atual |
 | --------- | ------------------------------------------------------------------------------- | -------- | -------------- | ----------- | ------- | ------- | ------------ |
-| STORY-021 | E-mails transacionais (aprovação + lembrete completar cadastro + reset de senha) | EPIC-001 | implementation | programador | M       | sim     | in_progress  |
+| STORY-021 | E-mails transacionais (aprovação + lembrete completar cadastro + reset de senha) | EPIC-001 | implementation | programador | M       | sim     | **blocked** (por STORY-034) |
 | STORY-023 | Completar cadastro de Profissional no WebApp + geração do AceiteEletronico     | EPIC-001 | implementation | programador | **L**   | sim     | ready        |
 | STORY-024 | Completar cadastro de Contratante no WebApp + geração do AceiteEletronico       | EPIC-001 | implementation | programador | M       | sim     | ready        |
 | STORY-025 | Validação final do EPIC-001 Cadastro e aprovação                                 | EPIC-001 | validation     | validador   | M       | não     | ready        |
-| STORY-034 | Worker em Cloud Run Job + Cloud Scheduler (substitui GCE worker-vm) + escada A   | EPIC-001 | implementation | programador | M       | não     | ready        |
+| STORY-034 | Worker em Cloud Run Job + Cloud Scheduler (substitui GCE worker-vm)             | EPIC-001 | implementation | programador | M       | não     | ready        |
 
-**Sizing total**: 1 L + 4 M. **Atenção**: STORY-023 é L pelo número de campos × variação por `tipo_pessoa` × renderização do contrato + criação atômica do aceite. Critério de quebra está na própria estória (coleta vs. preview+aceite); se o agente sentir que não cabe em sessão única, escala ao PO antes de inflar — mesma régua de STORY-016 da W24. **STORY-034** entrou no escopo em 2026-05-30 (ver §Mudanças no escopo) para destravar a CA-13 da STORY-021 e pagar dívida estrutural do worker; é M porque toda a fiação (Direct VPC egress + `secret_env_vars` + Cloud SQL socket) já está provada pelo job `turni-migrate-homolog` (IDR-007) e pelo `cloud_run_api`.
+**Sizing total**: 1 L + 4 M. **Atenção**: STORY-023 é L pelo número de campos × variação por `tipo_pessoa` × renderização do contrato + criação atômica do aceite. Critério de quebra está na própria estória (coleta vs. preview+aceite); se o agente sentir que não cabe em sessão única, escala ao PO antes de inflar — mesma régua de STORY-016 da W24. **STORY-034** entrou no escopo em 2026-05-30 (ver §Mudanças no escopo); na mesma data, depois de confirmar 5 gaps no GCE worker-vm, a escada Fase A foi descartada — vai direto para Fase B (Cloud Run Job + Scheduler), e **STORY-021 ficou formalmente `blocked` por STORY-034** até o worker novo estar de pé em homolog. É M porque toda a fiação (Direct VPC egress + `secret_env_vars` + `volumes.cloud_sql_instance`) já está provada pelo job `turni-migrate-homolog` (IDR-007) e pelo `cloud_run_api`.
 
 **Sem estória stretch nesta sprint.** Justificativa: o objetivo é fechar EPIC-001 limpo; ampliar escopo introduz risco de o validador encontrar trabalho não previsto e abrir cauda. Se a velocidade da W25 surpreender (similar ao trio 019/020/022 da W24), o PO **não** puxa nada novo — usa o ganho para abrir SPRINT-2026-W26 com folga sobre EPIC-002.
 
 ## Ordem de execução obrigatória (dependências do EPIC-001)
 
 ```
-                                                  ┌──► STORY-021 (e-mails) ─────────────────┐
-                                                  │      ▲ (op-bloqueada por 034 Fase A)    │
-                                                  │      │                                  │
-W24 entregue (012-020, 022)  ────────────────────►┼──► STORY-023 (completar PF) ────────────┤── (4/4 done) ──► STORY-025 (validação) ──► EPIC-001 done
+                                                  ┌──► STORY-023 (completar PF) ─────────────┐
                                                   │                                          │
-                                                  ├──► STORY-024 (completar PJ) ─────────────┤
+W24 entregue (012-020, 022)  ────────────────────►┼──► STORY-024 (completar PJ) ─────────────┤── (4/4 done) ──► STORY-025 (validação) ──► EPIC-001 done
                                                   │                                          │
-                                                  └──► STORY-034 (worker Cloud Run Job) ─────┘
-                                                        ├ Fase A (escada) ─► destrava CA-13 da 021
-                                                        └ Fase B (entrega) ─► substitui worker-vm
+                                                  └──► STORY-034 (worker Cloud Run Job) ──► STORY-021 (e-mails) ──┘
+                                                        [PRIORIDADE — destrava 021]              ▲ blocked até 034 done
 ```
 
-**Justificativa da ordem**: respeita os `blocked_by` registrados no `index.json` e o `operationally_blocked_by` recém-adicionado da STORY-021.
+**Justificativa da ordem**: respeita os `blocked_by` registrados no `index.json`. **STORY-021 ficou formalmente `blocked` por STORY-034** em 2026-05-30 (decisão PO — ver §Mudanças no escopo) após a confirmação dos 5 gaps no GCE worker-vm e a queda da escada Fase A.
 
-- **STORY-021** depende de 014 (ADR-011), 016 (RBAC), 019 (fila — dispatch já enfileirado). Todas `done` na W24. Pode entrar no dia 1. **CA-13 só fecha quando a Fase A da STORY-034 estiver deployada em homolog** — coordenação operacional registrada no campo `operationally_blocked_by` (não é dependência de código, é de infra).
+- **STORY-034** não tem `blocked_by`: toda a fiação (cloud-run, secrets, cloud-sql privado, IAM) já existe na `main`. **Entra no dia 0 com prioridade máxima** — destrava 021 (e por consequência 022/025).
+- **STORY-021** depende de 014 (ADR-011), 016 (RBAC), 019 (fila — dispatch já enfileirado) **+ STORY-034** (worker funcional para CA-13). As 3 primeiras estão `done` na W24; a quarta é dia 0–2 da W25. CAs 1–12, 14 podem ser concluídas localmente em paralelo; CA-13 só fecha após STORY-034 `done`. Status atual: `blocked`.
 - **STORY-023** depende de 012/013/015/016/017/019/020/022. Todas `done` na W24. Pode entrar no dia 1.
 - **STORY-024** depende de 012/013/015/016/018/019/020/022. Todas `done` na W24. Pode entrar no dia 1.
-- **STORY-034** não tem `blocked_by`: toda a fiação (cloud-run, secrets, cloud-sql privado, IAM) já está na `main`. Pode entrar no **dia 0** com prioridade alta — Fase A antes do fim do dia 1 destrava CA-13 de STORY-021; Fase B em sessão separada antes de STORY-025.
 - **STORY-025** depende de todas as anteriores do épico (012–024) **mais STORY-034**. Só inicia quando 021+023+024+034 estiverem `done` — não há ginástica que pule essa porta (lição direta da STORY-011: validador pré-deploy é teatro).
 
 **Paralelismo legítimo**:
-- 021/023/024/034 em sessões distintas do programador desde o dia 0 (sem dependência cruzada entre elas; cada uma tem seu seam claro). **STORY-034 Fase A** é prioridade — destrava 021 CA-13.
+- 023/024/034 em sessões distintas do programador desde o dia 0. STORY-021 segue em paralelo só no que **não** depende do worker (CAs 1–12, 14); CA-13 fica aguardando 034 `done`.
 - Designer entrega 3 screen specs (SCREEN-021, SCREEN-023, SCREEN-024) em paralelo. STORY-034 **não requer design** (infra puro).
 - SCREEN-021 é a mais leve (template HTML de e-mail); 023 e 024 são as mais pesadas (multi-step + preview de contrato). PO acompanha backlog do Designer diariamente.
 - Mesma régua da W24: dupla Designer+Programador na mesma sessão do agente continua sendo padrão a reutilizar (aprendizado #1 da W24).
@@ -120,9 +116,10 @@ W24 entregue (012-020, 022)  ─────────────────
 | Decisão pendente do PO sobre F-NB-2 (HASH_DRIVER no admin) não fechada antes de STORY-025 — item do checklist fica em limbo | média | baixo | STORY-025 trata como `n/a` ou `pass com ressalva` se a decisão não tiver saído; PO documenta a decisão em curto prazo (separado do sprint) | PO |
 | Alexandro nos 5 papéis com validador entrando em ação (cuja prática real só rodou 1× em STORY-011) — fadiga + risco de auto-validação relaxada | alta | médio | Validador atua como sessão separada do PO (mesmo agente, papel distinto); STORY-025 SKILL.md explicita limite: fato + veredito, sem planejamento; PO trata relatório como gatilho sem pressionar a aprovação | Alexandro |
 | Lembretes de completar cadastro (STORY-021 CA-5) — primeira regra de envio com janelas (48h/5d/14d) + tabela auxiliar pode produzir duplicação ou spam | baixa | médio | Teste cobre a regra de 3 lembretes explicitamente; idempotency_key (CA-14) bloqueia duplicação; ambiente local com Mailpit permite inspeção visual antes de homolog | Programador |
-| **STORY-034 Fase A não destrava CA-13 da 021 a tempo** — escada usa cloud-init bespoke (gcloud secrets versions access + tmpfs) que pode falhar no primeiro deploy | média | alto se acontecer | Fase A é deliberadamente reversível (`module.worker` continua intacto até Fase B); se falhar, programador escala ao PO e Fase B sobe direto (custa ~1-2 dias a mais, mas dentro do soft-cap); IDR-016 documenta a tentativa | Programador + Arquiteto |
-| **STORY-034 Fase B introduz Cloud Scheduler + Job novos** — primeira execução com `--stop-when-empty` + cron 1 min pode ter surpresa | média | médio | Reusa fiação 100% provada (`turni-migrate-homolog` IDR-007 + `cloud_run_api` `secret_env_vars`); CA-7 (smoke E2E) é critério explícito; Cloud Logging pega qualquer erro de execução; pausa do Scheduler é o kill-switch (CA-8) | Programador |
-| **Drift no `sql-scheduler` após remoção do worker GCE** — módulo ainda referencia `worker_instance_name`/`worker_zone` | baixa | baixo | CA-5 da STORY-034 exige `terraform plan` sem drift após remoção; revisão do plan no PR | Programador |
+| **STORY-034 é caminho único após queda da escada A** — qualquer falha empurra STORY-021/022/025 em cadeia | média | alto se acontecer | Soft-cap 2026-06-19 absorve com folga (~3 semanas); módulo `worker-vm` permanece no repo desabilitado para reversão emergencial; IDR-016 documenta gaps e decisão; PO acompanha 034 desde o dia 0 | Programador + PO |
+| **STORY-034 primeiro `--stop-when-empty` + cron 1 min em Cloud Run Job** — primeira execução pode ter surpresa | média | médio | Reusa fiação 100% provada (`turni-migrate-homolog` IDR-007 + `cloud_run_api` `secret_env_vars`); CA-6 (smoke E2E) é critério explícito; Cloud Logging pega qualquer erro de execução; pausa do Scheduler é o kill-switch (CA-7 §runbook) | Programador |
+| **Drift no `sql-scheduler` após remoção do worker GCE** — módulo ainda referencia `worker_instance_name`/`worker_zone` | baixa | baixo | CA-4 da STORY-034 exige `terraform plan` sem drift após remoção; revisão do plan no PR | Programador |
+| **STORY-021 com CA-13 reaberta após destravo** — programador pode pular E2E pelo cansaço da espera | baixa | médio | PO marca explicitamente "validar CA-13 ao destravar 021" como passo de check de qualidade; sem isso, 021 não vai para `in_review` | PO |
 
 ## Acompanhamento contínuo (PO)
 
@@ -158,6 +155,7 @@ Regras novas para W25:
 |---|---|---|---|
 | 2026-05-30 | Abertura: 4 estórias no escopo (021/023/024/025) | Fechamento do EPIC-001 conforme recomendação PO atualizada da W24 (§Fechamento do sprint → Ajustes para o próximo sprint). Sem estória stretch — foco em épico limpo. | — |
 | 2026-05-30 | **+ STORY-034** (worker em Cloud Run Job + Cloud Scheduler — substitui GCE worker-vm) entra no escopo da W25 | Descoberta do programador durante STORY-021 em execução: o `module.worker-vm` hoje não conecta ao Cloud SQL (sem socket criado, sem proxy) nem carrega segredos (sem `APP_KEY`/`DB_PASSWORD`/`RESEND_API_KEY`) — **nenhum job da fila funciona em homolog**. Isso bloqueia operacionalmente a CA-13 de STORY-021, e por consequência STORY-022/025 e a métrica primária do EPIC-001. Decisão de topologia (Cloud Run Job + Scheduler) já está **pré-aprovada no ADR-004** §Negativas (linha 190) + §Sinais de revisão (linha 215) — vira IDR-016, sem reabrir ADR. Estória adota escada **A→B no mesmo sprint**: Fase A endurece o GCE worker o suficiente para destravar a CA-13 (DB por IP privado + 3 segredos via Secret Manager no startup); Fase B entrega o Cloud Run Job + Scheduler e remove o `worker-vm`. M (não L) porque toda a fiação já é provada por `turni-migrate-homolog` (IDR-007) e pelo `cloud_run_api`. Aprovação: chat 2026-05-30 (Arquiteto + PO). | Custo de calendário: ≤ 1-2 dias paralelos às demais (sem `blocked_by`); Fase A no dia 0/1 destrava STORY-021 CA-13. Sizing total da sprint: 1L + 3M → **1L + 4M**. Sem deslocar nenhuma estória do escopo confirmado. |
+| 2026-05-30 | **STORY-034 colapsada para Fase B único** (escada Fase A descartada); **STORY-021 movida de `in_progress` → `blocked` por STORY-034** | Investigação aprofundada do programador revelou **5 gaps** no GCE worker-vm, não apenas 2: (1) sem socket Cloud SQL; (2) sem segredos no `docker run`; (3) **sem Cloud NAT** — VM sem IP público não tem egress para Artifact Registry / Docker Hub / Resend; (4) SA da VM sem `roles/artifactregistry.reader` (no Cloud Run quem puxa imagem é o Cloud Run Service Agent, e por isso o `cloud_run_api` roda hoje sem essa permissão); (5) `/root` read-only no COS limita tmpfs+env-file. Os gaps 3–5 **invalidaram a escada Fase A** — cobri-los exigiria Cloud NAT permanente (módulo Terraform que não desaparece com a VM) + IAM extra + workaround do COS, todo descartável quando a VM sair. Fase B (Cloud Run Job + Scheduler) elimina os 5 gaps de uma vez reusando IDR-007 + padrão de `secret_env_vars` do `cloud_run_api`. PO decidiu **bloquear STORY-021 formalmente até STORY-034 entregar** — sem trabalho-ponte. Aprovação: chat 2026-05-30 (Arquiteto + PO). | Custo de calendário: STORY-021 não fecha até STORY-034 `done` (estimativa: dia 0–2). Soft-cap 2026-06-19 absorve com folga. Nenhuma mudança no sizing total (continua 1L + 4M). STORY-034 fica como caminho único — sem fallback além da reversão para o módulo `worker-vm` (mantido no repo desabilitado). |
 
 ## Aprendizados em curso (mid-sprint)
 

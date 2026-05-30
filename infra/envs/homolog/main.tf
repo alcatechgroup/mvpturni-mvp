@@ -1,5 +1,5 @@
 # Ambiente de homologação do Turni.
-# Provisiona: VPC, Cloud SQL, Cloud Run (api + admin), GCE worker,
+# Provisiona: VPC, Cloud SQL, Cloud Run (api + admin), worker (Cloud Run Job — IDR-016),
 # Firebase Hosting (webapp), DNS, Secret Manager, Monitoring.
 # Recriar do zero: `terraform apply` (ver runbook docs/operacao/runbook-homolog.md).
 
@@ -170,6 +170,11 @@ module "cloud_run_admin" {
   cloudsql_connection_name = module.cloud_sql.connection_name
   ingress                  = "INGRESS_TRAFFIC_ALL"
   allow_unauthenticated    = true
+  # Direct VPC egress: o admin também conecta ao Cloud SQL de IP privado via socket
+  # (DB_SOCKET); sem isto o socket dá timeout (IDR-007). Estava aplicado ao vivo mas
+  # ausente do módulo — reconciliado durante a STORY-034 para zerar o drift (CA-4).
+  vpc_network    = google_compute_network.main.name
+  vpc_subnetwork = google_compute_subnetwork.main.name
 
   env_vars = {
     APP_ENV        = "production"
@@ -190,24 +195,44 @@ module "cloud_run_admin" {
   depends_on = [module.cloud_sql, module.secrets]
 }
 
-# ── Worker (GCE e2-micro) ─────────────────────────────────────────────────────
-module "worker" {
-  source                   = "../../modules/worker-vm"
+# ── Worker (Cloud Run Job + Cloud Scheduler — IDR-016) ────────────────────────
+# Substitui o GCE worker-vm (que nunca funcionou em homolog: 5 gaps de infra, ver
+# IDR-016). Cloud Scheduler dispara o Job a cada 1 min; o Job roda
+# `queue:work --stop-when-empty` e sai quando a fila esvazia. Mesma fiação do
+# cloud_run_api (Direct VPC egress + Cloud SQL socket + secret_env_vars).
+# Reversão: trocar este bloco por `module "worker"` (worker-vm, mantido desabilitado).
+module "worker_job" {
+  source                   = "../../modules/worker-job"
   project_id               = var.project_id
   region                   = var.region
   env                      = local.env
   image                    = var.api_image
   service_account_email    = module.iam.apps_service_account_email
   cloudsql_connection_name = module.cloud_sql.connection_name
-  db_private_ip            = module.cloud_sql.private_ip
-  vpc_network              = google_compute_network.main.self_link
-  subnetwork               = google_compute_subnetwork.main.self_link
+  vpc_network              = google_compute_network.main.name
+  vpc_subnetwork           = google_compute_subnetwork.main.name
 
-  # Segredos buscados pela VM no boot (Secret Manager) + e-mail transacional (ADR-011).
-  app_key_secret_id        = module.secrets.app_key_api_secret_id
-  db_password_secret_id    = module.secrets.db_password_secret_id
-  resend_api_key_secret_id = module.secrets.resend_api_key_secret_id
-  mail_from_address        = local.mail_from_address
+  # Paridade de ambiente com o cloud_run_api (o worker roda o mesmo código).
+  env_vars = {
+    APP_ENV           = "production"
+    APP_DEBUG         = "false"
+    APP_URL           = "https://${local.webapp_host}"
+    LOG_CHANNEL       = "stderr"
+    DB_CONNECTION     = "pgsql"
+    DB_SOCKET         = local.cloudsql_socket
+    DB_DATABASE       = "turni"
+    DB_USERNAME       = "turni"
+    QUEUE_CONNECTION  = "database"
+    MAIL_MAILER       = "resend"
+    MAIL_FROM_ADDRESS = local.mail_from_address
+    MAIL_FROM_NAME    = "Turni"
+  }
+
+  secret_env_vars = {
+    APP_KEY        = { secret = module.secrets.app_key_api_secret_id, version = "latest" }
+    DB_PASSWORD    = { secret = module.secrets.db_password_secret_id, version = "latest" }
+    RESEND_API_KEY = { secret = module.secrets.resend_api_key_secret_id, version = "latest" }
+  }
 
   depends_on = [module.cloud_sql, module.secrets]
 }
@@ -233,14 +258,12 @@ module "firebase" {
 # Desliga: seg–sex 22h BRT; sáb+dom ficam desligados.
 # Liga: seg–sex 06h BRT.
 module "sql_scheduler" {
-  source               = "../../modules/sql-scheduler"
-  project_id           = var.project_id
-  region               = var.region
-  env                  = local.env
-  instance_name        = module.cloud_sql.instance_name
-  worker_instance_name = module.worker.instance_name
-  worker_zone          = "${var.region}-a"
-  depends_on           = [google_project_service.apis, module.cloud_sql, module.worker]
+  source        = "../../modules/sql-scheduler"
+  project_id    = var.project_id
+  region        = var.region
+  env           = local.env
+  instance_name = module.cloud_sql.instance_name
+  depends_on    = [google_project_service.apis, module.cloud_sql]
 }
 
 # ── DNS (Cloud DNS) ──────────────────────────────────────────────────────────

@@ -284,6 +284,50 @@ exceção "Audit log is immutable".
 
 ---
 
+## Worker (Cloud Run Job — IDR-016)
+
+O worker da fila (`queue:work`) é um **Cloud Run Job** (`turni-worker-job-homolog`),
+**não** mais uma VM GCE. Um **Cloud Scheduler** (`turni-worker-scheduler-homolog`,
+cron `* * * * *`, BRT) dispara o Job a cada 1 min; o Job roda
+`php artisan queue:work database --stop-when-empty` e **termina quando a fila
+esvazia**. A definição (env, segredos, Direct VPC egress, socket Cloud SQL) é do
+Terraform (`infra/modules/worker-job`); o `release.yml` só atualiza a imagem a cada
+release (`gcloud run jobs update`, mesmo contrato do api/admin). Latência de pickup:
+até ~60s (cabe nos SLOs de e-mail e Pix — ver IDR-016).
+
+```bash
+P=turni-mvp; R=southamerica-east1
+
+# Listar execuções do worker
+gcloud run jobs executions list --job=turni-worker-job-homolog --region=$R --project=$P
+
+# Rodar manualmente (debug — não espera o tick do Scheduler)
+gcloud run jobs execute turni-worker-job-homolog --region=$R --project=$P --wait
+
+# Ver logs do Job (JSON estruturado em stderr)
+gcloud logging read \
+  'resource.type="cloud_run_job" AND resource.labels.job_name="turni-worker-job-homolog"' \
+  --project=$P --limit=50 --format=json | jq '.[] | .jsonPayload'
+```
+
+> 🔴 **Kill-switch (pausar a fila em emergência):**
+> ```bash
+> gcloud scheduler jobs pause turni-worker-scheduler-homolog --location=$R --project=$P
+> # retomar:
+> gcloud scheduler jobs resume turni-worker-scheduler-homolog --location=$R --project=$P
+> ```
+> Pausar o Scheduler interrompe novos disparos; execuções em andamento drenam a fila e saem.
+
+> ⚠️ **Cloud SQL desligado:** o worker conecta no Cloud SQL por socket (Direct VPC
+> egress). Se o banco estiver desligado (seg–sex 22h BRT / fim de semana), as execuções
+> falham até o banco voltar — mesma janela de economia documentada na seção de migração.
+
+> ↩️ **Reversão de emergência (IDR-016):** o módulo `worker-vm` permanece no repo
+> desabilitado por um sprint. Reverter = trocar `module "worker_job"` por
+> `module "worker"` em `infra/envs/homolog/main.tf` e `terraform apply`.
+
+---
+
 ## Acessar logs (CA-12, CA-13)
 
 ```bash

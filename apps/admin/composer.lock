@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6750a750e73fe899b96257b6cb2e2edf",
+    "content-hash": "97a53bfe45e0bf92f4a9c835ca1f5c7b",
     "packages": [
         {
             "name": "brick/math",
@@ -5900,7 +5900,7 @@
             "dist": {
                 "type": "path",
                 "url": "../../packages/domain",
-                "reference": "5da45c33a913198609a158893aeb7f63ee6e3ed3"
+                "reference": "e99dab82da6ab8fe30c0fd3a4ebee19ee87761ac"
             },
             "require": {
                 "php": "^8.3"
@@ -5921,7 +5921,7 @@
             ],
             "description": "Domínio compartilhado do Turni (Eloquent + regras de negócio). Consumido in-process por api e admin via Composer path repository (ADR-002/ADR-003). Sem modelagem de domínio ainda — entra no EPIC-001.",
             "transport-options": {
-                "symlink": true,
+                "symlink": false,
                 "relative": true
             }
         },

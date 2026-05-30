@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b2bd8ba99f9c2cb3474ebe3f42f3ef40",
+    "content-hash": "12f6c11ca84be325b931f949010d3fec",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -7101,7 +7101,7 @@
             "dist": {
                 "type": "path",
                 "url": "../../packages/domain",
-                "reference": "5da45c33a913198609a158893aeb7f63ee6e3ed3"
+                "reference": "e99dab82da6ab8fe30c0fd3a4ebee19ee87761ac"
             },
             "require": {
                 "php": "^8.3"
@@ -7122,7 +7122,7 @@
             ],
             "description": "Domínio compartilhado do Turni (Eloquent + regras de negócio). Consumido in-process por api e admin via Composer path repository (ADR-002/ADR-003). Sem modelagem de domínio ainda — entra no EPIC-001.",
             "transport-options": {
-                "symlink": true,
+                "symlink": false,
                 "relative": true
             }
         },

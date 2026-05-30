@@ -9,7 +9,7 @@
         {
             "type": "path",
             "url": "../../packages/domain",
-            "options": { "symlink": true }
+            "options": { "symlink": false }
         }
     ],
     "require": {

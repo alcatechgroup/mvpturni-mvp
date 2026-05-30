@@ -789,11 +789,10 @@
       "blocked_by": [
         "STORY-014",
         "STORY-016",
-        "STORY-019"
-      ],
-      "operationally_blocked_by": [
+        "STORY-019",
         "STORY-034"
       ],
+      "blocked_reason": "DESTRAVADA em 2026-05-30: STORY-034 (worker em Cloud Run Job + Scheduler) entregue e validada — worker processa a fila e envia e-mail real em homolog (email.sent com message_id Resend, e-mail recebido). CA-13 da STORY-021 já pode rodar. Nota: a correção do empacotamento (symlink:false do packages/domain — sem ela a imagem da api/admin não carrega Turni\\Domain) foi commitada junto da STORY-034; a STORY-021 deve confirmar que o release rc seguinte deploya a imagem corrigida em api+admin (admin dispara a aprovação real).",
       "blocks": [
         "STORY-022",
         "STORY-025"
@@ -1121,20 +1120,18 @@
     {
       "id": "STORY-034",
       "epic_id": "EPIC-001",
-      "title": "Worker em Cloud Run Job + Cloud Scheduler (substitui GCE worker-vm) + escada A para destravar CA-13 de STORY-021",
+      "title": "Worker em Cloud Run Job + Cloud Scheduler (substitui GCE worker-vm)",
       "type": "implementation",
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "Programador (claude-opus-4-8)",
       "sprint_id": "SPRINT-2026-W25",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-034-worker-cloud-run-job-substitui-worker-vm.md",
       "blocked_by": [],
-      "operationally_blocks": [
-        "STORY-021"
-      ],
       "blocks": [
+        "STORY-021",
         "STORY-025"
       ],
       "estimated_session_size": "M",
@@ -1368,6 +1365,12 @@
           "change": "Adicionada STORY-034 (worker em Cloud Run Job + Scheduler) ao escopo",
           "reason": "Descoberta do programador na STORY-021 em execução: o GCE worker-vm não conecta ao Cloud SQL (sem socket criado, sem proxy) nem carrega segredos — nenhum job da fila funciona em homolog hoje. Bloqueia CA-13 da STORY-021. Decisão de topologia já pré-aprovada no ADR-004 §Negativas + §Sinais de revisão; vira IDR-016 sem reabrir ADR. Estória adota escada A→B no mesmo sprint para preservar a meta.",
           "approved_by": "PO + Arquiteto (Alexandro) — chat 2026-05-30"
+        },
+        {
+          "date": "2026-05-30",
+          "change": "STORY-034 colapsada para Fase B único (escada Fase A descartada); STORY-021 movida de in_progress → blocked por STORY-034",
+          "reason": "Investigação aprofundada revelou 5 gaps no GCE worker-vm (sem socket Cloud SQL, sem segredos, sem Cloud NAT, SA sem artifactregistry.reader, COS /root quirk). Os gaps 3-5 invalidaram a escada: cobri-los exigiria Cloud NAT permanente (módulo Terraform que não desaparece com a VM) + IAM extra + workaround do COS — investimento descartável. Fase B (Cloud Run Job + Scheduler) elimina os 5 gaps de uma vez reusando IDR-007 e o padrão de secret_env_vars do cloud_run_api. PO decidiu bloquear STORY-021 até STORY-034 entregar — sem trabalho-ponte.",
+          "approved_by": "PO + Arquiteto (Alexandro) — chat 2026-05-30"
         }
       ],
       "risks_at_open": [
@@ -1380,7 +1383,7 @@
         "Decisão pendente do PO sobre F-NB-2 (HASH_DRIVER no admin) não fechada antes de STORY-025",
         "Alexandro nos 5 papéis com validador entrando — risco de auto-validação relaxada",
         "Lembretes de completar cadastro (STORY-021 CA-5) — primeira regra com janelas 48h/5d/14d",
-        "STORY-034 Fase B exige Cloud Scheduler + Cloud Run Job novos — caminho herda IDR-007 (já provado), mas é a primeira vez exercitando --stop-when-empty + cron 1 min",
+        "STORY-034 Fase B é caminho único após queda da escada — primeira vez exercitando --stop-when-empty + cron 1 min em Cloud Run Job (fiação herda IDR-007); falha empurra STORY-021/022/025 em cadeia, mas soft-cap 2026-06-19 absorve",
         "Latência de pickup do Job (até ~60s) — aceitável pelo SLO, mas registrar no IDR-016 para evitar regressão futura"
       ]
     }
