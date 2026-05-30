@@ -250,12 +250,13 @@ resource "google_monitoring_alert_policy" "error_rate" {
 # ── Falha persistente de e-mail crítico (STORY-021 CA-8/CA-9 + ADR-011 §g) ───────
 # O worker (Cloud Run Job) emite log ERROR `email.aprovacao.falhou` /
 # `email.recuperacao.falhou` quando o job esgota as 3 tentativas (dead letter). Worker
-# loga JSON estruturado em stderr (LOG_STDERR_FORMATTER) → jsonPayload.event. O lembrete
-# (warning) é deliberadamente excluído: não é fluxo crítico (ADR-011 §g).
+# loga JSON estruturado em stderr (LOG_STDERR_FORMATTER=Monolog JsonFormatter): o nome
+# do evento é `jsonPayload.message` e os campos ficam sob `jsonPayload.context.*`. O
+# lembrete (warning) é deliberadamente excluído: não é fluxo crítico (ADR-011 §g).
 resource "google_logging_metric" "email_failures" {
   project = var.project_id
   name    = "turni_${var.env}_email_failures"
-  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND (jsonPayload.event=\"email.aprovacao.falhou\" OR jsonPayload.event=\"email.recuperacao.falhou\")"
+  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND (jsonPayload.message=\"email.aprovacao.falhou\" OR jsonPayload.message=\"email.recuperacao.falhou\")"
 
   metric_descriptor {
     metric_kind = "DELTA"
@@ -269,7 +270,7 @@ resource "google_logging_metric" "email_failures" {
   }
 
   label_extractors = {
-    "tipo" = "EXTRACT(jsonPayload.tipo)"
+    "tipo" = "EXTRACT(jsonPayload.context.tipo)"
   }
 }
 
