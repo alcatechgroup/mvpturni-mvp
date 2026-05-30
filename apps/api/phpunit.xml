@@ -30,6 +30,11 @@
         </report>
     </coverage>
     <php>
+        <!-- <server> escreve em $_SERVER, que o env() do Laravel lê ANTES de $_ENV/getenv.
+             O docker-compose injeta APP_ENV=local em $_SERVER (variables_order inclui E),
+             então só <server force> garante que a suíte rode como `testing` (sem isso,
+             runningUnitTests()=false e o CSRF não é dispensado nos testes de rota web). -->
+        <server name="APP_ENV" value="testing" force="true"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>

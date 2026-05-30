@@ -91,6 +91,16 @@ services:
     ports:
       - "${PAGARME_MOCK_PORT:-8090}:8080"
 
+  # Inbox de e-mail local (ADR-011 §f) — substituto moderno do Mailhog. Em dev,
+  # MAIL_MAILER=smtp + MAIL_HOST=mailpit:1025 captura todo e-mail transacional sem
+  # sair da máquina (princípio #6); a UI visual fica em http://localhost:8025.
+  # O Resend real só é usado em homolog/prod.
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"   # SMTP
+      - "${MAILPIT_UI_PORT:-8025}:8025"     # UI web (inbox visual)
+
   # WebApp Flutter (web) — serve o build estático (apps/webapp/build/web) e faz
   # proxy de /api e /sanctum para o container `api` via router.php, espelhando a
   # topologia same-origin de produção (firebase.json reescreve /api → Cloud Run).

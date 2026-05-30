@@ -83,3 +83,51 @@ resource "google_dns_record_set" "www" {
   ttl          = 300
   rrdatas      = ["${var.www_cname_target}."]
 }
+
+# ── Domínio remetente de e-mail (Resend — ADR-011 §e / STORY-021) ─────────────
+# DKIM (verificação do domínio) + SPF/MX (Return-Path no `send.`) + DMARC escopado.
+# Gate: todo o bloco depende de `mail_sender_domain` estar definido.
+
+# DKIM — resend._domainkey.<mail_sender_domain> (TXT com a chave pública).
+resource "google_dns_record_set" "mail_dkim" {
+  count        = var.mail_sender_domain != null && var.mail_dkim_value != null ? 1 : 0
+  project      = var.project_id
+  managed_zone = var.dns_zone_name
+  name         = "resend._domainkey.${var.mail_sender_domain}."
+  type         = "TXT"
+  ttl          = 300
+  rrdatas      = ["\"${var.mail_dkim_value}\""]
+}
+
+# SPF MX — send.<mail_sender_domain> recebe o Return-Path (bounces) via SES.
+resource "google_dns_record_set" "mail_mx" {
+  count        = var.mail_sender_domain != null ? 1 : 0
+  project      = var.project_id
+  managed_zone = var.dns_zone_name
+  name         = "send.${var.mail_sender_domain}."
+  type         = "MX"
+  ttl          = 300
+  rrdatas      = ["10 ${var.mail_spf_mx_target}."]
+}
+
+# SPF TXT — send.<mail_sender_domain> autoriza o SES a enviar.
+resource "google_dns_record_set" "mail_spf" {
+  count        = var.mail_sender_domain != null ? 1 : 0
+  project      = var.project_id
+  managed_zone = var.dns_zone_name
+  name         = "send.${var.mail_sender_domain}."
+  type         = "TXT"
+  ttl          = 300
+  rrdatas      = ["\"${var.mail_spf_value}\""]
+}
+
+# DMARC — _dmarc.<mail_sender_domain> (escopado no subdomínio; não toca o apex turni.com.br).
+resource "google_dns_record_set" "mail_dmarc" {
+  count        = var.mail_sender_domain != null ? 1 : 0
+  project      = var.project_id
+  managed_zone = var.dns_zone_name
+  name         = "_dmarc.${var.mail_sender_domain}."
+  type         = "TXT"
+  ttl          = 300
+  rrdatas      = ["\"${var.mail_dmarc_value}\""]
+}

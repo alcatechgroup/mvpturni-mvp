@@ -6,7 +6,7 @@ resource "google_cloud_run_v2_service" "service" {
   name     = "turni-${var.app}-${var.env}"
   location = var.region
 
-  ingress = var.ingress  # INGRESS_TRAFFIC_ALL (api) | INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER (admin)
+  ingress = var.ingress # INGRESS_TRAFFIC_ALL (api) | INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER (admin)
 
   template {
     service_account = var.service_account_email

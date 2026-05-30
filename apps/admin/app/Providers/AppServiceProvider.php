@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
-use App\Domain\Email\EnviaEmailTransacional;
-use App\Domain\Email\LogEnviaEmailTransacional;
 use Illuminate\Support\ServiceProvider;
+use Turni\Domain\Email\EnviaEmailTransacional;
+use Turni\Domain\Email\LogEnviaEmailTransacional;
 
 class AppServiceProvider extends ServiceProvider
 {

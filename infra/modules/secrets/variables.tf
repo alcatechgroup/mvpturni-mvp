@@ -20,3 +20,9 @@ variable "db_password" {
   type      = string
   sensitive = true
 }
+
+variable "resend_api_key" {
+  type        = string
+  sensitive   = true
+  description = "Chave da API do Resend (ADR-011). Valor fora do git — via tfvars não versionado / SOPS."
+}

@@ -4,12 +4,14 @@
 # Recriar do zero: `terraform apply` (ver runbook docs/operacao/runbook-homolog.md).
 
 locals {
-  env             = "homolog"
-  api_host        = "api.homolog.turni.com.br"
-  admin_host      = "admin.homolog.turni.com.br"
-  webapp_host     = "app.homolog.turni.com.br"
-  landing_host    = "landing.homolog.turni.com.br"
-  cloudsql_socket = "/cloudsql/${module.cloud_sql.connection_name}"
+  env                = "homolog"
+  api_host           = "api.homolog.turni.com.br"
+  admin_host         = "admin.homolog.turni.com.br"
+  webapp_host        = "app.homolog.turni.com.br"
+  landing_host       = "landing.homolog.turni.com.br"
+  mail_sender_domain = "mail.homolog.turni.com.br" # remetente Resend (ADR-011 §e)
+  mail_from_address  = "no-reply@${local.mail_sender_domain}"
+  cloudsql_socket    = "/cloudsql/${module.cloud_sql.connection_name}"
 }
 
 # ── APIs GCP necessárias ─────────────────────────────────────────────────────
@@ -87,13 +89,14 @@ module "artifact_registry" {
 
 # ── Segredos ──────────────────────────────────────────────────────────────────
 module "secrets" {
-  source        = "../../modules/secrets"
-  project_id    = var.project_id
-  env           = local.env
-  app_key_api   = var.app_key_api
-  app_key_admin = var.app_key_admin
-  db_password   = var.db_password
-  depends_on    = [google_project_service.apis]
+  source         = "../../modules/secrets"
+  project_id     = var.project_id
+  env            = local.env
+  app_key_api    = var.app_key_api
+  app_key_admin  = var.app_key_admin
+  db_password    = var.db_password
+  resend_api_key = var.resend_api_key
+  depends_on     = [google_project_service.apis]
 }
 
 # ── Cloud SQL ─────────────────────────────────────────────────────────────────
@@ -124,16 +127,21 @@ module "cloud_run_api" {
   vpc_subnetwork = google_compute_subnetwork.main.name
 
   env_vars = {
-    APP_ENV     = "production"
-    APP_DEBUG   = "false"
-    APP_URL     = "https://${local.webapp_host}"
-    LOG_CHANNEL = "stderr"
+    APP_ENV          = "production"
+    APP_DEBUG        = "false"
+    APP_URL          = "https://${local.webapp_host}"
+    LOG_CHANNEL      = "stderr"
     DB_CONNECTION    = "pgsql"
     DB_SOCKET        = local.cloudsql_socket
     DB_DATABASE      = "turni"
     DB_USERNAME      = "turni"
     QUEUE_CONNECTION = "database"
     SESSION_DRIVER   = "database"
+    # E-mail transacional (ADR-011 §c): provedor Resend em homolog; chave via Secret
+    # Manager (secret_env_vars). Remetente no subdomínio dedicado mail.homolog.
+    MAIL_MAILER       = "resend"
+    MAIL_FROM_ADDRESS = local.mail_from_address
+    MAIL_FROM_NAME    = "Turni"
     # Sanctum SPA: o WebApp é servido em app.homolog e chama /api no MESMO domínio
     # (Firebase rewrite → este Cloud Run). Marca o domínio como stateful p/ usar a
     # sessão por cookie. BACKOFFICE_URL alimenta o banner "Ir para o Backoffice".
@@ -142,8 +150,9 @@ module "cloud_run_api" {
   }
 
   secret_env_vars = {
-    APP_KEY     = { secret = module.secrets.app_key_api_secret_id, version = "latest" }
-    DB_PASSWORD = { secret = module.secrets.db_password_secret_id, version = "latest" }
+    APP_KEY        = { secret = module.secrets.app_key_api_secret_id, version = "latest" }
+    DB_PASSWORD    = { secret = module.secrets.db_password_secret_id, version = "latest" }
+    RESEND_API_KEY = { secret = module.secrets.resend_api_key_secret_id, version = "latest" }
   }
 
   depends_on = [module.cloud_sql, module.secrets]
@@ -190,9 +199,17 @@ module "worker" {
   image                    = var.api_image
   service_account_email    = module.iam.apps_service_account_email
   cloudsql_connection_name = module.cloud_sql.connection_name
+  db_private_ip            = module.cloud_sql.private_ip
   vpc_network              = google_compute_network.main.self_link
   subnetwork               = google_compute_subnetwork.main.self_link
-  depends_on               = [module.cloud_sql]
+
+  # Segredos buscados pela VM no boot (Secret Manager) + e-mail transacional (ADR-011).
+  app_key_secret_id        = module.secrets.app_key_api_secret_id
+  db_password_secret_id    = module.secrets.db_password_secret_id
+  resend_api_key_secret_id = module.secrets.resend_api_key_secret_id
+  mail_from_address        = local.mail_from_address
+
+  depends_on = [module.cloud_sql, module.secrets]
 }
 
 # ── Firebase Hosting (WebApp Flutter + landing institucional) ────────────────
@@ -241,7 +258,13 @@ module "dns" {
   webapp_cname_target  = module.firebase.cname_target
   landing_subdomain    = local.landing_host
   landing_cname_target = module.firebase.additional_cname_targets["landing"]
-  depends_on           = [google_project_service.apis, module.firebase]
+
+  # Domínio remetente de e-mail (Resend — ADR-011 §e / STORY-021). Região sa-east-1
+  # (default do módulo). DKIM é a chave pública gerada pelo Resend (dado público de DNS).
+  mail_sender_domain = local.mail_sender_domain
+  mail_dkim_value    = var.mail_dkim_value
+
+  depends_on = [google_project_service.apis, module.firebase]
 }
 
 # ── Monitoramento (ADR-008) ───────────────────────────────────────────────────

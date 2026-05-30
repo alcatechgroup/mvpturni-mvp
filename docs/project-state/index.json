@@ -137,7 +137,8 @@
         "STORY-022",
         "STORY-023",
         "STORY-024",
-        "STORY-025"
+        "STORY-025",
+        "STORY-034"
       ],
       "validation_report": null,
       "validation_checklist_path": "epics/EPIC-001-cadastro-e-aprovacao/validation/checklist.md",
@@ -781,14 +782,17 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-021-emails-transacionais",
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_progress",
+      "owner_agent": "Programador (claude-opus-4-8)",
       "sprint_id": "SPRINT-2026-W25",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-021-emails-transacionais.md",
       "blocked_by": [
         "STORY-014",
         "STORY-016",
         "STORY-019"
+      ],
+      "operationally_blocked_by": [
+        "STORY-034"
       ],
       "blocks": [
         "STORY-022",
@@ -906,7 +910,8 @@
         "STORY-021",
         "STORY-022",
         "STORY-023",
-        "STORY-024"
+        "STORY-024",
+        "STORY-034"
       ],
       "blocks": [],
       "estimated_session_size": "M",
@@ -1112,6 +1117,30 @@
       "validation_report_path": "epics/EPIC-006-landing-institucional/validation/report.md",
       "created_at": "2026-05-28",
       "updated_at": "2026-05-28"
+    },
+    {
+      "id": "STORY-034",
+      "epic_id": "EPIC-001",
+      "title": "Worker em Cloud Run Job + Cloud Scheduler (substitui GCE worker-vm) + escada A para destravar CA-13 de STORY-021",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W25",
+      "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-034-worker-cloud-run-job-substitui-worker-vm.md",
+      "blocked_by": [],
+      "operationally_blocks": [
+        "STORY-021"
+      ],
+      "blocks": [
+        "STORY-025"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": "IDR-016",
+      "created_at": "2026-05-30",
+      "updated_at": "2026-05-30"
     }
   ],
   "sprints": [
@@ -1328,10 +1357,19 @@
         "STORY-021",
         "STORY-023",
         "STORY-024",
-        "STORY-025"
+        "STORY-025",
+        "STORY-034"
       ],
       "stretch_story_ids": [],
-      "sizing_total": "1L + 3M",
+      "sizing_total": "1L + 4M",
+      "scope_changes": [
+        {
+          "date": "2026-05-30",
+          "change": "Adicionada STORY-034 (worker em Cloud Run Job + Scheduler) ao escopo",
+          "reason": "Descoberta do programador na STORY-021 em execução: o GCE worker-vm não conecta ao Cloud SQL (sem socket criado, sem proxy) nem carrega segredos — nenhum job da fila funciona em homolog hoje. Bloqueia CA-13 da STORY-021. Decisão de topologia já pré-aprovada no ADR-004 §Negativas + §Sinais de revisão; vira IDR-016 sem reabrir ADR. Estória adota escada A→B no mesmo sprint para preservar a meta.",
+          "approved_by": "PO + Arquiteto (Alexandro) — chat 2026-05-30"
+        }
+      ],
       "risks_at_open": [
         "STORY-023 (L) candidata a estouro de sessão única — multi-step + preview + aceite atômico",
         "Designer entrega 3 screen specs (021/023/024) — gargalo possível no dia 1",
@@ -1341,7 +1379,9 @@
         "Validador encontra fail bloqueante (rejected) em STORY-025 — replanejamento necessário",
         "Decisão pendente do PO sobre F-NB-2 (HASH_DRIVER no admin) não fechada antes de STORY-025",
         "Alexandro nos 5 papéis com validador entrando — risco de auto-validação relaxada",
-        "Lembretes de completar cadastro (STORY-021 CA-5) — primeira regra com janelas 48h/5d/14d"
+        "Lembretes de completar cadastro (STORY-021 CA-5) — primeira regra com janelas 48h/5d/14d",
+        "STORY-034 Fase B exige Cloud Scheduler + Cloud Run Job novos — caminho herda IDR-007 (já provado), mas é a primeira vez exercitando --stop-when-empty + cron 1 min",
+        "Latência de pickup do Job (até ~60s) — aceitável pelo SLO, mas registrar no IDR-016 para evitar regressão futura"
       ]
     }
   ],

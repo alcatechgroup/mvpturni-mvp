@@ -9,3 +9,7 @@ output "app_key_admin_secret_id" {
 output "db_password_secret_id" {
   value = google_secret_manager_secret.db_password.secret_id
 }
+
+output "resend_api_key_secret_id" {
+  value = google_secret_manager_secret.resend_api_key.secret_id
+}

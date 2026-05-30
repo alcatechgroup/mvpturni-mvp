@@ -10,8 +10,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Turni\Domain\Email\EmailTransacional;
+use Turni\Domain\Email\EnviarEmailTransacionalJob;
+use Turni\Domain\Email\TipoEmail;
 
-#[Fillable(['name', 'email', 'password', 'role', 'status', 'welcome_seen_at', 'cadastro_completed_at'])]
+#[Fillable(['name', 'email', 'password', 'role', 'status', 'aprovado_em', 'welcome_seen_at', 'cadastro_completed_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -22,6 +25,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'aprovado_em' => 'datetime',
             'welcome_seen_at' => 'datetime',
             'cadastro_completed_at' => 'datetime',
             'password' => 'hashed',
@@ -83,5 +87,29 @@ class User extends Authenticatable
     public function canAccessWebApp(): bool
     {
         return in_array($this->role, ['contratante', 'profissional'], true);
+    }
+
+    /**
+     * Roteia a recuperação de senha do Fortify pela ACL de e-mail (STORY-021 CA-6 /
+     * ADR-011 §b) em vez da notification padrão do Laravel: o e-mail `recuperacao_senha`
+     * passa pela fila e usa o template DDR-001. O link aponta para a tela de redefinição
+     * do WebApp com o token assinado (TTL de auth.passwords — 60 min, ADR-007 §f).
+     *
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $base = rtrim((string) config('app.webapp_url', config('app.url')), '/');
+        $url = $base.'/reset-password?token='.$token.'&email='.urlencode($this->email);
+
+        EnviarEmailTransacionalJob::dispatch(new EmailTransacional(
+            destinatario: $this->email,
+            tipo: TipoEmail::RecuperacaoSenha,
+            dados: [
+                'nome' => $this->name,
+                'link_redefinicao' => $url,
+                'expiracao_minutos' => (int) config('auth.passwords.users.expire', 60),
+            ],
+        ));
     }
 }

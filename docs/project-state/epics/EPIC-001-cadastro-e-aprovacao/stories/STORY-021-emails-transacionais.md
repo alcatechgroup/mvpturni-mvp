@@ -8,8 +8,8 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-021-emails-transacionais
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: "Programador (claude-opus-4-8)"
 created_at: 2026-05-28
 updated_at: 2026-05-30
 estimated_session_size: M
@@ -156,31 +156,91 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+
+**Documentos lidos (inteiros ou seções citadas):** esta estória; SPRINT-2026-W25; ADR-011 (provedor Resend + ACL + Mailpit + falha/fila — inteiro); ADR-007 §f (Fortify reset, throttling, resposta sem leak); ADR-008 §mascaramento; ADR-004 (Secret Manager); DDR-001 §1–3 + `tokens.md` §1–5 + `voice-and-tone.md` (identidade do e-mail); SKILL do programador. Código existente: seam de e-mail da STORY-019 em `apps/admin/app/Domain/Email/*` + `EnviarEmailTransacionalJob` + binding em `AppServiceProvider` + dispatch em `ApprovalService::approve()`; `packages/domain` (`Turni\Domain\`, vazio, path-repo consumido por api **e** admin); `docker-compose.yml` (worker = `queue:work` rodando no contexto do **api**); Fortify no `api` (`Features::resetPasswords()` já ligado, actions presentes).
+
+**Entendimento consolidado (minhas palavras):** preciso fazer os 3 e-mails canônicos (ADR-011 §d) **chegarem de verdade** — Mailpit em dev, Resend em homolog — passando sempre pela fila `database` com retry/backoff/dead-letter. A ACL já existe como placeholder log-only (STORY-019); troco o adapter por Resend + Mailables com templates Blade (HTML por tabelas inline + text/plain). Ligo o lembrete (job agendado 48h/5d/14d com tabela auxiliar e teto de 3 envios) e finalizo o reset de senha do Fortify (resposta anti-enumeração, throttling, TTL 60 min). Log mascarado por envio; idempotência por `evento+user_id`.
+
+**Descoberta arquitetural que molda tudo (vira IDR-015):** a fila é **cross-app**. O dispatch de `aprovacao_concedida` acontece no **admin** (`ApprovalService`), mas o `worker` do `docker-compose` roda `queue:work` no contexto do **api**, sobre o **mesmo Postgres**. Para o worker deserializar e processar o job, a classe do Job (e o VO/ACL que ela carrega) precisa ter **o mesmo FQCN nos dois apps**. Hoje é `App\Jobs\EnviarEmailTransacionalJob` (só no admin) — o worker do api não conseguiria reconstruí-lo. Solução: **mover a ACL de e-mail (interface + VO + enum + exceção + Job + adapter log) para `packages/domain` sob `Turni\Domain\Email\`**, que ambos os apps já consomem via path-repo. Isso também satisfaz CA-1 literalmente ("interface em `packages/domain`"). Cada app registra seu próprio binding (api e admin → ResendAdapter; dev → SMTP/Mailpit via config). Registrado em **IDR-015**.
+
+**Dúvidas:** nenhuma bloqueante de produto/arquitetura — ADR-011 fixou provedor, ACL, fila, falha, subdomínios e contrato de `dados`; ADR-007 §f fixou Fortify. A localização da ACL é decisão explicitamente minha (ADR-011 §b) → IDR-015.
+
+**Plano (5 bullets):**
+1. **IDR-015** + relocar ACL para `packages/domain` (`Turni\Domain\Email\`), atualizar imports/bindings de admin, manter suíte admin verde (keystone — habilita fila cross-app e CA-1).
+2. **Adapter Resend + Mailables + Blade** (3 tipos, HTML tabela-inline DDR-001 + text/plain paridade), mapeando `TipoEmail`→template/subject/from; Mailpit no compose; config `.env` por ambiente; log mascarado `email.sent`/`email.failed`; idempotency key; relançar erro como `EmailTransacionalException`.
+3. **Lembrete:** migration de tabela auxiliar (idempotente/reversível) + job de seleção/envio + scheduler + regra de teto 3 (48h/5d/14d) + observação no audit após 14d.
+4. **Fortify reset (api):** notificação roteada pela ACL (`recuperacao_senha`), resposta anti-enumeração, throttling, TTL 60 min; testes de feature.
+5. **Externo (tee-up, requer Alexandro/deploy):** Terraform SPF/DKIM/DMARC em `infra/envs/homolog`, runbook de verificação de domínio Resend + mxtoolbox, E2E browser (CA-13), `RESEND_API_KEY` no Secret Manager. Documentado, não fechável nesta sessão.
+
+**Testes que pretendo escrever (inclui inválidos/bordas):** render de cada Mailable (assunto/from/H1/CTA href corretos por tipo); `{nome}` vazio → fallback `Olá.`; mascaramento do destinatário no log (e ausência do e-mail cru); idempotência (enfileirar 2× → 1 envio); job de lembrete: elegível/não-elegível, janela 48h, anti-duplicação 48h, teto de 3 e parada + observação após 14d; reset: e-mail inexistente devolve mesma resposta (anti-enumeração), throttling, link expira; adapter relança exceção do Resend como `EmailTransacionalException`; teste de arquitetura/grep: domínio não importa SDK do Resend.
 
 ### Sync Designer↔Programador
-(a preencher)
+
+Sessão dupla (mesma sessão do agente, aprendizado #1 da W24). Sync ≤15 min — registrado:
+
+- **Designer entregou** `SCREEN-STORY-021-emails-transacionais` (`status: ready`) + protótipo HTML fiel dos 3 e-mails: microcopy final em tabela única, identidade DDR-001 (esquema **neutro/profissional verde**: marca `#00A868` só no wordmark, CTA `#2D5F3F` on-white 7.4:1), layout por tabela inline, paridade text/plain, AA verificado, `prefers-color-scheme: dark` opcional/degradável.
+- **Acordos do sync:**
+  - **Assuntos e remetente vêm de ADR-011 §d** (não reabertos pelo spec): `aprovacao_concedida` = "Seu cadastro foi aprovado — acesse o Turni"; `lembrete_completar_cadastro` = "Complete seu cadastro no Turni"; `recuperacao_senha` = "Redefina sua senha no Turni"; from `no-reply@mail.turni.com.br`. (A frase alternativa de assunto no corpo da estória §1 foi descartada em favor do contrato fixo da ADR — alinha igualmente com voice-and-tone.)
+  - **`horas_pendente`** (contrato `dados` do lembrete) **não** aparece no corpo do e-mail (soaria como cobrança — decisão de tom do Designer); fica disponível só para a regra de envio do job.
+  - O programador transcreve o protótipo HTML → `*.blade.php` trocando textos por variáveis; os marcadores da §7 do spec viram asserts do teste de render do Mailable.
+  - CTA de aprovação/lembrete leva ao **login** (sem login automático — story §1, segurança); coordenação com STORY-022 (welcome) registrada no spec §10.
 
 ### Decisões tomadas
-(a preencher)
+
+- **IDR-015** — ACL de e-mail movida para `packages/domain` (`Turni\Domain\Email\`), compartilhada por `api` e `admin` (habilita a fila `database` cross-app; satisfaz CA-1 literalmente). Adapter Resend + Mailables/Blade ficam por app.
+- `TipoEmail::assunto()` carrega os assuntos canônicos de ADR-011 §d (fonte única; não reabertos).
+- VO ganhou `nome()` (fallback "Olá." — SCREEN §5) e `idempotencyKey` opcional (CA-14, convenção `<tipo>:<user_id>`).
+- Identidade do e-mail = esquema **neutro/profissional** (sync com Designer); assuntos/remetente de ADR-011 §d; `horas_pendente` não exibido no corpo.
 
 ### Descobertas
-(a preencher)
+
+- **Fila cross-app (decisiva):** o `worker` do docker-compose roda `queue:work` no contexto do **api**, mas o dispatch de aprovação parte do **admin**, sobre o mesmo Postgres. Sem FQCN compartilhado o worker não deserializa o job → motivou IDR-015. Verificado: `api` resolve `Turni\Domain\Email\*` após o move.
+- `apps/api` já tem `Features::resetPasswords()` ligado no Fortify + actions presentes (`ResetUserPassword`); falta rotear a notificação pela ACL e a resposta anti-enumeração/throttling (CA-6/CA-7).
+- Não há serviço `mailpit` no docker-compose ainda (ADR-011 §f exige adicionar). `MAIL_MAILER=log` nos dois `.env.example`.
+- **Bug latente da STORY-016 (corrigido aqui):** `App\Providers\FortifyServiceProvider` existia mas **nunca foi registrado** (`bootstrap/providers.php` só tinha `AppServiceProvider`). Logo, `resetUserPasswordsUsing`, os rate limiters e as respostas do Fortify não eram aplicados — o reset de senha estava quebrado (`ResetsUserPasswords` sem binding → 500). Registrado o provider. (Afeta CA-6.)
+- **Infra de teste do `api` (corrigido aqui):** a suíte rodava como `environment=local` (não `testing`) porque o docker-compose injeta `APP_ENV=local` em `$_SERVER` e o `<env>` do phpunit não sobrescreve `$_SERVER`. Consequência: `runningUnitTests()=false` → CSRF não dispensado nas rotas web. Corrigido com `<server name="APP_ENV" value="testing" force="true"/>` no phpunit.xml (agora a suíte roda corretamente como `testing`).
+- **Handler de exceção:** as rotas do Fortify ficam na raiz (não em `api/*`); `shouldRenderJsonWhen` foi ampliado para `api/* || expectsJson()`, para que erros de validação do reset cheguem ao WebApp como JSON (CA-6).
 
 ### Bloqueios encontrados
-(a preencher)
+
+- Nenhum bloqueio técnico. **Dependências externas que exigem Alexandro** (não fecháveis nesta sessão, ver §Pendências): conta Resend + `RESEND_API_KEY` no Secret Manager (CA-2), deploy em homolog + E2E em browser (CA-13).
+- **CA-3 (DNS) — RESOLVIDO nesta sessão:** SPF/DKIM/DMARC do remetente `mail.homolog.turni.com.br` escritos em Terraform (`infra/modules/dns` + `infra/envs/homolog`) e **aplicados** (`terraform apply` targeted dos 4 record sets — 4 added, 0 changed, 0 destroyed). Os 4 resolvem no NS autoritativo: DKIM TXT (`resend._domainkey.mail.homolog…`), MX `send.mail.homolog…` → `feedback-smtp.sa-east-1.amazonses.com.`, SPF TXT `send.…` → `v=spf1 include:amazonses.com ~all`, DMARC TXT `_dmarc.mail.homolog…` → `v=DMARC1; p=none;` (escopado no subdomínio, não toca o apex). DKIM/SPF/DMARC são dados públicos de DNS — `mail_dkim_value` fica versionado em `terraform.tfvars`. Resta o **Verify** no painel Resend + print mxtoolbox no runbook.
 
 ### IDRs criados
-(a preencher)
+
+- **IDR-015** — `decisions/idr/IDR-015-acl-email-em-packages-domain-para-fila-cross-app.md` (`accepted`).
 
 ### Cobertura final
-(a preencher)
+
+(parcial — em andamento)
+- Relocação verificada: suíte do **admin 91/91 verde** após o move.
+- **Adapter + Mailable + Job de e-mail (api):** `tests/Feature/Email/EmailTransacionalTest.php` **11/11 verde** (render dos 3 tipos com assunto/from/H1/saudação/CTA em HTML **e** text; fallback `Olá.` sem nome; `horas_pendente` ausente do corpo; mascaramento `m•••@…` no `email.sent`/`email.failed`; relançamento como `EmailTransacionalException`; idempotência CA-14; `failed()` ERROR `email.aprovacao.falhou` × WARNING lembrete). Cobertura **100%** em `MailEnviaEmailTransacional` e `TransacionalMail`. Suíte **api 148/148 verde**.
+- **Lembrete (CA-5):** `LembreteCadastroTest` **9/9 verde** (comando ~95% de linha). **Fortify reset (CA-6/CA-7):** `PasswordResetTest` **6/6 verde**.
+- **Suíte completa: api 163/163 e admin 91/91 verde** após todas as mudanças (relocação, adapter, lembrete, reset, correção do provider/CSRF/handler).
 
 ### Resultado final / evidência
-(a preencher)
+
+(em andamento) **Concluído nesta sessão:** SCREEN-STORY-021 `ready` (spec + protótipo HTML fiel dos 3 e-mails); kickoff (ownership + IDR-015 + Notas); relocação da ACL para `packages/domain` com fila cross-app verificada e suíte admin verde.
 
 ### Pendências para fechar
-(a preencher)
+
+1. ~~**Adapter Resend + Mailables + Blade**~~ **(FEITO)** — `App\Email\MailEnviaEmailTransacional` (adapter via Laravel Mail; provedor por `MAIL_MAILER`: Mailpit dev / Resend homolog), `App\Mail\TransacionalMail` (Mailable único parametrizado pelo VO) + `resources/views/emails/transacional.blade.php` (HTML tabela-inline DDR-001) e `transacional-text.blade.php` (paridade text/plain), Mailpit no `docker-compose.yml`, `apps/api/.env(.example)` `smtp`→`mailpit`, `resend/resend-php` instalado, idempotência via `ShouldBeUnique`. **E2E local verificado:** 3 e-mails despachados → worker → Mailpit (`localhost:8025`) com from `no-reply@mail.turni.com.br`, assuntos de ADR-011 §d, HTML+text, log `email.sent` mascarado. (CA-4, CA-9, CA-10, CA-11, CA-14)
+2. ~~**Job de lembrete** 48h/5d/14d~~ **(FEITO)** — comando `lembretes:cadastro` (api), tabela auxiliar `cadastro_lembretes` (única por `user_id,numero` → idempotente), coluna `aprovado_em` em `users` (âncora das janelas; preenchida pelo `ApprovalService` do admin na aprovação), scheduler `dailyAt('09:00')` BRT em `routes/console.php`, teto de 3 (48h/5d/14d) e observação única `admin.user.cadastro_pendente_expirado` no audit log no 3º. `horas_pendente` no contrato mas fora do corpo (SCREEN §5.2). **9/9 testes verde** (elegibilidade, janelas, teto, idempotência, expiração); **E2E local** verificado no Mailpit. (CA-5)
+3. ~~**Fortify reset** ponta a ponta no `api`~~ **(FEITO)** — `User::sendPasswordResetNotification` roteado pela ACL (`recuperacao_senha` via fila/Mailpit/Resend, template DDR-001, link assinado + TTL 60 min); resposta neutra `NeutralPasswordResetLinkResponse` (anti-enumeração, mesma resposta p/ e-mail existente/inexistente/throttled — CA-7); throttling do broker (`auth.passwords.users.throttle=60`); `FortifyServiceProvider` registrado (bug latente). **6/6 testes verde** + **E2E local** (`Password::sendResetLink` → Mailpit com link `reset-password?token=…`). (CA-6, CA-7)
+4. **[Requer Alexandro/deploy]** Estado externo:
+   - ~~Terraform SPF/DKIM/DMARC~~ **(feito + aplicado, resolvendo no NS)**; falta **Verify** no painel Resend + print mxtoolbox no runbook (CA-3).
+   - **`RESEND_API_KEY` no Secret Manager (CA-2): Terraform escrito** (`modules/secrets` + secret_env_var no Cloud Run `api` + `MAIL_MAILER=resend`/`MAIL_FROM_ADDRESS` em `envs/homolog`; valor no `terraform.tfvars` gitignored). `terraform validate` OK e `plan` targeted = **2 to add** (secret+versão). **Falta aplicar** (aguardando autorização).
+   - **Gap do worker (achado) — corrigido no código (caminho A):** o `modules/worker-vm` (GCE, o **sender** real em homolog) subia o `queue:work` só com `APP_ENV` + `DB_SOCKET`, **sem proxy do Cloud SQL e sem carregar segredo nenhum** (`DB_PASSWORD`/`APP_KEY`/`RESEND_API_KEY`) — ou seja, **nenhum** job de fila funcionava em homolog (precede a STORY-021). Endurecido: conecta o Cloud SQL por **IP privado** (`module.cloud_sql.private_ip`, mesma VPC, sem proxy); o `cloud-init` busca os 3 segredos no Secret Manager no boot (via container `google/cloud-sdk` — o host COS não tem curl/gcloud) e escreve um env-file em tmpfs; sobe o worker com `--env-file` + `MAIL_MAILER=resend`. `terraform validate` OK.
+     - **Caveat de rollout:** `lifecycle.ignore_changes=[metadata]` faz o `apply` ser **no-op** para a VM existente; um `-replace` puro recriaria com a imagem bootstrap (`api_image` = hello). Logo, o rollout deve vir do **deploy/CI** com a imagem real **recriando** a VM (`-replace=module.worker.google_compute_instance.worker` com `api_image=<imagem real>`).
+   - Deploy homolog + **E2E browser** de entrega real (CA-13).
+5. Suíte completa verde + cobertura medida no PR; PR aberto; `status: in_review`.
+
+### Validação humana (Designer↔Alexandro)
+
+- **2026-05-30:** Alexandro abriu os 3 e-mails renderizados no Mailpit (`localhost:8025`, entrega real via worker) e **aprovou layout e identidade** dos três; **links dos CTAs funcionando**. Identidade DDR-001 (esquema neutro/profissional) confirmada no client real — não só em teste verde (feedback recorrente do usuário).
 
 ### Links de evidência
-(a preencher)
+
+- Spec: `docs/project-state/design/screens/SCREEN-STORY-021-emails-transacionais.md` (+ `/index.html`).
+- IDR: `docs/project-state/decisions/idr/IDR-015-acl-email-em-packages-domain-para-fila-cross-app.md`.
+- Relocação: `packages/domain/src/Email/*`.

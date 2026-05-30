@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo — E-mails transacionais Turni (SCREEN-STORY-021)</title>
+<style>
+  /* Apenas para a PÁGINA de prototipagem (não vai para o e-mail). O e-mail usa estilo inline. */
+  body { margin:0; background:#E8E5DB; font-family:'Inter',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
+  .stage { max-width:760px; margin:0 auto; padding:32px 16px 64px; }
+  .stage h2.sep { font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:#42504A; margin:40px 0 8px; font-weight:600; }
+  .stage p.note { color:#6F7C72; font-size:13px; margin:0 0 16px; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <h1 style="font-size:20px;color:#0F1B2D;">Protótipo fiel — 3 e-mails transacionais (claro)</h1>
+  <p class="note">Referência para o programador transcrever em Blade. Cada bloco é um e-mail isolado (card 600px). Tokens DDR-001 inline (SCREEN §3).</p>
+
+  <!-- ============================ 1. APROVAÇÃO CONCEDIDA ============================ -->
+  <h2 class="sep">1 · aprovacao_concedida — "Seu cadastro foi aprovado — acesse o Turni"</h2>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F4EC;">
+    <tr><td align="center" style="padding:24px;">
+      <!-- preheader -->
+      <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Seu cadastro foi aprovado. Acesse para finalizar e começar a usar o Turni.</div>
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#FFFFFF;border:1px solid #E0DDD3;border-radius:12px;">
+        <tr><td style="padding:32px 32px 0;">
+          <span style="font-family:'Bebas Neue',Arial,sans-serif;font-weight:700;letter-spacing:.06em;font-size:26px;color:#00A868;">TURNI.</span>
+        </td></tr>
+        <tr><td style="padding:24px 32px 0;">
+          <h1 style="margin:0;font-size:24px;line-height:28px;color:#0F1B2D;font-weight:600;">Cadastro aprovado</h1>
+        </td></tr>
+        <tr><td style="padding:16px 32px 0;">
+          <p style="margin:0 0 16px;font-size:16px;line-height:24px;color:#42504A;">Olá, Maria.</p>
+          <p style="margin:0 0 16px;font-size:16px;line-height:24px;color:#42504A;">Seu cadastro no Turni foi aprovado. Você já pode acessar a plataforma.</p>
+          <p style="margin:0;font-size:16px;line-height:24px;color:#42504A;">O próximo passo é completar seu cadastro — leva poucos minutos e libera o uso completo.</p>
+        </td></tr>
+        <tr><td style="padding:28px 32px 8px;">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td bgcolor="#2D5F3F" style="border-radius:8px;">
+              <a href="https://app.homolog.turni.com.br/login" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;">Acessar o Turni</a>
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding:12px 32px 24px;">
+          <p style="margin:0;font-size:13px;line-height:18px;color:#6F7C72;">Se o botão não funcionar, copie e cole este endereço no navegador:<br><span style="color:#42504A;">https://app.homolog.turni.com.br/login</span></p>
+        </td></tr>
+        <tr><td style="padding:0 32px;"><hr style="border:none;border-top:1px solid #E0DDD3;margin:0;"></td></tr>
+        <tr><td style="padding:16px 32px 28px;">
+          <p style="margin:0;font-size:12px;line-height:18px;color:#6F7C72;">Você recebeu este e-mail porque seu cadastro no Turni foi aprovado. Dúvidas: contato@turni.com.br · <a href="#" style="color:#42504A;">Política de privacidade</a>.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+
+  <!-- ============================ 2. LEMBRETE COMPLETAR CADASTRO ============================ -->
+  <h2 class="sep">2 · lembrete_completar_cadastro — "Complete seu cadastro no Turni"</h2>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F4EC;">
+    <tr><td align="center" style="padding:24px;">
+      <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Falta completar seu cadastro para começar a usar o Turni.</div>
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#FFFFFF;border:1px solid #E0DDD3;border-radius:12px;">
+        <tr><td style="padding:32px 32px 0;">
+          <span style="font-family:'Bebas Neue',Arial,sans-serif;font-weight:700;letter-spacing:.06em;font-size:26px;color:#00A868;">TURNI.</span>
+        </td></tr>
+        <tr><td style="padding:24px 32px 0;">
+          <h1 style="margin:0;font-size:24px;line-height:28px;color:#0F1B2D;font-weight:600;">Falta completar seu cadastro</h1>
+        </td></tr>
+        <tr><td style="padding:16px 32px 0;">
+          <p style="margin:0 0 16px;font-size:16px;line-height:24px;color:#42504A;">Olá, João.</p>
+          <p style="margin:0 0 16px;font-size:16px;line-height:24px;color:#42504A;">Seu cadastro no Turni está aprovado, mas ainda não foi finalizado.</p>
+          <p style="margin:0;font-size:16px;line-height:24px;color:#42504A;">Quando você completar, poderá usar a plataforma por inteiro. Leva poucos minutos.</p>
+        </td></tr>
+        <tr><td style="padding:28px 32px 8px;">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td bgcolor="#2D5F3F" style="border-radius:8px;">
+              <a href="https://app.homolog.turni.com.br/login" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;">Completar cadastro</a>
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding:12px 32px 24px;">
+          <p style="margin:0;font-size:13px;line-height:18px;color:#6F7C72;">Se o botão não funcionar, copie e cole este endereço no navegador:<br><span style="color:#42504A;">https://app.homolog.turni.com.br/login</span></p>
+        </td></tr>
+        <tr><td style="padding:0 32px;"><hr style="border:none;border-top:1px solid #E0DDD3;margin:0;"></td></tr>
+        <tr><td style="padding:16px 32px 28px;">
+          <p style="margin:0;font-size:12px;line-height:18px;color:#6F7C72;">Você recebeu este lembrete porque seu cadastro no Turni ainda não foi concluído. Se não quiser concluir agora, é só ignorar. Dúvidas: contato@turni.com.br · <a href="#" style="color:#42504A;">Política de privacidade</a>.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+
+  <!-- ============================ 3. RECUPERAÇÃO DE SENHA ============================ -->
+  <h2 class="sep">3 · recuperacao_senha — "Redefina sua senha no Turni"</h2>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F4EC;">
+    <tr><td align="center" style="padding:24px;">
+      <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Recebemos um pedido para redefinir sua senha no Turni.</div>
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#FFFFFF;border:1px solid #E0DDD3;border-radius:12px;">
+        <tr><td style="padding:32px 32px 0;">
+          <span style="font-family:'Bebas Neue',Arial,sans-serif;font-weight:700;letter-spacing:.06em;font-size:26px;color:#00A868;">TURNI.</span>
+        </td></tr>
+        <tr><td style="padding:24px 32px 0;">
+          <h1 style="margin:0;font-size:24px;line-height:28px;color:#0F1B2D;font-weight:600;">Redefinir senha</h1>
+        </td></tr>
+        <tr><td style="padding:16px 32px 0;">
+          <p style="margin:0 0 16px;font-size:16px;line-height:24px;color:#42504A;">Olá, Maria.</p>
+          <p style="margin:0 0 16px;font-size:16px;line-height:24px;color:#42504A;">Recebemos um pedido para redefinir a senha da sua conta no Turni.</p>
+          <p style="margin:0;font-size:16px;line-height:24px;color:#42504A;">Este link expira em 60 minutos e só pode ser usado uma vez.</p>
+        </td></tr>
+        <tr><td style="padding:28px 32px 8px;">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td bgcolor="#2D5F3F" style="border-radius:8px;">
+              <a href="https://app.homolog.turni.com.br/reset-password?token=…" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;">Redefinir senha</a>
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding:12px 32px 16px;">
+          <p style="margin:0;font-size:13px;line-height:18px;color:#6F7C72;">Se o botão não funcionar, copie e cole este endereço no navegador:<br><span style="color:#42504A;">https://app.homolog.turni.com.br/reset-password?token=…</span></p>
+        </td></tr>
+        <tr><td style="padding:0 32px 16px;">
+          <p style="margin:0;font-size:14px;line-height:20px;color:#42504A;">Se você não pediu para redefinir sua senha, ignore este e-mail — sua senha continua a mesma.</p>
+        </td></tr>
+        <tr><td style="padding:0 32px;"><hr style="border:none;border-top:1px solid #E0DDD3;margin:0;"></td></tr>
+        <tr><td style="padding:16px 32px 28px;">
+          <p style="margin:0;font-size:12px;line-height:18px;color:#6F7C72;">Por segurança, o Turni nunca pede sua senha por e-mail. Dúvidas: contato@turni.com.br · <a href="#" style="color:#42504A;">Política de privacidade</a>.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+
+</div>
+</body>
+</html>

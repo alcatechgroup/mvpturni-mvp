@@ -2,14 +2,14 @@
 
 namespace App\Services;
 
-use App\Domain\Email\EmailTransacional;
-use App\Domain\Email\TipoEmail;
 use App\Exceptions\CadastroJaProcessadoException;
-use App\Jobs\EnviarEmailTransacionalJob;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Turni\Domain\Email\EmailTransacional;
+use Turni\Domain\Email\EnviarEmailTransacionalJob;
+use Turni\Domain\Email\TipoEmail;
 
 /**
  * Núcleo da fila de aprovação (STORY-019). Encapsula as duas ações de admin sobre um
@@ -40,6 +40,8 @@ class ApprovalService
             ->where('status', 'pendente_aprovacao')
             ->update([
                 'status' => 'liberado',
+                // Âncora das janelas do lembrete de completar cadastro (STORY-021 CA-5).
+                'aprovado_em' => now(),
                 'welcome_seen_at' => null,
                 'cadastro_completed_at' => null,
             ]);

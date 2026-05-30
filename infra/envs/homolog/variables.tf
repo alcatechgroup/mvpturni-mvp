@@ -48,3 +48,15 @@ variable "admin_image" {
   type        = string
   default     = "southamerica-east1-docker.pkg.dev/PROJECT_ID/turni/admin:latest"
 }
+
+variable "mail_dkim_value" {
+  description = "DKIM público do Resend para mail.homolog.turni.com.br (dado público de DNS — STORY-021)"
+  type        = string
+  default     = null
+}
+
+variable "resend_api_key" {
+  description = "Chave da API do Resend (ADR-011 / STORY-021 CA-2). SEGREDO — nunca em git versionado; passar via tfvars não versionado, TF_VAR_resend_api_key ou SOPS."
+  type        = string
+  sensitive   = true
+}

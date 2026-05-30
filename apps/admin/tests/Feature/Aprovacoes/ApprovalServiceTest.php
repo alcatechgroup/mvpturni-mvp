@@ -2,14 +2,14 @@
 
 // STORY-019 — núcleo da fila de aprovação: transição, audit log, dispatch, race condition.
 
-use App\Domain\Email\TipoEmail;
 use App\Exceptions\CadastroJaProcessadoException;
-use App\Jobs\EnviarEmailTransacionalJob;
 use App\Models\AdminAuditLog;
 use App\Models\ProfissionalProfile;
 use App\Models\User;
 use App\Services\ApprovalService;
 use Illuminate\Database\QueryException;
+use Turni\Domain\Email\EnviarEmailTransacionalJob;
+use Turni\Domain\Email\TipoEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 

@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
+            // api/* sempre JSON; e qualquer requisição que pede JSON (Accept) também —
+            // as rotas do Fortify (login, forgot/reset-password) ficam na raiz, não em
+            // api/*, e o WebApp Flutter as consome esperando erros em JSON (STORY-021 CA-6).
+            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
     })->create();

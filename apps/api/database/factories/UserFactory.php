@@ -24,6 +24,7 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'role' => 'profissional',
             'status' => 'pendente_aprovacao',
+            'aprovado_em' => null,
             'welcome_seen_at' => null,
             'cadastro_completed_at' => null,
         ];
@@ -75,6 +76,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'liberado',
+            'aprovado_em' => now(),
             'welcome_seen_at' => null,
             'cadastro_completed_at' => null,
         ]);
@@ -84,6 +86,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'liberado',
+            'aprovado_em' => now(),
             'welcome_seen_at' => now(),
             'cadastro_completed_at' => null,
         ]);

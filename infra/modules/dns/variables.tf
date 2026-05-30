@@ -80,3 +80,40 @@ variable "www_cname_target" {
   default     = null
   description = "Target CNAME do micro-site de redirect www (ex: turni-www-redirect-prod.web.app)"
 }
+
+# ── Domínio remetente de e-mail (Resend — ADR-011 §e / STORY-021) ─────────────
+# Subdomínio `mail.` dedicado ao envio transacional, separado por ambiente para não
+# contaminar a reputação do domínio raiz nem do prod. Os valores (DKIM, alvo SES) são
+# gerados pelo painel do Resend ao adicionar o domínio. Todos são DADOS PÚBLICOS de DNS
+# (a chave DKIM é a parte pública), não segredos. O bloco inteiro só é criado quando
+# `mail_sender_domain` é fornecido (apply é no-op até lá).
+
+variable "mail_sender_domain" {
+  type        = string
+  default     = null
+  description = "Subdomínio remetente (ex: mail.homolog.turni.com.br). Gate do bloco de e-mail."
+}
+
+variable "mail_dkim_value" {
+  type        = string
+  default     = null
+  description = "Valor TXT do DKIM gerado pelo Resend (string única 'p=...'; chave pública)."
+}
+
+variable "mail_spf_mx_target" {
+  type        = string
+  default     = "feedback-smtp.sa-east-1.amazonses.com"
+  description = "Alvo MX do Return-Path (Resend/SES). Define a região (sa-east-1 = São Paulo)."
+}
+
+variable "mail_spf_value" {
+  type        = string
+  default     = "v=spf1 include:amazonses.com ~all"
+  description = "Valor TXT do SPF do subdomínio `send.` (Resend/SES)."
+}
+
+variable "mail_dmarc_value" {
+  type        = string
+  default     = "v=DMARC1; p=none;"
+  description = "Política DMARC escopada no subdomínio remetente (ADR-011 §e). Não toca o apex."
+}

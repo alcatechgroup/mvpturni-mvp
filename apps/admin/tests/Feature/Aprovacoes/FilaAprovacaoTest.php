@@ -2,7 +2,6 @@
 
 // STORY-019 — componente Livewire da fila de aprovação (rota, lista, filtros, ações).
 
-use App\Jobs\EnviarEmailTransacionalJob;
 use App\Livewire\FilaAprovacao;
 use App\Models\AdminAuditLog;
 use App\Models\ProfissionalProfile;
@@ -10,6 +9,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
+use Turni\Domain\Email\EnviarEmailTransacionalJob;
 
 uses(RefreshDatabase::class);
 

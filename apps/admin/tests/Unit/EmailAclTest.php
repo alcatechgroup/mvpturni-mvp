@@ -2,12 +2,12 @@
 
 // STORY-019 — ACL de e-mail (ADR-011): VO de mascaramento, job e adapter log-only (CA-7).
 
-use App\Domain\Email\EmailTransacional;
-use App\Domain\Email\EnviaEmailTransacional;
-use App\Domain\Email\LogEnviaEmailTransacional;
-use App\Domain\Email\TipoEmail;
-use App\Jobs\EnviarEmailTransacionalJob;
 use Illuminate\Support\Facades\Log;
+use Turni\Domain\Email\EmailTransacional;
+use Turni\Domain\Email\EnviaEmailTransacional;
+use Turni\Domain\Email\EnviarEmailTransacionalJob;
+use Turni\Domain\Email\LogEnviaEmailTransacional;
+use Turni\Domain\Email\TipoEmail;
 
 test('mascara o e-mail preservando inicial e domínio', function () {
     $vo = new EmailTransacional('carlos@exemplo.com', TipoEmail::AprovacaoConcedida);
