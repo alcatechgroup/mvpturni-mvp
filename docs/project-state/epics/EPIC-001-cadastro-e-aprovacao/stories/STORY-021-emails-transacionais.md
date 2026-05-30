@@ -283,6 +283,20 @@ reset." → `POST /api/login` com a nova senha → **200** (sessão). TTL 60 min
 reputação (e-mail em Spam — warmup do subdomínio remetente) anotada como acompanhamento
 operacional, não bloqueante.
 
+**Alerta de falha de e-mail (CA-8/CA-9) — fiado em 2026-05-30 (rc.28):** auditoria pós-fechamento
+revelou que a app logava `email.*.falhou` mas **não havia métrica/alerta** no Cloud Monitoring
+(gap honesto: a CA estava marcada sem o alerta existir). Corrigido:
+- `infra/modules/monitoring`: log-based metric `turni_<env>_email_failures` (filtra os eventos
+  terminais críticos `email.aprovacao.falhou` / `email.recuperacao.falhou` do worker
+  `cloud_run_job`; lembrete fica fora — não-crítico, ADR-011 §g) + `alert_policy` → `alert_email`.
+- worker-job: `LOG_STDERR_FORMATTER=Monolog\Formatter\JsonFormatter` (env, sem rebuild) → Cloud
+  Logging parseia jsonPayload. Estrutura Monolog: evento em `jsonPayload.message`, campos sob
+  `jsonPayload.context.*` (filtro/extractor ajustados a isso).
+- Validado em homolog: worker loga jsonPayload (`email.sent` com `context.tipo/message_id`); o
+  filtro da métrica casa com a estrutura real (provado via `jsonPayload.message="email.sent"`);
+  o env sobreviveu ao `gcloud run jobs update --image` do CI na rc.28. Infra aplicada via
+  `terraform apply` (não passa pelo release.yml).
+
 ### Links de evidência
 
 - Spec: `docs/project-state/design/screens/SCREEN-STORY-021-emails-transacionais.md` (+ `/index.html`).
