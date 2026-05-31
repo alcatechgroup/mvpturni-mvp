@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../ds/components/app_version_label.dart';
+import '../../ds/components/markdown_lite.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
 import '../cadastro/cadastro_service.dart';
@@ -794,13 +795,12 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
                     child: SingleChildScrollView(
                       key: const Key('contract-preview-body'),
                       controller: _previewScroll,
-                      child: SelectableText(
-                        _previewConteudo ?? '',
-                        style: TextStyle(
-                          fontSize: 14,
-                          height: 1.5,
-                          color: strong,
-                        ),
+                      child: MarkdownLite(
+                        data: _previewConteudo ?? '',
+                        color: strong,
+                        muted: isDark
+                            ? TurniColors.textMutedDark
+                            : TurniColors.textMutedLight,
                       ),
                     ),
                   ),

@@ -63,8 +63,14 @@
   .pvhead{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}
   .pvhead .back{border:none;background:none;font-size:20px;cursor:pointer;color:var(--text)}
   .pvhead h2{font-size:16px;margin:0;font-weight:600}
-  .doc{background:var(--surface);border-radius:12px;margin:16px;padding:18px;height:360px;overflow:auto;font-size:14px;white-space:pre-wrap}
-  .doc h3{font-size:15px;margin:16px 0 6px}
+  .doc{background:var(--surface);border-radius:12px;margin:16px;padding:18px;height:360px;overflow:auto;font-size:14px;line-height:1.5}
+  .doc h2{font-size:20px;font-weight:700;margin:14px 0 6px}
+  .doc h3{font-size:17px;font-weight:700;margin:14px 0 6px}
+  .doc h4{font-size:15px;font-weight:700;margin:12px 0 4px}
+  .doc p{margin:0 0 6px}
+  .doc hr{border:none;border-top:1px solid var(--border);margin:10px 0}
+  .doc table.ct{border-collapse:collapse;margin:8px 0;width:100%}
+  .doc table.ct td{border:1px solid var(--border-strong);padding:8px 10px;font-size:13px}
   .footer{border-top:1px solid var(--border);padding:16px 18px;background:var(--page)}
   .hint{font-size:12px;color:var(--text-muted);margin:0 0 8px}
   .accept{display:flex;align-items:flex-start;gap:8px}
@@ -111,6 +117,22 @@ const F = {
   documento:'', raio:'30', preco:'45,00', bio:'', pix:'diego.pix@turni.com.br',
   funcoes:new Set(), doc:false, lido:false, aceite:false, step:1, dup:false
 };
+// markdown mínimo → html (headings, negrito/itálico, hr, tabelas) — espelha o MarkdownLite do Flutter
+function mdToHtml(md){
+  const inline=s=>s.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>');
+  const lines=md.split('\n'); let html=''; let tbl=null;
+  const flush=()=>{ if(tbl){ const rows=tbl.filter(r=>!(/^\|[\s:|-]+\|$/.test(r)&&r.includes('-')));
+    html+='<table class="ct">'+rows.map(r=>{const c=r.replace(/^\|/,'').replace(/\|$/,'').split('|').map(x=>'<td>'+inline(x.trim())+'</td>'); return '<tr>'+c.join('')+'</tr>';}).join('')+'</table>'; tbl=null; } };
+  for(const ln of lines){ const t=ln.trim();
+    if(t.startsWith('|')){ (tbl=tbl||[]).push(t); continue; } flush();
+    if(!t){ html+='<div style="height:8px"></div>'; continue; }
+    if(/^-{3,}$/.test(t)){ html+='<hr>'; continue; }
+    if(t.startsWith('### ')){ html+='<h4>'+inline(t.slice(4))+'</h4>'; continue; }
+    if(t.startsWith('## ')){ html+='<h3>'+inline(t.slice(3))+'</h3>'; continue; }
+    if(t.startsWith('# ')){ html+='<h2 style="margin-top:0">'+inline(t.slice(2))+'</h2>'; continue; }
+    html+='<p>'+inline(t)+'</p>';
+  } flush(); return html;
+}
 function maskCpf(v){ const d=v.replace(/\D/g,'').slice(0,11); let o=''; for(let i=0;i<d.length;i++){ if(i==3||i==6)o+='.'; else if(i==9)o+='-'; o+=d[i]; } return o; }
 function maskMoeda(v){ const d=v.replace(/\D/g,'').slice(0,11); if(!d)return ''; const n=parseInt(d,10); const r=Math.floor(n/100).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.'); return r+','+String(n%100).padStart(2,'0'); }
 const FUNCOES = ['Garçom','Bartender','Cozinheiro','Recepcionista','Auxiliar de cozinha','Copeiro','Maître','Sommelier','Hostess','Segurança','Camareira','Manobrista','Chapeiro','Confeiteiro'];
@@ -230,7 +252,7 @@ function next(){ if(F.step<3){F.step++;render();} else { if(!F.doc){alert('Envie
 
 function preview(){
   return `<div class="pvhead"><button class="back" onclick="go('s3')">←</button><h2>Contrato de adesão Turni</h2></div>
-  <div class="doc" id="doc">${CONTRATO.replace(/^# .*$/m,'').replace(/## (.*)/g,'<h3>$1</h3>')}</div>
+  <div class="doc" id="doc">${mdToHtml(CONTRATO)}</div>
   <div class="footer">
     <p class="hint" id="hint">Role o contrato até o fim para habilitar o aceite.</p>
     <label class="accept"><input type="checkbox" id="ck" disabled onchange="F.aceite=this.checked;syncCTA()">
