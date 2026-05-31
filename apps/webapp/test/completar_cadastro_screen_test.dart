@@ -92,7 +92,8 @@ Future<void> _ateOPreview(WidgetTester tester) async {
   await _tap(tester, const Key('btn-continuar'));
 
   await tester.enterText(find.byKey(const Key('input-raio')), '30');
-  await tester.enterText(find.byKey(const Key('input-preco-hora')), '45');
+  // Máscara monetária em centavos: "4500" → R$ 45,00.
+  await tester.enterText(find.byKey(const Key('input-preco-hora')), '4500');
   await _tap(tester, const Key('btn-continuar'));
 
   await tester.enterText(

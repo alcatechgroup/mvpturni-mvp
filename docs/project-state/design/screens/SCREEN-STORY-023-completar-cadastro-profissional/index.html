@@ -108,9 +108,11 @@
 
 <script>
 const F = {
-  documento:'', raio:'30', preco:'45', bio:'', pix:'diego.pix@turni.com.br',
+  documento:'', raio:'30', preco:'45,00', bio:'', pix:'diego.pix@turni.com.br',
   funcoes:new Set(), doc:false, lido:false, aceite:false, step:1, dup:false
 };
+function maskCpf(v){ const d=v.replace(/\D/g,'').slice(0,11); let o=''; for(let i=0;i<d.length;i++){ if(i==3||i==6)o+='.'; else if(i==9)o+='-'; o+=d[i]; } return o; }
+function maskMoeda(v){ const d=v.replace(/\D/g,'').slice(0,11); if(!d)return ''; const n=parseInt(d,10); const r=Math.floor(n/100).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.'); return r+','+String(n%100).padStart(2,'0'); }
 const FUNCOES = ['Garçom','Bartender','Cozinheiro','Recepcionista','Auxiliar de cozinha','Copeiro','Maître','Sommelier','Hostess','Segurança','Camareira','Manobrista','Chapeiro','Confeiteiro'];
 const CONTRATO = `# Contrato de Prestação de Serviço Autônomo Eventual
 
@@ -181,7 +183,7 @@ function form(){
 }
 function step1(){ return `<div class="steptitle">Passo 1 — Identidade</div>
   <label class="f">CPF</label>
-  <input class="t" placeholder="000.000.000-00" value="${F.documento}" oninput="F.documento=this.value">
+  <input class="t" inputmode="numeric" placeholder="000.000.000-00" value="${F.documento}" oninput="F.documento=maskCpf(this.value);this.value=F.documento">
   <div class="help">Só você e a equipe Turni veem esse dado.</div>`; }
 function step2(){
   const sel=[...F.funcoes];
@@ -194,7 +196,7 @@ function step2(){
   <label class="f">Até quantos km você se desloca?</label>
   <input class="t" value="${F.raio}" oninput="F.raio=this.value"><div class="help">Ex.: 30</div>
   <label class="f">Seu preço por hora (R$)</label>
-  <input class="t" value="${F.preco}" oninput="F.preco=this.value"><div class="help">Quanto você cobra por hora de trabalho.</div>
+  <input class="t" inputmode="numeric" value="${F.preco}" oninput="F.preco=maskMoeda(this.value);this.value=F.preco"><div class="help">Digite só os números — os centavos preenchem da direita.</div>
   <label class="f">Conte rápido sua experiência (opcional)</label>
   <input class="t" value="${F.bio}" oninput="F.bio=this.value"><div class="help">Até 500 caracteres.</div>`; }
 function step3(){ return `<div class="steptitle">Passo 3 — Financeiro e documento</div>

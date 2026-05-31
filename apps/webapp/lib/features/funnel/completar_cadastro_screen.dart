@@ -8,6 +8,7 @@ import '../auth/auth_service.dart';
 import '../cadastro/cadastro_service.dart';
 import '../cadastro/completar_cadastro_service.dart';
 import '../cadastro/shared/cadastro_widgets.dart';
+import '../cadastro/shared/input_formatters.dart';
 
 /// STORY-023 — Completar cadastro do Profissional (SCREEN-STORY-023).
 ///
@@ -120,7 +121,8 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
   CompletarCadastroDados _coletarDados() => CompletarCadastroDados(
     documento: _documento.text.trim(),
     raioMaxKm: _raio.text.trim(),
-    precoHora: _preco.text.trim(),
+    // BRL mascarado ("1.234,56") → numérico ("1234.56") para o servidor.
+    precoHora: brlParaNumero(_preco.text),
     bio: _bio.text.trim(),
     chavePix: _chavePix.text.trim(),
     funcoesSecundarias: _funcoesSel.toList(),
@@ -528,6 +530,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
       hint: _ehPf ? '000.000.000-00' : '00.000.000/0000-00',
       helper: 'Só você e a equipe Turni veem esse dado.',
       keyboardType: TextInputType.number,
+      inputFormatters: [DocumentoInputFormatter(isCpf: _ehPf)],
       validator: (v) {
         final t = (v ?? '').replaceAll(RegExp(r'\D'), '');
         if (t.isEmpty) return 'Informe seu ${_ehPf ? 'CPF' : 'CNPJ'}.';
@@ -602,10 +605,11 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
           fieldKey: 'input-preco-hora',
           controller: _preco,
           label: 'Seu preço por hora (R\$)',
-          helper: 'Quanto você cobra por hora de trabalho.',
+          helper: 'Digite só os números — os centavos preenchem da direita.',
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [MoedaInputFormatter()],
           validator: (v) {
-            final n = num.tryParse((v ?? '').trim().replaceAll(',', '.'));
+            final n = num.tryParse(brlParaNumero(v ?? ''));
             if (n == null) return 'Informe um valor por hora.';
             if (n < 1) return 'O valor deve ser maior que zero.';
             return _serverErrors['preco_hora'];

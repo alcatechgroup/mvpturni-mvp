@@ -50,6 +50,9 @@ async function typeInto(page: Page, label: string, value: string) {
     await page.waitForTimeout(150);
     const atual = await field.inputValue().catch(() => '');
     if (atual === value) return;
+    // Campos com máscara (CPF/CNPJ, R$) reformatam o texto — compara só os dígitos.
+    const d = (s: string) => s.replace(/\D/g, '');
+    if (d(value) && d(atual) === d(value)) return;
   }
 }
 
@@ -77,7 +80,8 @@ async function preencherAtePreview(page: Page, documento: string, docLabel: 'CPF
   await tapBtn(page, 'Continuar');
 
   await typeInto(page, 'Até quantos km você se desloca?', '30');
-  await typeInto(page, 'Seu preço por hora (R$)', '45');
+  // Máscara monetária em centavos: "4500" → R$ 45,00.
+  await typeInto(page, 'Seu preço por hora (R$)', '4500');
   await tapBtn(page, 'Continuar');
 
   await typeInto(page, 'Sua chave Pix', 'profissional@pix.com');
