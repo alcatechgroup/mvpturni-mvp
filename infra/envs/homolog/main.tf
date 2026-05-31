@@ -136,7 +136,10 @@ module "cloud_run_api" {
     DB_DATABASE      = "turni"
     DB_USERNAME      = "turni"
     QUEUE_CONNECTION = "database"
-    SESSION_DRIVER   = "database"
+    # cookie (não database/array): Cloud Run stateless sem afinidade de instância.
+    # `array` não persistia a sessão → 401 após login. `cookie` é stateless e já provado
+    # no admin (ver Dockerfile.prod / IDR-019).
+    SESSION_DRIVER   = "cookie"
     # E-mail transacional (ADR-011 §c): provedor Resend em homolog; chave via Secret
     # Manager (secret_env_vars). Remetente no subdomínio dedicado mail.homolog.
     MAIL_MAILER       = "resend"

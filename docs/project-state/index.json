@@ -1789,6 +1789,16 @@
         "decided_by": "programador",
         "approved_by": null,
         "source_story": "STORY-023"
+      },
+      {
+        "id": "IDR-019",
+        "title": "SESSION_DRIVER=cookie na api (Cloud Run) — corrige sessão não-persistente (401 após login)",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-019-session-driver-cookie-na-api-cloud-run.md",
+        "decided_at": "2026-05-31",
+        "decided_by": "programador",
+        "approved_by": null,
+        "source_story": "STORY-023"
       }
     ],
     "ddr": [

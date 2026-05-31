@@ -71,10 +71,15 @@ RUN chmod -R 755 storage bootstrap/cache \
     && chown -R app:app storage bootstrap/cache
 
 ARG APP_VERSION
+# SESSION_DRIVER=cookie (NÃO array): Cloud Run é stateless e sem afinidade de instância.
+# `array` não persiste a sessão entre requisições → o usuário loga (200) mas a próxima
+# request autenticada cai em 401. `cookie` guarda a sessão (cifrada por APP_KEY) no próprio
+# cookie — stateless, sem tabela, mesmo padrão já provado no admin. Honra a intenção
+# "Cloud Run sem sessão em banco" sem quebrar a auth do SPA Sanctum.
 ENV APP_ENV=production \
     APP_DEBUG=false \
     LOG_CHANNEL=stderr \
-    SESSION_DRIVER=array \
+    SESSION_DRIVER=cookie \
     APP_VERSION=${APP_VERSION}
 
 EXPOSE 8080
