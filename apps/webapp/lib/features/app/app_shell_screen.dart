@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../ds/components/app_version_label.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
 
@@ -64,6 +65,11 @@ class AppShellScreen extends StatelessWidget {
                 ),
                 child: const Text('Sair'),
               ),
+              // Versão rodando no dispositivo — rodapé do shell. Quando o menu real
+              // chegar (EPIC-002+), mover esta instância para o rodapé do menu
+              // (STORY-037 CA-11).
+              const SizedBox(height: TurniSpacing.lg),
+              const AppVersionLabel(key: Key('app-version-label-app-shell')),
             ],
           ),
         ),

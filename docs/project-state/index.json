@@ -4,11 +4,11 @@
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
-    "current_sprint": null,
+    "current_sprint": "SPRINT-2026-W25",
     "last_closed_sprint": "SPRINT-2026-W24",
-    "phase": "wave-2026-01-sprint-w24-closed-goal-achieved-aguarda-abertura-w25",
-    "next_action": "SPRINT-2026-W24 ENCERRADA em 2026-05-29 por goal atingido. 10/10 estórias do escopo confirmado em done; funil de identidade observado end-to-end em homolog (pré-cadastro → fila aprovação com audit log imutável → login → welcome real); RBAC vivo nas duas interfaces; editor de templates com texto-seed v1 carregado; 3 ADRs (009/010/011) accepted; F-NB-1 do EPIC-000 quitado. Duração efetiva ~2 dias vs. soft-cap 21d. Próximo passo: abrir SPRINT-2026-W25 com núcleo STORY-021 (stretch da W24 promovida ao topo — fecha o gap de UX de e-mail) + STORY-023/024 (completar cadastro PF/Contratante + AceiteEletronico) + STORY-025 (validação final EPIC-001). Aprendizados detalhados na seção 'Fechamento do sprint' do SPRINT-2026-W24.md. Decisão pendente Alexandro: formalizar gap do HASH_DRIVER no admin (pego em STORY-019) como F-NB-2 do EPIC-000 ou registrar só como aprendizado operacional.",
-    "notes": "SPRINT-2026-W24 fechada em 2026-05-29 por goal-atingido (10/10 estórias done; goal_outcome=achieved). Sprint aberta em 2026-05-28 com 10 estórias (012/013/014/015/016/017/018/019/020/022). Duração efetiva 2 dias — ~19 dias antes do soft-cap (2026-06-18). Funil de identidade vivo em homolog: pré-cadastro PF/MEI/PJ + contratante → fila de aprovação no Backoffice com audit log imutável → login → welcome real personalizado. RBAC vivo nas duas interfaces (cruzados bloqueados fail-secure). Editor de templates com texto-seed v1 carregado como versão ativa (PF/MEI-PJ). 3 ADRs aceitas (ADR-009/010/011). F-NB-1 do EPIC-000 quitado em STORY-016. IDRs novos: 006 (path strategy), 007 (Cloud Run↔Cloud SQL privado), 008 (/api/funcoes), 012 (componentes compartilhados cadastro), 013 (ACL e-mail + soft-delete), 014 (proxy same-origin + /me/* fora do guard). Emenda ADR-007 (Sanctum SPA via Firebase rewrite). STORY-021 (e-mails — stretch) deferida para SPRINT-2026-W25 conforme decisão PO. STORY-023/024/025 também na W25. Aprendizados, ajustes e o que ficou para trás detalhados na seção 'Fechamento do sprint' do SPRINT-2026-W24.md."
+    "phase": "wave-2026-01-sprint-w25-active-2-of-6-done",
+    "next_action": "SPRINT-2026-W25 ATIVA (aberta 2026-05-30). 2/6 estórias done: STORY-034 (worker Cloud Run Job + Scheduler — substitui GCE worker-vm; validado via rc.24 com worker+api+admin no ar e e-mail real) e STORY-021 (e-mails transacionais — Resend ACL + lembrete + reset Fortify; CA-13 fechada em homolog; alerta de falha terminal validado na rc.28). 4/6 ready: STORY-023 (completar cadastro PF, L), STORY-024 (completar cadastro PJ, M), STORY-037 (auto-update WebApp Flutter, M, paralelo), STORY-025 (validação EPIC-001, aguarda 023/024/037). Próximo passo: Designer entrega SCREEN-023/024 em paralelo enquanto Programador inicia STORY-023 em dupla Designer+Programador (aprendizado #1 da W24) e STORY-037 em sessão separada. STORY-025 só inicia quando 021+023+024+034 estiverem done e checklist do EPIC-001 estiver íntegro (lição STORY-011). Soft-cap 2026-06-19. Decisão pendente Alexandro: formalizar gap do HASH_DRIVER no admin como F-NB-2 do EPIC-000 ou registrar só como aprendizado operacional.",
+    "notes": "SPRINT-2026-W25 aberta em 2026-05-30 com escopo inicial de 4 estórias (021/023/024/025) e duas adições no mesmo dia: STORY-034 (worker Cloud Run Job + Scheduler — caminho único após queda da escada Fase A com 5 gaps confirmados no GCE worker-vm: sem socket Cloud SQL, sem segredos no docker run, sem Cloud NAT, SA sem artifactregistry.reader, /root read-only no COS) e STORY-037 (auto-update WebApp Flutter — destrava validação mobile do EPIC-001). Sizing total final: 1L + 5M. Progresso D+0/D+1: 2/6 done. STORY-034 done (worker rodando em homolog, fiação reusa IDR-007). STORY-021 done (e-mails transacionais ao vivo via Resend; CA-13 fechada; alerta de falha terminal disparou + e-mail recebido na rc.28). STORY-023/024/037 ready; STORY-025 ready aguardando dependências. Sem mudança de escopo desde 2026-05-30. SPRINT-2026-W24 permanece fechada por goal-atingido (10/10 estórias done; goal_outcome=achieved); aprendizados detalhados na seção 'Fechamento do sprint' do SPRINT-2026-W24.md."
   },
   "product": {
     "vision": "product/vision.md",
@@ -1147,8 +1147,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_progress",
+      "owner_agent": "programador-claude",
       "sprint_id": "SPRINT-2026-W25",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-037-auto-atualizacao-webapp-e-versao-visivel-na-ui.md",
       "blocked_by": [],
@@ -1769,6 +1769,15 @@
         "decided_at": "2026-05-29",
         "decided_by": "programador",
         "source_story": "STORY-022"
+      },
+      {
+        "id": "IDR-017",
+        "title": "Auto-atualização do WebApp — polling do version.json + SKIP_WAITING + banner",
+        "status": "proposed",
+        "path": "decisions/idr/IDR-017-auto-atualizacao-webapp-polling-skipwaiting-banner.md",
+        "decided_at": "2026-05-30",
+        "decided_by": "programador",
+        "source_story": "STORY-037"
       }
     ],
     "ddr": [

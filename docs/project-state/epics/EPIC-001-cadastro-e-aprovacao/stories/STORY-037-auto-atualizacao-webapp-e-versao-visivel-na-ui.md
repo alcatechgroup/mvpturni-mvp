@@ -8,8 +8,8 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: null
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: programador-claude
 created_at: 2026-05-30
 updated_at: 2026-05-30
 estimated_session_size: M
@@ -243,28 +243,72 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 
 ### Entrada inicial
 
-(a preencher pelo agente)
+**Documentos lidos:** estória inteira; ADR-001 §"Auto-atualização do WebApp" (linhas 130-133); IDR-002 (formato `version.json`, header no-cache, dart-define); STORY-007/008 (referência); DDR-001 via `tokens.dart`/`theme.dart`; ADR-007 §F5 (sessão sobrevive ao reload); `firebase.json`; código existente do `webapp` (`main.dart`, `router.dart`, `auth_service.dart`, `login_screen.dart`, os 2 `pre_cadastro_*_screen.dart`, `app_shell_screen.dart`, `welcome_screen.dart`, `tokens.dart`, `theme.dart`); specs de E2E existentes (`tests/e2e/*.spec.ts`, `playwright.config.ts`).
+
+**Entendimento consolidado (minhas palavras):** o servidor já publica `/version.json` com `{"version":"vX.Y.Z-rc.N"}` e header `no-cache` (IDR-002/STORY-007). Falta o lado cliente Flutter: um serviço que faz polling do `version.json` (a cada 5 min + em bootstrap, em volta de foreground, em login) e compara com a versão rodando (`String.fromEnvironment('APP_VERSION', defaultValue: 'dev')`); quando diferente E não-`dev`, mostra banner não-bloqueante no topo de qualquer rota ("Nova versão disponível" / "Atualizar agora" / "Depois"). "Atualizar agora" manda `SKIP_WAITING` ao SW e dá reload. Também: label discreta "Turni · {versão}" no rodapé de login, 2 cadastros e app_shell; header `no-cache` para `/flutter_service_worker.js` no `firebase.json`; IDR-017; e a sessão Sanctum precisa sobreviver ao reload (cookie same-origin já garante — nada a fazer no auth).
+
+**Dúvidas:** nenhuma bloqueante. O microcopy e os pontos de exibição estão fixados pelo PO; as liberdades técnicas estão explícitas na estória.
+
+**Plano (5 bullets):**
+1. IDR-017 `proposed` com as 5 decisões operacionais.
+2. Módulo `lib/core/app_update/` isolado e testável: `AppVersion` (VO puro), `AppVersionService` (http + MockClient), `AppUpdateController` (ChangeNotifier, lógica pura + triggers), e interop web (`ServiceWorkerBridge` + `VisibilityWatcher`) atrás de **conditional import** (`dart.library.js_interop`) com stub no-op para a VM — assim os testes unitários rodam em VM sem `package:web`.
+3. `UpdateBanner` no `MaterialApp.builder` (Stack/Overlay no topo) escutando o controller via `ListenableBuilder`; tokens DDR-001; `Semantics`.
+4. `AppVersionLabel` em `lib/ds/components/` + plug nas 4 telas com Keys E2E.
+5. `firebase.json` (header SW nos 2 targets) + suíte verde (`flutter test` + `flutter analyze`) + spec Playwright + roteiro manual.
+
+**Testes que pretendo escrever:**
+- `AppVersion`: igualdade por valor, `isDifferentFrom`, `isDev` (dev/vazio).
+- `AppVersionService`: parse OK; erro de rede; 4xx/5xx; JSON inválido; timeout; header `no-cache` + query `?t=` presentes (via MockClient capturando a request).
+- `AppUpdateController`: 4 cenários da CA-3 (same/different × dev/release); trigger de bootstrap/visibility/login; timer periódico (fakeAsync); "Depois" fecha e reabre na próxima checagem; erro silencioso não muda estado.
+- `UpdateBanner`: aparece só quando `showBanner`; textos/CTAs; "Atualizar agora" chama o bridge; "Depois" chama `dismiss`; Semantics.
+- `AppVersionLabel`: formato "Turni · v..."; "Turni · dev" no default; Keys presentes nas 4 telas.
 
 ### Decisões tomadas
 
-(a preencher pelo agente)
+- **Estado:** `AppUpdateController extends ChangeNotifier` (o mais leve que combina com o app — `AuthService` já é `ChangeNotifier`). Sem Bloc/Riverpod novo.
+- **Interop web atrás de conditional import** (`dart.library.js_interop`): `ServiceWorkerBridge` e `VisibilityWatcher` têm um `*_stub.dart` no-op (VM) e um `*_web.dart` real (`package:web` + `dart:js_interop`). Isso mantém o módulo 100% testável em VM sem `package:web`. Registrado como convenção no IDR-017.
+- **`web: ^1.1.0` declarado no pubspec** (já vinha transitivo do Flutter SDK) para satisfazer `depend_on_referenced_packages`. `fake_async` promovido a dev_dependency direta (controle determinístico de `Timer.periodic`).
+- **`UpdateBannerHost` no `MaterialApp.builder`** com `Stack` + `Positioned(top)` + `SafeArea` + `ListenableBuilder` — banner no topo de qualquer rota, não-bloqueante (conteúdo abaixo segue interativo).
+- **`AppVersionLabel` em `lib/ds/components/`** (exibição reaproveitável, recomendação da estória).
+- **Singleton `appUpdate`** (`lib/core/app_update/app_update.dart`), coerente com `AuthService`, para o hook de login (`login_screen` chama `appUpdate.onLoginSuccess()` no `LoginSuccess`).
+- **Cache-buster `?t=<epochMs>`** + header `Cache-Control: no-cache` na request (IDR-017).
 
 ### Descobertas
 
-(a preencher pelo agente)
+- **O service worker padrão do Flutter ativa-se ao receber a STRING `'skipWaiting'`, não o objeto `{type:'SKIP_WAITING'}`** que a estória cita. Para funcionar de fato com o SW de STORY-008, o `ServiceWorkerBridge` web envia **as duas** mensagens à instância em `waiting` (a string aciona o SW do Flutter; o objeto é ignorado por ele, mas fica robusto caso o SW mude). Sem a string, o `SKIP_WAITING` não teria efeito.
+- **Ordem dos headers no `firebase.json` importa (last-wins).** `/flutter_service_worker.js` casa também com o glob `**/*.@(js|css|wasm)` (immutable). Para o `no-cache` vencer, o bloco específico precisa vir **depois** do glob (confirmado pelo padrão já documentado no target landing deste mesmo `firebase.json`).
+- **`dev` desabilita a checagem (IDR-017)** → em build local (`APP_VERSION=dev`) o banner nunca aparece por design. Logo, o E2E do banner (CA-16) só roda contra um build com tag real (homolog ou `--dart-define=APP_VERSION`). O spec Playwright faz `test.skip` automático quando `/version.json` retorna `dev`.
+- O `build web` com `--dart-define=APP_VERSION` compila os arquivos `*_web.dart` (validação que os testes em VM não dão) e o **Wasm dry run** também passou.
 
 ### Bloqueios encontrados
 
-(a preencher pelo agente)
+- Nenhum bloqueio técnico. Pendências de fechamento que **não são minhas** (PO/deploy): aceite do PO no IDR-017 (CA-14), execução do E2E Playwright contra um build com tag real (CA-16) e o smoke mobile assinado pelo PO (CA-17). Ver "Resultado final".
 
 ### IDRs criados
 
-- IDR-017 — Auto-atualização do WebApp: polling + SKIP_WAITING + banner — (status a preencher pelo agente após aceite do PO)
+- IDR-017 — Auto-atualização do WebApp: polling + SKIP_WAITING + banner — **`proposed`** (aguarda OK do PO em chat para virar `accepted` — CA-14).
 
 ### Cobertura final
 
-(a preencher pelo agente)
+- **Novo código (linhas executáveis em VM): 100% (133/133).** Peças puras todas a 100%: `AppVersion`, `AppVersionService`, `AppUpdateController`, `UpdateBanner`, `AppVersionLabel`. Stubs de plataforma também a 100%.
+- Os arquivos browser-only (`service_worker_bridge_web.dart`, `visibility_watcher_web.dart`) não entram na cobertura de VM (não são compilados lá) — cobertos pelo E2E em browser (CA-16) e validados pelo `flutter build web`.
+- Suíte completa do webapp: **97 testes verdes**. `flutter analyze`: 0 issues no código novo (2 `info` pré-existentes em validators de cadastro, não tocados, tolerados pelo CI `--no-fatal-infos`). `dart format` limpo em `lib/`.
 
 ### Resultado final / evidência
 
-(a preencher pelo agente)
+**Implementado e verificado localmente (CAs cobertos por testes):**
+
+- CA-1/CA-2/CA-3/CA-7 — `test/app_update/app_version_service_test.dart` + `app_update_controller_test.dart` (incl. fakeAsync para o timer de 5 min; triggers bootstrap/visibility/login; "Depois" não persiste).
+- CA-4/CA-5 (lado Dart) — `test/app_update/update_banner_test.dart` (banner no topo, microcopy fixo, CTAs, Semantics liveRegion, "Atualizar agora" chama o bridge, "Depois" esconde, conteúdo abaixo permanece).
+- CA-8/CA-9/CA-10/CA-11 — assertions de Key nas suítes de `login`, `pre_cadastro_profissional`, `pre_cadastro_contratante` e novo `app_shell_screen_test.dart`.
+- CA-12 — `/info` (welcome estático) não foi tocada; label de versão não foi adicionada lá.
+- CA-13 — `firebase.json`: `/flutter_service_worker.js` com `no-cache, no-store, must-revalidate` nos targets `homolog` **e** `prod`.
+- CA-15 — cobertura ≥ 95% nas peças puras (100%) e ≥ 80% no novo código (100%).
+
+**Pendente (gates de PO/deploy — fora do meu alcance nesta sessão):**
+
+- CA-14 — IDR-017 `accepted` após OK do PO.
+- CA-16 — rodar `npx playwright test app-update` (spec já escrita em `tests/e2e/app-update.spec.ts`) contra um build com tag real (homolog).
+- CA-17 — smoke mobile assinado pelo PO após release `rc.N` em homolog.
+
+**Comando de verificação CA-13 pós-deploy:** `curl -I https://app.homolog.turni.com.br/flutter_service_worker.js` deve retornar `Cache-Control: no-cache, no-store, must-revalidate`.

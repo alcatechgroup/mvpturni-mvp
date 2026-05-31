@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/app_update/app_update.dart';
+import '../../ds/components/app_version_label.dart';
 import '../../ds/tokens.dart';
 import 'auth_service.dart';
 
@@ -49,6 +51,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     switch (result) {
       case LoginSuccess(:final session):
+        // Trigger (iii) da auto-atualização: checa versão ao logar (STORY-037 CA-2).
+        appUpdate.onLoginSuccess();
         _redirect(session);
       case LoginAdminRedirect(:final backofficeUrl):
         setState(() => _banner = _BannerState.adminRedirect(backofficeUrl));
@@ -332,6 +336,12 @@ class _LoginForm extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+
+          // Versão rodando no dispositivo — rodapé discreto (STORY-037 CA-8).
+          const SizedBox(height: TurniSpacing.lg),
+          const Center(
+            child: AppVersionLabel(key: Key('app-version-label-login')),
           ),
         ],
       ),

@@ -49,10 +49,18 @@ dependencies:
   # Upload de foto no pré-cadastro (STORY-017 / IDR-009). Cross-platform; em web usa
   # image_picker_for_web (input file nativo). Reutilizável por STORY-018/023.
   image_picker: ^1.1.2
+  # Interop com service worker + visibilitychange na auto-atualização do WebApp
+  # (STORY-037 / IDR-017). Já vem transitivo do Flutter SDK; declarado para
+  # satisfazer depend_on_referenced_packages. Só usado atrás de conditional import
+  # (dart.library.js_interop) — testes em VM usam o stub no-op.
+  web: ^1.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # Controle determinístico de Timer.periodic nos testes do AppUpdateController
+  # (STORY-037). Já vem transitivo do flutter_test; declarado para uso direto.
+  fake_async: ^1.3.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

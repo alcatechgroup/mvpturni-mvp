@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../ds/components/app_version_label.dart';
 import '../../ds/tokens.dart';
 import 'cadastro_service.dart';
 import 'shared/cadastro_widgets.dart';
@@ -446,6 +447,14 @@ class _PreCadastroProfissionalScreenState
               onRetry: _submit,
             ),
           ],
+
+          // Versão rodando no dispositivo — rodapé discreto (STORY-037 CA-9).
+          const SizedBox(height: TurniSpacing.lg),
+          const Center(
+            child: AppVersionLabel(
+              key: Key('app-version-label-cadastro-profissional'),
+            ),
+          ),
         ],
       ),
     );

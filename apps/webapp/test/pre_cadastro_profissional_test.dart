@@ -111,6 +111,11 @@ void main() {
     expect(find.byKey(const Key('check-termos')), findsOneWidget);
     expect(find.byKey(const Key('btn-submit-cadastro')), findsOneWidget);
     expect(find.text('Criar conta de profissional'), findsOneWidget);
+    // Rótulo de versão discreto no rodapé (STORY-037 CA-9).
+    expect(
+      find.byKey(const Key('app-version-label-cadastro-profissional')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('submit vazio mostra erros de campo e bloqueia (CA-2/CA-5)', (

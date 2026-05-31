@@ -81,6 +81,17 @@ void main() {
       expect(find.byKey(const Key('btn-toggle-password')), findsOneWidget);
     });
 
+    testWidgets('tem rótulo de versão discreto no rodapé (STORY-037 CA-8)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_loginApp());
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('app-version-label-login')), findsOneWidget);
+      // Sem --dart-define no teste, mostra a versão de dev.
+      expect(find.text('Turni · dev'), findsOneWidget);
+    });
+
     testWidgets('tem link "Esqueci minha senha" com key correta', (
       tester,
     ) async {
@@ -90,39 +101,41 @@ void main() {
       expect(find.byKey(const Key('link-forgot-password')), findsOneWidget);
     });
 
-    testWidgets('tem link de criar conta de profissional que leva ao pré-cadastro', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_loginApp());
-      await tester.pumpAndSettle();
+    testWidgets(
+      'tem link de criar conta de profissional que leva ao pré-cadastro',
+      (tester) async {
+        await tester.pumpWidget(_loginApp());
+        await tester.pumpAndSettle();
 
-      final link = find.byKey(const Key('link-criar-conta'));
-      expect(link, findsOneWidget);
+        final link = find.byKey(const Key('link-criar-conta'));
+        expect(link, findsOneWidget);
 
-      await tester.tap(link);
-      await tester.pumpAndSettle();
-      expect(
-        find.text('cadastro'),
-        findsOneWidget,
-      ); // navegou para /cadastro/profissional
-    });
+        await tester.tap(link);
+        await tester.pumpAndSettle();
+        expect(
+          find.text('cadastro'),
+          findsOneWidget,
+        ); // navegou para /cadastro/profissional
+      },
+    );
 
-    testWidgets('tem link de criar conta de estabelecimento que leva ao pré-cadastro', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_loginApp());
-      await tester.pumpAndSettle();
+    testWidgets(
+      'tem link de criar conta de estabelecimento que leva ao pré-cadastro',
+      (tester) async {
+        await tester.pumpWidget(_loginApp());
+        await tester.pumpAndSettle();
 
-      final link = find.byKey(const Key('link-criar-conta-contratante'));
-      expect(link, findsOneWidget);
+        final link = find.byKey(const Key('link-criar-conta-contratante'));
+        expect(link, findsOneWidget);
 
-      await tester.tap(link);
-      await tester.pumpAndSettle();
-      expect(
-        find.text('cadastro-contratante'),
-        findsOneWidget,
-      ); // navegou para /cadastro/contratante
-    });
+        await tester.tap(link);
+        await tester.pumpAndSettle();
+        expect(
+          find.text('cadastro-contratante'),
+          findsOneWidget,
+        ); // navegou para /cadastro/contratante
+      },
+    );
 
     testWidgets('validação exibe erro para campos vazios', (tester) async {
       await tester.pumpWidget(_loginApp());
