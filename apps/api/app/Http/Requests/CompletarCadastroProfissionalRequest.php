@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Domain\Aceites\ChavePixValidator;
 use App\Domain\Aceites\DocumentoValidator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -45,14 +44,10 @@ class CompletarCadastroProfissionalRequest extends FormRequest
             'raio_max_km' => ['required', 'integer', 'min:1', 'max:500'],
             'preco_hora' => ['required', 'numeric', 'min:1', 'max:100000'],
             'bio' => ['nullable', 'string', 'max:500'],
-            'chave_pix' => [
-                'required', 'string', 'max:140',
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    if (! ChavePixValidator::valida((string) $value)) {
-                        $fail('Informe uma chave Pix válida (CPF, CNPJ, e-mail, telefone +55… ou chave aleatória).');
-                    }
-                },
-            ],
+            // Validação de FORMATO da chave Pix deferida (decisão PO 2026-05-31): Pix tem 5
+            // tipos + regras do DICT; fora do escopo do MVP agora. Por ora só exigimos não-vazia.
+            // O `ChavePixValidator` continua no domínio para reativar numa estória futura.
+            'chave_pix' => ['required', 'string', 'max:140'],
             'documento_comprobatorio' => [
                 Rule::requiredIf(! $this->ehPreview()),
                 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240', // 10 MB (CA-5)

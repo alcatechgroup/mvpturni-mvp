@@ -177,8 +177,12 @@ test('CPF inválido é rejeitado na validação', function () {
         ->assertStatus(422)->assertJsonValidationErrors('documento');
 });
 
-test('chave Pix inválida é rejeitada na validação', function () {
-    submitCompletar(profissionalAwaitCadastro('PF'), ['chave_pix' => 'nao-eh-chave'])
+test('chave Pix aceita qualquer valor não-vazio (validação de formato deferida no MVP)', function () {
+    // Valor de formato livre (nem CPF/CNPJ/e-mail válido) agora é aceito.
+    submitCompletar(profissionalAwaitCadastro('PF'), ['chave_pix' => 'minha-chave-livre-123'])
+        ->assertStatus(201);
+    // ...mas continua obrigatória (não-vazia).
+    submitCompletar(profissionalAwaitCadastro('PF'), ['documento' => '111.444.777-35', 'chave_pix' => ''])
         ->assertStatus(422)->assertJsonValidationErrors('chave_pix');
 });
 
