@@ -293,9 +293,14 @@ revelou que a app logava `email.*.falhou` mas **não havia métrica/alerta** no 
   Logging parseia jsonPayload. Estrutura Monolog: evento em `jsonPayload.message`, campos sob
   `jsonPayload.context.*` (filtro/extractor ajustados a isso).
 - Validado em homolog: worker loga jsonPayload (`email.sent` com `context.tipo/message_id`); o
-  filtro da métrica casa com a estrutura real (provado via `jsonPayload.message="email.sent"`);
-  o env sobreviveu ao `gcloud run jobs update --image` do CI na rc.28. Infra aplicada via
+  env sobreviveu ao `gcloud run jobs update --image` do CI na rc.28. Infra aplicada via
   `terraform apply` (não passa pelo release.yml).
+- **Teste de falha terminal real (2026-05-31):** enfileirado `recuperacao_senha` p/ destinatário
+  inválido (sem `@`) → worker esgotou as 3 tentativas (backoff 30s/300s) → evento terminal
+  `email.recuperacao.falhou` → métrica `turni_homolog_email_failures` = **1** (`tipo=recuperacao_senha`)
+  → alert policy **disparou** → **e-mail de alerta do Cloud Monitoring recebido** ("...is above
+  threshold of 0 with a value of 1", job_name=turni-worker-job-homolog). Ciclo completo
+  (envio→falha→retries→métrica→alerta→e-mail) provado com falha real, não só estrutural.
 
 ### Links de evidência
 
