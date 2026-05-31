@@ -107,12 +107,19 @@ Para cada funcionalidade nova/alterada, eu cobri:
 
 ### Bloco 6 — Lint, formatação, build
 
-- [ ] Linter limpo (zero warnings/errors).
+> **Atenção máxima neste bloco.** Pipeline de CI quebrada por lint é falha evitável que custa tempo do time inteiro. Esse bloco precisa ser **rodado localmente antes de cada push**, não só no fim da estória.
+
+- [ ] **Linter rodado LOCALMENTE** (não confiei no CI pra descobrir).
+- [ ] **Zero warnings, zero errors** — sem exceção. Warning suprimido tem comentário justificando a supressão e foi mencionado no PR.
 - [ ] Formatador rodou — arquivos com formatação consistente.
 - [ ] Build do projeto roda sem erro (tipos, transpilação, etc).
+- [ ] Hook de pre-commit/pre-push (se existir) **não foi bypassado** com `--no-verify`.
 - [ ] Não há código comentado, `console.log`/`print` esquecido, ou `TODO` órfão.
+- [ ] Não desliguei regra global de lint sem ADR/IDR aprovado.
 
-**Como verificar:** comando do linter, do formatador, do build do projeto.
+**Como verificar:** rode o comando exato do linter, do formatador e do build do projeto **antes do push**. Se não sabe qual é, descubra no `package.json`/`Makefile`/README — não suba sem rodar.
+
+**Se o CI quebrar por lint depois do push:** pare o que está fazendo e conserte imediatamente. Pipeline vermelha bloqueia o time. Não acumule "fix lint" como commit pra depois.
 
 ---
 

@@ -78,6 +78,21 @@ Detalhamento em `references/testing-discipline.md`. Em resumo — e isso é cent
 - **Mocks com critério.** Mock para colaborador externo (rede, fornecedor de pagamento, etc), não para esconder acoplamento ruim.
 - **Antes de marcar pronto, rode a suíte INTEIRA.** Não só os seus testes. Se você quebrou outro teste, é problema seu.
 
+## Disciplina de lint (cuidado absoluto — não quebre o CI)
+
+**O lint é parte do contrato de qualidade, não uma sugestão.** Empurrar warning/error de lint para o CI descobrir é desleixo e quebra a pipeline do time. Isso não é aceitável.
+
+Regras inegociáveis:
+
+- **Antes de CADA push** (não só antes do PR): rode o linter e o formatador localmente. Se o projeto tem hook de pre-commit/pre-push, **use-o** — não bypasse com `--no-verify`.
+- **Zero warnings, zero errors.** Não existe "warning não importa". Se um warning é falso positivo legítimo, suprima **explicitamente** no código com comentário justificando (`// eslint-disable-next-line <regra> — motivo`) e mencione no PR. Nunca suprima em massa, nunca desligue regra global sem ADR/IDR.
+- **Configure o editor para rodar lint ao salvar.** Erro pego no editor custa segundos; erro pego no CI custa minutos do time inteiro esperando re-rodar a pipeline.
+- **CI vermelho por lint é falha sua — conserte imediatamente.** Não empurre "fix lint" como commit separado horas depois; pare o que está fazendo e arrume. Pipeline vermelha bloqueia o time.
+- **Se o projeto não tem comando de lint claro, descubra antes de codar** (`package.json` scripts, `Makefile`, README). Programar sem saber como rodar lint é programar no escuro.
+- **Não suba código que você não rodou lint nele.** "Achei que estava limpo" não é desculpa.
+
+Anti-padrão recorrente a parar de fazer: subir o PR, deixar o CI rodar, descobrir que quebrou lint, mandar mais um commit "fix lint". **Esse ciclo gasta tempo do time e suja o histórico.** Rode local. Sempre.
+
 ## Disciplina de bibliotecas
 
 Antes de `npm install` / `pip install` / equivalente, **pense duas ou três vezes**. Detalhamento em `references/library-discipline.md`. Roteiro mental rápido:
@@ -114,7 +129,7 @@ Antes de marcar `status: in_review`, você passa pela checklist em `references/d
 - ✅ Casos inválidos e exceções testados (não só caminho feliz).
 - ✅ E2E rodando (browser real se for FE web).
 - ✅ **Suíte completa** do projeto verde — não só os seus testes.
-- ✅ Lint e formatador limpos.
+- ✅ **Lint e formatador limpos — rodados LOCALMENTE antes de cada push.** Zero warnings, zero errors. Não delegue isso para o CI descobrir.
 - ✅ PR aberto, linkado à estória, citando os CAs cobertos.
 - ✅ CI verde no PR.
 - ✅ Deploy automático para homologação verificado funcionando.
@@ -195,6 +210,8 @@ Diferente do anterior: você sabe o que precisa fazer, mas não consegue fazer. 
 - **Inventa decisão de produto ou arquitetura no meio do código** porque não quis parar pra perguntar.
 - Marca `done` sem rodar a suíte completa.
 - Marca `done` com qualquer teste falhando — mesmo "não relacionado".
+- **Faz push sem ter rodado lint e formatador localmente.** Deixar o CI descobrir warning/error de lint é desleixo que quebra a pipeline do time — inaceitável.
+- **Suprime regra de lint sem justificativa explícita** (`// eslint-disable` em massa, desligar regra global, `--no-verify` em hook).
 - Pula teste de exceção ou caso inválido alegando que "é trivial".
 - Adiciona lib sem registrar motivo (PR comment ou IDR).
 - Luta contra defaults do framework por preferência pessoal sem justificativa em IDR.
