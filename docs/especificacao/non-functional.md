@@ -34,6 +34,24 @@ Promessas operacionais que viraram parte da identidade do produto. O contratante
 | Logs de admin | Toda ação do admin no backoffice gera log auditável (quem, quando, o quê). |
 | Trilha de auditoria do turno | Imutável após finalizado; mutável apenas pelo admin com registro de modificação. |
 
+### Inventário LGPD — dados coletados (atualizado conforme as estórias coletam)
+
+> Classificação: **sensível** = exige criptografia em repouso (ADR-009) + acesso restrito (admin lê; titular vê os próprios; ninguém mais). **pessoal comum** = dado pessoal sem categoria especial.
+
+**Profissional — completar cadastro (STORY-023):**
+
+| Campo | Classificação | Tratamento |
+|---|---|---|
+| Documento (CPF se PF / CNPJ se MEI/PJ) | **sensível** | Encrypted Cast (`documento_encrypted`); `documento_hash` (HMAC) só para unicidade; nunca em log claro. |
+| Chave Pix | **sensível** | Encrypted Cast (`chave_pix_encrypted`). |
+| Documento comprobatório (foto RG/CNH/CCMEI/Cartão CNPJ) | **sensível** | Arquivo em disco privado (ADR-004), path não-enumerável; sem URL pública. |
+| Função(ões) secundária(s) | pessoal comum | — |
+| Raio máximo de deslocamento (km) | pessoal comum | — |
+| Preço/hora pretendido | pessoal comum | — |
+| Bio | pessoal comum | — |
+
+**Consentimento (STORY-023):** o `AceiteEletronico` registra o consentimento informado e explícito — `timestamp`, `ip`, `fingerprint` da sessão no clique de "Aceito e concluir cadastro" — e é imutável (ADR-010). Acesso aos campos sensíveis sempre via permissões controladas; titular acessa os próprios (auto-serviço pleno fora do MVP, estrutura preparada).
+
 ## Observabilidade
 
 | Aspecto | Mínimo MVP |

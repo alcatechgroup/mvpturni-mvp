@@ -57,11 +57,15 @@ class UserSession {
   /// Primeiro nome para saudação ("Bem-vindo(a), {firstName}!"). Vazio se sem nome.
   String get firstName => name.trim().split(RegExp(r'\s+')).first;
 
-  UserSession copyWith({bool? welcomeVisto, bool? cadastroCompleto}) {
+  UserSession copyWith({
+    String? status,
+    bool? welcomeVisto,
+    bool? cadastroCompleto,
+  }) {
     return UserSession(
       name: name,
       role: role,
-      status: status,
+      status: status ?? this.status,
       welcomeVisto: welcomeVisto ?? this.welcomeVisto,
       cadastroCompleto: cadastroCompleto ?? this.cadastroCompleto,
     );
@@ -223,6 +227,18 @@ class AuthService extends ChangeNotifier {
     _session = updated;
     notifyListeners();
     return true;
+  }
+
+  /// Marca o cadastro como concluído após o aceite (STORY-023). O servidor já transicionou
+  /// o usuário para `ativo` na transação; aqui só reidratamos a sessão local e notificamos o
+  /// router (que então libera a home — funnelState passa a `active`).
+  Future<void> markCadastroCompleto() async {
+    final base = _session;
+    if (base == null) return;
+    final updated = base.copyWith(status: 'ativo', cadastroCompleto: true);
+    await _saveSession(updated);
+    _session = updated;
+    notifyListeners();
   }
 
   Future<void> logout() async {

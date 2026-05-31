@@ -1,0 +1,259 @@
+<!doctype html>
+<!--
+  Protótipo de validação (NÃO é código de produção) — SCREEN-STORY-023.
+  Completar cadastro do Profissional: wizard 3 passos → preview do contrato → aceite → conclusão.
+  HTML/CSS/JS vanilla, sem build, sem rede. Tokens fiéis ao DDR-001 (tema profissional, verde).
+  Topo: seletor de viewport (mobile/desktop) + seletor de estado (passos, preview, sucesso, erros).
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCREEN-023 — Completar cadastro do Profissional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bebas+Neue&display=swap');
+  :root{
+    --b:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --page:#F7F4EC; --surface:#FFFFFF; --border:#E0DDD3; --border-strong:#C9C4B6;
+    --text:#0F1B2D; --text-muted:#42504A;
+    --shadow:0 1px 2px rgba(15,27,45,.04),0 8px 24px rgba(15,27,45,.06);
+    --error:#B83A3A; --error-soft:#FBE2E2;
+    --brand:#00A868; --cta:#2D5F3F; --link:#2D5F3F; --on-cta:#FFFFFF;
+  }
+  [data-theme="dark"]{
+    --page:#0F1411; --surface:#1A2018; --border:#2A322D; --border-strong:#3A443C;
+    --text:#ECEDE5; --text-muted:#A8B2A8; --error:#D85A5A; --error-soft:rgba(216,90,90,.16);
+    --brand:#00A868; --cta:#5FA37C; --link:#5FA37C; --on-cta:#0F1411;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--b);background:#222;color:var(--text);line-height:1.5}
+  .proto{position:sticky;top:0;z-index:80;background:#0F1B2D;color:#ECEDE5;display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 14px;font-size:12px}
+  .proto strong{margin-right:6px}
+  .proto .sep{width:1px;height:18px;background:rgba(255,255,255,.2);margin:0 4px}
+  .proto button{font-family:var(--b);font-size:12px;background:rgba(255,255,255,.08);color:#ECEDE5;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 11px;cursor:pointer}
+  .proto button.on{background:#00A868;color:#fff;border-color:transparent}
+  .stage{display:flex;justify-content:center;padding:24px;background:#222;min-height:100vh}
+  .stage.mobile .frame{width:390px;border:1px solid #000;border-radius:28px;box-shadow:var(--shadow);overflow:hidden;background:var(--page)}
+  .stage.desktop .frame{width:760px;background:var(--page);border-radius:16px;overflow:hidden}
+  .screen{background:var(--page);min-height:720px;padding:28px 22px}
+  .brand{font-family:'Bebas Neue',var(--b);font-size:38px;letter-spacing:1px;color:var(--brand);line-height:1}
+  h1{font-size:24px;font-weight:600;margin:14px 0 4px}
+  .lede{color:var(--text-muted);font-size:14px;margin:0 0 18px}
+  /* stepper */
+  .steps{display:flex;gap:6px;margin-bottom:18px}
+  .pill{flex:1;height:5px;border-radius:999px;background:var(--border-strong)}
+  .pill.on{background:var(--cta)}
+  .steptitle{font-size:13px;font-weight:600;color:var(--cta);margin-bottom:10px}
+  label.f{display:block;font-size:13px;font-weight:500;margin:14px 0 5px}
+  input.t{width:100%;height:46px;border:1px solid var(--border-strong);border-radius:10px;background:var(--surface);color:var(--text);padding:0 12px;font-size:15px;font-family:var(--b)}
+  .help{font-size:12px;color:var(--text-muted);margin-top:5px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .chip{border:1px solid var(--border-strong);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;background:var(--surface)}
+  .chip.on{background:color-mix(in srgb,var(--cta) 16%,transparent);border-color:var(--cta);color:var(--cta);font-weight:600}
+  .upload{display:flex;gap:12px;align-items:center;border:2px solid var(--border-strong);border-radius:14px;padding:14px;margin-top:6px;cursor:pointer}
+  .upload .ic{color:var(--cta);font-size:20px}
+  .upload.done{border-color:var(--cta)}
+  .seclabel{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted);margin-top:22px;font-weight:600}
+  .row{display:flex;gap:10px;margin-top:24px}
+  .cta{height:48px;border:none;border-radius:999px;background:var(--cta);color:var(--on-cta);font-size:15px;font-weight:600;cursor:pointer;padding:0 22px;display:inline-flex;align-items:center;justify-content:center}
+  .cta:disabled{opacity:.45;cursor:not-allowed}
+  .ghost{height:48px;border:none;background:none;color:var(--cta);font-weight:600;cursor:pointer;padding:0 14px}
+  /* preview */
+  .pvhead{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}
+  .pvhead .back{border:none;background:none;font-size:20px;cursor:pointer;color:var(--text)}
+  .pvhead h2{font-size:16px;margin:0;font-weight:600}
+  .doc{background:var(--surface);border-radius:12px;margin:16px;padding:18px;height:360px;overflow:auto;font-size:14px;white-space:pre-wrap}
+  .doc h3{font-size:15px;margin:16px 0 6px}
+  .footer{border-top:1px solid var(--border);padding:16px 18px;background:var(--page)}
+  .hint{font-size:12px;color:var(--text-muted);margin:0 0 8px}
+  .accept{display:flex;align-items:flex-start;gap:8px}
+  .accept input{margin-top:4px;width:18px;height:18px;accent-color:var(--cta)}
+  .banner{display:flex;gap:8px;align-items:flex-start;background:var(--error-soft);border:1px solid color-mix(in srgb,var(--error) 50%,transparent);border-radius:10px;padding:12px;font-size:13px;margin:10px 0}
+  /* success */
+  .center{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:60px}
+  .check{width:64px;height:64px;border-radius:999px;border:3px solid var(--cta);color:var(--cta);display:flex;align-items:center;justify-content:center;font-size:34px;margin:18px 0}
+  .verlabel{text-align:center;color:var(--text-muted);font-size:11px;margin-top:24px}
+  .hidden{display:none}
+  /* bottom sheet do seletor de funções */
+  .sheet-ov{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center}
+  .sheet{background:var(--page);width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:8px 18px 18px;max-height:72vh;display:flex;flex-direction:column}
+  .grip{width:40px;height:4px;border-radius:999px;background:var(--border-strong);margin:6px auto 12px}
+  .optlist{flex:1;overflow:auto;margin:12px 0}
+  .opt{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--border);cursor:pointer;font-size:15px}
+  .opt input{width:18px;height:18px;accent-color:var(--cta)}
+</style>
+</head>
+<body data-theme="light">
+<div class="proto">
+  <strong>SCREEN-023</strong>
+  <span>viewport:</span>
+  <button id="vp-mobile" class="on" onclick="setVP('mobile')">mobile</button>
+  <button id="vp-desktop" onclick="setVP('desktop')">desktop</button>
+  <span class="sep"></span>
+  <button id="th" onclick="toggleTheme()">tema: claro</button>
+  <span class="sep"></span>
+  <span>estado:</span>
+  <button onclick="go('s1')" class="on" id="b-s1">passo 1</button>
+  <button onclick="go('s2')" id="b-s2">passo 2</button>
+  <button onclick="go('s3')" id="b-s3">passo 3</button>
+  <button onclick="go('pv')" id="b-pv">preview</button>
+  <button onclick="go('ok')" id="b-ok">sucesso</button>
+  <button onclick="go('dup')" id="b-dup">erro: doc duplicado</button>
+</div>
+
+<div class="stage mobile" id="stage">
+  <div class="frame"><div class="screen" id="screen"></div></div>
+</div>
+
+<script>
+const F = {
+  documento:'', raio:'30', preco:'45', bio:'', pix:'diego.pix@turni.com.br',
+  funcoes:new Set(), doc:false, lido:false, aceite:false, step:1, dup:false
+};
+const FUNCOES = ['Garçom','Bartender','Cozinheiro','Recepcionista','Auxiliar de cozinha','Copeiro','Maître','Sommelier','Hostess','Segurança','Camareira','Manobrista','Chapeiro','Confeiteiro'];
+const CONTRATO = `# Contrato de Prestação de Serviço Autônomo Eventual
+
+**Plataforma:** Turni
+**Tipo de profissional:** Pessoa Física (CPF)
+
+## Seção 1 — Termos gerais aplicáveis a todo turno
+
+### 1. Identificação do Profissional
+Nome completo: **Diego Teste**
+CPF: 529.982.247-25
+Endereço: Centro, São Paulo
+
+### 2. Natureza da relação
+Cada turno executado pelo Profissional tem caráter eventual e não habitual. A plataforma Turni atua como intermediadora tecnológica — não é empregadora do Profissional. Não há vínculo empregatício nem subordinação. A relação é regida pelos arts. 593 a 609 do Código Civil.
+
+### 3. Ausência de exclusividade
+O Profissional é livre para prestar serviços para outros contratantes, antes, durante e depois de qualquer relação estabelecida por esta plataforma.
+
+### 4. Autonomia operacional
+O Profissional define sua própria disponibilidade, sem obrigação de aceitar qualquer turno específico.
+
+### 5. Responsabilidade tributária
+Por tratar-se de prestação de serviço por pessoa física autônoma, o Contratante de cada turno é responsável por verificar e recolher, quando exigido, IRRF e INSS conforme a legislação vigente.
+
+### 6. Prazo de pagamento
+O pagamento é realizado via Pix em até 15 (quinze) minutos após a validação do check-out do turno.
+
+## Assinatura eletrônica
+| Campo | Valor |
+| Data e hora do aceite | 30/05/2026 14:00:00 |
+| Endereço IP | 203.0.113.7 |
+| Identificador de sessão (fingerprint) | a1b2c3d4e5f6… |
+
+O aceite eletrônico tem validade jurídica nos termos da MP 2.200-2/2001 e da Lei 14.063/2020. O documento é imutável após a geração do aceite.`;
+
+let VIEW = 's1';
+function setVP(v){ document.getElementById('stage').className='stage '+v;
+  document.getElementById('vp-mobile').classList.toggle('on',v==='mobile');
+  document.getElementById('vp-desktop').classList.toggle('on',v==='desktop'); }
+function toggleTheme(){ const b=document.body; const d=b.dataset.theme==='dark';
+  b.dataset.theme=d?'light':'dark'; document.getElementById('th').textContent='tema: '+(d?'claro':'escuro'); }
+function go(v){ VIEW=v; F.dup=(v==='dup'); if(v.startsWith('s')) F.step=+v[1];
+  ['s1','s2','s3','pv','ok','dup'].forEach(x=>document.getElementById('b-'+x).classList.toggle('on',x===v));
+  render(); }
+
+function render(){
+  const s=document.getElementById('screen');
+  if(VIEW==='ok'){ s.innerHTML=success(); return; }
+  if(VIEW==='pv'){ s.outerHTML=`<div class="screen" id="screen">${preview()}</div>`; bindPreview(); return; }
+  s.innerHTML = form();
+}
+
+function form(){
+  const e = F.dup ? `<div class="banner"><b>!</b><span>Não foi possível concluir o cadastro. Verifique os dados e tente novamente.</span></div>` : '';
+  const st = F.step;
+  return `<div class="brand">TURNI.</div>
+    <h1>Complete seu cadastro</h1>
+    <p class="lede">Faltam alguns dados para você começar a pegar turnos.</p>
+    <div class="steps">${[1,2,3].map(i=>`<div class="pill ${i<=st?'on':''}"></div>`).join('')}</div>
+    ${e}
+    ${st===1?step1():st===2?step2():step3()}
+    <div class="row">
+      ${st>1?`<button class="ghost" onclick="F.step--;render()">Voltar</button>`:''}
+      <button class="cta" onclick="next()">${st<3?'Continuar':'Revisar e assinar o contrato'}</button>
+    </div>
+    <div class="verlabel">v1.0.0 (dev)</div>`;
+}
+function step1(){ return `<div class="steptitle">Passo 1 — Identidade</div>
+  <label class="f">CPF</label>
+  <input class="t" placeholder="000.000.000-00" value="${F.documento}" oninput="F.documento=this.value">
+  <div class="help">Só você e a equipe Turni veem esse dado.</div>`; }
+function step2(){
+  const sel=[...F.funcoes];
+  const chips = sel.length
+    ? `<div class="chips" style="margin-bottom:8px">${sel.map(f=>`<div class="chip on" onclick="toggleF('${f}')">${f} ✕</div>`).join('')}</div>` : '';
+  return `<div class="steptitle">Passo 2 — Atuação</div>
+  <div class="seclabel">Funções secundárias (opcional)</div>
+  ${chips}
+  <button class="ghost" style="border:1px solid var(--cta);border-radius:999px;height:42px" onclick="openFuncoes()">+ ${sel.length?'Adicionar ou remover':'Adicionar funções'}</button>
+  <label class="f">Até quantos km você se desloca?</label>
+  <input class="t" value="${F.raio}" oninput="F.raio=this.value"><div class="help">Ex.: 30</div>
+  <label class="f">Seu preço por hora (R$)</label>
+  <input class="t" value="${F.preco}" oninput="F.preco=this.value"><div class="help">Quanto você cobra por hora de trabalho.</div>
+  <label class="f">Conte rápido sua experiência (opcional)</label>
+  <input class="t" value="${F.bio}" oninput="F.bio=this.value"><div class="help">Até 500 caracteres.</div>`; }
+function step3(){ return `<div class="steptitle">Passo 3 — Financeiro e documento</div>
+  <label class="f">Sua chave Pix</label>
+  <input class="t" value="${F.pix}" oninput="F.pix=this.value">
+  <div class="help">É nela que você recebe em até 15 min após cada turno.</div>
+  <div class="seclabel">Documento comprobatório</div>
+  <div class="upload ${F.doc?'done':''}" onclick="F.doc=true;render()">
+    <span class="ic">${F.doc?'✓':'⬆'}</span>
+    <div><div style="font-weight:500">${F.doc?'rg.jpg':'Foto do seu documento'}</div>
+    <div class="help">RG ou CNH — JPG, PNG ou PDF até 10 MB.</div></div>
+  </div>`; }
+function toggleF(f){ F.funcoes.has(f)?F.funcoes.delete(f):F.funcoes.add(f); render(); }
+function openFuncoes(){
+  let q='';
+  const ov=document.createElement('div'); ov.className='sheet-ov';
+  const draw=()=>{ const list=FUNCOES.filter(f=>f.toLowerCase().includes(q.toLowerCase()));
+    ov.innerHTML=`<div class="sheet">
+      <div class="grip"></div>
+      <h2 style="font-size:16px;margin:0 0 10px">Funções secundárias</h2>
+      <input class="t" placeholder="Buscar função" oninput="window.__q(this.value)" value="${q}">
+      <div class="optlist">${list.map(f=>`<label class="opt"><input type="checkbox" ${F.funcoes.has(f)?'checked':''} onchange="window.__t('${f}')"><span>${f}</span></label>`).join('')||'<p class="help" style="padding:14px">Nenhuma função encontrada.</p>'}</div>
+      <button class="cta" style="width:100%" onclick="window.__close()">Concluir${F.funcoes.size?' ('+F.funcoes.size+')':''}</button>
+    </div>`; };
+  window.__q=(v)=>{q=v;draw();}; window.__t=(f)=>{F.funcoes.has(f)?F.funcoes.delete(f):F.funcoes.add(f);draw();};
+  window.__close=()=>{document.body.removeChild(ov);render();};
+  ov.onclick=(e)=>{ if(e.target===ov) window.__close(); };
+  draw(); document.body.appendChild(ov);
+}
+function next(){ if(F.step<3){F.step++;render();} else { if(!F.doc){alert('Envie a foto do seu documento.');return;} go('pv'); } }
+
+function preview(){
+  return `<div class="pvhead"><button class="back" onclick="go('s3')">←</button><h2>Contrato de adesão Turni</h2></div>
+  <div class="doc" id="doc">${CONTRATO.replace(/^# .*$/m,'').replace(/## (.*)/g,'<h3>$1</h3>')}</div>
+  <div class="footer">
+    <p class="hint" id="hint">Role o contrato até o fim para habilitar o aceite.</p>
+    <label class="accept"><input type="checkbox" id="ck" disabled onchange="F.aceite=this.checked;syncCTA()">
+      <span>Li, entendi e aceito os termos do contrato.</span></label>
+    <div class="row"><button class="cta" id="accept" disabled onclick="go('ok')">Aceito e concluir cadastro</button></div>
+  </div>`;
+}
+function bindPreview(){
+  const doc=document.getElementById('doc');
+  const onScroll=()=>{ if(doc.scrollTop+doc.clientHeight>=doc.scrollHeight-24){ F.lido=true;
+    document.getElementById('ck').disabled=false; document.getElementById('hint').textContent='Você leu o contrato. Marque o aceite para concluir.'; } };
+  doc.addEventListener('scroll',onScroll);
+  if(doc.scrollHeight<=doc.clientHeight){ F.lido=true; document.getElementById('ck').disabled=false; }
+}
+function syncCTA(){ document.getElementById('accept').disabled=!(F.lido&&F.aceite); }
+
+function success(){ return `<div class="center">
+  <div class="brand">TURNI.</div>
+  <div class="check">✓</div>
+  <h1>Cadastro concluído. Bem-vindo ao Turni!</h1>
+  <p class="lede">Em breve você verá o feed de vagas.</p>
+  <div class="row"><button class="cta" onclick="alert('→ feed de vagas (EPIC-002)')">Ir para o Turni</button></div>
+</div>`; }
+
+render();
+</script>
+</body>
+</html>

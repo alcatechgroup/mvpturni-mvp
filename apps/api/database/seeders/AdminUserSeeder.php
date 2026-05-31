@@ -93,5 +93,38 @@ class AdminUserSeeder extends Seeder
             ['user_id' => $bemVindo->id],
             ['tipo_pessoa' => 'MEI'],
         );
+
+        // 5. Profissionais PF e MEI em `await_cadastro` para o E2E do completar-cadastro
+        //    (STORY-023 CA-15): status=liberado, welcome_seen_at=now, cadastro=null.
+        //    updateOrCreate reseta o estado a cada seed → o E2E é re-rodável (o check de
+        //    documento duplicado exclui o próprio usuário, então o mesmo CPF/CNPJ funciona).
+        foreach ([
+            ['email' => 'completar.pf@turni.local', 'nome' => 'Completar PF (seed)', 'tipo' => 'PF'],
+            ['email' => 'completar.mei@turni.local', 'nome' => 'Completar MEI (seed)', 'tipo' => 'MEI'],
+            // Usuário do teste de bloqueio (CA-8): nunca conclui o aceite, então permanece
+            // em await_cadastro e é re-rodável sem reseed.
+            ['email' => 'completar.bloqueio@turni.local', 'nome' => 'Completar Bloqueio (seed)', 'tipo' => 'PF'],
+        ] as $fix) {
+            $u = User::updateOrCreate(
+                ['email' => $fix['email']],
+                [
+                    'name' => $fix['nome'],
+                    'password' => $password,
+                    'role' => 'profissional',
+                    'status' => 'liberado',
+                    'welcome_seen_at' => now(),
+                    'cadastro_completed_at' => null,
+                ],
+            );
+            ProfissionalProfile::updateOrCreate(
+                ['user_id' => $u->id],
+                [
+                    'tipo_pessoa' => $fix['tipo'],
+                    'telefone' => '11999990000',
+                    'cidade' => 'São Paulo',
+                    'bairro' => 'Centro',
+                ],
+            );
+        }
     }
 }

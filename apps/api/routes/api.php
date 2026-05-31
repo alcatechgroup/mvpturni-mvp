@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Cadastro\ContratanteCadastroController;
 use App\Http\Controllers\Cadastro\FuncaoController;
 use App\Http\Controllers\Cadastro\ProfissionalCadastroController;
+use App\Http\Controllers\Usuario\CompletarCadastroController;
 use App\Http\Controllers\Usuario\WelcomeController;
 use App\Http\Middleware\FunnelGuard;
 use App\Http\Middleware\WebAppOnly;
@@ -37,6 +38,16 @@ Route::get('/funcoes', [FuncaoController::class, 'index']);
 // com 423). Idempotente — ver WelcomeController.
 Route::middleware(['auth:web', WebAppOnly::class, StartSession::class])->group(function () {
     Route::post('/usuarios/me/welcome-visto', [WelcomeController::class, 'markSeen']);
+
+    // Completar cadastro do profissional (STORY-023). Também FORA do FunnelGuard: o usuário
+    // está em `await_cadastro` quando submete. O preview renderiza o contrato sem persistir;
+    // o submit gera o AceiteEletronico e transiciona para `ativo` em transação atômica.
+    Route::get('/usuarios/me/completar-cadastro/contexto', [CompletarCadastroController::class, 'contexto'])
+        ->name('usuarios.me.completar-cadastro.contexto');
+    Route::post('/usuarios/me/completar-cadastro/preview', [CompletarCadastroController::class, 'preview'])
+        ->name('usuarios.me.completar-cadastro.preview');
+    Route::post('/usuarios/me/completar-cadastro', [CompletarCadastroController::class, 'completar'])
+        ->name('usuarios.me.completar-cadastro');
 });
 
 // Rotas protegidas — requerem sessão + WebApp-only + funnel guard
