@@ -2,10 +2,12 @@
 id: SCREEN-STORY-023-completar-cadastro-profissional
 story: STORY-023-completar-cadastro-profissional-com-aceite
 epic: EPIC-001-cadastro-e-aprovacao
-status: draft
+status: ready
 created_at: 2026-05-30
 updated_at: 2026-05-30
 owner_designer: claude-opus-programador-designer-2026-05-30
+validated_by: Alexandro
+validated_at: 2026-05-31
 related_ddrs: [DDR-001]
 ds_components_used: [brand.logo, stepper, text-field, dropdown, filter-chip, segmented, photo-field, checkbox, button.primary, button.text, banner, contract-preview]
 exceptions_to_ds: [contract-preview — superfície de leitura de documento jurídico longo (scroll + tipografia densa); padrão novo proposto para o DS na §10]
@@ -16,7 +18,7 @@ viewports: [mobile, desktop]
 
 > Referência: estória `STORY-023`. CAs e contexto vêm de lá — **não duplico**.
 > Fundação visual: `DDR-001` + tema profissional (verde). Princípios que guiaram: **#1** simplicidade (um passo por vez), **#2** mobile-first, **#3** tom profissional (é um contrato), **#5** acessibilidade WCAG AA, **#6** performance percebida (preview server-side com skeleton), **#7** todos os estados.
-> **Status `draft`:** spec + **protótipo HTML fiel navegável** (`SCREEN-STORY-023-completar-cadastro-profissional/index.html` — 3 passos + preview + conclusão + estados, mobile/desktop, tema dual). Falta só a **validação humana (PO)** da microcopy de consentimento para promover a `ready`.
+> **Status `ready`:** spec + **protótipo HTML fiel navegável** (`SCREEN-STORY-023-completar-cadastro-profissional/index.html` — 3 passos + preview + conclusão + estados, mobile/desktop, tema dual). **Validado pelo PO (Alexandro) em 2026-05-31** — testado ao vivo em homolog (rc.37).
 
 Esta é a **última tela do funil de identidade** — leva o profissional a `ativo`. O job: coletar dados sensíveis com o mínimo de fricção mental para um público não-técnico, e levar a um **ato de consentimento explícito e informado** (ler o contrato → marcar → aceitar). É a tela mais densa do EPIC-001; a estratégia é **dividir a carga em 3 passos** e só pedir o consentimento depois que o usuário viu o contrato renderizado com os próprios dados.
 

@@ -8,10 +8,12 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-023-completar-cadastro-profissional
-status: in_review
+status: done
 owner_agent: claude-opus-programador-designer-2026-05-30
 created_at: 2026-05-28
 updated_at: 2026-05-31
+approved_by: Alexandro
+approved_at: 2026-05-31
 estimated_session_size: L
 ---
 
@@ -70,24 +72,24 @@ Direto: profissional fica `ativo` e pronto para usar a plataforma. Aceite eletr�
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Rota `/completar-cadastro` em homolog renderiza fluxo real (substituindo placeholder) para profissional `liberado, welcome_visto=true`.
-- [ ] **CA-2:** Formulário coleta todos os campos listados em §O quê (item 3), com validação client + server e mensagens acionáveis.
-- [ ] **CA-3:** Validação de documento por `tipo_pessoa`: PF → CPF (formato + dígitos verificadores válidos); MEI/PJ → CNPJ (formato + dígitos válidos). Documento único no sistema; tentativa de cadastrar documento já existente bloqueia com erro genérico.
-- [ ] **CA-4:** Chave Pix validada (tipo + formato básico). Aceita CPF/CNPJ/e-mail/telefone/aleatória.
-- [ ] **CA-5:** Upload de documentos comprobatórios funciona (≤10 MB, JPG/PNG/PDF), MIME validado server-side, armazenamento conforme ADR-004 com signed URLs / path não enumerável.
-- [ ] **CA-6:** Dados sensíveis (CPF/CNPJ, chave Pix, fotos de documentos) criptografados em repouso conforme ADR-009. Verificação: query direta no Postgres não retorna texto claro (depende do mecanismo escolhido; trigger uma sql para evidência).
-- [ ] **CA-7:** Preview do contrato renderiza o **texto integral da versão ativa do template aplicável** com placeholders substituídos pelos dados do usuário. Texto coerente: só seção "Termos gerais" (sem turno específico). Visual legível (escala de fonte, espaçamento), tema dual claro/escuro.
-- [ ] **CA-8:** Checkbox "Li, entendi e aceito" + botão "Aceito e concluir cadastro" — o botão **só habilita** após checkbox marcado E preview exibido (testar que não é possível submeter sem preview visto).
-- [ ] **CA-9:** Clique final gera `AceiteEletronico` no banco com todos os campos corretos: `template_versao_id` correto (versão ativa no momento), `conteudo_renderizado` igual ao preview exibido, `dados_renderizados` JSON estruturado, `timestamp`, `ip`, `fingerprint` conforme ADR-010.
-- [ ] **CA-10:** Transação atômica: se qualquer parte (criação do aceite, atualização dos campos, transição de status) falhar, **nada** persiste; usuário recebe erro acionável e estado anterior preservado.
-- [ ] **CA-11:** Aceite **imutável**: tentativa de UPDATE/DELETE direto no Postgres numa linha de `aceites_eletronicos` falha (mecanismo de ADR-010). Evidência no runbook.
-- [ ] **CA-12:** Após aceite com sucesso, usuário transiciona para `ativo, cadastro_completo=true` e cai em placeholder de feed (texto + logout). Funnel guard não redireciona mais.
-- [ ] **CA-13:** Acessibilidade WCAG 2.1 AA em todo o fluxo (multi-step, preview, checkbox final); tema dual.
-- [ ] **CA-14:** Cobertura ≥ 80% / ≥ 98% no núcleo (validação documento por tipo_pessoa, transação atômica de aceite, renderização correta da versão ativa, criptografia em repouso, transição de status).
-- [ ] **CA-15:** **E2E em browser real**: (a) seed profissional `liberado, welcome_visto=true, tipo_pessoa=PF`; navega completar cadastro; preenche os 3 passos; vê preview com CPF + dados pessoais; aceita; cai em rota interna placeholder; verifica no banco que `AceiteEletronico` existe com `template_versao_id` correto e `conteudo_renderizado` igual ao preview. (b) Mesma sequência para MEI (CNPJ + template MEI/PJ). (c) Tentativa de aceitar sem checkbox marcado é bloqueada.
-- [ ] **CA-16:** **Cenário crítico de imutabilidade**: após aceite criado, admin ativa nova versão do template aplicável (STORY-020); aceite existente do usuário deste teste continua **referenciando a versão original** e renderizando exatamente o texto original. Teste E2E ou de integração cobre.
-- [ ] **CA-17:** Log estruturado (ADR-008): evento `user.cadastro_completed` com `user_id, role, tipo_pessoa, template_versao_id` — sem dado pessoal claro.
-- [ ] **CA-18:** LGPD: lista de campos coletados nesta estória atualizada em `docs/especificacao/non-functional.md` (ou arquivo dedicado) com classificação (CPF/CNPJ + foto de documento + chave Pix = **dados sensíveis**; demais = dados pessoais comuns). Acesso a esses campos sempre via permissões controladas (admin lê; outros não).
+- [x] **CA-1:** Rota `/completar-cadastro` em homolog renderiza o fluxo real (substitui o placeholder). Verificado em `app.homolog` (rc.37).
+- [x] **CA-2:** Formulário coleta todos os campos (3 passos), com validação client + server e mensagens acionáveis.
+- [x] **CA-3:** Documento validado por `tipo_pessoa` (CPF/CNPJ + dígitos); `documento_hash` único (IDR-018). Feature tests cobrem válido/inválido/duplicado.
+- [x] **CA-4:** Chave Pix exigida (não-vazia). **Validação de FORMATO deferida** por decisão PO (2026-05-31) — fora do escopo do MVP; `ChavePixValidator` fica no domínio para reativar (estória futura).
+- [x] **CA-5:** Upload (≤10 MB, JPG/PNG/PDF), MIME server-side, disco privado com path não-enumerável (ADR-004). Feature tests cobrem.
+- [x] **CA-6:** CPF/CNPJ + chave Pix em Encrypted Cast (ADR-009); doc comprobatório em disco privado. Feature test verifica ciphertext na query direta. *(Evidência psql em homolog: opcional — PO aceitou sem capturar.)*
+- [x] **CA-7:** Preview renderiza só a Seção 1 (Termos gerais) + Assinatura, com os dados do usuário, **formatado em markdown** (MarkdownLite); tema dual. Verificado em homolog.
+- [x] **CA-8:** Checkbox + CTA "Aceito e concluir" só habilita após preview rolado E checkbox marcado. Coberto por widget test + E2E (CA-8 verde local + homolog).
+- [x] **CA-9:** Aceite criado com `template_versao_id` da versão ativa, `conteudo_renderizado`, `dados_renderizados`, `ip`, `fingerprint`. Feature + E2E.
+- [x] **CA-10:** Transação atômica (rollback total em falha pós-escrita) — feature test com falha injetada no INSERT do aceite.
+- [x] **CA-11:** Trigger BEFORE UPDATE OR DELETE + REVOKE em `aceites_eletronicos`; feature test confirma `QueryException` em UPDATE/DELETE. *(Evidência psql em homolog: opcional — PO aceitou.)*
+- [x] **CA-12:** Transição `liberado → ativo, cadastro_completo=true` + tela de conclusão. Feature + widget + E2E.
+- [x] **CA-13:** Multi-step navegável por teclado, foco, `Semantics`, contraste, alvos ≥48dp, tema dual.
+- [x] **CA-14:** Núcleo bem coberto (renderer 95%, serviço/transação 97%, validador ~100%, request 100%). Suíte api 214 verde.
+- [x] **CA-15:** E2E Playwright (PF + MEI + bloqueio sem checkbox) verde local; CA-8 também verde **contra homolog** (rc.37).
+- [x] **CA-16:** Imutabilidade após nova versão coberta por teste de integração (feature): aceite mantém `template_versao_id` e `conteudo_renderizado` originais após ativação de v2.
+- [x] **CA-17:** Log `user.cadastro_completed` com `user_id, role, tipo_pessoa, template_versao_id`, sem PII clara. Feature test (Log::spy).
+- [x] **CA-18:** Inventário LGPD em `docs/especificacao/non-functional.md` com classificação (CPF/CNPJ + foto + Pix = sensíveis).
 
 ## Fora de escopo
 
@@ -208,6 +210,7 @@ Nenhum bloqueador. Uma flag de conteúdo registrada para o PO (meta-autoria no t
 ### IDRs criados
 
 - **IDR-018** — render do aceite de adesão por seções (Seção 1 + Assinatura) + `documento_hash` HMAC-SHA256 para unicidade sobre dado criptografado.
+- **IDR-019** — `SESSION_COOKIE=__session` na api atrás do Firebase Hosting (corrige 401 após login em homolog — bug geral pré-existente, não só STORY-023).
 
 ### Cobertura final
 
@@ -217,7 +220,13 @@ Backend (parcial — só o que foi entregue nesta fase). Núcleo bem coberto:
 
 ### Resultado final / evidência
 
-**STATUS: in_review (2026-05-31).** Backend + frontend + E2E completos e verdes localmente. Pendente: deploy homolog (push dispara CI) + smoke/CA-16 em homolog + validação do PO. Detalhe das 4 fases abaixo.
+**STATUS: done — aprovada por Alexandro (PO) em 2026-05-31.** Funcionando em homolog (rc.37, `app.homolog.turni.com.br/completar-cadastro`). Backend + frontend + E2E verdes (api 214, webapp 109, E2E PF/MEI/bloqueio; CA-8 verde também contra homolog). CAs 1–18 marcados — com 2 itens aceitos pelo PO: **CA-4** validação de FORMATO da chave Pix deferida (fora do MVP); evidência psql de homolog para CA-6/CA-11 não capturada (opcional — coberto por feature tests). Deploys: rc.33→rc.37.
+
+**Durante o trabalho corrigi 2 bugs reais que só apareciam fora do unit/feature:**
+1. `CompletarCadastroService` chamava `/sanctum/csrf-cookie` antes do POST autenticado → regenerava a sessão e deslogava (401). Pego pelo E2E em browser. Removido.
+2. **Bug geral de homolog (não só STORY-023):** auth quebrada atrás do Firebase Hosting — o Hosting só encaminha ao Cloud Run o cookie `__session`; o `laravel-session` era descartado → login 200 mas tudo depois 401. Corrigido com `SESSION_COOKIE=__session` + `SESSION_DRIVER=database` (IDR-019). Expôs gap: o E2E só roda contra localhost.
+
+**STATUS anterior: in_review (2026-05-31).** Backend + frontend + E2E completos e verdes localmente.
 
 **Bug real encontrado e corrigido pelo E2E (importante):** o `CompletarCadastroService` chamava `GET /sanctum/csrf-cookie` antes do POST autenticado (preview/completar) — hit no csrf-cookie no meio de uma sessão ativa **regenera a sessão e desloga o usuário** (401 → banner "Não conseguimos enviar agora"). Removido (mesmo padrão de `markWelcomeSeen`). Sem o E2E em browser real, isso só apareceria no celular do PO. Reforça a regra "validar no browser de verdade".
 
@@ -238,16 +247,13 @@ _(histórico da Fase 1 abaixo mantido)_
 
 **Pendente (fases 2–4):** ver §Pendências.
 
-### Pendências para fechar (para o PO validar de manhã)
+### Pendências para fechar
 
-✅ **Feito:** Frontend Flutter (tela real substitui placeholder; 3 passos + preview server-side + aceite gated + conclusão; widget tests). E2E Playwright CA-15 (PF + MEI + bloqueio). Designer: spec + protótipo HTML. CA-18 (inventário LGPD em `non-functional.md`). CA-16 coberto por teste de integração (feature). Suítes completas verdes + lint.
-
-⏳ **Resta para `done`:**
-1. **Deploy homolog** (o push na `main` dispara o CI) + smoke pelo navegador/celular do PO em `app.homolog.turni.com.br/completar-cadastro`.
-2. **Evidências em homolog:** CA-6 (psql mostra ciphertext) e CA-11 (UPDATE/DELETE em `aceites_eletronicos` falha) — comandos prontos no chat; rodar contra o banco de homolog. CA-16 também em homolog (ativar nova versão de template via Backoffice e confirmar que o aceite mantém a original).
-3. **Validação humana (PO)** do protótipo/microcopy de consentimento para promover `SCREEN-023` a `ready`.
-4. **Métrica de cadastros/dia** (observabilidade) — o log `user.cadastro_completed` já é emitido; o painel/contagem fica para a checagem de homolog.
-5. **Flag de conteúdo (PO):** limpar o texto-seed dos templates (remover `## Notas do PO` / `## Histórico de validação` do `conteudo`) — hoje o renderer os omite, mas o ideal é o seed conter só o documento jurídico.
+**Nenhuma bloqueante — estória `done` (PO aprovou 2026-05-31).** Carry-forward não-bloqueante (registrar como tarefas futuras, fora desta estória):
+1. **Validação de formato da chave Pix** (CA-4) — deferida do MVP; reativar `ChavePixValidator` (idealmente via DICT) numa estória futura.
+2. **Limpeza do texto-seed dos templates** — remover `## Notas do PO` / `## Histórico de validação` do `conteudo` (o renderer já os omite, mas o seed deveria conter só o documento jurídico). Decisão de conteúdo do PO.
+3. **Smoke autenticado pós-deploy no `release.yml`** (sinal de revisão do IDR-019) — o gap que escondeu o bug de auth de homolog (E2E só roda local).
+4. **Evidência psql opcional** em homolog para CA-6/CA-11 (já coberto por feature tests) — se o PO quiser registro no runbook.
 
 ### Links de evidência
 
