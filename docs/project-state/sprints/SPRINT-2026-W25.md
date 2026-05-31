@@ -35,11 +35,11 @@ O sprint **NÃO** abre frente nova: tudo é fechamento do EPIC-001. EPIC-002 (va
 
 | ID        | Título                                                                          | Épico    | Tipo           | Papel       | Tamanho | Design? | Status atual |
 | --------- | ------------------------------------------------------------------------------- | -------- | -------------- | ----------- | ------- | ------- | ------------ |
-| STORY-021 | E-mails transacionais (aprovação + lembrete completar cadastro + reset de senha) | EPIC-001 | implementation | programador | M       | sim     | **blocked** (por STORY-034) |
+| STORY-021 | E-mails transacionais (aprovação + lembrete completar cadastro + reset de senha) | EPIC-001 | implementation | programador | M       | sim     | **done** (2026-05-30) |
 | STORY-023 | Completar cadastro de Profissional no WebApp + geração do AceiteEletronico     | EPIC-001 | implementation | programador | **L**   | sim     | ready        |
 | STORY-024 | Completar cadastro de Contratante no WebApp + geração do AceiteEletronico       | EPIC-001 | implementation | programador | M       | sim     | ready        |
-| STORY-025 | Validação final do EPIC-001 Cadastro e aprovação                                 | EPIC-001 | validation     | validador   | M       | não     | ready        |
-| STORY-034 | Worker em Cloud Run Job + Cloud Scheduler (substitui GCE worker-vm)             | EPIC-001 | implementation | programador | M       | não     | ready        |
+| STORY-025 | Validação final do EPIC-001 Cadastro e aprovação                                 | EPIC-001 | validation     | validador   | M       | não     | ready (aguarda 023/024/037) |
+| STORY-034 | Worker em Cloud Run Job + Cloud Scheduler (substitui GCE worker-vm)             | EPIC-001 | implementation | programador | M       | não     | **done** (2026-05-30) |
 | STORY-037 | Auto-atualização do WebApp Flutter (consumidor do `version.json`) + versão visível na UI | EPIC-001 | implementation | programador | M       | sim     | ready        |
 
 **Sizing total**: 1 L + 5 M. **Atenção**: STORY-023 é L pelo número de campos × variação por `tipo_pessoa` × renderização do contrato + criação atômica do aceite. Critério de quebra está na própria estória (coleta vs. preview+aceite); se o agente sentir que não cabe em sessão única, escala ao PO antes de inflar — mesma régua de STORY-016 da W24. **STORY-034** entrou no escopo em 2026-05-30 (ver §Mudanças no escopo); na mesma data, depois de confirmar 5 gaps no GCE worker-vm, a escada Fase A foi descartada — vai direto para Fase B (Cloud Run Job + Scheduler), e **STORY-021 ficou formalmente `blocked` por STORY-034** até o worker novo estar de pé em homolog. É M porque toda a fiação (Direct VPC egress + `secret_env_vars` + `volumes.cloud_sql_instance`) já está provada pelo job `turni-migrate-homolog` (IDR-007) e pelo `cloud_run_api`. **STORY-037** entrou no escopo em 2026-05-30 (mesmo dia, ver §Mudanças no escopo): sem o consumidor do `version.json` no Flutter Web, a homologação pelo celular é **impossível** — qualquer release publicada fica pinada no dispositivo sem hard-reload manual, descaracterizando a validação mobile do EPIC-001 (STORY-021/023/024/025 só seriam testáveis pelo desktop). É M porque a infra do servidor já está pronta (`/version.json` publicado por IDR-002 + STORY-007; header `no-cache` em `firebase.json`; manifest e SW padrão por STORY-008 CA-11/12) — sobra apenas o lado cliente: polling + `SKIP_WAITING` + banner + label de versão em 3 telas. Diretriz já decidida em ADR-001 §"Auto-atualização do WebApp" (linhas 130-133) — STORY-037 implementa fielmente, não inventa.
@@ -168,6 +168,13 @@ Regras novas para W25:
 ## Aprendizados em curso (mid-sprint)
 
 > Para registrar conforme acontecem; consolidados na seção "Fechamento do sprint" no fim.
+
+### Snapshot 2026-05-30 (D+0/D+1) — progresso parcial
+
+- **Done (2/6)**: STORY-034 (worker Cloud Run Job + Scheduler) e STORY-021 (e-mails transacionais, CA-13 fechada em homolog com falha terminal real validada via alerta na rc.28).
+- **Ready (4/6)**: STORY-023, STORY-024, STORY-037, STORY-025 (esta última segue dependente de 023/024 — sem mudança).
+- **Velocidade**: 2 estórias M em ~1 dia útil, repetindo o padrão acelerado das W22/W23/W24. STORY-034 destravou STORY-021 conforme planejado; pré-cadastro→aprovação→welcome→e-mail real percorrido fim a fim em homolog.
+- **Próximo gargalo**: design das SCREEN-023/024 e Designer/Programador entrando em dupla na sessão de STORY-023 (L). STORY-037 entra em paralelo (sem `blocked_by`).
 
 ## Fechamento do sprint
 
