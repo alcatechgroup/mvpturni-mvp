@@ -43,3 +43,6 @@ infra/**/terraform.tfstate.backup
 # Firebase — token de auth local (não é o service account do CI)
 .firebase/
 
+# Obsidian — estado local do editor (UI, painéis); reescrito a cada poucos segundos
+.obsidian/
+
