@@ -310,7 +310,8 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 - **CA-13 verificado LIVE:** `curl -sI https://app.homolog.turni.com.br/flutter_service_worker.js` → `cache-control: no-cache, no-store, must-revalidate` ✅. `version.json` → `{"version":"v0.1.0-rc.29"}` ✅. `index.html` → no-cache ✅.
 - **CA-8 + CA-16 verificados em browser real (Playwright/Chromium contra homolog):** `BASE_URL=https://app.homolog.turni.com.br npx playwright test app-update` → **3 passed**. Cobre: (1) rodapé do login mostra "Turni · v0.1.0-rc.29"; (2) versão nova (mock) → banner "Nova versão disponível" → "Atualizar agora" recarrega; (3) "Depois" fecha o banner.
 
-**Pendente (gates do PO — Alexandro):**
+**CA-17 — smoke mobile VALIDADO (2026-05-31):** o PO (Alexandro) confirmou "FUNCIONOU" no celular — com a aba no `rc.31`, publicado o `rc.32`, o banner apareceu e "Atualizar agora" carregou o `rc.32` **sem limpeza manual**. Necessário o fix do `rc.31` (ver emenda do IDR-017): a primeira tentativa (rc.29→rc.30) falhava porque `main.dart.js`/`flutter_bootstrap.js` eram `immutable` e o `skipWaiting`/`controllerchange` é instável no iOS/WKWebView. Migração: aparelhos presos em versão ≤ rc.30 precisam de **uma** limpeza única para chegar ao rc.31; daí em diante atualiza sozinho.
 
-- **CA-14** — IDR-017 `proposed` → `accepted` após OK do PO nas 5 decisões operacionais.
-- **CA-17** — smoke mobile: com uma aba aberta no `rc.29` pelo celular, publicar `rc.30`; em ≤ 5 min (ou ao voltar do background) o banner aparece; "Atualizar agora" carrega o `rc.30` sem hard-reload. PO assina.
+**Pendente (gate do PO — Alexandro):**
+
+- **CA-14** — IDR-017 (`proposed`, já com a emenda do workaround) → `accepted` após OK do PO nas decisões operacionais + emenda.
