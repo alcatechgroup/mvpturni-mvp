@@ -31,8 +31,8 @@
           ]
         },
         {
-          "//": "Service worker do Flutter: no-cache para sempre revalidar (STORY-037 / ADR-001). Sem isso o SW serve main.dart.js velho e o app nunca atualiza. Vem DEPOIS do glob **/*.js (last-wins) para sobrescrever o immutable.",
-          "source": "/flutter_service_worker.js",
+          "//": "Entry chain do Flutter (nomes FIXOS, sem hash de conteúdo): index.html (no-cache) referencia flutter_bootstrap.js → main.dart.js, e o service worker é flutter_service_worker.js. Servi-los immutable os pina no aparelho por 1 ano e o app NUNCA atualiza, mesmo com reload (STORY-037 — causa-raiz confirmada em homolog). Por isso: no-cache. Os assets com hash (canvaskit/, assets/) seguem immutable pelo glob acima. Vem DEPOIS do glob **/*.js (last-wins).",
+          "source": "/@(main.dart|flutter|flutter_bootstrap|flutter_service_worker).js",
           "headers": [
             { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
           ]
@@ -78,8 +78,8 @@
           ]
         },
         {
-          "//": "Service worker do Flutter: no-cache para sempre revalidar (STORY-037 / ADR-001). Sem isso o SW serve main.dart.js velho e o app nunca atualiza. Vem DEPOIS do glob **/*.js (last-wins) para sobrescrever o immutable.",
-          "source": "/flutter_service_worker.js",
+          "//": "Entry chain do Flutter (nomes FIXOS, sem hash de conteúdo): index.html (no-cache) referencia flutter_bootstrap.js → main.dart.js, e o service worker é flutter_service_worker.js. Servi-los immutable os pina no aparelho por 1 ano e o app NUNCA atualiza, mesmo com reload (STORY-037 — causa-raiz confirmada em homolog). Por isso: no-cache. Os assets com hash (canvaskit/, assets/) seguem immutable pelo glob acima. Vem DEPOIS do glob **/*.js (last-wins).",
+          "source": "/@(main.dart|flutter|flutter_bootstrap|flutter_service_worker).js",
           "headers": [
             { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
           ]

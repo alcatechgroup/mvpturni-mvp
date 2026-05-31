@@ -127,10 +127,41 @@ As cinco decisões operacionais:
   mobile), reduzir a frequência ou trocar por badge silencioso no rodapé com versão
   clicável → "Atualizar". Não fazer ainda.
 
+## Emenda (2026-05-31) — "Atualizar agora" não funcionava no iOS/desktop: causa-raiz e workaround
+
+Validando o smoke CA-17 em homolog (rc.29 → rc.30), o banner aparecia (detecção OK), mas
+"Atualizar agora" **recarregava a MESMA versão** — em iOS (Safari e Chrome) **e** em desktop
+mesmo com force-reload. Causa-raiz confirmada por `curl`:
+
+- O `index.html` é `no-cache`, mas referencia `flutter_bootstrap.js` → `main.dart.js`, que têm
+  **nome de arquivo fixo (sem hash de conteúdo)** e estavam sendo servidos como
+  `public, max-age=31536000, immutable` (apanhados pelo glob `**/*.@(js|css|wasm)` do `firebase.json`).
+  O navegador então **nunca re-busca** esses arquivos por 1 ano → o reload reabre o bundle velho.
+- O `skipWaiting` não salvava: o sinal de versão nova vem do polling do `version.json`
+  (independente do ciclo do SW), então no clique quase nunca há SW em `waiting`; e no iOS
+  (WKWebView) os eventos de SW (`controllerchange`) são instáveis.
+
+**Decisões da emenda:**
+
+1. **`firebase.json`** passa a servir os arquivos de entrada de nome fixo do Flutter
+   (`main.dart.js`, `flutter.js`, `flutter_bootstrap.js`, `flutter_service_worker.js`) com
+   `no-cache, no-store, must-revalidate` (bloco depois do glob immutable — last-wins), nos dois
+   targets. Os assets com hash (`canvaskit/`, `assets/`) seguem `immutable`.
+2. **`ServiceWorkerBridge` (web)** abandona `skipWaiting`/`controllerchange` e passa a fazer
+   **`getRegistrations().unregister()` + limpar todo o Cache Storage + `location.reload()`** —
+   determinístico, sem depender de evento de SW. Sem SW controlando, o reload busca o entry chain
+   (agora no-cache) da rede e pega a versão nova. A página recarregada registra um SW novo.
+
+**Consequência:** a cada "Atualizar agora" o cache offline é descartado e re-baixado no próximo
+load (aceitável — é ação explícita e rara; o MVP não tem requisito offline). Migração: aparelhos
+presos numa versão **anterior à correção** (≤ rc.30) precisam de **uma** limpeza manual única
+para chegar na primeira versão corrigida; a partir dela, "Atualizar agora" funciona sozinho.
+
 ## Tipo
 
 - [ ] **Padrão transversal**: lib/abordagem que vira default no projeto.
-- [ ] **Workaround**: contornar bug/limitação documentado.
+- [x] **Workaround**: contornar limitação de plataforma (iOS/WKWebView + cache immutable de
+  arquivos de entrada de nome fixo do Flutter) — ver emenda 2026-05-31.
 - [x] **Convenção interna**: padrão de implementação local da auto-atualização do WebApp
   (parâmetros operacionais + conditional import para interop web).
 - [ ] **Otimização**: mudança feita por motivo de performance, com medição.

@@ -9,9 +9,10 @@ import 'service_worker_bridge_stub.dart'
 /// `dart.library.js_interop` resolve para o stub no-op, então o módulo é testável
 /// sem `package:web`.
 abstract interface class ServiceWorkerBridge {
-  /// Ativa o SW em waiting (envia `{type: 'SKIP_WAITING'}`), aguarda
-  /// `controllerchange` por até 2 s e dá `window.location.reload()`. Se não houver
-  /// SW em waiting ou o navegador não suportar, faz reload direto.
+  /// Ativa a nova versão e recarrega. A implementação web desregistra os service
+  /// workers + limpa o Cache Storage e dá `window.location.reload()` — abordagem
+  /// determinística que não depende de eventos de SW (instáveis no iOS/WKWebView).
+  /// Ver [service_worker_bridge_web.dart] para o porquê.
   Future<void> activateNewVersionAndReload();
 }
 
