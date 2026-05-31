@@ -1147,7 +1147,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": null,
-      "status": "in_progress",
+      "status": "done",
       "owner_agent": "programador-claude",
       "sprint_id": "SPRINT-2026-W25",
       "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-037-auto-atualizacao-webapp-e-versao-visivel-na-ui.md",
@@ -1156,7 +1156,7 @@
       "estimated_session_size": "M",
       "produces_idr": "IDR-017",
       "created_at": "2026-05-30",
-      "updated_at": "2026-05-30"
+      "updated_at": "2026-05-31"
     }
   ],
   "sprints": [
@@ -1773,10 +1773,11 @@
       {
         "id": "IDR-017",
         "title": "Auto-atualização do WebApp — polling do version.json + SKIP_WAITING + banner",
-        "status": "proposed",
+        "status": "accepted",
         "path": "decisions/idr/IDR-017-auto-atualizacao-webapp-polling-skipwaiting-banner.md",
         "decided_at": "2026-05-30",
         "decided_by": "programador",
+        "approved_by": "Alexandro",
         "source_story": "STORY-037"
       }
     ],

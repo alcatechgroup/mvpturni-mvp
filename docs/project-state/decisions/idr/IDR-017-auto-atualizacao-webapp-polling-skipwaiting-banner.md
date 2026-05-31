@@ -2,9 +2,10 @@
 idr_id: IDR-017
 slug: auto-atualizacao-webapp-polling-skipwaiting-banner
 title: Auto-atualização do WebApp Flutter — polling do version.json + SKIP_WAITING + banner
-status: proposed  # proposed | accepted | superseded
+status: accepted  # proposed | accepted | superseded
 decided_at: 2026-05-30
 decided_by: programador
+approved_by: Alexandro
 owner_agent: programador-claude
 related_story: STORY-037
 related_adrs: [ADR-001, ADR-007]
@@ -12,7 +13,7 @@ related_idrs: [IDR-002]
 supersedes: null
 superseded_by: null
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-05-31
 ---
 
 # IDR-017 — Auto-atualização do WebApp: polling + SKIP_WAITING + banner
@@ -172,3 +173,5 @@ para chegar na primeira versão corrigida; a partir dela, "Atualizar agora" func
 ## Histórico
 
 - 2026-05-30 — criada como `proposed` por programador (sessão programador-claude) durante STORY-037
+- 2026-05-31 — emenda com a causa-raiz do "Atualizar agora" não trocar de versão (cache immutable do entry chain + SW instável no iOS) e o workaround (entry chain no-cache + bridge desregistra SW/limpa caches)
+- 2026-05-31 — `accepted` por Alexandro (PO) após validação do smoke CA-17 em homolog (rc.31 → rc.32 no celular)

@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: null
-status: in_progress
+status: done
 owner_agent: programador-claude
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-05-31
 estimated_session_size: M
 produces_idr: IDR-017
 ---
@@ -286,7 +286,7 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 
 ### IDRs criados
 
-- IDR-017 — Auto-atualização do WebApp: polling + SKIP_WAITING + banner — **`proposed`** (aguarda OK do PO em chat para virar `accepted` — CA-14).
+- IDR-017 — Auto-atualização do WebApp: polling + SKIP_WAITING + banner — **`accepted`** (aprovado por Alexandro em 2026-05-31, incl. a emenda do workaround iOS — CA-14).
 
 ### Cobertura final
 
