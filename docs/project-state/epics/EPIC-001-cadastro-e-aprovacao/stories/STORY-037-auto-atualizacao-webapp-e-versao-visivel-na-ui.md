@@ -305,10 +305,12 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 - CA-13 — `firebase.json`: `/flutter_service_worker.js` com `no-cache, no-store, must-revalidate` nos targets `homolog` **e** `prod`.
 - CA-15 — cobertura ≥ 95% nas peças puras (100%) e ≥ 80% no novo código (100%).
 
-**Pendente (gates de PO/deploy — fora do meu alcance nesta sessão):**
+**Deploy em homolog — release `v0.1.0-rc.29` (2026-05-31, run Release #26699079761 `success`):**
 
-- CA-14 — IDR-017 `accepted` após OK do PO.
-- CA-16 — rodar `npx playwright test app-update` (spec já escrita em `tests/e2e/app-update.spec.ts`) contra um build com tag real (homolog).
-- CA-17 — smoke mobile assinado pelo PO após release `rc.N` em homolog.
+- **CA-13 verificado LIVE:** `curl -sI https://app.homolog.turni.com.br/flutter_service_worker.js` → `cache-control: no-cache, no-store, must-revalidate` ✅. `version.json` → `{"version":"v0.1.0-rc.29"}` ✅. `index.html` → no-cache ✅.
+- **CA-8 + CA-16 verificados em browser real (Playwright/Chromium contra homolog):** `BASE_URL=https://app.homolog.turni.com.br npx playwright test app-update` → **3 passed**. Cobre: (1) rodapé do login mostra "Turni · v0.1.0-rc.29"; (2) versão nova (mock) → banner "Nova versão disponível" → "Atualizar agora" recarrega; (3) "Depois" fecha o banner.
 
-**Comando de verificação CA-13 pós-deploy:** `curl -I https://app.homolog.turni.com.br/flutter_service_worker.js` deve retornar `Cache-Control: no-cache, no-store, must-revalidate`.
+**Pendente (gates do PO — Alexandro):**
+
+- **CA-14** — IDR-017 `proposed` → `accepted` após OK do PO nas 5 decisões operacionais.
+- **CA-17** — smoke mobile: com uma aba aberta no `rc.29` pelo celular, publicar `rc.30`; em ≤ 5 min (ou ao voltar do background) o banner aparece; "Atualizar agora" carrega o `rc.30` sem hard-reload. PO assina.
