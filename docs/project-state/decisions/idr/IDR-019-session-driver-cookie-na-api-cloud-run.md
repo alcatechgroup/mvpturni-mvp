@@ -1,13 +1,13 @@
 ---
 idr_id: IDR-019
-slug: session-driver-cookie-na-api-cloud-run
-title: SESSION_DRIVER=cookie na api (Cloud Run) — corrige sessão não-persistente (401 após login)
+slug: session-cookie-name-session-atras-do-firebase-hosting
+title: SESSION_COOKIE=__session na api atrás do Firebase Hosting (corrige 401 após login em homolog)
 status: accepted
 decided_at: 2026-05-31
 decided_by: programador
 owner_agent: claude-opus-programador-designer-2026-05-30
 related_story: STORY-023
-related_adrs: [ADR-004, ADR-007]
+related_adrs: [ADR-002, ADR-004, ADR-007]
 related_idrs: []
 supersedes: null
 superseded_by: null
@@ -15,33 +15,41 @@ created_at: 2026-05-31
 updated_at: 2026-05-31
 ---
 
-# IDR-019 — SESSION_DRIVER=cookie na api (Cloud Run)
+# IDR-019 — SESSION_COOKIE=__session na api (atrás do Firebase Hosting)
 
 ## Contexto
 
-Ao subir STORY-023 em homolog, a tela de completar-cadastro caía em "Não conseguimos enviar agora" no preview. Diagnóstico: o usuário **loga com 200** (a sessão é criada e o cookie `laravel-session` é setado), mas **qualquer request autenticada seguinte retorna 401** (testado com `/api/user` do usuário ativo — também 401). O cookie de sessão está presente no jar e é enviado, mas o servidor não encontra a sessão.
+Ao subir STORY-023 em homolog, a tela de completar-cadastro caía em "Não conseguimos enviar agora". Diagnóstico (com logs e `gcloud` no projeto `turni-mvp`):
 
-Causa raiz: a imagem da api (`infra/docker/api/Dockerfile.prod`) trazia `ENV SESSION_DRIVER=array` (commit `0b63820`, "Cloud Run sem sessão em banco"). O driver **`array` não persiste a sessão entre requisições** — funciona só dentro de uma request. Para um SPA Sanctum com auth por cookie de sessão em Cloud Run (stateless, sem afinidade de instância), `array` quebra toda a navegação autenticada. Era um bug latente: o gate de E2E roda contra `localhost` (IDR-004), nunca contra homolog, então nenhum teste automatizado pegou. STORY-023 é o primeiro fluxo que exercita várias requests autenticadas em sequência (contexto GET → preview POST → completar POST) e expôs o problema.
+- O usuário **loga com 200**, mas **toda request autenticada seguinte retorna 401** — reproduzido com `/api/user` do usuário ativo (não é específico da STORY-023), inclusive na **mesma instância** (curl `--next`), então não é afinidade de instância nem APP_KEY por instância.
+- Funciona **localmente** (webapp:8003 → api direto), falha **em homolog** (app.homolog → Firebase Hosting → Cloud Run).
+
+Causa raiz: **o Firebase Hosting, ao reescrever `/api/**` e `/sanctum/**` para o Cloud Run, descarta TODOS os cookies da request encaminhada EXCETO um chamado `__session`** (comportamento documentado do Hosting, herdado da época das Cloud Functions). O cookie de sessão do Laravel se chamava `laravel-session` → era removido antes de chegar ao backend → o backend não via sessão → 401. O login dava 200 porque ele só precisa *criar* a sessão na própria request; a 419 intermitente no login vinha do token CSRF (que vive na sessão) também não chegar.
+
+Achado paralelo: a imagem da api subia com `SESSION_DRIVER=array` (commit `0b63820`, "Cloud Run sem sessão em banco"), que tampouco persiste sessão. Corrigido junto.
 
 ## Decisão
 
-> **Decidi usar `SESSION_DRIVER=cookie` na api** (não `array`, não `database`).
+> **Decidi (1) nomear o cookie de sessão da api como `__session` (`SESSION_COOKIE=__session`) — o único cookie que o Firebase Hosting encaminha ao Cloud Run; e (2) usar `SESSION_DRIVER=database`** (tabela `sessions` no Cloud SQL, que já existe).
 
-O driver `cookie` guarda a sessão **cifrada (APP_KEY) no próprio cookie** — stateless, sem tabela, sem round-trip de banco, e imune à ausência de afinidade de instância do Cloud Run. É o mesmo driver que o **admin** já usa com sucesso no mesmo homolog. Aplicado em três lugares para ser determinístico: `Dockerfile.prod` (default da imagem), `release.yml` (`--update-env-vars SESSION_DRIVER=cookie` no deploy da api) e `infra/envs/homolog/main.tf` (reconciliação do Terraform, que estava em `database`).
+Aplicado no `Dockerfile.prod` (default da imagem), no `release.yml` (`--update-env-vars SESSION_DRIVER=database,SESSION_COOKIE=__session` no deploy da api) e no Terraform (`infra/envs/homolog/main.tf`). Verificado ao vivo: `/api/user` passou a retornar 200, e o E2E do completar-cadastro (CA-8) passou contra `app.homolog.turni.com.br`.
+
+O admin NÃO precisa de `__session`: é acessado direto pela URL `*.run.app` (sem Firebase Hosting na frente), então seus cookies não são filtrados.
 
 ## Por quê
 
-- **Honra a intenção original** ("Cloud Run sem sessão em banco") — `cookie` é a realização correta de "sem sessão em banco"; `array` foi a escolha errada (é driver de teste, não de produção).
-- **Provado**: o admin roda com `cookie` em homolog sem problema.
-- **Menor risco** que `database`: não depende da tabela `sessions` existir/estar acessível (com `database`, tabela ausente → 500 no login). Sessão do SPA é pequena (id do usuário + token CSRF) — cabe folgado no limite de 4 KB do cookie.
+- **`__session` é a única solução**: é literalmente o único nome de cookie que o Firebase Hosting deixa passar para o backend. Sem isso, nenhuma sessão por cookie funciona atrás do Hosting — independente de driver.
+- **`database`** (em vez de `cookie`): a tabela `sessions` já existe (migrada em todo deploy); é instância-independente e consistente com `QUEUE_CONNECTION=database`. (`cookie` também funcionaria com `__session`, mas `array` não — `array` foi o bug secundário.)
 
 ## Alternativas consideradas
 
-- **`database`** (o que o Terraform declarava): funciona e a migration de `sessions` existe, mas adiciona round-trip e risco de 500 se a tabela faltar; contraria a intenção "sem sessão em banco". Descartado em favor de `cookie` (stateless, provado no admin).
-- **Manter `array`**: é o bug. Sem persistência = auth quebrada. Descartado.
+- **Manter `laravel-session`**: impossível atrás do Firebase Hosting (cookie é descartado). Descartado.
+- **`SESSION_DRIVER=cookie`**: funcionaria com `__session`, mas escolhi `database` pela consistência com a fila e por já ter tabela. Não-bloqueante.
+- **Trocar o Hosting/topologia** (ex.: api em domínio próprio sem Hosting): mudança de arquitetura (ADR-002/004) desproporcional — `__session` resolve com uma variável.
 
 ## Impacto / sinais de revisão
 
-- Afeta **toda** a auth do WebApp em homolog (não só STORY-023) — corrige um bug pré-existente.
-- **Gap de teste exposto:** o E2E só roda local; a auth de homolog nunca foi validada em browser real automatizado. Sinal de revisão: avaliar um smoke autenticado pós-deploy (login → request autenticada → 200) no `release.yml`, além do smoke atual de `/health` e `/version.json`.
-- Se a sessão do SPA crescer além de ~4 KB no futuro (improvável no MVP), migrar para `database`.
+- Corrige um bug **pré-existente e geral** da auth do WebApp em homolog (não só STORY-023). Toda navegação autenticada estava quebrada.
+- **Gap de teste exposto:** o E2E só roda contra `localhost` (IDR-004) — a auth de homolog nunca foi exercida em browser real automatizado. **Sinal de revisão:** adicionar um smoke autenticado pós-deploy no `release.yml` (login → request autenticada → 200), além do smoke atual de `/health` e `/version.json`.
+- **Prod**: quando o WebApp de produção subir atrás do Firebase Hosting, a api de prod precisa do mesmo `SESSION_COOKIE=__session` (o Dockerfile já carrega como default).
+- **Dívida de pipeline observada:** revisões antigas da api (com `--tag` por release) acumulam no Cloud Run; revisar limpeza de revisões/traffic tags.

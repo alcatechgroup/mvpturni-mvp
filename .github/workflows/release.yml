@@ -202,7 +202,7 @@ jobs:
             --region ${{ env.GCP_REGION }} \
             --project ${{ secrets.GCP_PROJECT_ID }} \
             --tag "v-$(echo ${{ github.ref_name }} | tr '.' '-' | tr '+' '-')" \
-            --update-env-vars "SESSION_DRIVER=cookie" \
+            --update-env-vars "SESSION_DRIVER=database,SESSION_COOKIE=__session" \
             --no-traffic \
             --quiet
           gcloud run services update-traffic turni-api-homolog \

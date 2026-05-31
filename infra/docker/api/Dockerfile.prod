@@ -71,15 +71,17 @@ RUN chmod -R 755 storage bootstrap/cache \
     && chown -R app:app storage bootstrap/cache
 
 ARG APP_VERSION
-# SESSION_DRIVER=cookie (NÃO array): Cloud Run é stateless e sem afinidade de instância.
-# `array` não persiste a sessão entre requisições → o usuário loga (200) mas a próxima
-# request autenticada cai em 401. `cookie` guarda a sessão (cifrada por APP_KEY) no próprio
-# cookie — stateless, sem tabela, mesmo padrão já provado no admin. Honra a intenção
-# "Cloud Run sem sessão em banco" sem quebrar a auth do SPA Sanctum.
+# SESSION_COOKIE=__session é OBRIGATÓRIO atrás do Firebase Hosting: o Hosting descarta
+# TODOS os cookies da request encaminhada ao Cloud Run EXCETO um chamado `__session`.
+# Sem isso, o cookie de sessão (laravel-session) nunca chega ao backend → o usuário loga
+# (200) mas toda request autenticada seguinte cai em 401. Ver IDR-019.
+# SESSION_DRIVER=database (não array): `array` não persiste a sessão; database usa a tabela
+# `sessions` (Cloud SQL), instância-independente.
 ENV APP_ENV=production \
     APP_DEBUG=false \
     LOG_CHANNEL=stderr \
-    SESSION_DRIVER=cookie \
+    SESSION_DRIVER=database \
+    SESSION_COOKIE=__session \
     APP_VERSION=${APP_VERSION}
 
 EXPOSE 8080

@@ -1792,7 +1792,7 @@
       },
       {
         "id": "IDR-019",
-        "title": "SESSION_DRIVER=cookie na api (Cloud Run) — corrige sessão não-persistente (401 após login)",
+        "title": "SESSION_COOKIE=__session na api atrás do Firebase Hosting (corrige 401 após login em homolog)",
         "status": "accepted",
         "path": "decisions/idr/IDR-019-session-driver-cookie-na-api-cloud-run.md",
         "decided_at": "2026-05-31",

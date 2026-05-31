@@ -136,10 +136,11 @@ module "cloud_run_api" {
     DB_DATABASE      = "turni"
     DB_USERNAME      = "turni"
     QUEUE_CONNECTION = "database"
-    # cookie (não database/array): Cloud Run stateless sem afinidade de instância.
-    # `array` não persistia a sessão → 401 após login. `cookie` é stateless e já provado
-    # no admin (ver Dockerfile.prod / IDR-019).
-    SESSION_DRIVER   = "cookie"
+    SESSION_DRIVER   = "database"
+    # __session é obrigatório atrás do Firebase Hosting: o Hosting só encaminha ao Cloud Run
+    # o cookie chamado `__session` (descarta os demais). Sem isso, a sessão não chega ao
+    # backend e toda request autenticada cai em 401 após o login. Ver IDR-019.
+    SESSION_COOKIE   = "__session"
     # E-mail transacional (ADR-011 §c): provedor Resend em homolog; chave via Secret
     # Manager (secret_env_vars). Remetente no subdomínio dedicado mail.homolog.
     MAIL_MAILER       = "resend"
