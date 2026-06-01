@@ -261,7 +261,7 @@
       "sprint": "SPRINT-2026-W26",
       "created_at": "2026-05-29",
       "updated_at": "2026-06-01",
-      "next_action": "SPRINT-2026-W26 abre com este épico como escopo único. IDR-010 e IDR-011 foram aceitas em 2026-06-01 (Alexandro). STORY-038 vira `ready` quando W26 ativar e PO promover; STORY-039 e STORY-040 ficam bloqueadas por STORY-038."
+      "next_action": "STORY-038 done (2026-06-01) e STORY-043 done (2026-06-01, PO aprovou) — harness same-origin cobre a área logada no gate; IDR-010/011/021 accepted; IDR-006 §b parcialmente superseded. Faltam para o closure_rule do EPIC-007: STORY-039 (Patrol — image_picker/file picker nativo) e STORY-040 (gate mobile Android/iOS), ambas destravadas pelo scaffolding da STORY-038. Próximo: PO promover STORY-039/040 a `ready`."
     },
     {
       "id": "EPIC-008",
@@ -1276,7 +1276,7 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-opus-4-8-programador-2026-06-01",
       "sprint_id": "SPRINT-2026-W26",
       "path": "epics/EPIC-007-e2e-hibrida-flutter/stories/STORY-043-harness-same-origin-integration-test-web.md",
@@ -2081,12 +2081,13 @@
       {
         "id": "IDR-021",
         "title": "Harness same-origin para integration_test no Web (proxy reverso + --web-launch-url)",
-        "status": "proposed",
+        "status": "accepted",
         "path": "decisions/idr/IDR-021-harness-same-origin-integration-test-web.md",
         "decided_at": "2026-06-01",
         "decided_by": "programador",
+        "approved_by": "Alexandro",
         "source_story": "STORY-043",
-        "note": "Caminho 1 do spike, produtizado. Blocker real descoberto: bind IPv6/IPv4 (--web-hostname=127.0.0.1). Aguarda aprovação do PO."
+        "note": "Caminho 1 do spike, produtizado. Blocker real descoberto: bind IPv6/IPv4 (--web-hostname=127.0.0.1). Aceita pelo PO junto da aprovação da STORY-043."
       }
     ],
     "ddr": [

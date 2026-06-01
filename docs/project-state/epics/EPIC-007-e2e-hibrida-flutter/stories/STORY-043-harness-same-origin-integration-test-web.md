@@ -7,7 +7,7 @@ sprint_id: SPRINT-2026-W26
 type: enablement
 target_role: programador
 requires_design: false
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-programador-2026-06-01
 created_at: 2026-06-01
 updated_at: 2026-06-01
@@ -258,3 +258,18 @@ continua `test.fixme` (Patrol/IDR-009, STORY-039).
   STORY-038 → **não regrediu** (esta story não adiciona lógica de produção; só testes + harness + Makefile +
   proxy + docs). 97/97 widget tests verdes. O gap para 80% é débito pré-existente, **fora de escopo** (ação
   separada do PO, conforme a própria story).
+
+### Adições pós-review (mesma sessão, a pedido do usuário)
+- **Modo browser visível** (`E2E_HEADLESS=0`): `make e2e-webapp-integration E2E_HEADLESS=0` abre uma janela
+  de Chrome de verdade. Descoberta: `flutter drive` (web-driver) tem **default headless** — só omitir
+  `--headless` não basta; precisa de **`--no-headless` explícito**. Mantido no caminho `-d web-server`
+  (único que honra `--web-launch-url`/same-origin); `-d chrome` foi testado e **descartado** (ignora
+  `--web-launch-url`, abre `:7357` direto → `/api` volta HTML → quebra os autenticados). Verificado headful
+  + "All tests passed".
+- **`e2e-webapp-integration` re-semeia sozinho** (move `_e2e-seed` pra dentro do target): rodar o target
+  isolado (ex.: pro modo visível) sem seed pegava o usuário de welcome já welcomado → falhava em "→ /welcome".
+  Agora qualquer entrada é determinística (validado 2x standalone PASS/PASS). Reforça CA-5.
+
+### Aprovação do PO — 2026-06-01
+PO (Alexandro) **aprovou** a STORY-043: `in_review` → `done`. **IDR-021** aceita (`proposed` → `accepted`).
+EPIC-007 segue aberto (faltam STORY-039 Patrol e STORY-040 gate mobile para o closure_rule).

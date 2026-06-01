@@ -2,9 +2,10 @@
 idr_id: IDR-021
 slug: harness-same-origin-integration-test-web
 title: Harness same-origin para integration_test no Web (proxy reverso + --web-launch-url)
-status: proposed
+status: accepted
 decided_at: 2026-06-01
 decided_by: programador
+approved_by: Alexandro
 owner_agent: claude-opus-4-8-programador-2026-06-01
 related_story: STORY-043
 related_adrs: [ADR-007]
@@ -89,3 +90,4 @@ No macOS, `flutter drive --web-hostname=localhost` binda o dev-server em **`::1`
 ## Histórico
 
 - 2026-06-01 — criada como `proposed` por programador (sessão claude-opus-4-8-programador-2026-06-01) durante STORY-043, a partir do Caminho 1 provado por spike (2026-06-01).
+- 2026-06-01 — `accepted` pelo PO (Alexandro) junto com a aprovação da STORY-043.
