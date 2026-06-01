@@ -58,3 +58,25 @@ test.describe('WebApp — hello world (CA-10)', () => {
         expect(criticalErrors).toHaveLength(0);
     });
 });
+
+// ──────────────────────────────────────────────────────────────
+// STORY-038 CA-12 — Deep link por path (proteção da IDR-006 §a).
+// A interação com a UI (campos, RBAC, funnel) migrou para integration_test (IDR-010);
+// aqui fica só o smoke HTTP do deep link: abrir /login direto na URL do browser deve
+// carregar a rota /login e NÃO cair no root/WelcomeScreen. Sem usePathUrlStrategy()
+// (hash strategy), o boot caía em initialLocation '/' — este cenário trava essa regressão.
+// ──────────────────────────────────────────────────────────────
+test.describe('WebApp — deep link path strategy (CA-12)', () => {
+    test('deep link /login direto na URL carrega e permanece em /login', async ({ page }) => {
+        const response = await page.goto('/login');
+
+        // O servidor faz fallback SPA → 200 com index.html; o go_router resolve /login.
+        expect(response?.status()).toBe(200);
+
+        // Espera o boot do Flutter; com path strategy a URL permanece /login (path real),
+        // sem virar hash (/#/...) nem redirecionar para o root.
+        await page.waitForTimeout(3_000);
+        await expect(page).toHaveURL(/\/login$/);
+        expect(new URL(page.url()).hash).toBe('');
+    });
+});

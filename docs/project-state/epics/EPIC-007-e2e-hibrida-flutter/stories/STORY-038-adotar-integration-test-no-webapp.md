@@ -337,9 +337,45 @@ limpo. Widget suite continua 97/97. **Falta** (fatia 3): remover `rbac-login.spe
 Playwright (CA-12), Makefile (CA-13/14), nota inline IDR-006 §b (CA-19), README (CA-20), 5x verde + wall-time (CA-15/16),
 cobertura ≥80%.
 
+### Progresso — Fatia 3 (2026-06-01): Makefile + smoke + remoção + README
+
+- **CA-10 ✅** — `tests/e2e/rbac-login.spec.ts` removido (`git rm`).
+- **CA-11 ✅** — `webapp-hello-world.spec.ts` intocado nos 4 cenários + 1 fixme.
+- **CA-12 ✅** — cenário "deep link /login direto na URL permanece em /login" adicionado ao
+  `webapp-hello-world.spec.ts`; **passa** contra :8003 (verificado 2x).
+- **CA-13 ✅** — `make e2e-webapp`: `webapp-build` → `_e2e-seed` → `e2e-webapp-integration` (flutter drive +
+  chromedriver, --dart-define API) → `e2e-webapp-smoke` (Playwright). Sai !=0 no 1º fail.
+- **CA-14 ✅** — `make e2e-webapp-integration` e `make e2e-webapp-smoke` como targets isolados, documentados
+  em comentário no Makefile. `CHROMEDRIVER_PORT` parametrizável.
+- **CA-19 ✅** — IDR-006 §b já tinha a nota inline de supersede parcial (header + §b), aplicada na sessão do PO.
+- **CA-20 ✅** — README do WebApp ganhou seção "Testes E2E" (tabela de camadas, comandos, pré-requisito
+  chromedriver, como rodar 1 cenário/debugar, ponteiros para IDR-010/011).
+
+### Bloqueio — CA-15/CA-16 (5x verde + wall-time): flake pré-existente no Playwright [ESCALONAMENTO-PO]
+
+`make e2e-webapp` **completa a fase de integration_test verde** e o smoke do `webapp-hello-world` (incl. meu
+deep-link CA-12) passa. Mas o `npx playwright test` roda **todo** `tests/e2e/`, que inclui specs de UICanvasKit
+**fora do escopo desta story** — `pre-cadastro-contratante.spec.ts`, `welcome.spec.ts` (e `pre-cadastro`,
+`app-update`) — que usam o truque de semantics da IDR-006 §b e são **flaky**:
+- run 1: 1 falha (`pre-cadastro-contratante` em `field.focus()`).
+- run 2: 2 falhas (`pre-cadastro-contratante` + `welcome` em `toHaveURL` pós-login).
+- Intermitente, no `field.focus()`/digitação em `<input>` de semantics — a exata fragilidade que o EPIC-007 quer
+  matar. **Não os toquei** (a story migra só os 7 de rbac/funnel). Wall-time de `make e2e-webapp`: ~3m35s.
+
+Não dá para alegar CA-15 (5x verde) com flake na suíte (disciplina: proibido marcar done com teste flaky).
+**Decisão de escopo do PO necessária** — opções levadas ao Alexandro:
+1. **(recomendada)** `e2e-webapp-smoke` roda só o smoke HTTP (`webapp-hello-world.spec.ts`), alinhado à IDR-010
+   ("Playwright reduzido a smoke HTTP ≈5 cenários"). Os specs de UI flaky (pre-cadastro/welcome/app-update) saem
+   do gate e migram para integration_test nas suas próprias stories (STORY-017/018/022). Cobertura desses fluxos
+   continua em widget tests; E2E-real deles fica pendente da migração. Mantê-los num target não-gating opcional.
+2. Migrar pre-cadastro/welcome/app-update para integration_test agora (expande escopo da STORY-038 — grande).
+3. Aceitar como bug de flake pré-existente, registrar story de bug, e CA-15 fica pendente até estabilizar.
+
+Aguardando decisão antes de fechar CA-15/16 e marcar `in_review`.
+
 ### Bloqueios encontrados
-- _Nenhum bloqueante._ Observação de sintaxe da IDR-010 (corrigida via nota na própria IDR) e risco de base-URL da API
-  na fatia 2 (a spikar) registrados acima.
+- **[ESCALONAMENTO-PO] CA-15/16** — ver bloco acima (flake pré-existente em specs Playwright fora de escopo).
+- Observação de sintaxe da IDR-010 (já corrigida via nota na própria IDR) e base-URL da API (resolvida na fatia 2).
 
 ### IDRs criados
 - IDR-010 (proposto nesta story).

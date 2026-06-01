@@ -11,11 +11,14 @@
 SHELL := /bin/bash
 DC := docker compose
 COMPOSE_RUN := $(DC) run --rm --no-deps
+# Porta do chromedriver usado pelo integration_test no Web (flutter drive). Override:
+# `make e2e-webapp-integration CHROMEDRIVER_PORT=4445`.
+CHROMEDRIVER_PORT ?= 4444
 
 .DEFAULT_GOAL := help
 .PHONY: help setup up down clean logs ps env build install key migrate seed \
         webapp-build hooks test test-api test-admin test-webapp lint fresh \
-        e2e e2e-webapp e2e-admin
+        e2e e2e-webapp e2e-webapp-integration e2e-webapp-smoke e2e-admin
 
 help: ## Mostra os comandos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -115,8 +118,7 @@ lint: ## Lint/format (Laravel Pint)
 	$(COMPOSE_RUN) api ./vendor/bin/pint --test
 	$(COMPOSE_RUN) admin ./vendor/bin/pint --test
 
-e2e: ## E2E Playwright local (gate antes de criar tag rc.N — IDR-004)
-	$(MAKE) _e2e-seed
+e2e: ## E2E local completo (gate antes de tag rc.N — IDR-004): WebApp (híbrido) + Backoffice
 	$(MAKE) e2e-webapp
 	$(MAKE) e2e-admin
 
@@ -124,7 +126,34 @@ _e2e-seed: # Garante migrações + usuários de teste do CA-13 no banco de dev
 	$(DC) exec -T api php artisan migrate --force
 	$(DC) exec -T api php artisan db:seed --force
 
-e2e-webapp: webapp-build ## E2E Playwright do WebApp contra localhost:8003 (rebuilda antes — evita build velho)
+# E2E híbrido do WebApp (IDR-010): integration_test (UI Flutter) + smoke HTTP (Playwright).
+# Ordem: build fresco (IDR-006 §c) → seed → integration_test → smoke. Sai !=0 no 1º fail.
+e2e-webapp: webapp-build ## E2E híbrido do WebApp: integration_test (UI) + smoke Playwright (IDR-010)
+	$(MAKE) _e2e-seed
+	$(MAKE) e2e-webapp-integration
+	$(MAKE) e2e-webapp-smoke
+
+# Iteração em dev: só os cenários de UI em integration_test (Chrome headless via flutter drive).
+# No Web, integration_test exige `flutter drive` + chromedriver com MAJOR igual ao do Chrome local
+# (ver README §"Testes E2E"). O app é servido numa porta efêmera SEM o proxy /api do :8003, então
+# passamos --dart-define=API_BASE_URL=<API> (CORS aberto + /api/login sem CSRF — ver correção da IDR-010).
+# Pré-condição: stack no ar (`make up`) com seed (`make _e2e-seed` ou rode via `make e2e-webapp`).
+e2e-webapp-integration: ## integration_test (UI) do WebApp no Chrome headless — IDR-010/011
+	@command -v flutter >/dev/null 2>&1 || { echo "ERRO: Flutter ausente no PATH"; exit 1; }
+	@command -v chromedriver >/dev/null 2>&1 || { echo "ERRO: chromedriver ausente. Instale um chromedriver com MAJOR == seu Chrome (README §Testes E2E)."; exit 1; }
+	@curl -sS -o /dev/null http://localhost:$${API_PORT:-8001} || { echo "ERRO: API não responde em :$${API_PORT:-8001}. Rode 'make up' antes."; exit 1; }
+	cd apps/webapp; \
+	  chromedriver --port=$(CHROMEDRIVER_PORT) >/tmp/turni-chromedriver.log 2>&1 & \
+	  CD_PID=$$!; \
+	  trap 'kill $$CD_PID 2>/dev/null' EXIT INT TERM; \
+	  for i in $$(seq 1 20); do curl -fsS http://localhost:$(CHROMEDRIVER_PORT)/status >/dev/null 2>&1 && break; sleep 0.5; done; \
+	  flutter drive --driver=test_driver/integration_test.dart \
+	    --target=integration_test/auth_test.dart \
+	    -d web-server --browser-name=chrome --headless \
+	    --dart-define=API_BASE_URL=http://localhost:$${API_PORT:-8001}
+
+# Iteração em dev: só o smoke HTTP em Playwright contra o build servido em :8003.
+e2e-webapp-smoke: ## smoke HTTP do WebApp (Playwright) contra localhost:8003 — IDR-010
 	@command -v npx >/dev/null 2>&1 || { echo "ERRO: npx ausente no PATH (instale Node 22)"; exit 1; }
 	@curl -fsS -o /dev/null http://localhost:$${WEBAPP_PORT:-8003} || { echo "ERRO: WebApp não responde em :$${WEBAPP_PORT:-8003}. Rode 'make up' antes."; exit 1; }
 	cd apps/webapp && (test -d node_modules || npm ci) \
