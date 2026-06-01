@@ -281,8 +281,13 @@ estruturado `user.cadastro_completed`).
 ### Pendências para fechar
 - Smoke/validação ao vivo do PO em homolog (rc.42) — caminho registro → aprovação → welcome →
   completar cadastro do contratante → aceite.
-- Métrica/alerta de cadastros completados (observabilidade §3) — carry-over junto com STORY-025
-  (mesma pendência herdada da STORY-023).
+- ~~Métrica/alerta de cadastros completados (observabilidade §3)~~ — **FEITO** 2026-06-01:
+  `infra/modules/monitoring/main.tf` ganhou a métrica `turni_<env>_cadastros_completados` (sucesso,
+  rotulada por `role`, p/ o dashboard "por dia") e a métrica+alerta `turni_<env>_cadastro_completar_falhou`
+  (sobre o ERROR `cadastro.template_indisponivel` → e-mail), no padrão do `email_failures` (STORY-021).
+  `terraform fmt`+`validate` (homolog) ok. **Pendente só o `terraform apply` do módulo monitoring**
+  (passo de infra, fora do deploy de rc; prod tem erro de validate pré-existente no módulo `worker`,
+  alheio a isto). Fecha o carry-over das STORY-023/024.
 
 ### Links de evidência
 - Commits: data layer `4ad5490`, CEP+IDR-024 `0365e94`, service/controller/rotas `e6f6fc5`,
