@@ -299,3 +299,73 @@ resource "google_monitoring_alert_policy" "email_failure" {
     auto_close = "1800s"
   }
 }
+
+# ── Cadastros completados (STORY-023/024 §observabilidade) ────────────────────
+# O api (Cloud Run) emite INFO `user.cadastro_completed` ao fim do completar cadastro
+# (profissional ou contratante), em transação atômica com a geração do AceiteEletronico.
+# Log Monolog JsonFormatter: o nome do evento é `jsonPayload.message` e os campos ficam
+# sob `jsonPayload.context.*` (mesma forma do `email_failures` do worker). Métrica de
+# SUCESSO rotulada por papel — alimenta o dashboard "cadastros completados por dia".
+resource "google_logging_metric" "cadastros_completados" {
+  project = var.project_id
+  name    = "turni_${var.env}_cadastros_completados"
+  filter  = "resource.type=\"cloud_run_revision\" AND jsonPayload.message=\"user.cadastro_completed\""
+
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "INT64"
+    unit        = "1"
+    labels {
+      key         = "role"
+      value_type  = "STRING"
+      description = "Papel de quem completou o cadastro (profissional | contratante)"
+    }
+  }
+
+  label_extractors = {
+    "role" = "EXTRACT(jsonPayload.context.role)"
+  }
+}
+
+# Falha do completar cadastro: o api loga ERROR `cadastro.template_indisponivel` quando
+# o contrato aplicável não tem versão ativa (nenhum aceite é gerado; usuário recebe 503).
+# É o sinal acionável de "completar cadastro está falhando" — vale alerta imediato.
+# (Decisão: NÃO alertamos anomalia na TAXA de sucesso — em volume de MVP gera ruído; o
+# sinal de falha concreto é este. A métrica de sucesso acima fica para o dashboard.)
+resource "google_logging_metric" "cadastro_completar_falhou" {
+  project = var.project_id
+  name    = "turni_${var.env}_cadastro_completar_falhou"
+  filter  = "resource.type=\"cloud_run_revision\" AND jsonPayload.message=\"cadastro.template_indisponivel\""
+
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "INT64"
+    unit        = "1"
+  }
+}
+
+resource "google_monitoring_alert_policy" "cadastro_completar_falhou" {
+  project      = var.project_id
+  display_name = "Turni completar cadastro falhando — template indisponível (${var.env})"
+  combiner     = "OR"
+
+  conditions {
+    display_name = "Completar cadastro falhou (template contratual indisponível)"
+    condition_threshold {
+      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_cadastro_completar_falhou\" AND resource.type=\"cloud_run_revision\""
+      comparison      = "COMPARISON_GT"
+      threshold_value = 0
+      duration        = "0s"
+      aggregations {
+        alignment_period   = "300s"
+        per_series_aligner = "ALIGN_SUM"
+      }
+    }
+  }
+
+  notification_channels = [google_monitoring_notification_channel.email.name]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+}
