@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
         : TurniColors.surfacePageLight;
 
     return Scaffold(
-      key: const Key('screen-login-webapp'),
+      key: const ValueKey('login:screen'),
       backgroundColor: surfacePage,
       body: Center(
         child: SingleChildScrollView(
@@ -193,7 +193,7 @@ class _LoginForm extends StatelessWidget {
 
           // Campo e-mail
           TextFormField(
-            key: const Key('input-email'),
+            key: const ValueKey('login:email'),
             controller: emailCtrl,
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
@@ -217,7 +217,7 @@ class _LoginForm extends StatelessWidget {
 
           // Campo senha
           TextFormField(
-            key: const Key('input-password'),
+            key: const ValueKey('login:password'),
             controller: passwordCtrl,
             obscureText: obscurePassword,
             textInputAction: TextInputAction.done,
@@ -227,7 +227,7 @@ class _LoginForm extends StatelessWidget {
               suffixIcon: Tooltip(
                 message: obscurePassword ? 'Mostrar senha' : 'Ocultar senha',
                 child: IconButton(
-                  key: const Key('btn-toggle-password'),
+                  key: const ValueKey('login:toggle-password'),
                   icon: Icon(
                     obscurePassword
                         ? Icons.visibility_outlined
@@ -247,7 +247,7 @@ class _LoginForm extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              key: const Key('link-forgot-password'),
+              key: const ValueKey('login:forgot-password'),
               onPressed: () => context.go('/esqueci-minha-senha'),
               style: TextButton.styleFrom(foregroundColor: accent),
               child: const Text('Esqueci minha senha'),
@@ -261,7 +261,7 @@ class _LoginForm extends StatelessWidget {
             width: double.infinity,
             height: 52,
             child: FilledButton(
-              key: const Key('btn-submit-login'),
+              key: const ValueKey('login:submit'),
               onPressed: loading ? null : onSubmit,
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
@@ -313,7 +313,7 @@ class _LoginForm extends StatelessWidget {
                     // profissional, mostarda = estabelecimento/contratante. Antecipa
                     // visualmente o tema da tela de destino.
                     TextButton(
-                      key: const Key('link-criar-conta'),
+                      key: const ValueKey('login:create-professional'),
                       onPressed: () => context.go('/cadastro/profissional'),
                       style: TextButton.styleFrom(
                         foregroundColor: isDark
@@ -323,7 +323,7 @@ class _LoginForm extends StatelessWidget {
                       child: const Text('Criar conta de profissional'),
                     ),
                     TextButton(
-                      key: const Key('link-criar-conta-contratante'),
+                      key: const ValueKey('login:create-establishment'),
                       onPressed: () => context.go('/cadastro/contratante'),
                       style: TextButton.styleFrom(
                         foregroundColor: isDark
@@ -479,15 +479,15 @@ class _BannerWidget extends StatelessWidget {
   Key get _testId {
     switch (banner.kind) {
       case _BannerKind.error:
-        return const Key('banner-error');
+        return const ValueKey('login:error-banner');
       case _BannerKind.adminRedirect:
-        return const Key('banner-admin-redirect');
+        return const ValueKey('login:admin-banner');
       case _BannerKind.pending:
-        return const Key('banner-pending');
+        return const ValueKey('login:pending-banner');
       case _BannerKind.rejected:
-        return const Key('banner-rejected');
+        return const ValueKey('login:rejected-banner');
       case _BannerKind.throttle:
-        return const Key('banner-throttle');
+        return const ValueKey('login:throttle-banner');
     }
   }
 }

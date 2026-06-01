@@ -58,6 +58,12 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # E2E de UI nativo do Flutter (STORY-038 / IDR-010 / IDR-011). Acessa a árvore de
+  # widgets direto (sem o truque de semantics da IDR-006 §b), com pumpAndSettle()
+  # determinístico; o mesmo código roda em Web, Android e iOS. Cenários em
+  # apps/webapp/integration_test/. No Web exige chromedriver (ver README §"Testes E2E").
+  integration_test:
+    sdk: flutter
   # Controle determinístico de Timer.periodic nos testes do AppUpdateController
   # (STORY-037). Já vem transitivo do flutter_test; declarado para uso direto.
   fake_async: ^1.3.1

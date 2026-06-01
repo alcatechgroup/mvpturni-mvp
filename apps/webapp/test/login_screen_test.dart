@@ -57,28 +57,28 @@ void main() {
       await tester.pumpWidget(_loginApp());
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('input-email')), findsOneWidget);
+      expect(find.byKey(const ValueKey('login:email')), findsOneWidget);
     });
 
     testWidgets('tem campo senha com key correta', (tester) async {
       await tester.pumpWidget(_loginApp());
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('input-password')), findsOneWidget);
+      expect(find.byKey(const ValueKey('login:password')), findsOneWidget);
     });
 
     testWidgets('tem botão Entrar com key correta', (tester) async {
       await tester.pumpWidget(_loginApp());
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('btn-submit-login')), findsOneWidget);
+      expect(find.byKey(const ValueKey('login:submit')), findsOneWidget);
     });
 
     testWidgets('tem toggle show/hide senha com key correta', (tester) async {
       await tester.pumpWidget(_loginApp());
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('btn-toggle-password')), findsOneWidget);
+      expect(find.byKey(const ValueKey('login:toggle-password')), findsOneWidget);
     });
 
     testWidgets('tem rótulo de versão discreto no rodapé (STORY-037 CA-8)', (
@@ -98,7 +98,7 @@ void main() {
       await tester.pumpWidget(_loginApp());
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('link-forgot-password')), findsOneWidget);
+      expect(find.byKey(const ValueKey('login:forgot-password')), findsOneWidget);
     });
 
     testWidgets(
@@ -107,7 +107,7 @@ void main() {
         await tester.pumpWidget(_loginApp());
         await tester.pumpAndSettle();
 
-        final link = find.byKey(const Key('link-criar-conta'));
+        final link = find.byKey(const ValueKey('login:create-professional'));
         expect(link, findsOneWidget);
 
         await tester.tap(link);
@@ -125,7 +125,7 @@ void main() {
         await tester.pumpWidget(_loginApp());
         await tester.pumpAndSettle();
 
-        final link = find.byKey(const Key('link-criar-conta-contratante'));
+        final link = find.byKey(const ValueKey('login:create-establishment'));
         expect(link, findsOneWidget);
 
         await tester.tap(link);
@@ -141,7 +141,7 @@ void main() {
       await tester.pumpWidget(_loginApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('btn-submit-login')));
+      await tester.tap(find.byKey(const ValueKey('login:submit')));
       await tester.pumpAndSettle();
 
       expect(find.text('Este campo é obrigatório.'), findsWidgets);
@@ -152,11 +152,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.byKey(const Key('input-email')),
+        find.byKey(const ValueKey('login:email')),
         'nao-e-email',
       );
-      await tester.enterText(find.byKey(const Key('input-password')), 'senha');
-      await tester.tap(find.byKey(const Key('btn-submit-login')));
+      await tester.enterText(find.byKey(const ValueKey('login:password')), 'senha');
+      await tester.tap(find.byKey(const ValueKey('login:submit')));
       await tester.pumpAndSettle();
 
       expect(find.text('E-mail inválido.'), findsOneWidget);
@@ -171,30 +171,30 @@ void main() {
       // Inicialmente obscuro
       final input = tester.widget<EditableText>(
         find.descendant(
-          of: find.byKey(const Key('input-password')),
+          of: find.byKey(const ValueKey('login:password')),
           matching: find.byType(EditableText),
         ),
       );
       expect(input.obscureText, isTrue);
 
       // Clica no toggle
-      await tester.tap(find.byKey(const Key('btn-toggle-password')));
+      await tester.tap(find.byKey(const ValueKey('login:toggle-password')));
       await tester.pumpAndSettle();
 
       final inputAfter = tester.widget<EditableText>(
         find.descendant(
-          of: find.byKey(const Key('input-password')),
+          of: find.byKey(const ValueKey('login:password')),
           matching: find.byType(EditableText),
         ),
       );
       expect(inputAfter.obscureText, isFalse);
     });
 
-    testWidgets('tela tem key screen-login-webapp', (tester) async {
+    testWidgets('tela tem key login:screen', (tester) async {
       await tester.pumpWidget(_loginApp());
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('screen-login-webapp')), findsOneWidget);
+      expect(find.byKey(const ValueKey('login:screen')), findsOneWidget);
     });
   });
 }

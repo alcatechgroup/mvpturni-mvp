@@ -12,7 +12,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Sem sessão, o root `/` redireciona para a tela de login.
-    expect(find.byKey(const Key('screen-login-webapp')), findsOneWidget);
-    expect(find.byKey(const Key('btn-submit-login')), findsOneWidget);
+    expect(find.byKey(const ValueKey('login:screen')), findsOneWidget);
+    expect(find.byKey(const ValueKey('login:submit')), findsOneWidget);
   });
 }
