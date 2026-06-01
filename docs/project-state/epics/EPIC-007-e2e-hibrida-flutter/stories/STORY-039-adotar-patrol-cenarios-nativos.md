@@ -1,20 +1,21 @@
 ---
-story_id: STORY-035
+story_id: STORY-039
 slug: adotar-patrol-cenarios-nativos
 title: Adotar Patrol para cenários nativos — scaffolding + 1 cenário de smoke
 epic_id: EPIC-007
-sprint_id: null
+sprint_id: SPRINT-2026-W26
 type: enablement
 target_role: programador
 requires_design: false
-status: draft
+status: ready
 owner_agent: null
 created_at: 2026-05-29
-updated_at: 2026-05-29
+updated_at: 2026-06-01
 estimated_session_size: M
+renamed_from: STORY-035 (EPIC-007 original; renomeada em 2026-05-31 por colisão com EPIC-001 STORY-035)
 ---
 
-# STORY-035 — Adotar Patrol para cenários nativos
+# STORY-039 — Adotar Patrol para cenários nativos
 
 > **Para o agente que vai executar:** leia esta estória por inteiro antes de começar. Esta estória **só faz sentido depois da STORY-034** (precisa do `integration_test` instalado e do IDR-010 aceito). O objetivo aqui é colocar Patrol em pé como framework e provar que funciona com 1 cenário de smoke — **não é** entregar cobertura nativa real do produto. Cenários nativos de produto entram com as stories que os exigem (image_picker, deep link de e-mail, push, biometria).
 
