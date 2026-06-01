@@ -49,7 +49,9 @@ make e2e-webapp-smoke         # só o smoke HTTP (Playwright contra :8003)
 make e2e-webapp-app-update    # smoke web-platform de auto-update (Playwright) — IDR-017
 ```
 
-Pré-condição: stack no ar com seed (`make up` + `make _e2e-seed`, ou rode via `make e2e-webapp`, que semeia).
+Pré-condição: stack no ar (`make up`). O `make e2e-webapp-integration` **re-semeia sozinho** antes de
+rodar (o cenário de welcome muta `welcome_visto`, então cada execução precisa do usuário recém-semeado —
+determinismo mesmo rodando o target isolado, várias vezes seguidas).
 
 ### integration_test no Web — pré-requisito chromedriver
 

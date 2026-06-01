@@ -141,7 +141,6 @@ _e2e-seed: # Garante migrações + usuários de teste do CA-13 no banco de dev
 # E2E híbrido do WebApp (IDR-010): integration_test (UI Flutter) + smoke HTTP (Playwright).
 # Ordem: build fresco (IDR-006 §c) → seed → integration_test → smoke. Sai !=0 no 1º fail.
 e2e-webapp: webapp-build ## E2E híbrido do WebApp: integration_test (UI) + smoke Playwright (IDR-010)
-	$(MAKE) _e2e-seed
 	$(MAKE) e2e-webapp-integration
 	$(MAKE) e2e-webapp-smoke
 
@@ -153,12 +152,15 @@ e2e-webapp: webapp-build ## E2E híbrido do WebApp: integration_test (UI) + smok
 # numa origem única (E2E_PROXY_PORT, stateful no Sanctum) que roteia /api+/sanctum → API e o resto →
 # dev-server, e apontamos o browser para o proxy via `--web-launch-url`. App e API ficam same-origin,
 # como em produção (IDR-014) — sem --dart-define, sem CORS, sem withCredentials, sem tocar produção.
-# Pré-condição: stack no ar (`make up`) com seed (`make _e2e-seed` ou rode via `make e2e-webapp`).
+# Pré-condição: stack no ar (`make up`). O target RE-SEMEIA antes de rodar (CA-5): o cenário de
+# welcome muta welcome_visto, então cada execução precisa do usuário recém-semeado (welcome_seen_at
+# null) — por isso o seed é parte do target e não só do `make e2e-webapp` (determinismo standalone).
 e2e-webapp-integration: ## integration_test (UI) do WebApp no Chrome headless, same-origin — IDR-010/011/021
 	@command -v flutter >/dev/null 2>&1 || { echo "ERRO: Flutter ausente no PATH"; exit 1; }
 	@command -v chromedriver >/dev/null 2>&1 || { echo "ERRO: chromedriver ausente. Instale um chromedriver com MAJOR == seu Chrome (README §Testes E2E)."; exit 1; }
 	@command -v node >/dev/null 2>&1 || { echo "ERRO: node ausente no PATH (proxy same-origin)"; exit 1; }
 	@curl -sS -o /dev/null http://localhost:$${API_PORT:-8001} || { echo "ERRO: API não responde em :$${API_PORT:-8001}. Rode 'make up' antes."; exit 1; }
+	$(MAKE) _e2e-seed
 	chromedriver --port=$(CHROMEDRIVER_PORT) >/tmp/turni-chromedriver.log 2>&1 & \
 	  CD_PID=$$!; \
 	  PROXY_PORT=$(E2E_PROXY_PORT) APP_PORT=$(E2E_APP_PORT) API_PORT=$${API_PORT:-8001} \
