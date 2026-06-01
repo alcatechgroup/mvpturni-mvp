@@ -239,8 +239,15 @@ defensivos), `ContratanteProfile` 87.5%. Suíte api completa: **238 passed**. Pi
 **webapp**: 10 widget tests novos (`completar_cadastro_contratante_screen_test.dart`) cobrindo
 CA-1/2/4/5/7/8/12 + navegação do wizard + erro de preview/servidor + contatos add/remove. Suíte
 webapp completa: **121 passed**. `flutter analyze` + `dart format` limpos.
-Falta (pós-texto do PO): asserção contra o seed real + wiring do `TemplatesContratuaisSeeder` +
-E2E em browser real (CA-15) + deploy homolog + smoke.
+**Seed real + E2E (pós-texto do PO, 2026-06-01):** texto-seed `termos_plataforma_contratante`
+entregue pelo PO, vendorado e ligado ao `TemplatesContratuaisSeeder`; testes de feature trocados do
+fixture para o seed real (CA-7/9 fechados de verdade). Serviço passou a fornecer `{{template.versao}}`.
+**E2E (CA-15) FEITO**: `make e2e-webapp-integration` verde (Chrome headless, same-origin IDR-021) —
+agregador completo passou. Evidência psql pós-run de `completar.contratante@`: `status=ativo`,
+`plano=member_start`, aceite em `termos_plataforma_contratante v1`, conteúdo com a taxa 15%. Seed E2E
+determinístico no `AdminUserSeeder §6` (reset por run).
+
+Falta só: deploy homolog + smoke + validação do PO → `done`.
 
 ### IDRs criados
 - IDR-023 (template próprio do contratante), IDR-024 (CEP ViaCEP fail-soft).
