@@ -100,11 +100,18 @@ A IDR-006 §a (path strategy) e §c (build fresco no gate) continuam vigentes. A
   - Path: `stories/STORY-036-gate-e2e-mobile-android-ios.md`
   - Entregável: targets no Makefile (`make e2e-webapp-android`, `make e2e-webapp-ios`), runbook de setup local, política documentada (gate mobile opcional no MVP; obrigatório quando 1ª release mobile chegar). Bloqueada por STORY-034 e STORY-035.
 
+> Nota: as estórias acima (034/035/036 no rascunho do épico) foram renomeadas em 2026-05-31 para **STORY-038/039/040** por colisão de ID. Ver `index.json` e os arquivos em `stories/`.
+
+- [ ] **STORY-043** — Harness same-origin para `integration_test` no Web (cobrir a área logada)
+  - `type: enablement`, `target_role: programador`, `status: ready` (adicionada 2026-06-01, SPRINT-2026-W26)
+  - Path: `stories/STORY-043-harness-same-origin-integration-test-web.md`
+  - Entregável: reverse-proxy + `--web-launch-url` para `integration_test` rodar same-origin com a API sob `flutter drive` (cookie Sanctum autenticado funcionando), migração dos fluxos flaky restantes (welcome, validações de pré-cadastro) de Playwright para `integration_test`, `app-update` como smoke, `tests/e2e/` reduzido ao smoke HTTP. Caminho técnico provado por spike na STORY-038. Bloqueada por STORY-038 (=034 renomeada). Surgiu porque o modelo cross-origin da STORY-038 cobre só fluxos decididos pela resposta do login, não a área logada.
+
 ## Validação final
 
 Critérios em `validation/checklist.md` (a escrever junto com o detalhamento das stories quando o PO aprovar). Relatório do validador em `validation/report.md`.
 
-**Definição de épico concluído**: STORY-034/035/036 em `done` + IDR-010 e IDR-011 aceitas + IDR-006 atualizada com nota de supersede parcial de §b + 5 execuções consecutivas verdes de `make e2e-webapp` + 1 cenário Patrol verde em Android emulator local + relatório de validação `approved`.
+**Definição de épico concluído**: STORY-038/039/040/043 em `done` + IDR-010 e IDR-011 aceitas + IDR-006 atualizada com nota de supersede parcial de §b + harness same-origin (STORY-043) cobrindo a área logada no gate + 5 execuções consecutivas verdes de `make e2e-webapp` (incl. fluxos autenticados) + 1 cenário Patrol verde em Android emulator local + relatório de validação `approved`.
 
 ## Histórico
 

@@ -1269,6 +1269,27 @@
       "updated_at": "2026-05-31"
     },
     {
+      "id": "STORY-043",
+      "epic_id": "EPIC-007",
+      "title": "Harness same-origin para integration_test no Web — cobrir a área logada e migrar os fluxos flaky restantes",
+      "type": "enablement",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W26",
+      "path": "epics/EPIC-007-e2e-hibrida-flutter/stories/STORY-043-harness-same-origin-integration-test-web.md",
+      "blocked_by": [
+        "STORY-038"
+      ],
+      "blocks": [],
+      "estimated_session_size": "L",
+      "produces_idr": "IDR-021 (ou extensão da IDR-010 — agente decide)",
+      "created_at": "2026-06-01",
+      "updated_at": "2026-06-01"
+    },
+    {
       "id": "STORY-041",
       "epic_id": "EPIC-008",
       "title": "Identidade visual — ícones do PWA com a marca Turni (substitui logo padrão do Flutter)",
@@ -1574,16 +1595,17 @@
       "soft_cap_date": null,
       "opened_at": "2026-05-31",
       "opened_by": "PO (Alexandro / Claude)",
-      "closure_rule": "goal-atingido (encerra quando STORY-038/039/040 estiverem done E IDR-010/011 estiverem accepted E IDR-006 estiver atualizada anotando supersede parcial de §b). Soft-cap a definir na ativação (~14 dias úteis após start_date).",
-      "goal": "Fechar o EPIC-007 — modelo E2E híbrido do WebApp em vigor: integration_test cobrindo UI Flutter (7 cenários migrados de Playwright, 0 flake em Chrome headless), Playwright reduzido a smoke HTTP, Patrol de pé com 1 cenário smoke em Android emulator local. make e2e-webapp orquestrando as duas primeiras camadas. IDR-010 e IDR-011 aceitas; IDR-006 §b parcialmente superseded.",
+      "closure_rule": "goal-atingido (encerra quando STORY-038/039/040/043 estiverem done E IDR-010/011 estiverem accepted E IDR-006 estiver atualizada anotando supersede parcial de §b E o harness same-origin da STORY-043 cobrir a área logada no gate). Soft-cap a definir na ativação (~14 dias úteis após start_date).",
+      "goal": "Fechar o EPIC-007 — modelo E2E híbrido do WebApp em vigor: integration_test cobrindo UI Flutter (7 cenários migrados de Playwright, 0 flake em Chrome headless) + área logada via harness same-origin (STORY-043), Playwright reduzido a smoke HTTP, Patrol de pé com 1 cenário smoke em Android emulator local. make e2e-webapp orquestrando as camadas. IDR-010 e IDR-011 aceitas; IDR-006 §b parcialmente superseded.",
       "path": "sprints/SPRINT-2026-W26.md",
       "story_ids": [
         "STORY-038",
         "STORY-039",
-        "STORY-040"
+        "STORY-040",
+        "STORY-043"
       ],
       "stretch_story_ids": [],
-      "sizing_total": "1L + 2M",
+      "sizing_total": "2L + 2M",
       "scope_changes": [
         {
           "date": "2026-05-31",
@@ -1596,9 +1618,17 @@
           "change": "Pré-ativação: IDR-010 e IDR-011 aceitas pelo PO em sessão dedicada (regra 7 da W26). IDR-006 §b anotada como parcialmente superseded. Drift do index.json corrigido (EPIC-007 adicionado à wave; decisions.idr reindexado com IDR-001/010/011/013/015/016/019/020; EPIC-007 e EPIC-008 indexados em epics[]; STORY-038-042 indexadas em stories[]). Colisão STORY-038/039 EPIC-007 vs EPIC-008 resolvida renomeando EPIC-008 → STORY-041/042.",
           "reason": "Saneamento pré-W26 — abertura da sprint deve encontrar index.json íntegro.",
           "approved_by": "PO (Alexandro)"
+        },
+        {
+          "date": "2026-06-01",
+          "change": "Adicionada STORY-043 (L) ao escopo: harness same-origin para integration_test no Web (cobrir área logada) + migração dos fluxos flaky restantes (welcome, validações de pré-cadastro) para integration_test; app-update fica como smoke Playwright. Sizing total 1L+2M → 2L+2M. Bloqueada por STORY-038.",
+          "reason": "Durante a execução da STORY-038, o spike (2026-06-01) provou que cobrir a área logada (chamadas autenticadas pós-login) exige um harness same-origin sob flutter drive — maior que o escopo da STORY-038 e tocando IDR-014/009. O PO decidiu pela solução de raiz (matar o flake também na área logada) e incluir a story de enabling nesta sprint, já com o Caminho 1 provado.",
+          "approved_by": "PO (Alexandro)"
         }
       ],
       "risks_at_open": [
+        "STORY-043 (L) acumula harness + migração de welcome + pré-cadastro + IDR/README; mitigação: Caminho 1 já provado por spike (receita nas Notas da story); quebra prevista 43a (harness+welcome) / 43b (pré-cadastro+limpeza) — regra 6 da W26",
+        "STORY-043 depende de STORY-038 done; mitigação: STORY-038 está in_review, paraleliza com STORY-039/040 (mobile/Patrol)",
         "STORY-038 (L) estoura sessão única — scaffolding + 7 migrações + 2 IDRs aceitas + atualização de IDR-006 + README + Makefile é peça grande; mitigação: critério de quebra escrito (auth fechado vs. funnel/RBAC fechado)",
         "Setup Android emulator local atrasa STORY-039/040 — primeira vez tocando apps/webapp/android/; mitigação: STORY-039 começa pelo runbook",
         "Ambiente local sem macOS — STORY-040 iOS simulator fica fora do gate inicial; mitigação: IDR-010 §e prevê iOS condicional",
