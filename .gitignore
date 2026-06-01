@@ -46,3 +46,6 @@ infra/**/terraform.tfstate.backup
 # Obsidian — estado local do editor (UI, painéis); reescrito a cada poucos segundos
 .obsidian/
 
+
+# Estado local do Claude Code (locks, tasks de runtime)
+.claude/
