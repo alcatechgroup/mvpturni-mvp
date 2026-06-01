@@ -74,7 +74,11 @@ test.describe('WebApp — pré-cadastro de contratante (CA-9)', () => {
     await expect(page.getByText('Criar conta de estabelecimento')).toBeVisible();
   });
 
-  test('cadastra, vê recebido e ao logar vê "aguardando aprovação"', async ({ page }) => {
+  // DESATIVADO (STORY-038, decisão do PO 2026-06-01): happy-path com upload de foto via
+  // image_picker (file chooser do browser) — flaky no padrão de semantics (IDR-006 §b) e
+  // não migrável para integration_test puro (IDR-009/010: Web → Playwright, nativo → Patrol).
+  // Optou-se por NÃO mockar e desativar até a story de enabling (harness same-origin + Patrol).
+  test.fixme('cadastra, vê recebido e ao logar vê "aguardando aprovação"', async ({ page }) => {
     await gotoApp(page, '/cadastro/contratante');
     const email = `contratante.${Date.now()}@e2e.local`;
     await preencherCadastro(page, email);

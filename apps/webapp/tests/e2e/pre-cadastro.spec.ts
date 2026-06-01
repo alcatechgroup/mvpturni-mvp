@@ -81,8 +81,14 @@ test.describe('WebApp — pré-cadastro de profissional (CA-9)', () => {
     await expect(page.getByText('Criar conta de profissional')).toBeVisible();
   });
 
+  // DESATIVADO (STORY-038, decisão do PO 2026-06-01): o happy-path de cadastro exige
+  // upload de foto via image_picker (file chooser do browser). É flaky no padrão de
+  // semantics da IDR-006 §b e NÃO migra para integration_test puro (IDR-009/010: Web →
+  // Playwright, nativo → Patrol). Optou-se por NÃO mockar o image_picker e desativar este
+  // cenário até a story de enabling (harness same-origin + Patrol) o recolocar com a
+  // ferramenta certa. As validações sem foto migram para integration_test à parte.
   for (const tipo of ['PF', 'MEI'] as const) {
-    test(`envia cadastro ${tipo} e vê a tela de recebido`, async ({ page }) => {
+    test.fixme(`envia cadastro ${tipo} e vê a tela de recebido`, async ({ page }) => {
       await gotoApp(page, '/cadastro/profissional');
       const email = `prof.${tipo.toLowerCase()}.${Date.now()}@e2e.local`;
       await preencherCadastro(page, email, tipo);

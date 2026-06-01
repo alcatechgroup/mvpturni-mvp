@@ -373,9 +373,44 @@ Não dá para alegar CA-15 (5x verde) com flake na suíte (disciplina: proibido 
 
 Aguardando decisão antes de fechar CA-15/16 e marcar `in_review`.
 
+### Resolução do bloqueio CA-15/16 (decisão do PO — 2026-06-01)
+
+PO optou pela **solução de raiz** como direção, com gate determinístico agora:
+- **Gate smoke-only** (CA-15/16): `e2e-webapp-smoke` roda **só** `webapp-hello-world.spec.ts` (smoke HTTP
+  determinístico). Specs de UI legados flaky (`pre-cadastro`, `pre-cadastro-contratante`, `welcome`, `app-update`)
+  saíram do gate para `make e2e-webapp-playwright-legacy` (não-gating), até migrarem.
+- **image_picker (muro 2):** PO decidiu **não** mockar; o happy-path de cadastro com foto foi **desativado**
+  (`test.fixme` com justificativa) em ambos os `pre-cadastro*` — recolocado na story de enabling com a ferramenta
+  certa (Patrol/IDR-009).
+- **Harness same-origin (muro 1):** migrar fluxos com chamada autenticada pós-login (welcome → `welcome-visto`,
+  e toda STORY-022+) e os `pre-cadastro` exige um harness same-origin sob `flutter drive` (reverse-proxy +
+  `--use-existing-app`, ou `withCredentials` + CORS/Sanctum em dev). **Recomendado: story de enabling dedicada**
+  (toca IDR-014/009; maior que STORY-038). A abordagem cross-origin desta story cobre só o que se decide pela
+  **resposta do login** (CA-6/7/8), não chamadas autenticadas subsequentes.
+
+### Progresso — Fatia 3 concluída (2026-06-01): CA-15/16 ✅ — gate determinístico
+
+- **CA-15 ✅** — `make e2e-webapp` rodado **5x consecutivos: PASS, PASS, PASS, PASS, PASS** (zero flake).
+  integration_test "All tests passed" nas 5; smoke "4 passed (~8.7s)" nas 5.
+- **CA-16 ✅** — wall-time por run: 50s, 51s, 50s, 48s, 47s (média **~49s**). Baseline anterior do gate (Playwright
+  rodando todos os specs) ~**3m35s** com flake → **redução grande** (~4x mais rápido) e determinístico. Ganho vem de:
+  (a) integration_test rápido/determinístico no lugar da interação via semantics; (b) smoke reduzido ao HTTP.
+
+**Cobertura (DoD):** `flutter test --coverage` → **74,0% (1150/1555 linhas)**, **abaixo do piso de 80%**.
+**Não é regressão da STORY-038** — esta story não adiciona lógica de produção (só renomeia strings de Key e adiciona
+testes; os 97 widget tests seguem verdes). É débito **pré-existente** (provável código web-interop de stories anteriores
+sem cobertura). **[SINALIZAÇÃO-PO]** decidir se o piso de 80% bloqueia esta enablement ou vira ação separada.
+
+### CAs — situação final
+
+CA-1..CA-9 ✅ · CA-10 ✅ · CA-11 ✅ · CA-12 ✅ · CA-13 ✅ (smoke escopado a hello-world por decisão do PO/IDR-010)
+· CA-14 ✅ · CA-15 ✅ · CA-16 ✅ · CA-17/18 ✅ (IDRs já accepted) · CA-19 ✅ · CA-20 ✅ · CA-21 N/A.
+**Todos os CAs da STORY-038 atendidos.** Pendências fora dos CAs desta story: migração de welcome/pre-cadastro/
+app-update (story de enabling do harness) e cobertura pré-existente <80% (sinalização ao PO).
+
 ### Bloqueios encontrados
-- **[ESCALONAMENTO-PO] CA-15/16** — ver bloco acima (flake pré-existente em specs Playwright fora de escopo).
-- Observação de sintaxe da IDR-010 (já corrigida via nota na própria IDR) e base-URL da API (resolvida na fatia 2).
+- **Resolvidos/encaminhados:** CA-15/16 (decisão do PO acima); sintaxe IDR-010 (corrigida na própria IDR);
+  base-URL da API (resolvida na fatia 2). **Sinalização ao PO:** cobertura pré-existente 74% (<80%).
 
 ### IDRs criados
 - IDR-010 (proposto nesta story).

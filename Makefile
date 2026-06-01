@@ -18,7 +18,8 @@ CHROMEDRIVER_PORT ?= 4444
 .DEFAULT_GOAL := help
 .PHONY: help setup up down clean logs ps env build install key migrate seed \
         webapp-build hooks test test-api test-admin test-webapp lint fresh \
-        e2e e2e-webapp e2e-webapp-integration e2e-webapp-smoke e2e-admin
+        e2e e2e-webapp e2e-webapp-integration e2e-webapp-smoke \
+        e2e-webapp-playwright-legacy e2e-admin
 
 help: ## Mostra os comandos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -152,13 +153,25 @@ e2e-webapp-integration: ## integration_test (UI) do WebApp no Chrome headless �
 	    -d web-server --browser-name=chrome --headless \
 	    --dart-define=API_BASE_URL=http://localhost:$${API_PORT:-8001}
 
-# Iteração em dev: só o smoke HTTP em Playwright contra o build servido em :8003.
+# Smoke HTTP do WebApp em Playwright (IDR-010): SÓ webapp-hello-world.spec.ts — título,
+# /version.json, /health (homolog), console limpo, deep link /login. É a única camada que
+# bate no build servido em :8003. Determinístico (não interage com widgets via semantics).
 e2e-webapp-smoke: ## smoke HTTP do WebApp (Playwright) contra localhost:8003 — IDR-010
 	@command -v npx >/dev/null 2>&1 || { echo "ERRO: npx ausente no PATH (instale Node 22)"; exit 1; }
 	@curl -fsS -o /dev/null http://localhost:$${WEBAPP_PORT:-8003} || { echo "ERRO: WebApp não responde em :$${WEBAPP_PORT:-8003}. Rode 'make up' antes."; exit 1; }
 	cd apps/webapp && (test -d node_modules || npm ci) \
 	  && (test -d node_modules/playwright-core/.local-browsers || npx playwright install chromium --with-deps) \
-	  && npx playwright test
+	  && npx playwright test webapp-hello-world.spec.ts
+
+# Specs Playwright LEGADOS de interação com a UI (pre-cadastro PF/contratante, welcome,
+# app-update) — usam o truque de semantics da IDR-006 §b e são FLAKY. FORA do gate
+# (não entram em `make e2e-webapp`) até migrarem para integration_test (STORY de enabling
+# do harness same-origin + Patrol para image_picker). Rode sob demanda para regressão manual.
+e2e-webapp-playwright-legacy: ## specs Playwright legados de UI (flaky, NÃO-gating) — pré-migração
+	@command -v npx >/dev/null 2>&1 || { echo "ERRO: npx ausente no PATH (instale Node 22)"; exit 1; }
+	@curl -fsS -o /dev/null http://localhost:$${WEBAPP_PORT:-8003} || { echo "ERRO: WebApp não responde em :$${WEBAPP_PORT:-8003}. Rode 'make up' antes."; exit 1; }
+	cd apps/webapp && (test -d node_modules || npm ci) \
+	  && npx playwright test app-update.spec.ts pre-cadastro.spec.ts pre-cadastro-contratante.spec.ts welcome.spec.ts
 
 e2e-admin: ## E2E Playwright do Backoffice contra localhost:8002 (exige `make up`)
 	@command -v npx >/dev/null 2>&1 || { echo "ERRO: npx ausente no PATH (instale Node 22)"; exit 1; }
