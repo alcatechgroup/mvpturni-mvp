@@ -10,6 +10,7 @@ use App\Models\ContratanteProfile;
 use App\Models\Template;
 use App\Models\TemplateVersao;
 use App\Models\User;
+use Database\Seeders\TemplatesContratuaisSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -20,44 +21,11 @@ uses(RefreshDatabase::class);
 
 const CNPJ_CONTRATANTE_OK = '11222333000181';
 
-const TEMPLATE_CONTRATANTE_FIXTURE = <<<'MD'
-# Termos de Adesão à Plataforma Turni — Contratante
-
-Ao concluir o cadastro, o Contratante adere às condições abaixo.
-
-## Seção 1 — Condições gerais
-
-### 1. Identificação do Contratante
-Razão Social / Nome: **{{contratante.razao_social}}**
-CNPJ: {{contratante.cnpj}}
-Endereço: {{contratante.endereco_completo}}
-
-### 2. Taxa Turni
-O Contratante paga à plataforma uma taxa de {{plataforma.taxa_turni}} sobre o valor de cada turno.
-
-## Assinatura eletrônica
-| Campo | Valor |
-|---|---|
-| Data e hora do aceite | {{aceite.timestamp}} |
-| Endereço IP | {{aceite.ip}} |
-| Identificador de sessão | {{aceite.fingerprint}} |
-
-## Notas do PO
-nota interna que NAO deve aparecer ao contratante
-MD;
-
 beforeEach(function () {
     Storage::fake('local');
-    $admin = User::factory()->admin()->create();
-
-    $template = Template::create(['slug' => 'termos_plataforma_contratante', 'nome_amigavel' => 'Termos de Adesão — Contratante']);
-    TemplateVersao::create([
-        'template_id' => $template->id,
-        'versao' => 1,
-        'conteudo' => TEMPLATE_CONTRATANTE_FIXTURE,
-        'criado_por_admin_id' => $admin->id,
-        'ativa' => true,
-    ]);
+    // Usa o texto-seed REAL de termos_plataforma_contratante (IDR-023), não um fixture.
+    User::factory()->admin()->create();
+    test()->seed(TemplatesContratuaisSeeder::class);
 });
 
 function contratanteEmCadastro(string $nomeEstabelecimento = 'Bar do Zé'): User
@@ -133,8 +101,9 @@ test('CA-9/12: contratante conclui cadastro, gera aceite, vira ativo com plano M
     expect($aceite->conteudo_renderizado)
         ->toContain('Bar do Zé')
         ->toContain('11.222.333/0001-81')
-        ->toContain('15%')
-        ->not->toContain('NAO deve aparecer') // ## Notas do PO omitida (IDR-022)
+        ->toContain('15%') // taxa Turni (cláusula 4 do template real)
+        ->not->toContain('Dúvidas registradas') // ## Notas do PO omitida (IDR-022)
+        ->not->toContain('Histórico de validação')
         ->not->toContain('{{');
     expect($aceite->dados_renderizados)->toHaveKeys(['contratante.razao_social', 'contratante.cnpj', 'aceite.ip']);
 
@@ -156,7 +125,7 @@ test('CA-7: preview renderiza termos com CNPJ, razão e marcador de assinatura p
         ->toContain('Bar do Zé')
         ->toContain('15%')
         ->toContain('preenchido no momento do aceite')
-        ->not->toContain('NAO deve aparecer')
+        ->not->toContain('Dúvidas registradas')
         ->not->toContain('{{');
 });
 

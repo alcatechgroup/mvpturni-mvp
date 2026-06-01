@@ -44,9 +44,11 @@ class CompletarCadastroContratanteService
      */
     public function previewContrato(User $user, array $dados): string
     {
+        $versao = $this->versaoAtiva();
+
         return $this->renderer->renderizar(
-            $this->versaoAtiva()->conteudo,
-            $this->contexto($user, $dados, [
+            $versao->conteudo,
+            $this->contexto($user, $dados, $versao, [
                 'aceite.timestamp' => AceiteAdesaoRenderer::ASSINATURA_PENDENTE,
                 'aceite.ip' => AceiteAdesaoRenderer::ASSINATURA_PENDENTE,
                 'aceite.fingerprint' => AceiteAdesaoRenderer::ASSINATURA_PENDENTE,
@@ -80,7 +82,7 @@ class CompletarCadastroContratanteService
         $aceitoEm = CarbonImmutable::now();
         $fingerprint = $this->fingerprint($userAgent, $ip, $aceitoEm);
 
-        $contexto = $this->contexto($user, $dados, [
+        $contexto = $this->contexto($user, $dados, $versao, [
             'aceite.timestamp' => $aceitoEm->format('d/m/Y H:i'),
             'aceite.ip' => $ip,
             'aceite.fingerprint' => $fingerprint,
@@ -156,7 +158,7 @@ class CompletarCadastroContratanteService
      * @param  array<string,string>  $assinatura
      * @return array<string,string>
      */
-    private function contexto(User $user, array $dados, array $assinatura): array
+    private function contexto(User $user, array $dados, TemplateVersao $versao, array $assinatura): array
     {
         $profile = $user->contratanteProfile;
 
@@ -165,6 +167,7 @@ class CompletarCadastroContratanteService
             'contratante.cnpj' => DocumentoValidator::formatar((string) $dados['cnpj'], 'CNPJ'),
             'contratante.endereco_completo' => $this->enderecoCompleto($dados, $profile),
             'plataforma.taxa_turni' => self::TAXA_TURNI,
+            'template.versao' => (string) $versao->versao,
             ...$assinatura,
         ];
     }

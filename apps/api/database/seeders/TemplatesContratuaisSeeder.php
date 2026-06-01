@@ -29,6 +29,11 @@ class TemplatesContratuaisSeeder extends Seeder
             'nome' => 'Contrato MEI/PJ — B2B PJ↔PJ',
             'arquivo' => 'template-mei-pj-b2b-v1.md',
         ],
+        // STORY-024 / IDR-023 — template próprio de adesão do contratante (taxa Turni 15%).
+        'termos_plataforma_contratante' => [
+            'nome' => 'Termos de Adesão à Plataforma — Contratante',
+            'arquivo' => 'template-termos-plataforma-contratante-v1.md',
+        ],
     ];
 
     public function run(): void
