@@ -1,5 +1,7 @@
 # Disciplina de testes do Programador
 
+> **Por que estamos endurecendo isso.** Este projeto tem pago retrabalho recorrente porque testes (especialmente E2E e unitários para casos não-felizes) têm sido tratados como opcional ou "faço depois". Não são. Esta disciplina define **gates duros** — coisas que, se não estão feitas, a estória **não fecha**. A `SKILL.md` lista os gates inegociáveis ("Disciplina de testes — Gates de teste inegociáveis"); este documento é o **como** atingi-los.
+
 Este é o documento que separa um programador profissional de um amador. Padrões transversais (cobertura mínima, exigência de E2E) vêm do PO (`docs/skills/po/references/quality-standards.md`). **Aqui** estão **como** você atinge esses padrões na prática — e por que o caminho feliz **nunca é suficiente**.
 
 ## A mentalidade de teste do sênior
@@ -241,16 +243,34 @@ Suíte lenta é suíte ignorada. Testes precisam ser **rápidos o suficiente** p
 
 ---
 
+## Evidência por CA (registre nas Notas do agente)
+
+Para cada CA da estória, registre nas Notas do agente, **antes** de marcar `in_review`, algo no formato:
+
+```
+CA-1: <descrição curta do critério>
+  Testes:
+    - test_<nome>          (caminho feliz)         arquivo: tests/unit/...
+    - test_<nome>          (caso inválido)          arquivo: tests/unit/...
+    - test_<nome>          (exceção esperada)       arquivo: tests/integration/...
+    - test_<nome>          (borda)                  arquivo: tests/unit/...
+    - e2e_<nome>           (fluxo de usuário)       arquivo: tests/e2e/...
+  TDD evidenciado: commit <hash-teste> precede commit <hash-código>
+```
+
+Sem esse mapeamento explícito, o trabalho de teste é invisível para o revisor — e quase sempre indica que falta categoria. Se você não consegue preencher uma linha (ex.: "não tem caso inválido relevante"), **explique por quê** ali mesmo. Buraco silencioso é débito futuro.
+
 ## Resumo operacional
 
 Ao terminar de implementar uma funcionalidade, **antes** de marcar `in_review`:
 
-1. ✅ Cada CA da estória tem ao menos um teste cobrindo.
-2. ✅ Para cada CA, existem testes de: caminho feliz, casos inválidos, exceções esperadas, bordas.
-3. ✅ Se FE web, existe E2E em browser real cobrindo o fluxo.
-4. ✅ Mocks só estão onde precisam estar (serviços externos, tempo, aleatoriedade).
-5. ✅ Cobertura local atinge as metas.
-6. ✅ Suíte **completa** do projeto roda verde — não só os meus testes.
-7. ✅ Smoke manual rápido no app local foi feito.
+1. ✅ Cada CA da estória tem ao menos um teste cobrindo — nome do teste registrado nas Notas do agente.
+2. ✅ Para cada CA, existem testes de: caminho feliz, casos inválidos, exceções esperadas, bordas. Categorias listadas no mapeamento por CA.
+3. ✅ Se FE web, existe **E2E em browser real** cobrindo o fluxo — evidência (vídeo/print/link) anexada ao PR.
+4. ✅ **TDD evidenciado:** o histórico de commits mostra teste antes do código (ou junto, no mesmo commit). Implementação primeiro + teste depois é refeita.
+5. ✅ Mocks só estão onde precisam estar (serviços externos, tempo, aleatoriedade). Mock dentro do próprio módulo testado é refatorado, não aceito.
+6. ✅ Cobertura local atinge as metas (80% geral / 98% núcleo) **e** as linhas descobertas têm justificativa concreta — não "depois eu vejo".
+7. ✅ Suíte **completa** do projeto roda verde — unit + integração + E2E. Não só os meus testes, não só o meu módulo.
+8. ✅ Smoke manual rápido no app local foi feito (complementa o automatizado, não substitui).
 
 **Se algum item ❌ → estória não está pronta. Continue.**

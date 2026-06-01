@@ -206,6 +206,28 @@ Use **estritamente** o template `templates/story.md`. Princípios:
 3. Você lê o relatório. Se aprovado: marque o épico como `done` no `index.json`, gere um status report. Se reprovado: abra estórias de correção e o épico permanece `in_review`.
 4. **Nunca** marque um épico como concluído sem o relatório do validador.
 
+### Fluxo W — Manter a wishlist (pre-backlog)
+
+Operação contínua, **não atrelada a sprint**. A wishlist vive em `docs/project-state/wishlist/` e guarda desejos capturados que ainda não viraram épico/estória/spec/PDR. Três operações exposed ao usuário:
+
+1. **Listar desejos** — leio `wishlist.json`, agrupo por status, apresento em prosa curta.
+2. **Adicionar desejo** — capturo com 1–3 perguntas via `AskUserQuestion`, crio `items/WISH-XXX-<slug>.md` a partir de `templates/wish.md`, atualizo `wishlist.json`. Status inicial `new`.
+3. **Transformar desejo em spec** — decido destino (atualizar `especificacao/`, criar estória via Fluxo C, criar épico via Fluxo A/B, ou registrar PDR), executo o fluxo correspondente, marco item como `specced` com `spec_link`.
+
+Detalhe completo (gatilhos de intenção, invariantes, edge cases, operações auxiliares) em `references/wishlist.md`. **Sempre que o usuário falar em "desejo", "wishlist", "lista de ideias", "anota aí", "adiciona um item" ou "promove esse desejo", consulte aquela reference antes de agir.**
+
+### Fluxo X — Manter a lista de bugs
+
+Operação contínua, **não atrelada a sprint**. A lista de bugs vive em `docs/project-state/bugs/` e guarda defeitos encontrados (em validação, por usuário, em monitoramento, etc) ainda não corrigidos. Três operações exposed ao usuário:
+
+1. **Listar bugs** — leio `bugs.json`, agrupo por status e severidade, apresento `id · [severity] · título · status · origem`. Bugs `critical` abertos há mais de 24h aparecem destacados.
+2. **Adicionar bug** — capturo com 2–4 perguntas via `AskUserQuestion` (título, reprodução, esperado×observado, severidade), crio `items/BUG-XXX-<slug>.md` a partir de `templates/bug.md`, atualizo `bugs.json`. Status inicial `reported`.
+3. **Promover bug para o plano** — confirmo reprodução (passa por `confirmed`), crio estória de correção (`type: bug_fix`) via Fluxo C, vinculo `fix_link` no bug, marco como `planned`. Severidade `critical` é candidata natural ao sprint corrente.
+
+Operações auxiliares: fechar como `wont_fix` (com `wont_fix_reason`), fechar como `duplicate` (com `duplicate_of`), avançar status (`reported → triaged → confirmed`, `fixed → verified`).
+
+Bugs **não são** wishes: bug exige expectativa estabelecida (spec/protótipo/PDR) que está sendo violada. Em dúvida, vai para wishlist. Detalhe completo (gatilhos, invariantes, fluxo de promoção, relação com wishlist) em `references/bugs.md`. **Sempre que o usuário falar em "bug", "defeito", "erro", "achei isso na validação", "não está funcionando", consulte aquela reference antes de agir.**
+
 ### Fluxo E — Status report para humanos
 
 Quando o usuário pedir "como está o projeto?", "status report", "o que foi feito esta semana?", ou em fim de sprint:
@@ -258,12 +280,16 @@ Decisão de produto baseada em entendimento parcial vira PDR ruim — e PDR ruim
 | Antes de exigir padrões de qualidade em uma estória | `references/quality-standards.md` |
 | Antes de mandar estória para o agente programador (protocolo) | `references/agent-task-format.md` |
 | Antes de mexer no `index.json` | `references/indexing.md` |
+| Ao manter a wishlist (listar/adicionar/promover desejos) | `references/wishlist.md` |
+| Ao manter a lista de bugs (listar/adicionar/promover correções) | `references/bugs.md` |
 | Quando o termo do usuário não estiver claro | `references/glossary.md` |
 
 ## Templates (copie e preencha)
 
 | Arquivo final | Template |
 |---|---|
+| `project-state/wishlist/items/WISH-XXX-*.md` | `templates/wish.md` |
+| `project-state/bugs/items/BUG-XXX-*.md` | `templates/bug.md` |
 | `project-state/epics/EPIC-XXX-*/epic.md` | `templates/epic.md` |
 | `project-state/epics/EPIC-XXX-*/stories/STORY-XXX-*.md` | `templates/story.md` |
 | `project-state/epics/EPIC-XXX-*/validation/checklist.md` | `templates/validation-checklist.md` |
@@ -297,6 +323,8 @@ Se esta é a **primeira sessão sua de PO** no Turni (agente recém-chegado ou c
 6. **Protótipo do Turni** em `docs/prototipo/` — abra `index.html` (landing) e `app.html` (aplicação), percorra os fluxos do profissional e do contratante, leia `manifest.json`. **Este é o ponto de partida do produto** enquanto a spec não está consolidada.
 7. **Especificação em `docs/especificacao/`** (se já existir) — leitura panorâmica do domínio (marketplace de hospitalidade on-demand). Caso ainda não exista, sua primeira tarefa de produto será criá-la a partir do protótipo.
 8. **`project-state/` atual** se existir — `index.json`, último status report, roadmap, PDRs anteriores.
+9. **`project-state/wishlist/`** — pre-backlog. `wishlist.json` e `README.md` mostram o que está capturado mas ainda não priorizado; protocolo em `references/wishlist.md`.
+10. **`project-state/bugs/`** — defeitos encontrados ainda não corrigidos. `bugs.json` e `README.md` mostram o inventário e severidades; protocolo em `references/bugs.md`.
 
 Heurística: você está pronto para decidir quando consegue, em 5 minutos, explicar:
 - O que o Turni faz e para quem.

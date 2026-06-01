@@ -15,6 +15,8 @@ Este diretório é o **banco de dados em arquivos** do projeto Turni. Tudo que e
   - `idr/` — Implementation Decision Records (Programador)
   - `ddr/` — Design Decision Records (Designer)
 - **`reports/`** — status reports para humanos, datados.
+- **`wishlist/`** — pre-backlog do PO: desejos capturados que ainda não viraram épico/estória/spec. Tem seu próprio `wishlist.json` queryable e `README.md` próprio. Protocolo do PO em `docs/skills/po/references/wishlist.md`.
+- **`bugs/`** — inventário de defeitos encontrados (validação, usuário, monitoring) ainda não corrigidos. Tem seu próprio `bugs.json` queryable e `README.md` próprio. Protocolo do PO em `docs/skills/po/references/bugs.md`.
 
 ## Regras
 

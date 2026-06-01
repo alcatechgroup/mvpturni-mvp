@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "generated_at": "2026-05-31",
+  "project": "Turni",
+  "description": "Inventário durável de bugs encontrados na plataforma. Captura → triagem → confirmação → planejamento → correção → verificação. Não confundir com backlog (vive em epics/stories) nem com runbook de incidentes.",
+  "schema": {
+    "status_enum": ["reported", "triaged", "confirmed", "planned", "fixed", "verified", "wont_fix", "duplicate"],
+    "severity_enum": ["critical", "high", "medium", "low"],
+    "origin_enum": ["validation", "user", "monitoring", "po_review", "dev_review", "designer_review", "e2e"],
+    "item_fields": [
+      "id", "slug", "title", "status", "severity", "one_liner",
+      "origin", "origin_ref",
+      "environment", "version_ref",
+      "area",
+      "found_at", "last_seen_at", "updated_at",
+      "linked_validation", "fix_link",
+      "duplicate_of", "wont_fix_reason",
+      "tags", "path"
+    ]
+  },
+  "next_id": 1,
+  "items": []
+}

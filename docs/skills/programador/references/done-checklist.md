@@ -6,17 +6,18 @@ Este checklist te protege e protege o projeto. Se já caiu em "pegadinha" alguma
 
 ---
 
-## Versão sintética — as 5 perguntas
+## Versão sintética — as 6 perguntas (com prova)
 
-Para estória pequena e rotineira, este filtro rápido cobre o essencial. Se você responde **sim com confiança** para todas, está OK. Se hesita em alguma, vá para a versão completa abaixo.
+Para estória pequena e rotineira, este filtro rápido cobre o essencial. Se você responde **sim com confiança e consegue mostrar a prova** para todas, está OK. Se hesita em alguma, vá para a versão completa abaixo.
 
-1. **Suíte completa do projeto verde** (não só meus testes)?
-2. **Cobertura atingida** — incluindo testes para casos inválidos, exceções e bordas (não só caminho feliz)?
-3. **E2E em browser real** rodando (se a estória mexe em FE web)?
-4. **CI verde no PR, deploy em homologação verificado funcionando** (smoke manual rápido)?
-5. **Eu colocaria isso em produção real e dormiria tranquilo?**
+1. **TDD evidenciado:** o histórico de commits mostra teste antes do código para cada CA? (Não "implementei e adicionei testes depois".)
+2. **Mapeamento CA → teste:** consigo dizer o nome do teste que prova cada CA, sem olhar a estória?
+3. **Caminho feliz + caso inválido + exceção + borda:** existe pelo menos um teste de cada categoria para cada funcionalidade tocada?
+4. **E2E em browser real** rodando local **e** anexado ao PR (vídeo/print/link), se a estória mexe em FE web?
+5. **Suíte completa local verde** (unit + integração + E2E) — não só meus testes?
+6. **Eu colocaria isso em produção real e dormiria tranquilo?**
 
-Se sim para as 5 → marca `in_review` e segue.
+Se sim para as 6 → marca `in_review` e segue.
 
 Se não → use a versão completa abaixo para identificar o que falta.
 
@@ -42,14 +43,15 @@ Se algo soou desconfortável, **investigue antes**.
 
 ---
 
-#### Bloco 1 — Critérios de aceite cobertos
+#### Bloco 1 — Critérios de aceite cobertos com TDD evidenciado
 
-- [ ] **CA-1:** existe ao menos um teste que falha sem o código e passa com o código.
+- [ ] **CA-1:** existe ao menos um teste que falha sem o código e passa com o código. **Commit do teste precede commit do código** no histórico do PR.
 - [ ] **CA-2:** idem.
 - [ ] **CA-N:** idem.
-- [ ] Nenhum CA da estória ficou "implícito" — todos têm referência clara a um ou mais testes.
+- [ ] Nenhum CA da estória ficou "implícito" — todos têm referência clara a um ou mais testes nominados nas Notas do agente.
+- [ ] Tabela CA → teste documentada no corpo do PR.
 
-**Como verificar:** abra a estória. Para cada CA, identifique o teste que o exercita. Se você consegue dizer o nome do teste para cada CA, está OK.
+**Como verificar:** abra a estória. Para cada CA, identifique o teste que o exercita pelo nome. Rode `git log --oneline -- <arquivo-de-teste> <arquivo-de-código>` e confirme que o teste aparece primeiro. Se você implementou antes e adicionou teste depois "que passa", **não é TDD** — registre nas Notas que recomeçou esse CA seguindo o ciclo correto, ou abra uma estória de débito de teste com o PO.
 
 ---
 
@@ -79,14 +81,15 @@ Para cada funcionalidade nova/alterada, eu cobri:
 
 ---
 
-### Bloco 4 — E2E
+### Bloco 4 — E2E (gate duro para FE web)
 
 - [ ] Se a estória envolve fluxo de usuário, há **pelo menos um cenário E2E** novo cobrindo.
-- [ ] Se há frontend web tocado, o E2E roda em **browser real via automação** (não simulado).
+- [ ] Se há frontend web tocado, o E2E roda em **browser real via automação** (Playwright/Cypress/Puppeteer — qual é decisão de ADR). **NÃO** vale jsdom, NÃO vale teste manual, NÃO vale "eu cliquei na UI e funcionou".
 - [ ] O E2E novo passa **localmente** (não só em CI).
 - [ ] O E2E novo cobre tanto **fluxo de sucesso quanto pelo menos um fluxo de erro** do ponto de vista do usuário.
+- [ ] **Evidência anexada ao PR**: vídeo do runner, screenshots, ou link para a execução em CI mostrando o E2E verde.
 
-**Como verificar:** rode o E2E local. Se não consegue, está quebrado (lembre que princípio arquitetural #6: tudo sobe local).
+**Como verificar:** rode o E2E local. Se não consegue, está quebrado (lembre que princípio arquitetural #6: tudo sobe local). **Sem E2E em browser real anexado, PR de FE web não merge — não é negociável.**
 
 ---
 

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "generated_at": "2026-05-31",
+  "project": "Turni",
+  "description": "Pre-backlog do PO. Itens capturados aguardando triagem, aceite, promoção a spec/estória ou rejeição. Não confundir com backlog formal — esse vive em epics/stories.",
+  "schema": {
+    "status_enum": ["new", "triaged", "accepted", "specced", "done", "rejected"],
+    "item_fields": [
+      "id", "slug", "title", "status", "one_liner", "origin",
+      "created_at", "updated_at",
+      "tags", "spec_link", "rejected_reason", "path"
+    ]
+  },
+  "next_id": 3,
+  "items": [
+    {
+      "id": "WISH-001",
+      "slug": "consulta-cep",
+      "title": "Consultar CEP e preencher logradouro, cidade e estado",
+      "status": "new",
+      "one_liner": "Quando o usuário digitar um CEP em formulário de endereço, o sistema busca em API pública e preenche logradouro, bairro, cidade e estado.",
+      "origin": "Alexandro (sessão 2026-05-31)",
+      "tags": ["integracao", "ux", "cadastro", "endereco"],
+      "spec_link": null,
+      "rejected_reason": null,
+      "path": "items/WISH-001-consulta-cep.md",
+      "created_at": "2026-05-31",
+      "updated_at": "2026-05-31"
+    },
+    {
+      "id": "WISH-002",
+      "slug": "consulta-cnpj",
+      "title": "Consultar CNPJ em API específica e preencher dados da empresa",
+      "status": "new",
+      "one_liner": "Quando contratante (ou profissional PJ/MEI) digitar CNPJ, o sistema consulta API específica e traz razão social, nome fantasia, situação cadastral e endereço.",
+      "origin": "Alexandro (sessão 2026-05-31)",
+      "tags": ["integracao", "cadastro", "compliance", "pj"],
+      "spec_link": null,
+      "rejected_reason": null,
+      "path": "items/WISH-002-consulta-cnpj.md",
+      "created_at": "2026-05-31",
+      "updated_at": "2026-05-31"
+    }
+  ]
+}
