@@ -75,10 +75,20 @@ PROXY_PORT=3000 APP_PORT=7357 API_PORT=8001 node ../../scripts/e2e-webapp-proxy.
 flutter drive --driver=test_driver/integration_test.dart \
   --target=integration_test/auth_test.dart \
   -d web-server --browser-name=chrome --headless \
-  --web-hostname=localhost --web-port=7357 \
+  --web-hostname=127.0.0.1 --web-port=7357 \
   --web-launch-url=http://localhost:3000
 kill %1 %2
-# debug visual: troque `-d web-server --browser-name=chrome --headless` por `-d chrome` (sem headless).
+```
+
+> **Atenção ao `--web-hostname=127.0.0.1`** (não `localhost`): no macOS, `localhost` binda o
+> dev-server só em IPv6 (`::1`) e o proxy (IPv4 `127.0.0.1`) leva ECONNREFUSED → o app não
+> carrega e o drive pendura (IDR-021, gotcha IPv6/IPv4).
+
+**Browser visível (debug):** em vez do snippet manual, rode o target do harness com
+`E2E_HEADLESS=0` — abre o Chrome de verdade e sobe/derruba proxy + chromedriver sozinho:
+
+```bash
+make e2e-webapp-integration E2E_HEADLESS=0
 ```
 
 Os arquivos de cenário vivem em `integration_test/<feature>/<feature>_test.dart` (IDR-011 §d); no Web o `flutter drive` enraíza imports no diretório do `--target`, então os entrypoints ficam no topo (`auth_test.dart`, `cadastro_test.dart`, e o gate `web_test.dart` que os compõe) encadeando os `main()` — assim os leaves resolvem `../helpers/`.
