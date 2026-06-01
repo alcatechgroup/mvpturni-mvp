@@ -3,10 +3,11 @@ epic_id: EPIC-008
 slug: pwa-instalavel
 title: WebApp instalável na tela inicial (PWA) — ação de instalar + fallback iOS + identidade visual
 wave: WAVE-2026-01
-status: draft
+status: ready
 owner_role: po
 created_at: 2026-05-31
-updated_at: 2026-05-31
+updated_at: 2026-06-01  # PO aprovou escopo e moveu para ready na abertura da SPRINT-2026-W27
+sprint_id: SPRINT-2026-W27
 target_completion: 2026-06-30  # estimativa orientativa — sem sprint alvo
 ---
 

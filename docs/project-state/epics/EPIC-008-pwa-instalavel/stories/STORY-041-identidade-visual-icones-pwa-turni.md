@@ -3,15 +3,15 @@ story_id: STORY-041
 slug: identidade-visual-icones-pwa-turni
 title: Identidade visual — ícones do PWA com a marca Turni (substitui logo padrão do Flutter)
 epic_id: EPIC-008
-sprint_id: null
+sprint_id: SPRINT-2026-W27
 type: implementation
 target_role: programador
 requires_design: false  # designer só revisa a SVG-fonte; não há SCREEN dedicada
 design_screen_id: null
-status: draft
+status: ready
 owner_agent: null
 created_at: 2026-05-31
-updated_at: 2026-06-01  # renomeado de STORY-038 → STORY-041 (colisão com EPIC-007 STORY-038)
+updated_at: 2026-06-01  # promovida draft → ready na abertura da SPRINT-2026-W27
 estimated_session_size: S
 produces_idr: null  # IDR-020 (proposta pela STORY-042) cobre formato/tamanhos
 renamed_from: STORY-038  # 2026-06-01 — colisão com EPIC-007 STORY-038 (integration_test)

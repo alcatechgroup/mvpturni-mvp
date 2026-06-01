@@ -3,15 +3,15 @@ story_id: STORY-042
 slug: acao-instalar-app-fallback-ios
 title: Ação "Instalar app" no WebApp Flutter — beforeinstallprompt no Android/Chromium + fallback iOS
 epic_id: EPIC-008
-sprint_id: null
+sprint_id: SPRINT-2026-W27
 type: implementation
 target_role: programador
 requires_design: true  # designer revisa o card "Instalar app" e o modal iOS contra DDR-001
 design_screen_id: null
-status: draft
+status: ready
 owner_agent: null
 created_at: 2026-05-31
-updated_at: 2026-06-01  # renomeado de STORY-039 → STORY-042 (colisão com EPIC-007 STORY-039)
+updated_at: 2026-06-01  # promovida draft → ready na abertura da SPRINT-2026-W27
 estimated_session_size: M
 produces_idr: IDR-020
 renamed_from: STORY-039  # 2026-06-01 — colisão com EPIC-007 STORY-039 (Patrol)

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "generated_at": "2026-06-01T23:17:45Z",
+  "generated_at": "2026-06-01T23:41:33Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
@@ -183,12 +183,26 @@
       "slug": "vaga-feed-e-candidatura",
       "title": "Publicação de vaga, feed do profissional e candidatura",
       "wave": "WAVE-2026-01",
-      "status": "draft",
+      "status": "ready",
       "path": "epics/EPIC-002-vaga-feed-e-candidatura/epic.md",
-      "story_ids": [],
+      "story_ids": [
+        "STORY-44",
+        "STORY-45",
+        "STORY-46",
+        "STORY-47",
+        "STORY-48",
+        "STORY-49",
+        "STORY-50",
+        "STORY-51",
+        "STORY-52",
+        "STORY-53",
+        "STORY-54"
+      ],
       "validation_report": null,
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-06-01",
+      "sprint": "SPRINT-2026-W27",
+      "next_action": "Decomposto via Fluxo B em 2026-06-01 — 11 estórias `ready` (STORY-044..054) atreladas à SPRINT-2026-W27. Aguarda execução: começar por STORY-044 (spike modelo) que é a única sem bloqueio."
     },
     {
       "id": "EPIC-003",
@@ -276,16 +290,16 @@
       "slug": "pwa-instalavel",
       "title": "WebApp instalável na tela inicial (PWA) — ação de instalar + fallback iOS + identidade visual",
       "wave": "WAVE-2026-01",
-      "status": "draft",
+      "status": "ready",
       "path": "epics/EPIC-008-pwa-instalavel/epic.md",
       "story_ids": [
         "STORY-041",
         "STORY-042"
       ],
-      "sprint": null,
+      "sprint": "SPRINT-2026-W27",
       "created_at": "2026-05-31",
       "updated_at": "2026-06-01",
-      "next_action": "Sem sprint alvo. STORY-041 (ícones) e STORY-042 (ação de instalar) em `draft`; produz IDR-020 (atualmente `proposed`). Aguarda priorização pelo PO em sprint futura — sem ordem específica face ao EPIC-002+.",
+      "next_action": "Aprovado pelo PO em 2026-06-01 e atrelado à SPRINT-2026-W27 — STORY-041 + STORY-042 em `ready`. Sem ordem obrigatória face a EPIC-002; recomendado começar cedo (estórias pequenas, fecha rápido).",
       "renamed_stories": {
         "STORY-041": "STORY-038",
         "STORY-042": "STORY-039"
@@ -1321,9 +1335,9 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "draft",
+      "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W27",
       "path": "epics/EPIC-008-pwa-instalavel/stories/STORY-041-identidade-visual-icones-pwa-turni.md",
       "blocked_by": [],
       "blocks": [],
@@ -1341,9 +1355,9 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": null,
-      "status": "draft",
+      "status": "ready",
       "owner_agent": null,
-      "sprint_id": null,
+      "sprint_id": "SPRINT-2026-W27",
       "path": "epics/EPIC-008-pwa-instalavel/stories/STORY-042-acao-instalar-app-fallback-ios.md",
       "blocked_by": [],
       "blocks": [],
@@ -1351,6 +1365,306 @@
       "produces_idr": "IDR-020",
       "renamed_from": "STORY-039 (EPIC-008 original; renomeada em 2026-06-01 por colisão com EPIC-007 STORY-039)",
       "created_at": "2026-05-31",
+      "updated_at": "2026-06-01"
+    },
+    {
+      "id": "STORY-044",
+      "epic_id": "EPIC-002",
+      "title": "Spike Arquiteto — modelo de Vaga + Candidatura + snapshot de edição material (PDR-009)",
+      "type": "spike",
+      "target_role": "arquiteto",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W27",
+      "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-044-spike-modelo-vaga-candidatura-snapshot.md",
+      "blocked_by": [],
+      "blocks": [
+        "STORY-045",
+        "STORY-046",
+        "STORY-047",
+        "STORY-048",
+        "STORY-050",
+        "STORY-051",
+        "STORY-052",
+        "STORY-053",
+        "STORY-054"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-01",
+      "updated_at": "2026-06-01",
+      "produces_adr": "ADR-013"
+    },
+    {
+      "id": "STORY-045",
+      "epic_id": "EPIC-002",
+      "title": "Spike Arquiteto — algoritmo de Match (40/20/30/10), estratégia de cálculo/cache e eventos de telemetria",
+      "type": "spike",
+      "target_role": "arquiteto",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W27",
+      "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-045-spike-algoritmo-match-cache-eventos.md",
+      "blocked_by": [
+        "STORY-044"
+      ],
+      "blocks": [
+        "STORY-048",
+        "STORY-049",
+        "STORY-050",
+        "STORY-051",
+        "STORY-054"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-01",
+      "updated_at": "2026-06-01",
+      "produces_adr": "ADR-014"
+    },
+    {
+      "id": "STORY-046",
+      "epic_id": "EPIC-002",
+      "title": "Publicar vaga no WebApp — formulário do contratante + gate PDR-005",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-046-publicar-vaga",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W27",
+      "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-046-publicar-vaga-webapp-contratante.md",
+      "blocked_by": [
+        "STORY-044"
+      ],
+      "blocks": [
+        "STORY-047",
+        "STORY-048",
+        "STORY-054"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-01",
+      "updated_at": "2026-06-01"
+    },
+    {
+      "id": "STORY-047",
+      "epic_id": "EPIC-002",
+      "title": "Lista \"Minhas vagas\" do contratante no WebApp + cancelar vaga",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-047-minhas-vagas",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W27",
+      "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-047-lista-minhas-vagas-contratante-cancelar.md",
+      "blocked_by": [
+        "STORY-044",
+        "STORY-046"
+      ],
+      "blocks": [
+        "STORY-051",
+        "STORY-052",
+        "STORY-053",
+        "STORY-054"
+      ],
+      "estimated_session_size": "S",
+      "produces_idr": null,
+      "created_at": "2026-06-01",
+      "updated_at": "2026-06-01"
+    },
+    {
+      "id": "STORY-048",
+      "epic_id": "EPIC-002",
+      "title": "Feed do profissional — listagem ranqueada por match com filtros e visibilidade (p95 ≤ 800ms)",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-048-feed-profissional",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W27",
+      "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-048-feed-profissional-com-match-e-filtros.md",
+      "blocked_by": [
+        "STORY-044",
+        "STORY-045"
+      ],
+      "blocks": [
+        "STORY-049",
+        "STORY-050",
+        "STORY-054"
+      ],
+      "estimated_session_size": "L",
+      "produces_idr": null,
+      "created_at": "2026-06-01",
+      "updated_at": "2026-06-01"
+    },
+    {
+      "id": "STORY-049",
+      "epic_id": "EPIC-002",
+      "title": "Detalhe da vaga no WebApp + breakdown explicável do match",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-049-detalhe-vaga",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W27",
+      "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-049-detalhe-vaga-breakdown-match.md",
+      "blocked_by": [
+        "STORY-044",
+        "STORY-045",
+        "STORY-048"
+      ],
+      "blocks": [
+        "STORY-050",
+        "STORY-051",
+        "STORY-054"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-01",
+      "updated_at": "2026-06-01"
+    },
+    {
+      "id": "STORY-050",
+      "epic_id": "EPIC-002",
+      "title": "Candidatura em 1 toque + gates (PDR-005, conflito de horário, habitualidade PDR-002)",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-050-candidatura",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W27",
+      "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-050-candidatura-um-toque-com-gates.md",
+      "blocked_by": [
+        "STORY-044",
+        "STORY-045",
+        "STORY-049"
+      ],
+      "blocks": [
+        "STORY-051",
+        "STORY-053",
+        "STORY-054"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-01",
+      "updated_at": "2026-06-01"
+    },
+    {
+      "id": "STORY-051",
+      "epic_id": "EPIC-002",
+      "title": "Painel de candidatos do contratante — lista ranqueada por match + breakdown",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-051-painel-candidatos",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W27",
+      "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-051-painel-candidatos-contratante.md",
+      "blocked_by": [
+        "STORY-044",
+        "STORY-045",
+        "STORY-049",
+        "STORY-050"
+      ],
+      "blocks": [
+        "STORY-054"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-01",
+      "updated_at": "2026-06-01"
+    },
+    {
+      "id": "STORY-052",
+      "epic_id": "EPIC-002",
+      "title": "Edição material de vaga (PDR-009) — snapshot + estado `pendente_revisao_apos_edicao` + cron 24h",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-052-editar-vaga-e-diff",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W27",
+      "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-052-edicao-material-vaga-pdr009.md",
+      "blocked_by": [
+        "STORY-044",
+        "STORY-034",
+        "STORY-047"
+      ],
+      "blocks": [
+        "STORY-053",
+        "STORY-054"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-01",
+      "updated_at": "2026-06-01"
+    },
+    {
+      "id": "STORY-053",
+      "epic_id": "EPIC-002",
+      "title": "Notificações da candidatura — in-app + e-mail (recebida, edição material, retirada por edição, cancelamento)",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-053-notificacoes",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W27",
+      "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-053-notificacoes-candidatura-in-app-email.md",
+      "blocked_by": [
+        "STORY-020",
+        "STORY-021",
+        "STORY-034",
+        "STORY-047",
+        "STORY-050",
+        "STORY-052"
+      ],
+      "blocks": [
+        "STORY-054"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-01",
+      "updated_at": "2026-06-01"
+    },
+    {
+      "id": "STORY-054",
+      "epic_id": "EPIC-002",
+      "title": "Validação final do EPIC-002 — Vaga, feed e candidatura",
+      "type": "validation",
+      "target_role": "validador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W27",
+      "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-054-validacao-final-epic-002.md",
+      "blocked_by": [
+        "STORY-044",
+        "STORY-045",
+        "STORY-046",
+        "STORY-047",
+        "STORY-048",
+        "STORY-049",
+        "STORY-050",
+        "STORY-051",
+        "STORY-052",
+        "STORY-053"
+      ],
+      "blocks": [],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-01",
       "updated_at": "2026-06-01"
     }
   ],
@@ -1692,6 +2006,41 @@
         "STORY-040"
       ],
       "carried_over_story_ids": []
+    },
+    {
+      "id": "SPRINT-2026-W27",
+      "wave": "WAVE-2026-01",
+      "status": "active",
+      "start_date": "2026-06-01",
+      "end_date": null,
+      "soft_cap_date": "2026-06-22",
+      "opened_at": "2026-06-01",
+      "opened_by": "PO (Alexandro / Claude)",
+      "closure_rule": "Fechamento por goal-atingido: encerra quando STORY-041, STORY-042, STORY-044..053 estiverem `done` E STORY-054 (validador) emitir veredito em `validation/report.md` aceitável pelo PO. Soft-cap 2026-06-22 (~21d) é gatilho de reavaliação — não prazo.",
+      "goal": "Primeiro encontro Turni vivo em homolog (EPIC-002): contratante publica vaga + recebe candidatura ≤ 2h; profissional vê feed ranqueado por match (p95 ≤ 800ms com 1k vagas) com breakdown explicável; candidatura em 1 toque com 3 gates; painel de candidatos ranqueado; edição material PDR-009 com snapshot imutável + notificação + cron 24h; notificações in-app + e-mail (5 templates). WebApp instalável como PWA com identidade Turni (EPIC-008). 2 ADRs (013/014) + 1 IDR (020). Validador independente fecha EPIC-002.",
+      "path": "sprints/SPRINT-2026-W27.md",
+      "story_ids": [
+        "STORY-041",
+        "STORY-042",
+        "STORY-044",
+        "STORY-045",
+        "STORY-046",
+        "STORY-047",
+        "STORY-048",
+        "STORY-049",
+        "STORY-050",
+        "STORY-051",
+        "STORY-052",
+        "STORY-053",
+        "STORY-054"
+      ],
+      "stretch_story_ids": [],
+      "sizing_total": "2 S + 10 M + 1 L (STORY-048 é a única L — gatilho de quebra documentado)",
+      "epics": [
+        "EPIC-002",
+        "EPIC-008"
+      ],
+      "scope_changes": []
     }
   ],
   "decisions": {

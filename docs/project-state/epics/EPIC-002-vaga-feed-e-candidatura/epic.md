@@ -3,10 +3,12 @@ epic_id: EPIC-002
 slug: vaga-feed-e-candidatura
 title: Publicação de vaga, feed do profissional e candidatura
 wave: WAVE-2026-01
-status: draft
+status: ready
 owner_role: po
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-06-01  # decomposto via Fluxo B na abertura da SPRINT-2026-W27 — 11 estórias ready
+sprint_id: SPRINT-2026-W27
+story_ids: [STORY-044, STORY-045, STORY-046, STORY-047, STORY-048, STORY-049, STORY-050, STORY-051, STORY-052, STORY-053, STORY-054]
 target_completion: 2026-07-28  # estimativa orientativa
 ---
 
@@ -70,7 +72,23 @@ Ao fim deste épico, contratante consegue publicar uma vaga em homologação; pr
 
 ## Estórias
 
-> A decompor via Fluxo B quando o épico entrar em sprint.
+Decomposição via Fluxo B feita em 2026-06-01 na abertura da SPRINT-2026-W27. 11 estórias em `ready`:
+
+| ID | Título | Papel | Tipo | Tamanho | Bloqueada por |
+|---|---|---|---|---|---|
+| STORY-044 | Spike modelo Vaga + Candidatura + snapshot PDR-009 | arquiteto | spike | M | — |
+| STORY-045 | Spike algoritmo Match (40/20/30/10) + eventos | arquiteto | spike | M | 044 |
+| STORY-046 | Publicar vaga no WebApp + gate PDR-005 | programador | implementation | M | 044 |
+| STORY-047 | Lista "Minhas vagas" do contratante + cancelar | programador | implementation | S | 044, 046 |
+| STORY-048 | Feed do profissional com match + filtros (p95 ≤ 800ms) | programador | implementation | **L** | 044, 045 |
+| STORY-049 | Detalhe da vaga + breakdown explicável | programador | implementation | M | 044, 045, 048 |
+| STORY-050 | Candidatura em 1 toque + 3 gates | programador | implementation | M | 044, 045, 049 |
+| STORY-051 | Painel de candidatos do contratante (ranqueado) | programador | implementation | M | 044, 045, 049, 050 |
+| STORY-052 | Edição material PDR-009 + snapshot + cron 24h | programador | implementation | M | 044, 034, 047 |
+| STORY-053 | Notificações in-app + e-mail (3 eventos, 5 templates) | programador | implementation | M | 020, 021, 034, 047, 050, 052 |
+| STORY-054 | Validação final EPIC-002 | validador | validation | M | tudo acima |
+
+**Sizing total**: 1 S + 9 M + 1 L. STORY-048 (L) é a candidata natural a estouro de sessão única — agente escala ao PO se sentir.
 
 ## Validação final
 
@@ -81,3 +99,4 @@ Critérios em `validation/checklist.md` (a criar). Relatório do validador em `v
 ## Histórico
 
 - 2026-05-26 — criado por PO durante planejamento da WAVE-2026-01.
+- 2026-06-01 — decomposto via Fluxo B (11 estórias em `ready`) e atrelado à SPRINT-2026-W27 por decisão do PO em chat ("EPIC-008 + EPIC-002 inteiro" como sprint pesada).
