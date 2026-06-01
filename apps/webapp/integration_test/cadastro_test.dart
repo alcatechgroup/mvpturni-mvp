@@ -6,6 +6,8 @@
 //
 // Cada cenário continua em seu próprio arquivo `cadastro/<feature>_test.dart` (IDR-011 §d).
 // Roda same-origin sob o harness da STORY-043 (ver Makefile `e2e-webapp-integration`).
+import 'cadastro/completar_cadastro_contratante_test.dart'
+    as completar_contratante;
 import 'cadastro/completar_cadastro_test.dart' as completar;
 import 'cadastro/pre_cadastro_contratante_test.dart' as contratante;
 import 'cadastro/pre_cadastro_profissional_test.dart' as profissional;
@@ -14,4 +16,5 @@ void main() {
   profissional.main();
   contratante.main();
   completar.main();
+  completar_contratante.main();
 }

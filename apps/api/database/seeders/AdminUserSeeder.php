@@ -136,5 +136,50 @@ class AdminUserSeeder extends Seeder
                 ],
             );
         }
+
+        // 6. Contratante em `await_cadastro` para o E2E do completar cadastro do contratante
+        //    (STORY-024 CA-15). Reseta os campos de completar a cada run (determinismo).
+        $contratante = User::updateOrCreate(
+            ['email' => 'completar.contratante@turni.local'],
+            [
+                'name' => 'Completar Contratante (seed)',
+                'password' => $password,
+                'role' => 'contratante',
+                'status' => 'liberado',
+                'welcome_seen_at' => now(),
+                'cadastro_completed_at' => null, // reset a cada run → await_cadastro
+            ],
+        );
+
+        ContratanteProfile::updateOrCreate(
+            ['user_id' => $contratante->id],
+            [
+                'nome_estabelecimento' => 'Bar do Zé (seed)',
+                'tipo_operacao' => 'bar',
+                'telefone' => '11999990000',
+                'cidade' => 'São Paulo',
+                // Limpa os campos do completar para o E2E recomeçar do zero a cada run.
+                'cnpj_encrypted' => null,
+                'cnpj_hash' => null,
+                'logradouro' => null,
+                'numero' => null,
+                'bairro' => null,
+                'uf' => null,
+                'cep' => null,
+                'complemento' => null,
+                'endereco_completo' => null,
+                'apelido_estabelecimento' => null,
+                'segmento' => null,
+                'ano_fundacao' => null,
+                'qtd_funcionarios' => null,
+                'turnos_operacao' => null,
+                'cultura_valores' => null,
+                'site' => null,
+                'redes_sociais' => null,
+                'contatos_adicionais' => null,
+                'plano' => null,
+                'logo_path' => null,
+            ],
+        );
     }
 }
