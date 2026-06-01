@@ -162,31 +162,68 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+2026-06-01 — assumida em `in_progress` (claude-opus-4-8-programador). Decisão do PO: **refazer
+do zero** (revert `690a252` descartou a implementação anterior, que chegou a `done` em rc.37) e
+**manter como L única** (não quebrar em sub-estórias). Não reuso o código revertido — arquitetura
+repensada.
 
 ### Sync Designer↔Programador
-(a preencher)
+PENDENTE. A `SCREEN-STORY-023` foi revertida junto (não está mais em disco; o índice dizia
+"preservada", mas o revert a removeu). Precisa ser recriada e promovida a `ready` antes de
+finalizar a UI (fase 2 — frontend).
 
 ### Decisões tomadas
-(a preencher)
+- **IDR-022** (ver abaixo): corte do corpo de adesão (preâmbulo + Seção 1 + Assinatura; omite Seção
+  2 de turno e os blocos internos "Histórico de validação"/"Notas do PO"); preview usa marcador
+  "— preenchido no momento do aceite —" nos carimbos `aceite.*` (corpo bate com o aceite, só os 3
+  carimbos de assinatura passam de pendente → real); `profissional.endereco_completo` = "bairro,
+  cidade"; unicidade do documento via `documento_hash` HMAC-SHA256 (encrypted cast é
+  não-determinístico).
+- Models `Template`/`TemplateVersao`/`AceiteEletronico` no app **api** (read de templates + insert
+  de aceites); a edição vive no app **admin** (STORY-020). Migrations são do `api` (dono do banco).
+- Endpoints **fora** do FunnelGuard (usuário está em `await_cadastro`, que o guard bloquearia);
+  authorize() no FormRequest garante o estado. Sem `/sanctum/csrf-cookie` no POST autenticado
+  (regra IDR-019/sessão — fetch de csrf no meio da sessão desloga).
 
 ### Descobertas
-(a preencher)
+- Arquitetura é **multi-app** (api/admin/landing/webapp), não `packages/domain/src/Models` como o
+  ADR sugeria — models vivem por app. O `api` é o backend do WebApp Flutter.
+- O texto-seed do template inclui notas internas do PO + dúvidas jurídicas no fim — **não podem**
+  ser renderizadas ao usuário (tratado no IDR-022).
+- `UploadedFile::fake()->image()` exige extensão GD (ausente no container) — usar
+  `->create(name, kb, 'image/jpeg')` nos testes.
 
 ### Bloqueios encontrados
-(a preencher)
+Nenhum bloqueio duro. Pendência de design (screen spec) registrada acima.
 
 ### IDRs criados
-(a preencher)
+- **IDR-022** — Renderização do aceite de adesão (omissão de Seção 2 + notas), preview vs.
+  assinatura, e `documento_hash` para unicidade.
 
 ### Cobertura final
-(a preencher)
+Backend (parcial — fase 1): suíte `api` 206 passed; núcleo do story ~98%
+(`CompletarCadastroProfissionalService` 98.68% linhas, `AceiteAdesaoRenderer`/`ChavePixValidator`/
+`RenderizacaoIncompletaException`/`CompletarCadastroProfissionalRequest` 100%, `DocumentoValidator`
+96.97%). `pint` ok. **Falta** cobertura do frontend Flutter (widget tests) e E2E.
 
 ### Resultado final / evidência
-(a preencher)
+**Fase 1 (backend) concluída e commitada** (`6ae7420`). CA cobertos por testes no backend:
+CA-3 (documento por tipo + unicidade), CA-4 (Pix), CA-5 (upload mimes/10MB), CA-6 (cripto em
+repouso — query direta não vê texto claro), CA-9 (aceite com versão/conteúdo/dados/ip/fingerprint),
+CA-10 (transação atômica — template indisponível não persiste nada + limpa arquivos), CA-11
+(imutabilidade trigger), CA-12 (transição → ativo), CA-16 (aceite mantém versão original após nova
+versão ativa), CA-17 (log `user.cadastro_completed`).
 
-### Pendências para fechar
-(a preencher)
+### Pendências para fechar (fase 2)
+- [ ] Recriar `SCREEN-STORY-023` + sync designer↔programador (CA-1/7/13).
+- [ ] Frontend Flutter: rota `/completar-cadastro` real (multi-step), upload, preview, checkbox +
+      botão "Aceito e concluir cadastro" (CA-1/2/7/8/13), tema dual, a11y WCAG AA. Widget tests.
+- [ ] E2E browser real: CA-15 (PF + MEI + bloqueio sem checkbox) e CA-16 na pipeline.
+- [ ] CA-18: atualizar lista de campos LGPD em `non-functional.md` (classificação sensível).
+- [ ] Evidência em homolog: cripto em repouso (psql) + imutabilidade (CA-11/runbook) + deploy verde.
+- [ ] Métrica/alerta de cadastros completados (observabilidade §3).
 
 ### Links de evidência
-(a preencher)
+- Commit fase 1: `6ae7420`.
+- Testes: `apps/api/tests/Feature/Identity/CompletarCadastroProfissionalTest.php`,
+  `apps/api/tests/Unit/Cadastro/*`, `apps/api/tests/Unit/Contratos/*`.
