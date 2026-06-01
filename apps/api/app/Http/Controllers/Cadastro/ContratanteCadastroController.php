@@ -27,13 +27,14 @@ class ContratanteCadastroController extends Controller
     {
         $data = $request->validated();
 
-        // CA-4 — proteção contra enumeração: verificação server-side da unicidade do
-        // e-mail (chave única do sistema, domain/usuario.md), com resposta genérica
-        // que não revela se o e-mail já existe.
+        // Unicidade do e-mail (chave única do sistema, domain/usuario.md). Mensagem
+        // EXPLICATIVA por decisão do PO (2026-06-01): a clareza para o usuário ("este
+        // e-mail já tem conta — faça login") supera, no MVP, a proteção anti-enumeração
+        // que a STORY-018 CA-4 priorizava. Trade-off aceito: revela que o e-mail existe.
         if (User::where('email', $data['email'])->exists()) {
             return response()->json([
-                'message' => 'Não foi possível concluir o cadastro. Verifique os dados e tente novamente.',
-                'code' => 'cadastro_nao_concluido',
+                'message' => 'Este e-mail já está cadastrado. Se a conta é sua, faça login para acessar ou recupere sua senha.',
+                'code' => 'email_ja_cadastrado',
                 'hint' => 'Já tem conta? Faça login.',
             ], 422);
         }

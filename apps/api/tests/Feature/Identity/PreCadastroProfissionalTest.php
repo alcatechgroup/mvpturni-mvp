@@ -114,23 +114,20 @@ test('emite log estruturado user.preregistered com e-mail mascarado e sem senha'
 });
 
 // ──────────────────────────────────────────────────────────────
-// CA-4: e-mail já existente → erro genérico, sem revelar existência
+// E-mail já existente → mensagem EXPLICATIVA (decisão PO 2026-06-01; supera o CA-4
+// anti-enumeração original — clareza p/ o usuário no MVP)
 // ──────────────────────────────────────────────────────────────
 
-test('e-mail já cadastrado retorna erro genérico sem revelar enumeração', function () {
+test('e-mail já cadastrado retorna mensagem explicativa para o usuário', function () {
     User::factory()->create(['email' => 'existe@example.com', 'role' => 'contratante']);
 
     $response = cadastroPost(['email' => 'existe@example.com']);
 
-    $response->assertStatus(422);
-    $body = $response->json();
-    // Mensagem genérica — não cita o campo email nem diz "já cadastrado".
-    expect(json_encode($body))->not->toContain('já')
-        ->and(json_encode($body))->not->toContain('existe')
-        ->and(json_encode($body))->not->toContain('cadastrado e');
-    $response->assertJsonPath('message', 'Não foi possível concluir o cadastro. Verifique os dados e tente novamente.');
+    $response->assertStatus(422)
+        ->assertJsonPath('code', 'email_ja_cadastrado')
+        ->assertJsonPath('message', 'Este e-mail já está cadastrado. Se a conta é sua, faça login para acessar ou recupere sua senha.');
 
-    // Não criou um segundo usuário.
+    // Não criou um segundo usuário (a unicidade segue protegida).
     expect(User::where('email', 'existe@example.com')->count())->toBe(1);
 });
 
