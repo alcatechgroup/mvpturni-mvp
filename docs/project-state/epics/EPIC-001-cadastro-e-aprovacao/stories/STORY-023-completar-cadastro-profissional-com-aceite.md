@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-023-completar-cadastro-profissional
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8-programador-2026-06-01
 created_at: 2026-05-28
-updated_at: 2026-05-30
+updated_at: 2026-06-01
 estimated_session_size: L
 ---
 

@@ -5,6 +5,7 @@
 // auth.protected: requer sessão ativa + role check + funnel guard.
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Cadastro\CompletarCadastroProfissionalController;
 use App\Http\Controllers\Cadastro\ContratanteCadastroController;
 use App\Http\Controllers\Cadastro\FuncaoController;
 use App\Http\Controllers\Cadastro\ProfissionalCadastroController;
@@ -37,6 +38,12 @@ Route::get('/funcoes', [FuncaoController::class, 'index']);
 // com 423). Idempotente — ver WelcomeController.
 Route::middleware(['auth:web', WebAppOnly::class, StartSession::class])->group(function () {
     Route::post('/usuarios/me/welcome-visto', [WelcomeController::class, 'markSeen']);
+
+    // Completar cadastro do profissional (STORY-023). FORA do FunnelGuard: o usuário está
+    // em `await_cadastro` (o guard o bloquearia com 423). O controller/Request garantem o
+    // estado. preview = contrato renderizado; store = aceite imutável + transição → ativo.
+    Route::post('/cadastro/profissional/completar/preview', [CompletarCadastroProfissionalController::class, 'preview']);
+    Route::post('/cadastro/profissional/completar', [CompletarCadastroProfissionalController::class, 'store']);
 });
 
 // Rotas protegidas — requerem sessão + WebApp-only + funnel guard

@@ -894,8 +894,8 @@
    "target_role": "programador",
    "requires_design": true,
    "design_screen_id": "SCREEN-STORY-023-completar-cadastro-profissional",
-   "status": "ready",
-   "owner_agent": null,
+   "status": "in_progress",
+   "owner_agent": "claude-opus-4-8-programador-2026-06-01",
    "sprint_id": "SPRINT-2026-W25",
    "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-023-completar-cadastro-profissional-com-aceite.md",
    "blocked_by": [
@@ -913,7 +913,7 @@
    ],
    "estimated_session_size": "L",
    "created_at": "2026-05-28",
-   "updated_at": "2026-05-30"
+   "updated_at": "2026-06-01"
   },
   {
    "id": "STORY-024",
