@@ -7,7 +7,7 @@ sprint_id: SPRINT-2026-W26
 type: enablement
 target_role: programador
 requires_design: false
-status: in_progress
+status: in_review
 owner_agent: claude-opus-4-8-programador-2026-06-01
 created_at: 2026-05-29
 updated_at: 2026-06-01
