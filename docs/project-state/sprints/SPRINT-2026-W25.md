@@ -1,14 +1,18 @@
 ---
 sprint_id: SPRINT-2026-W25
 wave: WAVE-2026-01
-status: active
+status: closed
 start_date: 2026-05-30
-end_date: null
+end_date: 2026-06-01
 soft_cap_date: 2026-06-19
 opened_at: 2026-05-30
 opened_by: "PO (Alexandro / Claude)"
+closed_at: 2026-06-01
+closed_by: "PO (Alexandro / Claude)"
 closure_rule: "Fechamento por goal-atingido: encerra quando STORY-021, STORY-023, STORY-024 estiverem `done` e STORY-025 (validador) tiver emitido veredito em `validation/report.md` aceitável pelo PO (`approved` ou `approved_with_pending` que o PO assuma como goal-atingido). Soft-cap em 2026-06-19 (~21 dias corridos, espelhando a W24) serve como gatilho de reavaliação se goal não tiver batido — não é prazo de entrega."
 goal: "Fechar o EPIC-001 — funil de identidade Turni completo em homolog: profissional (PF/MEI/PJ) e contratante percorrem pré-cadastro → aprovação → welcome → completar cadastro com AceiteEletronico imutável → `ativo`. E-mails transacionais ao vivo (aprovação concedida + lembrete de completar cadastro + reset de senha) com SPF/DKIM/DMARC configurados. Validador independente emite veredito em `validation/report.md` cobrindo a métrica primária do épico (cadastro fim a fim ≤ 5 min p/ usuário; aprovação visível ao admin ≤ 30s), imutabilidade do aceite em uso real, RBAC vivo, LGPD básica, observabilidade e acessibilidade."
+goal_outcome: achieved
+verdict_resolution: "6/6 estórias do escopo confirmado em `done` (021/023/024/025/034/037). Validador emitiu veredito `approved_with_pending` em `epics/EPIC-001-cadastro-e-aprovacao/validation/report.md` (commit validado `0e1e4068…`, rc.42): zero fails bloqueantes; 1 fail não-bloqueante (F-NB-1 alerta SLA>20h não observado) + 6 passes com ressalva + pendências de verificação viva (cookies autenticados, e-mail em inbox, cronometragem exata, lista LGPD, env Argon2id em homolog). PO aceitou o veredito em 2026-06-01 e marcou EPIC-001 como `done`; pendências viram carry-forward sob gestão do PO. Duração efetiva ~3 dias (2026-05-30 → 2026-06-01) vs. soft-cap 21d — encerramento ~18d antes do gatilho. Núcleo do épico observado: cadastro → aprovação → completar → ativo com AceiteEletronico imutável (PDR-012 central comprovado por teste CA-16 contra Postgres real), RBAC vivo nas duas interfaces, editor de templates, audit log imutável, e-mails transacionais ao vivo (SPF/DKIM/DMARC verdes), worker Cloud Run Job + Scheduler 1/min ENABLED, auto-update do WebApp Flutter funcionando no celular do PO."
 ---
 
 # SPRINT-2026-W25
@@ -37,8 +41,8 @@ O sprint **NÃO** abre frente nova: tudo é fechamento do EPIC-001. EPIC-002 (va
 | --------- | ------------------------------------------------------------------------------- | -------- | -------------- | ----------- | ------- | ------- | ------------ |
 | STORY-021 | E-mails transacionais (aprovação + lembrete completar cadastro + reset de senha) | EPIC-001 | implementation | programador | M       | sim     | **done** (2026-05-30) |
 | STORY-023 | Completar cadastro de Profissional no WebApp + geração do AceiteEletronico     | EPIC-001 | implementation | programador | **L**   | sim     | **done** (2026-06-01, rc.41) |
-| STORY-024 | Completar cadastro de Contratante no WebApp + geração do AceiteEletronico       | EPIC-001 | implementation | programador | M       | sim     | ready        |
-| STORY-025 | Validação final do EPIC-001 Cadastro e aprovação                                 | EPIC-001 | validation     | validador   | M       | não     | ready (aguarda 023/024/037) |
+| STORY-024 | Completar cadastro de Contratante no WebApp + geração do AceiteEletronico       | EPIC-001 | implementation | programador | M       | sim     | **done** (2026-06-01, rc.42) |
+| STORY-025 | Validação final do EPIC-001 Cadastro e aprovação                                 | EPIC-001 | validation     | validador   | M       | não     | **done** (2026-06-01, `approved_with_pending`) |
 | STORY-034 | Worker em Cloud Run Job + Cloud Scheduler (substitui GCE worker-vm)             | EPIC-001 | implementation | programador | M       | não     | **done** (2026-05-30) |
 | STORY-037 | Auto-atualização do WebApp Flutter (consumidor do `version.json`) + versão visível na UI | EPIC-001 | implementation | programador | M       | sim     | **done** (2026-05-31) |
 
@@ -189,12 +193,45 @@ Regras novas para W25:
 
 ## Fechamento do sprint
 
-> Preencher no encerramento.
+**Encerrado em 2026-06-01 — `goal_outcome: achieved`** (3 dias corridos vs. soft-cap 21d; ~18d antes do gatilho de reavaliação).
 
 ### O que foi entregue
 
+**6/6 estórias do escopo confirmado em `done`** (1L + 5M — sizing total respeitado):
+
+- **STORY-021** (M) — E-mails transacionais ao vivo em homolog: `aprovacao_concedida`, `lembrete_completar_cadastro` (gatilhos 48h/5d/14d, máx 3 lembretes), `recuperacao_senha`. SPF/DKIM/DMARC aplicados via Terraform e verificados (runbook §e-mail). CA-13 destravada após STORY-034 ficar `done`. Done em 2026-05-30 (rc.28).
+- **STORY-023** (L) — Fluxo multi-step de completar cadastro de Profissional no WebApp + preview de contrato + AceiteEletronico imutável atômico. PO confirmou ao vivo na rc.41 em 2026-06-01 após o rollback byte-a-byte de 2026-05-31 e a retomada do zero. Casts `encrypted` (CPF/CNPJ, chave Pix), `DocumentoValidator` 97%, `ChavePixValidator` 100%, `AceiteAdesaoRenderer` 100%.
+- **STORY-024** (M) — Fluxo multi-step do Contratante (wizard 3 passos + revisão/aceite, tema mostarda), seed real de `termos_plataforma_contratante`, busca CEP via ViaCEP fail-soft (`CepLookup` 100%, IDR-024), template próprio do contratante (IDR-023), métrica + alerta de cadastros completados. PO validou ao vivo no mobile na rc.42 em 2026-06-01.
+- **STORY-025** (M, validation) — Validador percorreu o checklist do EPIC-001 contra commit `0e1e4068…` (rc.42) e emitiu veredito **`approved_with_pending`** em `epics/EPIC-001-cadastro-e-aprovacao/validation/report.md`. **Zero fails bloqueantes**. PO aceitou em 2026-06-01 e marcou EPIC-001 como `done`. Evidências em `validation/evidence/` (cobertura api/admin/webapp, E2E local, Lighthouse a11y).
+- **STORY-034** (M) — Worker em Cloud Run Job + Cloud Scheduler 1/min ENABLED substituiu o GCE `worker-vm` (Fase B colapsada após queda da escada Fase A em D+0). IDR-016 `accepted`. Reusou 100% da fiação de `turni-migrate-homolog` (IDR-007) + `secret_env_vars` do `cloud_run_api`. Destravou STORY-021 CA-13 conforme planejado. Done em 2026-05-30.
+- **STORY-037** (M) — Auto-atualização do WebApp Flutter (polling do `version.json` + banner discreto "Nova versão disponível"/"Atualizar agora"/"Depois" + `SKIP_WAITING` + reload preservando sessão Sanctum) + label de versão nas 4 telas. CA-17 fechada com fix em cache `immutable` + SW iOS. PO confirmou no celular. IDR-017 `accepted`. Done em 2026-05-31 (rc.32).
+
+**EPIC-001 fechado**: cadastro → aprovação → completar → ativo com AceiteEletronico imutável vivo em homolog. RBAC vivo nas duas interfaces. PDR-012 central (aceite mantém versão original após nova ativação de template) comprovado por teste CA-16 contra Postgres real. Audit log e aceite imutáveis por trigger Postgres + REVOKE. Observabilidade: métricas RED + 3 políticas de alerta ENABLED. Acessibilidade amostrada (admin /login Lighthouse 100; WebApp /login 88, /cadastro 92).
+
 ### O que ficou para trás (e por quê)
+
+**Carry-forward sob gestão do PO** (não entram na W26 como estória — viram pendências do EPIC-001 monitoradas pelo PO conforme decisão registrada em `validation/report.md` Histórico 2026-06-01):
+
+- **F-NB-1 (não-bloqueante)** — Alerta dedicado a "cadastro pendente > 20h / risco de SLA" não observado em homolog (3 políticas ENABLED cobrem falha de e-mail crítico, indisponível e taxa de erro 5xx; SLA>20h ausente). Lacuna de observabilidade.
+- **Verificações vivas não percorridas pelo Validador** (decisão de escopo da sessão, não falha): cronometragem exata da métrica primária (≤5min usuário / ≤30s admin — PO validou ao vivo o caminho funcional); flags do cookie de sessão autenticada (httpOnly/Secure/SameSite); entrega real de e-mail em inbox de provedor (render testado); lista LGPD de dados pessoais (documento não localizado nesta sessão); env efetivo de Argon2id em homolog (`.env.example` ok); RBAC cross-host ao vivo; indicador SLA WCAG; foto signed URL não enumerável.
+- **Passes com ressalva carregados**: webapp cobertura 76,8% app-inteiro (< 80%, sem gate — código novo do épico coberto por 121 widget tests + integration_test); `DocumentoValidator` 97% (< 98% do alvo de núcleo); CI não roda testes/cobertura/E2E (gates locais por IDR-004 — verificação local executada verde); admin Cloud Run cold start (1ª chamada 502 antes de estabilizar em 200).
+- **Decisão pendente do PO sobre F-NB-2 (HASH_DRIVER no admin)** — herdada da W24, não fechada nesta sprint. Tratada como `pass com ressalva` (CA-5-3).
+- **Pendência de housekeeping**: `decisions.idr` no `index.json` ficou desatualizado em alguns IDRs (010/011/013/015/018/019/020 existem como `.md` — registrado no fechamento da W26 anterior; PO marcou como tarefa de reindexação separada).
 
 ### Aprendizados
 
+1. **Rollback byte-a-byte em D+1 é decisão de PO saudável quando o resultado não atende ao padrão pretendido** (STORY-023 commitada como `done` no `3b61364` e revertida no `690a252`, STORY-024 untracked descartada). Custo: ~1 dia útil queimado, absorvido pelo soft-cap. Ganho: a retomada do zero produziu o fluxo que o PO aprovou ao vivo (rc.41/rc.42) — código que ele teria que conviver pelos próximos meses não ficou abaixo da linha. **Régua para futuro**: PO percorrer o fluxo ao vivo em rc.* **antes** de aceitar `done`, não depois.
+2. **Escada A→B no mesmo sprint cai quando os gaps se revelam estruturais** (STORY-034: 5 gaps no GCE worker-vm — 3 dos quais exigiriam infra descartável; escada virou caminho único Fase B com STORY-021 formalmente `blocked`). Régua: ao primeiro gap descobrir-se estrutural (não cosmético), colapsar a escada antes de investir em código-ponte que vai morrer.
+3. **Validador como sessão separada funcionou** (regra nova 6 da W25): o veredito `approved_with_pending` saiu como fato + classificação, sem deslizar para planejamento. PO recebeu o relatório e decidiu o tratamento das pendências como ato distinto, sem contaminar a produção do veredito — repetição do aprendizado da STORY-011 em ambiente mais carregado (épico inteiro, não estória única).
+4. **Decisão "AceiteEletronico só nasce no clique de Aceito e concluir cadastro" sobreviveu à primeira escrita real** (PDR-012 central comprovado por teste CA-16 contra Postgres real — aceite mantém versão original após admin ativar nova versão). A infra de Template/Versao/Aceite entregue na W24 como leitura passou no teste de uso de escrita sem retrabalho de fundação — sinal de que o sequenciamento (definir → exercitar leitura → exercitar escrita) protegeu o épico.
+5. **Auto-update do WebApp em homolog é pré-condição da métrica mobile-first** (STORY-037): sem ele, qualquer release fica pinada no celular do PO e descaracteriza a validação primária do EPIC-001. Régua: nas próximas waves, qualquer estória que dependa de validação mobile do PO entra com `blocked_by` no auto-update vivo. ADR-001 §Auto-atualização do WebApp continua sendo o contrato.
+6. **6 estórias em 3 dias com 1 rollback no meio** repete o padrão acelerado das W22/W23/W24 — capacidade calibrada de **~2 estórias M/dia** com dupla Designer+Programador na mesma sessão e ADRs estruturantes já aceitas. PO continua não puxando escopo extra ao perceber folga — usa o ganho para abrir W26 com gordura em vez de afogar a sprint corrente (decisão repetida em W22, W23, W24 e W25 = padrão consolidado).
+
 ### Ajustes para o próximo sprint
+
+- **Sprint W26 já foi aberta e fechada em 2026-06-01** (re-escopada Web-only): EPIC-007 entregue na parte Web (STORY-038 + STORY-043 done, IDR-010/011 aceitas, IDR-006 §b anotada). STORY-039/040 (Patrol/mobile) de-escopadas para EPIC-009 (backlog). **Sprint seguinte** (a abrir): EPIC-002 (vaga + feed + candidatura).
+- **EPIC-002 começa após este encerramento** — `approved_with_pending` aceito pelo PO assume goal-atingido do EPIC-001; nenhuma pendência de carry-forward bloqueia a abertura do EPIC-002.
+- **Régua nova para sprint do EPIC-002**: o PO percorre o fluxo ao vivo em rc.* **antes** de aceitar `done` na estória (lição #1). Critério de pronto da estória de implementação ganha a linha explícita "PO percorreu o fluxo em rc.N" como evidência separada do "código + testes verdes".
+- **Carry-forward F-NB-1** (alerta SLA>20h) entra na lista de pendências do PO e é endereçado em sprint dedicado à observabilidade ou colado a uma estória de EPIC-002 que toque o mesmo módulo de monitoring — decisão do PO ao abrir o EPIC-002.
+- **Reindexação do `index.json`** (IDRs 010/011/013/015/018/019/020 fora do JSON) entra na lista de housekeeping do PO — não precisa de sprint dedicada.
+- **Pendência F-NB-2 (HASH_DRIVER no admin)** continua na fila do PO; pode ser fechada em qualquer sprint subsequente sem custo de escopo.
