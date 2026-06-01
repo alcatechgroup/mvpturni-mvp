@@ -93,16 +93,22 @@ Future<void> _pump(
 
 Future<void> _preencher(WidgetTester tester) async {
   await tester.enterText(
-    find.byKey(const Key('input-documento')),
+    find.byKey(const Key('completar-cadastro:documento')),
     '111.444.777-35',
   );
-  await tester.enterText(find.byKey(const Key('input-raio')), '15');
-  await tester.enterText(find.byKey(const Key('input-preco')), '45');
   await tester.enterText(
-    find.byKey(const Key('input-pix')),
+    find.byKey(const Key('completar-cadastro:raio')),
+    '15',
+  );
+  await tester.enterText(
+    find.byKey(const Key('completar-cadastro:preco')),
+    '45',
+  );
+  await tester.enterText(
+    find.byKey(const Key('completar-cadastro:pix')),
     'maria@exemplo.com',
   );
-  await tester.tap(find.byKey(const Key('btn-anexar-documentos')));
+  await tester.tap(find.byKey(const Key('completar-cadastro:anexar')));
   await tester.pumpAndSettle();
 }
 
@@ -114,10 +120,13 @@ void main() {
     (tester) async {
       await _pump(tester);
       expect(
-        find.byKey(const Key('screen-completar-cadastro')),
+        find.byKey(const Key('completar-cadastro:screen')),
         findsOneWidget,
       );
-      expect(find.byKey(const Key('input-documento')), findsOneWidget);
+      expect(
+        find.byKey(const Key('completar-cadastro:documento')),
+        findsOneWidget,
+      );
       expect(find.text('SEU DOCUMENTO (CPF)'), findsOneWidget);
       expect(find.widgetWithText(TextFormField, 'CPF'), findsOneWidget);
     },
@@ -127,11 +136,11 @@ void main() {
     tester,
   ) async {
     await _pump(tester);
-    await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
+    await tester.tap(find.byKey(const Key('completar-cadastro:revisar')));
     await tester.pumpAndSettle();
 
     // Permanece na fase de formulário (preview não aparece).
-    expect(find.byKey(const Key('contract-preview')), findsNothing);
+    expect(find.byKey(const Key('completar-cadastro:contrato')), findsNothing);
     expect(find.textContaining('Informe seu CPF.'), findsOneWidget);
     expect(find.textContaining('documento comprobatório'), findsWidgets);
   });
@@ -142,21 +151,25 @@ void main() {
       await _pump(tester);
       await _preencher(tester);
 
-      await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
+      await tester.tap(find.byKey(const Key('completar-cadastro:revisar')));
       await tester.pumpAndSettle();
 
       // Fase preview: contrato renderizado com dados do usuário.
-      expect(find.byKey(const Key('contract-preview')), findsOneWidget);
+      expect(
+        find.byKey(const Key('completar-cadastro:contrato')),
+        findsOneWidget,
+      );
       expect(find.textContaining('Maria Silva'), findsWidgets);
       expect(find.textContaining('111.444.777-35'), findsWidgets);
 
       // Botão de aceite começa DESABILITADO (checkbox não marcado).
-      FilledButton botao() =>
-          tester.widget<FilledButton>(find.byKey(const Key('btn-aceitar')));
+      FilledButton botao() => tester.widget<FilledButton>(
+        find.byKey(const Key('completar-cadastro:concluir')),
+      );
       expect(botao().onPressed, isNull);
 
       // Marca o checkbox → habilita.
-      await tester.tap(find.byKey(const Key('checkbox-aceite')));
+      await tester.tap(find.byKey(const Key('completar-cadastro:aceite')));
       await tester.pumpAndSettle();
       expect(botao().onPressed, isNotNull);
     },
@@ -169,15 +182,18 @@ void main() {
       await _pump(tester, service: service);
       await _preencher(tester);
 
-      await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
+      await tester.tap(find.byKey(const Key('completar-cadastro:revisar')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('checkbox-aceite')));
+      await tester.tap(find.byKey(const Key('completar-cadastro:aceite')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('btn-aceitar')));
+      await tester.tap(find.byKey(const Key('completar-cadastro:concluir')));
       await tester.pumpAndSettle();
 
       expect(service.completarCalls, 1);
-      expect(find.byKey(const Key('completar-sucesso')), findsOneWidget);
+      expect(
+        find.byKey(const Key('completar-cadastro:sucesso')),
+        findsOneWidget,
+      );
       expect(find.text('Cadastro concluído!'), findsOneWidget);
       expect(AuthService().session!.cadastroCompleto, isTrue);
       expect(AuthService().session!.funnelState, FunnelState.active);
@@ -194,16 +210,22 @@ void main() {
       );
       await _pump(tester, service: service);
       await _preencher(tester);
-      await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
+      await tester.tap(find.byKey(const Key('completar-cadastro:revisar')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('checkbox-aceite')));
+      await tester.tap(find.byKey(const Key('completar-cadastro:aceite')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('btn-aceitar')));
+      await tester.tap(find.byKey(const Key('completar-cadastro:concluir')));
       await tester.pumpAndSettle();
 
       // Voltou ao formulário (contrato sumiu) e mostra o erro do campo.
-      expect(find.byKey(const Key('contract-preview')), findsNothing);
-      expect(find.byKey(const Key('input-documento')), findsOneWidget);
+      expect(
+        find.byKey(const Key('completar-cadastro:contrato')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('completar-cadastro:documento')),
+        findsOneWidget,
+      );
       expect(
         find.textContaining('Não foi possível usar este documento.'),
         findsOneWidget,
@@ -217,18 +239,21 @@ void main() {
     );
     await _pump(tester, service: service);
     await _preencher(tester);
-    await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
+    await tester.tap(find.byKey(const Key('completar-cadastro:revisar')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('contract-preview')), findsNothing);
+    expect(find.byKey(const Key('completar-cadastro:contrato')), findsNothing);
     expect(find.textContaining('Documento inválido.'), findsOneWidget);
   });
 
   testWidgets('CA-5: anexar documento exibe o nome do arquivo', (tester) async {
     await _pump(tester);
-    await tester.tap(find.byKey(const Key('btn-anexar-documentos')));
+    await tester.tap(find.byKey(const Key('completar-cadastro:anexar')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('lista-documentos')), findsOneWidget);
+    expect(
+      find.byKey(const Key('completar-cadastro:documentos-lista')),
+      findsOneWidget,
+    );
     expect(find.textContaining('rg.jpg'), findsOneWidget);
   });
 
@@ -241,7 +266,7 @@ void main() {
         ArquivoUpload(bytes: Uint8List.fromList([1]), filename: 'malware.exe'),
       ],
     );
-    await tester.tap(find.byKey(const Key('btn-anexar-documentos')));
+    await tester.tap(find.byKey(const Key('completar-cadastro:anexar')));
     await tester.pumpAndSettle();
     expect(find.textContaining('JPG, PNG ou PDF'), findsWidgets);
   });

@@ -33,22 +33,38 @@ Future<void> _preencher(
   WidgetTester tester, {
   required String documento,
 }) async {
-  await tester.enterText(find.byKey(const Key('input-documento')), documento);
-  await tester.enterText(find.byKey(const Key('input-raio')), '15');
-  await tester.enterText(find.byKey(const Key('input-preco')), '45');
   await tester.enterText(
-    find.byKey(const Key('input-pix')),
+    find.byKey(const Key('completar-cadastro:documento')),
+    documento,
+  );
+  await tester.enterText(
+    find.byKey(const Key('completar-cadastro:raio')),
+    '15',
+  );
+  await tester.enterText(
+    find.byKey(const Key('completar-cadastro:preco')),
+    '45',
+  );
+  await tester.enterText(
+    find.byKey(const Key('completar-cadastro:pix')),
     'pix.e2e@turni.local',
   );
-  await tester.ensureVisible(find.byKey(const Key('btn-anexar-documentos')));
-  await tester.tap(find.byKey(const Key('btn-anexar-documentos')));
+  await tester.ensureVisible(
+    find.byKey(const Key('completar-cadastro:anexar')),
+  );
+  await tester.tap(find.byKey(const Key('completar-cadastro:anexar')));
   await tester.pumpAndSettle();
 }
 
 Future<void> _revisar(WidgetTester tester) async {
-  await tester.ensureVisible(find.byKey(const Key('btn-revisar-contrato')));
-  await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
-  await pumpUntilFound(tester, find.byKey(const Key('contract-preview')));
+  await tester.ensureVisible(
+    find.byKey(const Key('completar-cadastro:revisar')),
+  );
+  await tester.tap(find.byKey(const Key('completar-cadastro:revisar')));
+  await pumpUntilFound(
+    tester,
+    find.byKey(const Key('completar-cadastro:contrato')),
+  );
 }
 
 void main() {
@@ -71,16 +87,25 @@ void main() {
       expect(find.textContaining('529.982.247-25'), findsWidgets);
 
       // Consentimento + aceite.
-      await tester.ensureVisible(find.byKey(const Key('checkbox-aceite')));
-      await tester.tap(find.byKey(const Key('checkbox-aceite')));
+      await tester.ensureVisible(
+        find.byKey(const Key('completar-cadastro:aceite')),
+      );
+      await tester.tap(find.byKey(const Key('completar-cadastro:aceite')));
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.byKey(const Key('btn-aceitar')));
-      await tester.tap(find.byKey(const Key('btn-aceitar')));
+      await tester.ensureVisible(
+        find.byKey(const Key('completar-cadastro:concluir')),
+      );
+      await tester.tap(find.byKey(const Key('completar-cadastro:concluir')));
 
       // Sucesso → continua para a home (usuário agora ativo).
-      await pumpUntilFound(tester, find.byKey(const Key('completar-sucesso')));
-      await tester.ensureVisible(find.byKey(const Key('btn-continuar')));
-      await tester.tap(find.byKey(const Key('btn-continuar')));
+      await pumpUntilFound(
+        tester,
+        find.byKey(const Key('completar-cadastro:sucesso')),
+      );
+      await tester.ensureVisible(
+        find.byKey(const Key('completar-cadastro:continuar')),
+      );
+      await tester.tap(find.byKey(const Key('completar-cadastro:continuar')));
       await awaitRouteChange(tester, '/');
     },
   );
@@ -98,12 +123,19 @@ void main() {
     await _revisar(tester);
     expect(find.textContaining('11.222.333/0001-81'), findsWidgets);
 
-    await tester.ensureVisible(find.byKey(const Key('checkbox-aceite')));
-    await tester.tap(find.byKey(const Key('checkbox-aceite')));
+    await tester.ensureVisible(
+      find.byKey(const Key('completar-cadastro:aceite')),
+    );
+    await tester.tap(find.byKey(const Key('completar-cadastro:aceite')));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byKey(const Key('btn-aceitar')));
-    await tester.tap(find.byKey(const Key('btn-aceitar')));
-    await pumpUntilFound(tester, find.byKey(const Key('completar-sucesso')));
+    await tester.ensureVisible(
+      find.byKey(const Key('completar-cadastro:concluir')),
+    );
+    await tester.tap(find.byKey(const Key('completar-cadastro:concluir')));
+    await pumpUntilFound(
+      tester,
+      find.byKey(const Key('completar-cadastro:sucesso')),
+    );
   });
 
   testWidgets(
@@ -114,13 +146,16 @@ void main() {
       await loginAs(tester, email: blockEmail, password: seedPassword);
       await awaitRouteChange(tester, '/completar-cadastro');
 
-      await pumpUntilFound(tester, find.byKey(const Key('input-documento')));
+      await pumpUntilFound(
+        tester,
+        find.byKey(const Key('completar-cadastro:documento')),
+      );
       await _preencher(tester, documento: cpfValido);
       await _revisar(tester);
 
       // Botão de aceite desabilitado enquanto o checkbox não está marcado (CA-8).
       final botao = tester.widget<FilledButton>(
-        find.byKey(const Key('btn-aceitar')),
+        find.byKey(const Key('completar-cadastro:concluir')),
       );
       expect(botao.onPressed, isNull);
     },

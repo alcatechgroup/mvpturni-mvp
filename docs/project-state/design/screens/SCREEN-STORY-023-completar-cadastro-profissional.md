@@ -43,7 +43,7 @@ A estória recomenda multi-step; a decisão implementada é um **formulário ún
 (fase 1) seguido de uma **fase de revisão + consentimento** (fase 2). Razão: o aceite precisa
 de **todos** os dados juntos e o preview do contrato é o gesto que separa "preencher" de
 "consentir" — duas fases mapeiam isso 1:1 sem o overhead de um wizard de N passos. Uma barra de
-progresso `progress.steps` (1/2 → 2/2) dá orientação. Chave de tela: `screen-completar-cadastro`.
+progresso `progress.steps` (1/2 → 2/2) dá orientação. Chave de tela: `completar-cadastro:screen`.
 
 ```
 ┌───────────────────────────────────────────────┐
@@ -65,11 +65,11 @@ progresso `progress.steps` (1/2 → 2/2) dá orientação. Chave de tela: `scree
 ┌───────────────────────────────────────────────┐
 │  Revise e aceite o contrato       ▰▰▰  2/2      │   Fase 2 — revisão + consentimento
 │  ┌───────────────────────────────────────────┐ │
-│  │ # Contrato … (Seção 1 + Assinatura)        │ │  contract-preview (scroll, maxH 420)
+│  │ # Contrato … (Seção 1 + Assinatura)        │ │  completar-cadastro:contrato (scroll, maxH 420)
 │  │ Nome: **Maria Silva**  CPF: 111.444.777-35 │ │  dados do usuário renderizados (CA-7)
 │  │ … — preenchido no momento do aceite —      │ │  carimbos pendentes (IDR-022)
 │  └───────────────────────────────────────────┘ │
-│  ☐ Li, entendi e aceito os termos do contrato.  │  checkbox-aceite
+│  ☐ Li, entendi e aceito os termos do contrato.  │  completar-cadastro:aceite
 │        [  Aceito e concluir cadastro  ]         │  habilita só com ☑ + preview (CA-8)
 │        Voltar e editar os dados                 │
 └───────────────────────────────────────────────┘
@@ -79,34 +79,34 @@ progresso `progress.steps` (1/2 → 2/2) dá orientação. Chave de tela: `scree
 
 | Campo | Componente | Validação client | Observação |
 |---|---|---|---|
-| Documento (CPF/CNPJ) | `field.text` (`input-documento`) | obrigatório; nº de dígitos por tipo | rótulo/hint conforme `documento_tipo` do contexto; dígitos verificadores no servidor |
-| Funções secundárias | `chip.filter` (`chip-funcao-{id}`) | — (opcional) | exclui a função primária; multi-seleção |
-| Raio máx. (km) | `field.text` (`input-raio`) | inteiro 1–500 | |
-| Preço/hora (R$) | `field.text` (`input-preco`) | numérico ≥1 | aceita vírgula |
-| Bio | `field.text` (`input-bio`) | ≤500 chars | opcional |
-| Chave Pix | `field.text` (`input-pix`) | obrigatório | formato validado no servidor |
-| Documentos | `button.outline` (`btn-anexar-documentos`) + lista | ≥1; ext JPG/PNG/PDF; ≤10 MB | `file_picker`; lista em `lista-documentos` |
+| Documento (CPF/CNPJ) | `field.text` (`completar-cadastro:documento`) | obrigatório; nº de dígitos por tipo | rótulo/hint conforme `documento_tipo` do contexto; dígitos verificadores no servidor |
+| Funções secundárias | `chip.filter` (`completar-cadastro:funcao-{id}`) | — (opcional) | exclui a função primária; multi-seleção |
+| Raio máx. (km) | `field.text` (`completar-cadastro:raio`) | inteiro 1–500 | |
+| Preço/hora (R$) | `field.text` (`completar-cadastro:preco`) | numérico ≥1 | aceita vírgula |
+| Bio | `field.text` (`completar-cadastro:bio`) | ≤500 chars | opcional |
+| Chave Pix | `field.text` (`completar-cadastro:pix`) | obrigatório | formato validado no servidor |
+| Documentos | `button.outline` (`completar-cadastro:anexar`) + lista | ≥1; ext JPG/PNG/PDF; ≤10 MB | `file_picker`; lista em `completar-cadastro:documentos-lista` |
 
-Botão `btn-revisar-contrato` valida o formulário e busca o preview (POST `/completar/preview`).
+Botão `completar-cadastro:revisar` valida o formulário e busca o preview (POST `/completar/preview`).
 
 ## Fase 2 — revisão + consentimento
 
-- `contract-preview`: contrato renderizado pelo servidor (Seção 1 + Assinatura; Seção 2 de turno
+- `completar-cadastro:contrato`: contrato renderizado pelo servidor (Seção 1 + Assinatura; Seção 2 de turno
   e notas internas omitidas — IDR-022) via `contract.view` (markdown leve, texto **selecionável**).
-- `checkbox-aceite`: consentimento explícito do **contrato** (distinto do aceite de Termos/Política
+- `completar-cadastro:aceite`: consentimento explícito do **contrato** (distinto do aceite de Termos/Política
   do pré-cadastro).
-- `btn-aceitar` ("Aceito e concluir cadastro"): **desabilitado** até o checkbox marcado (o preview
+- `completar-cadastro:concluir` ("Aceito e concluir cadastro"): **desabilitado** até o checkbox marcado (o preview
   já foi exibido por construção — só se chega à fase 2 após o preview). POST `/completar` →
   201 gera o aceite e transiciona para `ativo`.
-- `btn-voltar-editar`: retorna à fase 1 preservando os dados.
+- `completar-cadastro:voltar`: retorna à fase 1 preservando os dados.
 
 ## Estados
 
-- **Loading:** spinner no botão ativo (`btn-revisar-contrato` / `btn-aceitar`).
+- **Loading:** spinner no botão ativo (`completar-cadastro:revisar` / `completar-cadastro:concluir`).
 - **Erro de campo:** `field.text` mostra `errorText` (client e 422 por campo do servidor).
 - **Erro de documento duplicado / genérico / throttle / servidor:** `banner` (com retry).
 - **Erro de validação no aceite:** volta à fase 1 e revalida os campos.
-- **Sucesso:** vista `completar-sucesso` ("Cadastro concluído!" + ícone) → `btn-continuar` leva à
+- **Sucesso:** vista `completar-cadastro:sucesso` ("Cadastro concluído!" + ícone) → `completar-cadastro:continuar` leva à
   home (`/`); a sessão vira `active` e o funnel guard libera (CA-12).
 
 ## Acessibilidade (WCAG 2.1 AA)

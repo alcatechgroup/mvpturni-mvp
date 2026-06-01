@@ -250,7 +250,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
     final isDesktop = width >= 840;
 
     return Scaffold(
-      key: const Key('screen-completar-cadastro'),
+      key: const Key('completar-cadastro:screen'),
       backgroundColor: surfacePage,
       body: Center(
         child: SingleChildScrollView(
@@ -290,7 +290,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
 
           CadastroSection('Seu documento ($_documentoTipo)'),
           CadastroTextField(
-            fieldKey: 'input-documento',
+            fieldKey: 'completar-cadastro:documento',
             controller: _documento,
             label: _documentoTipo,
             hint: _documentoTipo == 'CPF'
@@ -311,7 +311,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
           const CadastroSection('Sua atuação'),
           _funcoesSecundariasField(isDark, accent),
           CadastroTextField(
-            fieldKey: 'input-raio',
+            fieldKey: 'completar-cadastro:raio',
             controller: _raio,
             label: 'Raio máximo de deslocamento (km)',
             hint: 'Ex.: 15',
@@ -324,7 +324,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
             },
           ),
           CadastroTextField(
-            fieldKey: 'input-preco',
+            fieldKey: 'completar-cadastro:preco',
             controller: _preco,
             label: 'Preço/hora pretendido (R\$)',
             hint: 'Ex.: 45',
@@ -339,7 +339,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
             },
           ),
           CadastroTextField(
-            fieldKey: 'input-bio',
+            fieldKey: 'completar-cadastro:bio',
             controller: _bio,
             label: 'Bio curta (opcional)',
             hint: 'Conte em 1-2 frases sua experiência.',
@@ -351,7 +351,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
 
           const CadastroSection('Recebimento'),
           CadastroTextField(
-            fieldKey: 'input-pix',
+            fieldKey: 'completar-cadastro:pix',
             controller: _pix,
             label: 'Chave Pix',
             hint: 'CPF, CNPJ, e-mail, telefone (+55...) ou chave aleatória',
@@ -366,7 +366,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
 
           const SizedBox(height: TurniSpacing.lg),
           _botao(
-            key: 'btn-revisar-contrato',
+            key: 'completar-cadastro:revisar',
             label: 'Revisar contrato',
             onPressed: _loading ? null : _revisarContrato,
             accent: accent,
@@ -406,7 +406,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
         _ProgressoFases(fase: _fase, accent: accent, isDark: isDark),
         const SizedBox(height: TurniSpacing.md),
         Container(
-          key: const Key('contract-preview'),
+          key: const Key('completar-cadastro:contrato'),
           padding: const EdgeInsets.all(TurniSpacing.md),
           decoration: BoxDecoration(
             color: isDark ? TurniColors.surfaceDark : TurniColors.surfaceLight,
@@ -424,7 +424,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
         _consentimento(isDark, accent),
         const SizedBox(height: TurniSpacing.md),
         _botao(
-          key: 'btn-aceitar',
+          key: 'completar-cadastro:concluir',
           label: 'Aceito e concluir cadastro',
           onPressed: (_aceitou && !_loading) ? _aceitar : null,
           accent: accent,
@@ -432,7 +432,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
         const SizedBox(height: TurniSpacing.sm),
         Center(
           child: TextButton(
-            key: const Key('btn-voltar-editar'),
+            key: const Key('completar-cadastro:voltar'),
             onPressed: _loading
                 ? null
                 : () => setState(() => _fase = _Fase.form),
@@ -455,7 +455,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
 
   Widget _sucessoView(Color accent) {
     return Column(
-      key: const Key('completar-sucesso'),
+      key: const Key('completar-cadastro:sucesso'),
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -475,7 +475,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
         ),
         const SizedBox(height: TurniSpacing.xl),
         _botao(
-          key: 'btn-continuar',
+          key: 'completar-cadastro:continuar',
           label: 'Continuar',
           onPressed: () => context.go('/'),
           accent: accent,
@@ -491,7 +491,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
         ? TurniColors.textStrongDark
         : TurniColors.textStrongLight;
     return InkWell(
-      key: const Key('checkbox-aceite'),
+      key: const Key('completar-cadastro:aceite'),
       onTap: () => setState(() => _aceitou = !_aceitou),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,7 +565,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
             children: disponiveis.map((f) {
               final sel = _funcoesSecundarias.contains(f.id);
               return FilterChip(
-                key: Key('chip-funcao-${f.id}'),
+                key: Key('completar-cadastro:funcao-${f.id}'),
                 label: Text(f.nome),
                 selected: sel,
                 selectedColor: accent.withValues(alpha: 0.18),
@@ -597,7 +597,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
         ),
         const SizedBox(height: TurniSpacing.sm),
         OutlinedButton.icon(
-          key: const Key('btn-anexar-documentos'),
+          key: const Key('completar-cadastro:anexar'),
           onPressed: _pickDocumentos,
           icon: const Icon(Icons.upload_file),
           label: Text(
@@ -615,7 +615,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
             padding: const EdgeInsets.only(top: TurniSpacing.xs),
             child: Text(
               _documentos.map((d) => d.filename).join(', '),
-              key: const Key('lista-documentos'),
+              key: const Key('completar-cadastro:documentos-lista'),
               style: TextStyle(fontSize: 12, color: muted),
             ),
           ),
