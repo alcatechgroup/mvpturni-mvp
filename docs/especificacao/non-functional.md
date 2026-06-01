@@ -68,6 +68,29 @@ Decisão registrada em **PDR-013**.
 
 Idioma único no MVP: **Português Brasileiro (pt-BR)**. Sem multi-idioma.
 
+## Formatação de entradas
+
+Decisão registrada em **PDR-016**. Vale em **toda interface** com usuário (WebApp e Backoffice) e em **todo o produto** — o desenvolvedor consulta esta seção ao implementar qualquer campo dos cinco tipos abaixo.
+
+| Tipo | Máscara de exibição | Persistido como |
+|---|---|---|
+| Moeda (BRL) | `R$ 1.234,56` (separador de milhar `.`, decimal `,`, símbolo à esquerda com espaço) | inteiro em centavos (`123456`) |
+| Telefone BR | `(11) 91234-5678` móvel / `(11) 1234-5678` fixo | somente dígitos com DDD (`11912345678`); país fixo `BR` no MVP, E.164 `+5511912345678` para integrações |
+| CEP | `12345-678` | somente dígitos (`12345678`) |
+| CNPJ | `12.345.678/0001-90` | somente dígitos (`12345678000190`) |
+| CPF | `123.456.789-09` | somente dígitos (`12345678909`) |
+
+Regras transversais:
+
+- **Máscara em tempo real** ao digitar; usuário não precisa digitar separadores.
+- **Validação de formato no blur**, com mensagem acessível; CPF/CNPJ também validam dígito verificador no blur.
+- **Colagem tolerante** — o campo aceita o valor colado em qualquer formato e normaliza para a máscara canônica.
+- **Teclado numérico no mobile** para todos os cinco tipos.
+- **Persistência sem máscara** — backend recebe e armazena o formato persistido; máscara é responsabilidade exclusiva da UI.
+- **Exibição read-only também formatada** — cards, listas, comprovantes e recibos aplicam a mesma máscara canônica.
+- **Moeda — entrada por centavos.** O componente trata internamente como centavos para evitar floats; campo de entrada sempre mostra `R$ 0,00` como base.
+- **Telefone — somente BR no MVP.** Sem seletor de país; DDI fixo `+55` aplicado na conversão para E.164.
+
 ## Compatibilidade
 
 | Plataforma | Mínimo MVP |
