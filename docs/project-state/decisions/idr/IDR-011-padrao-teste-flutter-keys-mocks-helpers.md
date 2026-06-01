@@ -1,10 +1,10 @@
 ---
 id: IDR-011
 title: Padrão de teste Flutter — Keys namespaced, mocks vs API real, helpers compartilhados, naming
-status: proposed
-decided_at: null
-decided_by: null
-source_story: STORY-034
+status: accepted
+decided_at: 2026-06-01
+decided_by: Alexandro
+source_story: STORY-038
 supersedes: nada
 refines: IDR-010
 superseded_by: nada
@@ -16,7 +16,7 @@ superseded_by: nada
 
 IDR-010 decidiu o modelo E2E híbrido (integration_test + Playwright + Patrol). Falta o **como**: convenção de Keys nos widgets, política de mock vs API real, organização de helpers, naming de arquivos. Sem padrão registrado, cada story do EPIC-001 pós-EPIC-007 (STORY-022+) inventaria o próprio jeito — o que já aconteceu com Playwright (cada spec resolvendo semantics de um jeito ligeiramente diferente até IDR-006 §b ser registrada).
 
-Esta IDR registra o padrão **a partir de STORY-034**: tudo que for escrito daqui em diante segue. Widget tests existentes em `apps/webapp/test/` (login_screen_test, welcome_screen_test, etc.) ficam como estão — não há refator obrigatório retroativo, mas qualquer alteração neles deve passar a seguir IDR-011.
+Esta IDR registra o padrão **a partir de STORY-038**: tudo que for escrito daqui em diante segue. Widget tests existentes em `apps/webapp/test/` (login_screen_test, welcome_screen_test, etc.) ficam como estão — não há refator obrigatório retroativo, mas qualquer alteração neles deve passar a seguir IDR-011.
 
 ## Decisão
 
@@ -99,7 +99,7 @@ apps/webapp/integration_test/
 ├── <feature>/
 │   └── <feature>_<cenario>_test.dart
 └── native/                          # cenários Patrol
-    └── patrol_smoke_test.dart       # exemplo da STORY-035
+    └── patrol_smoke_test.dart       # exemplo da STORY-039
 ```
 
 Regras:
@@ -131,8 +131,8 @@ Regras:
 
 ## Consequências
 
-- **STORY-034** instala o scaffolding e migra os 7 cenários seguindo este padrão. Esta IDR sai como `accepted` quando STORY-034 fechar com PO aprovando.
-- **STORY-035** (Patrol) e **STORY-036** (gate mobile) herdam este padrão — Patrol só estende a organização (pasta `native/`) e o naming (mesma convenção).
+- **STORY-038** instala o scaffolding e migra os 7 cenários seguindo este padrão. Esta IDR foi aceita em 2026-06-01 (antes da execução da story — sessão separada do PO, conforme regra nova 7 da SPRINT-2026-W26).
+- **STORY-039** (Patrol) e **STORY-040** (gate mobile) herdam este padrão — Patrol só estende a organização (pasta `native/`) e o naming (mesma convenção).
 - **STORY-022+** (todas as stories de feature nova do WebApp pós-EPIC-001) seguem este padrão. PO inclui referência a IDR-011 nas stories que escrever a partir da aceitação.
 - **Widget tests legados** (`apps/webapp/test/*.dart`) ficam como estão. Refator retroativo não é obrigatório, mas qualquer edição passa a alinhar com IDR-011 quando aplicável (e.g., adicionar Key seguindo convenção).
 - **Padrão evoluível.** Se uma exceção virar regra (e.g., mock global de algum subsistema), refinar IDR-011 com nota — não dispersar em comentários soltos.
@@ -148,8 +148,8 @@ Regras:
 | Vou criar um helper novo? | Só se a sequência for usada em ≥ 2 testes e estiver eclipsando legibilidade. Senão, deixar inline. |
 | Helper deve ter teste próprio? | Não. Helpers são exercitados pelos próprios cenários. |
 
-## Atualização — quando esta decisão for aceita
+## Atualização — aplicada na aceitação (2026-06-01)
 
-- STORY-034 referencia IDR-011 nos CAs.
-- Adicionar referência a IDR-011 nas stories STORY-022+ que ainda forem ser detalhadas pelo PO.
-- README do WebApp aponta para IDR-011 na seção "Testes E2E".
+- STORY-038 passa a referenciar IDR-011 nos CAs (item de checklist da execução da story).
+- Stories STORY-022+ a serem detalhadas pelo PO devem citar IDR-011 como padrão obrigatório (a fazer no momento da escrita de cada story — não há refator retroativo das já escritas).
+- README do WebApp ganha apontador para IDR-011 na seção "Testes E2E" durante a execução da STORY-038 (compromisso visível da sprint W26).

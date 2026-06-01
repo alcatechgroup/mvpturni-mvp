@@ -1,5 +1,5 @@
 ---
-story_id: STORY-039
+story_id: STORY-042
 slug: acao-instalar-app-fallback-ios
 title: Ação "Instalar app" no WebApp Flutter — beforeinstallprompt no Android/Chromium + fallback iOS
 epic_id: EPIC-008
@@ -11,12 +11,13 @@ design_screen_id: null
 status: draft
 owner_agent: null
 created_at: 2026-05-31
-updated_at: 2026-05-31
+updated_at: 2026-06-01  # renomeado de STORY-039 → STORY-042 (colisão com EPIC-007 STORY-039)
 estimated_session_size: M
 produces_idr: IDR-020
+renamed_from: STORY-039  # 2026-06-01 — colisão com EPIC-007 STORY-039 (Patrol)
 ---
 
-# STORY-039 — Ação "Instalar app" com prompt nativo Android/Chromium + fallback iOS
+# STORY-042 — Ação "Instalar app" com prompt nativo Android/Chromium + fallback iOS
 
 > **Para o agente que vai executar:** esta estória é o coração do EPIC-008. Tem que coexistir sem regredir 1 vírgula com a auto-atualização (STORY-037 / IDR-017). Tudo que envolve `service worker`, `Cache Storage`, `firebase.json` no entry chain Flutter e `flutter_service_worker.js` está **fora de escopo** — esta story só **adiciona** comportamento; não substitui nem refatora o que já existe. Leia inteira antes de codificar.
 
@@ -26,7 +27,7 @@ O RNF do MVP (`docs/especificacao/non-functional.md` linha 96) diz: *"WebApp ins
 
 Esta story entrega: (a) uma **ação "Instalar app"** visível no app, plugada em pontos definidos por IDR-020 (recomendação: mesmos pontos da `AppVersionLabel` — login, 2 cadastros, app shell); (b) ao clicar em **Android/desktop Chromium**, dispara o **prompt nativo** do navegador (`event.prompt()` no `BeforeInstallPromptEvent` que foi capturado e guardado); (c) ao clicar em **iOS Safari/Chrome**, abre um **modal de instruções** com 2 passos; (d) **esconde a ação** quando o app está em modo standalone (já instalado) ou quando a plataforma não suporta instalação alguma (Firefox desktop, por exemplo).
 
-A STORY-038 (paralela neste épico) entrega os **ícones Turni**. STORY-039 não depende dos ícones para passar — depende **logicamente** para a experiência visual de "instalou e viu a marca", mas o código é ortogonal.
+A STORY-041 (paralela neste épico) entrega os **ícones Turni**. STORY-042 não depende dos ícones para passar — depende **logicamente** para a experiência visual de "instalou e viu a marca", mas o código é ortogonal.
 
 A peça que toca o navegador (capturar `beforeinstallprompt`, detectar iOS Safari, detectar `display-mode: standalone`) precisa rodar **antes** do Flutter inicializar — `beforeinstallprompt` dispara cedo no ciclo da página e precisa de `preventDefault()` para guardar a referência. Por isso o script é inline no `<head>` do `index.html`, **antes** do `<script src="flutter_bootstrap.js" async>`. O Dart consome via `dart:js_interop` (`package:web`) — mesmo padrão do `ServiceWorkerBridge` em `lib/core/app_update/` (STORY-037). Importante: o script **não pode** registrar service worker próprio, **não pode** tocar `caches`, **não pode** interceptar `fetch` — para não brigar com o SW padrão do Flutter nem com o `unregister()`/`caches.delete()` que o `ServiceWorkerBridge.activateNewVersionAndReload()` faz.
 
@@ -105,7 +106,7 @@ Em `docs/project-state/decisions/idr/IDR-020-acao-instalar-app-pwa-fallback-ios.
 - **Política de dispensa** — não persiste; coerente com IDR-017.
 - **Standalone detection** — `matchMedia('(display-mode: standalone)') OR navigator.standalone`.
 - **iOS sniff por user-agent** — aceito como state-of-the-art; alternativas descartadas.
-- **Identidade visual dos ícones** — 192, 512, maskable 192/512 com safe zone de 80%, apple-touch-icon 180×180, favicon 32×32. SVG-fonte versionado em `web/icons/source/`. **Esta IDR é compartilhada com STORY-038.**
+- **Identidade visual dos ícones** — 192, 512, maskable 192/512 com safe zone de 80%, apple-touch-icon 180×180, favicon 32×32. SVG-fonte versionado em `web/icons/source/`. **Esta IDR é compartilhada com STORY-041.**
 - **Não-toca** — service worker, Cache Storage, `firebase.json` entry chain. IDR-017 manda.
 - **Trade-offs aceitos** — iOS sem prompt programático; Firefox desktop sem instalação; cache do ícone antigo em PWAs já instaladas até desinstalar/reinstalar.
 
@@ -157,7 +158,7 @@ Em `docs/project-state/decisions/idr/IDR-020-acao-instalar-app-pwa-fallback-ios.
 
 ### Smoke mobile (objetivo do épico)
 
-- [ ] **CA-19 (Android Chrome — caminho feliz):** com release publicada, abrir `app.homolog.turni.com.br` no Chrome Android, ver o card "Instalar app". Clicar em "Instalar" abre o prompt nativo. Aceitar → app é instalado, ícone Turni na home (depende da STORY-038), ao abrir o app é standalone (sem barra do browser). Captura de tela em chat.
+- [ ] **CA-19 (Android Chrome — caminho feliz):** com release publicada, abrir `app.homolog.turni.com.br` no Chrome Android, ver o card "Instalar app". Clicar em "Instalar" abre o prompt nativo. Aceitar → app é instalado, ícone Turni na home (depende da STORY-041), ao abrir o app é standalone (sem barra do browser). Captura de tela em chat.
 - [ ] **CA-20 (iOS Safari — caminho feliz com instruções):** abrir no Safari iOS, ver o card "Instalar app" com CTA "Como instalar". Clicar abre o modal com 2 passos. Seguir os passos no Safari (Compartilhar → Adicionar à Tela de Início) → app instalado, ícone Turni na home, abre standalone. Captura de tela em chat.
 - [ ] **CA-21 (já instalado some):** abrir o app em modo standalone (após instalar) — o card "Instalar app" **não aparece** em nenhum dos pontos de plugagem. Verificado em smoke e em widget test.
 
@@ -189,7 +190,7 @@ Em `docs/project-state/decisions/idr/IDR-020-acao-instalar-app-pwa-fallback-ios.
 ## Dependências
 
 - **Bloqueada por:** aprovação do PO no escopo do EPIC-008 + esqueleto da IDR-020 (cobre microcopy aprovada, pontos de exibição, identidade visual).
-- **Bloqueia:** smoke visual final do épico (CA-19/CA-20 dependem da STORY-038 para ver o ícone Turni na home — mas o código desta story funciona com qualquer ícone).
+- **Bloqueia:** smoke visual final do épico (CA-19/CA-20 dependem da STORY-041 para ver o ícone Turni na home — mas o código desta story funciona com qualquer ícone).
 - **Pré-requisitos:** STORY-008 (manifest + SW vivos), STORY-037 (auto-update vivo — referência de padrão), `app.homolog.turni.com.br` em HTTPS.
 
 ## Decisões já tomadas (não as reabra)
@@ -199,7 +200,7 @@ Em `docs/project-state/decisions/idr/IDR-020-acao-instalar-app-pwa-fallback-ios.
 - **DDR-001** — tokens, contraste AA.
 - **Dispensa não persiste** — política coerente com IDR-017.
 - **iOS via instruções** — única alternativa real (WebKit não implementa `beforeinstallprompt`).
-- **Identidade visual em STORY-038** — esta story não gera ícones.
+- **Identidade visual em STORY-041** — esta story não gera ícones.
 
 ## Liberdade técnica do agente
 
@@ -228,7 +229,7 @@ Você NÃO decide:
 - [ ] E2E Chromium verde (cenário do card visível); smoke Android (CA-19) e smoke iOS (CA-20) assinados pelo PO em chat.
 - [ ] CA-18 (não-regressão STORY-037) assinado em chat.
 - [ ] PR mergeado; pré-push verde.
-- [ ] `index.json` atualizado (`STORY-039 status: done`, `IDR-020 status: accepted`).
+- [ ] `index.json` atualizado (`STORY-042 status: done`, `IDR-020 status: accepted`).
 - [ ] "Notas do agente" preenchidas.
 
 ## Protocolo do agente (obrigatório)

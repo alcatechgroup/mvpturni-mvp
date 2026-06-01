@@ -7,8 +7,8 @@
     "current_sprint": "SPRINT-2026-W25",
     "last_closed_sprint": "SPRINT-2026-W24",
     "phase": "wave-2026-01-sprint-w25-active-3-of-6-done-after-rollback-023-024",
-    "next_action": "SPRINT-2026-W25 ATIVA (aberta 2026-05-30). 3/6 estórias done: STORY-021 (e-mails transacionais — Resend ACL + lembrete + reset Fortify; CA-13 fechada em homolog; alerta de falha terminal validado na rc.28), STORY-034 (worker Cloud Run Job + Scheduler — substitui GCE worker-vm; validado via rc.24) e STORY-037 (auto-update WebApp Flutter + label de versão; rc.32, PO confirmou no celular; IDR-017 accepted). 3/6 ready: STORY-023 (completar cadastro PF, L — VOLTOU a `ready` em 2026-05-31 após PO reverter byte-a-byte commit `3b61364` no commit `690a252`; refazer do zero), STORY-024 (completar cadastro PJ, M — descartada do working tree no mesmo revert; refazer do zero), STORY-025 (validação EPIC-001, aguarda 023/024). Próximo passo: PO decide se retoma STORY-023 mantendo o L ou quebra em sub-estórias (coleta vs. preview+aceite); STORY-024 entra em paralelo no mesmo critério; Designer pode reutilizar SCREEN-STORY-023 (preservada pelo revert). STORY-025 só inicia quando 021+023+024+034 estiverem done e checklist do EPIC-001 estiver íntegro (lição STORY-011). Soft-cap 2026-06-19 — folga absorve ~1 dia de retrabalho do rollback. Pendência de housekeeping: reindexar `decisions.idr` em `index.json` (IDR-010/011/013/015/018/019/020 existem como `.md` mas não estão no JSON — registrado pelo PO no commit `690a252`).",
-    "notes": "SPRINT-2026-W25 aberta em 2026-05-30 com escopo inicial de 4 estórias (021/023/024/025) e duas adições no mesmo dia: STORY-034 (worker Cloud Run Job + Scheduler — caminho único após queda da escada Fase A com 5 gaps confirmados no GCE worker-vm) e STORY-037 (auto-update WebApp Flutter — destrava validação mobile do EPIC-001). Sizing total: 1L + 5M. Progresso até D+2 (2026-05-31): **3/6 done** (021, 034, 037), **3/6 ready** (023, 024, 025). STORY-021/034/037 fechadas em rc.24→rc.32. STORY-023 chegou a entrar em `done` no commit `3b61364` (multi-step PF + preview de contrato MarkdownLite + AceiteEletronico no clique), e STORY-024 estava em progresso no working tree (untracked), mas em 2026-05-31 o PO reverteu byte-a-byte (commit `690a252`) para refazer do zero, descartando: `Domain/Aceites/*`, controllers, modelos `Template/TemplateVersao/AceiteEletronico`, migration `2026_05_30_completar_cadastro_profissional_e_aceites.php`, `completar_cadastro_screen.dart`, `MarkdownLite`, `input_formatters`, E2E `completar-cadastro.spec.ts`. **Preservado** no revert: STORY-021/034/037 inteiras, fixes `SESSION_COOKIE`/`SESSION_DRIVER` (IDR-019 — arquivo apenas), ACL e-mail em packages/domain (IDR-015), trabalho de processo (wishlist + bugs + EPIC-008 PWA + endurecimento de skills) do commit `4cb0b38`, `infra/` e `.github/` intactos. STORY-023/024 voltam a `ready` no mesmo escopo da W25; STORY-025 segue `ready` aguardando 023/024/034. 3 commits locais ainda não pushados para `origin/main` (`4cb0b38`, `690a252`, `fd30cc2`). Pendência de housekeeping: reindexar `decisions.idr` em `index.json` (IDR-010/011/013/015/018/019/020 fora do JSON). SPRINT-2026-W24 permanece fechada por goal-atingido (10/10; goal_outcome=achieved)."
+    "next_action": "SPRINT-2026-W25 ATIVA (aberta 2026-05-30). 3/6 estórias done: STORY-021 (e-mails transacionais — Resend ACL + lembrete + reset Fortify; CA-13 fechada em homolog; alerta de falha terminal validado na rc.28), STORY-034 (worker Cloud Run Job + Scheduler — substitui GCE worker-vm; validado via rc.24) e STORY-037 (auto-update WebApp Flutter + label de versão; rc.32, PO confirmou no celular; IDR-017 accepted). 3/6 ready: STORY-023 (completar cadastro PF, L — VOLTOU a `ready` em 2026-05-31 após PO reverter byte-a-byte commit `3b61364` no commit `690a252`; refazer do zero), STORY-024 (completar cadastro PJ, M — descartada do working tree no mesmo revert; refazer do zero), STORY-025 (validação EPIC-001, aguarda 023/024). Próximo passo: PO decide se retoma STORY-023 mantendo o L ou quebra em sub-estórias (coleta vs. preview+aceite); STORY-024 entra em paralelo no mesmo critério; Designer pode reutilizar SCREEN-STORY-023 (preservada pelo revert). STORY-025 só inicia quando 021+023+024+034 estiverem done e checklist do EPIC-001 estiver íntegro (lição STORY-011). Soft-cap 2026-06-19 — folga absorve ~1 dia de retrabalho do rollback. Saneamento pré-W26 (2026-06-01): IDR-010/011 accepted, IDR-006 §b parcialmente superseded, decisions.idr reindexado (IDR-001/010/011/013/015/016/019/020 adicionados), EPIC-007/008 indexados em epics[], STORY-038-042 indexadas, colisão EPIC-007/EPIC-008 STORY-038/039 resolvida via rename para STORY-041/042. SPRINT-2026-W26 entrou em status:planned no índice.",
+    "notes": "SPRINT-2026-W25 aberta em 2026-05-30 com escopo inicial de 4 estórias (021/023/024/025) e duas adições no mesmo dia: STORY-034 (worker Cloud Run Job + Scheduler — caminho único após queda da escada Fase A com 5 gaps confirmados no GCE worker-vm) e STORY-037 (auto-update WebApp Flutter — destrava validação mobile do EPIC-001). Sizing total: 1L + 5M. Progresso até D+2 (2026-05-31): **3/6 done** (021, 034, 037), **3/6 ready** (023, 024, 025). STORY-021/034/037 fechadas em rc.24→rc.32. STORY-023 chegou a entrar em `done` no commit `3b61364` (multi-step PF + preview de contrato MarkdownLite + AceiteEletronico no clique), e STORY-024 estava em progresso no working tree (untracked), mas em 2026-05-31 o PO reverteu byte-a-byte (commit `690a252`) para refazer do zero, descartando: `Domain/Aceites/*`, controllers, modelos `Template/TemplateVersao/AceiteEletronico`, migration `2026_05_30_completar_cadastro_profissional_e_aceites.php`, `completar_cadastro_screen.dart`, `MarkdownLite`, `input_formatters`, E2E `completar-cadastro.spec.ts`. **Preservado** no revert: STORY-021/034/037 inteiras, fixes `SESSION_COOKIE`/`SESSION_DRIVER` (IDR-019 — arquivo apenas), ACL e-mail em packages/domain (IDR-015), trabalho de processo (wishlist + bugs + EPIC-008 PWA + endurecimento de skills) do commit `4cb0b38`, `infra/` e `.github/` intactos. STORY-023/024 voltam a `ready` no mesmo escopo da W25; STORY-025 segue `ready` aguardando 023/024/034. 3 commits locais ainda não pushados para `origin/main` (`4cb0b38`, `690a252`, `fd30cc2`) — somar a este o commit de saneamento pré-W26 (2026-06-01). Pendência de housekeeping RESOLVIDA em 2026-06-01: decisions.idr reindexado com IDR-001/010/011/013/015/016/019/020. NOTA: IDR-018 não existe no disco (numeração saltou — IDR-020 documenta isso); a `next_action` antiga listava IDR-018 por engano. SPRINT-2026-W24 permanece fechada por goal-atingido (10/10; goal_outcome=achieved)."
   },
   "product": {
     "vision": "product/vision.md",
@@ -53,7 +53,8 @@
         "EPIC-003",
         "EPIC-004",
         "EPIC-005",
-        "EPIC-006"
+        "EPIC-006",
+        "EPIC-007"
       ],
       "path": "roadmap/current-wave.md"
     }
@@ -244,6 +245,45 @@
       "updated_at": "2026-05-29",
       "closed_at": "2026-05-29",
       "next_action": "FECHADO 2026-05-29. 8/8 stories done; STORY-033 validação = approved_with_pending (52 pass, 5 ressalva, 2 fail não-bloqueante, 0 bloqueante, 3 n/a). PO (Alexandro) aprovou encerramento em chat aceitando as 2 pendências não-bloqueantes como carry-forward: (1) CA-B8-2 deploy autentica via chave SA FIREBASE_SERVICE_ACCOUNT (mesmo padrão do release.yml do WebApp), não WIF puro; (2) CA-B3-6 Lighthouse Perf da landing AS IS 58-60<70 (item declarado não-bloqueante; protótipo pesado em imagens). Gate verificado no ar (rc.4) e terraform plan prod (false=56/true=62 add). PROD NÃO no ar — go-public é decisão do comercial em momento separado (PDR-015), runbook P6 pronto. Relatório: validation/report.md."
+    },
+    {
+      "id": "EPIC-007",
+      "slug": "e2e-hibrida-flutter",
+      "title": "E2E híbrida do WebApp — integration_test (UI) + Playwright (smoke HTTP) + Patrol (nativo)",
+      "wave": "WAVE-2026-01",
+      "status": "draft",
+      "path": "epics/EPIC-007-e2e-hibrida-flutter/epic.md",
+      "story_ids": [
+        "STORY-038",
+        "STORY-039",
+        "STORY-040"
+      ],
+      "sprint": "SPRINT-2026-W26",
+      "created_at": "2026-05-29",
+      "updated_at": "2026-06-01",
+      "next_action": "SPRINT-2026-W26 abre com este épico como escopo único. IDR-010 e IDR-011 foram aceitas em 2026-06-01 (Alexandro). STORY-038 vira `ready` quando W26 ativar e PO promover; STORY-039 e STORY-040 ficam bloqueadas por STORY-038."
+    },
+    {
+      "id": "EPIC-008",
+      "slug": "pwa-instalavel",
+      "title": "WebApp instalável na tela inicial (PWA) — ação de instalar + fallback iOS + identidade visual",
+      "wave": "WAVE-2026-01",
+      "status": "draft",
+      "path": "epics/EPIC-008-pwa-instalavel/epic.md",
+      "story_ids": [
+        "STORY-041",
+        "STORY-042"
+      ],
+      "sprint": null,
+      "created_at": "2026-05-31",
+      "updated_at": "2026-06-01",
+      "next_action": "Sem sprint alvo. STORY-041 (ícones) e STORY-042 (ação de instalar) em `draft`; produz IDR-020 (atualmente `proposed`). Aguarda priorização pelo PO em sprint futura — sem ordem específica face ao EPIC-002+.",
+      "renamed_stories": {
+        "STORY-041": "STORY-038",
+        "STORY-042": "STORY-039"
+      },
+      "renamed_at": "2026-06-01",
+      "rename_reason": "Colisão preventiva com EPIC-007 STORY-038/039 (ambas criadas em 2026-05-31)."
     }
   ],
   "stories": [
@@ -1157,6 +1197,116 @@
       "produces_idr": "IDR-017",
       "created_at": "2026-05-30",
       "updated_at": "2026-05-31"
+    },
+    {
+      "id": "STORY-038",
+      "epic_id": "EPIC-007",
+      "title": "Adotar integration_test no WebApp Flutter Web e migrar os 7 cenários de RBAC/funnel",
+      "type": "enablement",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "draft",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W26",
+      "path": "epics/EPIC-007-e2e-hibrida-flutter/stories/STORY-038-adotar-integration-test-no-webapp.md",
+      "blocked_by": [],
+      "blocks": [
+        "STORY-039",
+        "STORY-040"
+      ],
+      "estimated_session_size": "L",
+      "produces_idr": null,
+      "renamed_from": "STORY-034 (EPIC-007 original; renomeada em 2026-05-31 por colisão com EPIC-001 STORY-034)",
+      "created_at": "2026-05-29",
+      "updated_at": "2026-05-31"
+    },
+    {
+      "id": "STORY-039",
+      "epic_id": "EPIC-007",
+      "title": "Adotar Patrol para cenários nativos — scaffolding + 1 cenário de smoke",
+      "type": "enablement",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "draft",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W26",
+      "path": "epics/EPIC-007-e2e-hibrida-flutter/stories/STORY-039-adotar-patrol-cenarios-nativos.md",
+      "blocked_by": [
+        "STORY-038"
+      ],
+      "blocks": [
+        "STORY-040"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "renamed_from": "STORY-035 (EPIC-007 original; renomeada em 2026-05-31)",
+      "created_at": "2026-05-29",
+      "updated_at": "2026-05-31"
+    },
+    {
+      "id": "STORY-040",
+      "epic_id": "EPIC-007",
+      "title": "Gate E2E mobile local — Android emulator + iOS simulator, runbook e política",
+      "type": "enablement",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "draft",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W26",
+      "path": "epics/EPIC-007-e2e-hibrida-flutter/stories/STORY-040-gate-e2e-mobile-android-ios.md",
+      "blocked_by": [
+        "STORY-038",
+        "STORY-039"
+      ],
+      "blocks": [],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "renamed_from": "STORY-036 (EPIC-007 original; renomeada em 2026-05-31)",
+      "created_at": "2026-05-29",
+      "updated_at": "2026-05-31"
+    },
+    {
+      "id": "STORY-041",
+      "epic_id": "EPIC-008",
+      "title": "Identidade visual — ícones do PWA com a marca Turni (substitui logo padrão do Flutter)",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "draft",
+      "owner_agent": null,
+      "sprint_id": null,
+      "path": "epics/EPIC-008-pwa-instalavel/stories/STORY-041-identidade-visual-icones-pwa-turni.md",
+      "blocked_by": [],
+      "blocks": [],
+      "estimated_session_size": "S",
+      "produces_idr": null,
+      "renamed_from": "STORY-038 (EPIC-008 original; renomeada em 2026-06-01 por colisão com EPIC-007 STORY-038)",
+      "created_at": "2026-05-31",
+      "updated_at": "2026-06-01"
+    },
+    {
+      "id": "STORY-042",
+      "epic_id": "EPIC-008",
+      "title": "Ação \"Instalar app\" no WebApp Flutter — beforeinstallprompt no Android/Chromium + fallback iOS",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": null,
+      "status": "draft",
+      "owner_agent": null,
+      "sprint_id": null,
+      "path": "epics/EPIC-008-pwa-instalavel/stories/STORY-042-acao-instalar-app-fallback-ios.md",
+      "blocked_by": [],
+      "blocks": [],
+      "estimated_session_size": "M",
+      "produces_idr": "IDR-020",
+      "renamed_from": "STORY-039 (EPIC-008 original; renomeada em 2026-06-01 por colisão com EPIC-007 STORY-039)",
+      "created_at": "2026-05-31",
+      "updated_at": "2026-06-01"
     }
   ],
   "sprints": [
@@ -1413,6 +1563,48 @@
         "Latência de pickup do Job (até ~60s) — aceitável pelo SLO, mas registrar no IDR-016 para evitar regressão futura",
         "STORY-037 banner percebido como intrusivo no mobile (primeira notificação não-bloqueante em homolog) — mitigado por microcopy fixo aprovado pelo PO + sinal de revisão no IDR-017 + smoke CA-17 pelo PO no celular",
         "STORY-037 SKIP_WAITING + reload pode invalidar sessão Sanctum (regressão em ADR-007 §F5) — mitigado por CA-6 explícita exigindo que sessão sobreviva ao reload + E2E (login → forçar update → ver tela logada de novo); cookie same-site app.homolog.turni.com.br cobre"
+      ]
+    },
+    {
+      "id": "SPRINT-2026-W26",
+      "wave": "WAVE-2026-01",
+      "status": "planned",
+      "start_date": null,
+      "end_date": null,
+      "soft_cap_date": null,
+      "opened_at": "2026-05-31",
+      "opened_by": "PO (Alexandro / Claude)",
+      "closure_rule": "goal-atingido (encerra quando STORY-038/039/040 estiverem done E IDR-010/011 estiverem accepted E IDR-006 estiver atualizada anotando supersede parcial de §b). Soft-cap a definir na ativação (~14 dias úteis após start_date).",
+      "goal": "Fechar o EPIC-007 — modelo E2E híbrido do WebApp em vigor: integration_test cobrindo UI Flutter (7 cenários migrados de Playwright, 0 flake em Chrome headless), Playwright reduzido a smoke HTTP, Patrol de pé com 1 cenário smoke em Android emulator local. make e2e-webapp orquestrando as duas primeiras camadas. IDR-010 e IDR-011 aceitas; IDR-006 §b parcialmente superseded.",
+      "path": "sprints/SPRINT-2026-W26.md",
+      "story_ids": [
+        "STORY-038",
+        "STORY-039",
+        "STORY-040"
+      ],
+      "stretch_story_ids": [],
+      "sizing_total": "1L + 2M",
+      "scope_changes": [
+        {
+          "date": "2026-05-31",
+          "change": "Abertura: 3 estórias no escopo (STORY-038/039/040, EPIC-007). Renomeação preventiva STORY-034/035/036 → STORY-038/039/040 por colisão com STORY-034 worker (EPIC-001, done em W25).",
+          "reason": "Pedido do PO: criar sprint dedicada ao EPIC-007. Renomeação porque EPIC-001 STORY-034 já estava done com IDR-016 e commits — colisão impede registro consistente.",
+          "approved_by": "PO (Alexandro)"
+        },
+        {
+          "date": "2026-06-01",
+          "change": "Pré-ativação: IDR-010 e IDR-011 aceitas pelo PO em sessão dedicada (regra 7 da W26). IDR-006 §b anotada como parcialmente superseded. Drift do index.json corrigido (EPIC-007 adicionado à wave; decisions.idr reindexado com IDR-001/010/011/013/015/016/019/020; EPIC-007 e EPIC-008 indexados em epics[]; STORY-038-042 indexadas em stories[]). Colisão STORY-038/039 EPIC-007 vs EPIC-008 resolvida renomeando EPIC-008 → STORY-041/042.",
+          "reason": "Saneamento pré-W26 — abertura da sprint deve encontrar index.json íntegro.",
+          "approved_by": "PO (Alexandro)"
+        }
+      ],
+      "risks_at_open": [
+        "STORY-038 (L) estoura sessão única — scaffolding + 7 migrações + 2 IDRs aceitas + atualização de IDR-006 + README + Makefile é peça grande; mitigação: critério de quebra escrito (auth fechado vs. funnel/RBAC fechado)",
+        "Setup Android emulator local atrasa STORY-039/040 — primeira vez tocando apps/webapp/android/; mitigação: STORY-039 começa pelo runbook",
+        "Ambiente local sem macOS — STORY-040 iOS simulator fica fora do gate inicial; mitigação: IDR-010 §e prevê iOS condicional",
+        "pumpAndSettle() trava em cenário com timer infinito; mitigação: IDR-011 §e prevê pump(Duration) justificado",
+        "Tempo de gate cresce >30%; mitigação: STORY-038 mede explicitamente baseline da W25",
+        "EPIC-007 não move métrica primária da wave (1 turno/dia útil); aceito pelo PO porque EPIC-007 reduz dívida e prepara EPIC-002+"
       ]
     }
   ],
@@ -1679,6 +1871,15 @@
     ],
     "idr": [
       {
+        "id": "IDR-001",
+        "title": "Padrões de fundação do monorepo e do ambiente local em 1 comando",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-001-fundacao-ambiente-local.md",
+        "decided_at": "2026-05-27",
+        "decided_by": "programador",
+        "source_story": "STORY-006"
+      },
+      {
         "id": "IDR-002",
         "title": "Mecanismo de stamping da tag no artefato e exposição da versão em runtime",
         "status": "accepted",
@@ -1753,6 +1954,27 @@
         "source_story": "STORY-017"
       },
       {
+        "id": "IDR-010",
+        "title": "E2E híbrida do WebApp — integration_test (UI), Playwright (smoke HTTP), Patrol (nativo)",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-010-e2e-hibrida-integration-test-playwright-patrol.md",
+        "decided_at": "2026-06-01",
+        "decided_by": "Alexandro",
+        "source_story": "STORY-038",
+        "supersedes_partial": "IDR-006 §b",
+        "refines": "IDR-004"
+      },
+      {
+        "id": "IDR-011",
+        "title": "Padrão de teste Flutter — Keys namespaced, mocks vs API real, helpers compartilhados, naming",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-011-padrao-teste-flutter-keys-mocks-helpers.md",
+        "decided_at": "2026-06-01",
+        "decided_by": "Alexandro",
+        "source_story": "STORY-038",
+        "refines": "IDR-010"
+      },
+      {
         "id": "IDR-012",
         "title": "tipo_operacao como enum estático e componentes de cadastro compartilhados (lib/cadastro/shared)",
         "status": "accepted",
@@ -1760,6 +1982,15 @@
         "decided_at": "2026-05-29",
         "decided_by": "programador",
         "source_story": "STORY-018"
+      },
+      {
+        "id": "IDR-013",
+        "title": "Fila de aprovação — seam da ACL de e-mail no Backoffice, soft-delete por status, lock otimista e paridade de migração",
+        "status": "proposed",
+        "path": "decisions/idr/IDR-013-fila-aprovacao-acl-email-e-soft-delete.md",
+        "decided_at": null,
+        "decided_by": null,
+        "source_story": "STORY-019"
       },
       {
         "id": "IDR-014",
@@ -1771,6 +2002,24 @@
         "source_story": "STORY-022"
       },
       {
+        "id": "IDR-015",
+        "title": "ACL de e-mail transacional em packages/domain (Turni\\Domain\\Email) — habilita a fila database cross-app",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-015-acl-email-em-packages-domain-para-fila-cross-app.md",
+        "decided_at": "2026-05-30",
+        "decided_by": "programador",
+        "source_story": "STORY-021"
+      },
+      {
+        "id": "IDR-016",
+        "title": "Worker em Cloud Run Job + Cloud Scheduler substitui GCE worker-vm",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-016-worker-em-cloud-run-job-substitui-gce-vm.md",
+        "decided_at": "2026-05-30",
+        "decided_by": "programador",
+        "source_story": "STORY-034"
+      },
+      {
         "id": "IDR-017",
         "title": "Auto-atualização do WebApp — polling do version.json + SKIP_WAITING + banner",
         "status": "accepted",
@@ -1779,6 +2028,25 @@
         "decided_by": "programador",
         "approved_by": "Alexandro",
         "source_story": "STORY-037"
+      },
+      {
+        "id": "IDR-019",
+        "title": "SESSION_COOKIE=__session na api atrás do Firebase Hosting (corrige 401 após login em homolog)",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-019-session-driver-cookie-na-api-cloud-run.md",
+        "decided_at": "2026-05-31",
+        "decided_by": "programador",
+        "source_story": "STORY-023"
+      },
+      {
+        "id": "IDR-020",
+        "title": "Ação \"Instalar app\" no WebApp Flutter — beforeinstallprompt + fallback iOS + identidade visual",
+        "status": "proposed",
+        "path": "decisions/idr/IDR-020-acao-instalar-app-pwa-fallback-ios.md",
+        "decided_at": "2026-05-31",
+        "decided_by": "programador",
+        "source_story": "STORY-042",
+        "note": "PO assina após smokes CA-19/CA-20 verdes em homolog. STORY-042 era STORY-039 (EPIC-008) até 2026-06-01 — renomeada para resolver colisão com STORY-039 do EPIC-007 (Patrol)."
       }
     ],
     "ddr": [

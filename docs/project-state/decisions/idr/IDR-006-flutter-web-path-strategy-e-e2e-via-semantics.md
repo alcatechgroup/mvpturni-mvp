@@ -7,6 +7,7 @@ decided_by: programador
 source_story: STORY-016
 supersedes: nada
 superseded_by: nada
+superseded_partial_by: IDR-010 (§b — desde 2026-06-01)
 ---
 
 # IDR-006 — Flutter Web: path strategy + E2E via semantics
@@ -39,6 +40,9 @@ servidor (php -S em dev; Firebase Hosting em homolog/prod com rewrite SPA) faz
 fallback para `index.html`, e o `go_router` resolve a rota no cliente.
 
 ### b) Padrão de E2E do Flutter Web (Playwright)
+
+> **Parcialmente superseded por IDR-010 a partir de 2026-06-01.** Cenários novos de **interação** (login, RBAC, funnel, formulários, navegação interna) **não nascem mais em Playwright** — vão para `integration_test` seguindo IDR-011. Playwright fica reduzido a smoke HTTP do build deployado (título, status code, `/version.json`, `/health`, erros de console JS, deep link via URL real). Esta §b permanece como referência histórica para os cenários Playwright que continuarem em smoke HTTP. §a (path strategy) e §c (build fresco) **intocados**.
+
 Para os cenários de **interação** (login, RBAC, funnel) no WebApp:
 
 1. Após `page.goto(rota)`, **ativar a árvore de semantics** clicando no

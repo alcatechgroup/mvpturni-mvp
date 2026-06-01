@@ -35,11 +35,11 @@ O sprint **NÃO** abre frente nova fora do EPIC-007: EPIC-002 (vaga + feed + can
 
 ## Estórias incluídas
 
-| ID        | Título                                                                          | Épico    | Tipo        | Papel       | Tamanho | Design? | Status atual |
-| --------- | ------------------------------------------------------------------------------- | -------- | ----------- | ----------- | ------- | ------- | ------------ |
-| STORY-038 | Adotar `integration_test` no WebApp Flutter Web e migrar os 7 cenários de RBAC/funnel | EPIC-007 | enablement  | programador | **L**   | não     | draft (vira `ready` quando IDR-010/011 forem aceitas) |
-| STORY-039 | Adotar Patrol para cenários nativos — scaffolding + 1 cenário de smoke           | EPIC-007 | enablement  | programador | M       | não     | draft (bloqueada por STORY-038) |
-| STORY-040 | Gate E2E mobile local — Android emulator + iOS simulator, runbook e política     | EPIC-007 | enablement  | programador | M       | não     | draft (bloqueada por STORY-038 e STORY-039) |
+| ID        | Título                                                                                | Épico    | Tipo       | Papel       | Tamanho | Design? | Status atual                                          |
+| --------- | ------------------------------------------------------------------------------------- | -------- | ---------- | ----------- | ------- | ------- | ----------------------------------------------------- |
+| STORY-038 | Adotar `integration_test` no WebApp Flutter Web e migrar os 7 cenários de RBAC/funnel | EPIC-007 | enablement | programador | **L**   | não     | draft (vira `ready` quando IDR-010/011 forem aceitas) |
+| STORY-039 | Adotar Patrol para cenários nativos — scaffolding + 1 cenário de smoke                | EPIC-007 | enablement | programador | M       | não     | draft (bloqueada por STORY-038)                       |
+| STORY-040 | Gate E2E mobile local — Android emulator + iOS simulator, runbook e política          | EPIC-007 | enablement | programador | M       | não     | draft (bloqueada por STORY-038 e STORY-039)           |
 
 **Sizing total**: 1L + 2M. Mais leve que W25 (1L + 5M) por design — sprint de fundação técnica com escopo bem cercado pelo epic.md. **Sem estória stretch.** Justificativa: o objetivo é fechar EPIC-007 limpo; ampliar com EPIC-002 introduz risco de o padrão IDR-011 ainda não estar maduro quando a primeira feature nova começar a escrevê-lo.
 

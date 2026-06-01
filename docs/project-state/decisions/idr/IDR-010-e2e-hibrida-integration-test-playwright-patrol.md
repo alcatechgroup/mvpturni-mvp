@@ -1,10 +1,10 @@
 ---
 id: IDR-010
 title: E2E híbrida do WebApp — integration_test (UI), Playwright (smoke HTTP), Patrol (nativo)
-status: proposed
-decided_at: null
-decided_by: null
-source_story: STORY-034
+status: accepted
+decided_at: 2026-06-01
+decided_by: Alexandro
+source_story: STORY-038
 supersedes_partial: IDR-006 §b
 refines: IDR-004
 superseded_by: nada
@@ -81,12 +81,12 @@ Sai 0 quando todos passam. Sai não-zero no primeiro fail. Patrol e gate mobile 
 
 ## Consequências
 
-- **IDR-006 §b parcialmente superseded.** O padrão Playwright/semantics fica histórico para os cenários que continuarem em Playwright (smoke HTTP). Cenários novos de interação não nascem mais em Playwright. STORY-034 marca §b com nota inline.
+- **IDR-006 §b parcialmente superseded.** O padrão Playwright/semantics fica histórico para os cenários que continuarem em Playwright (smoke HTTP). Cenários novos de interação não nascem mais em Playwright. STORY-038 marca §b com nota inline.
 - **IDR-006 §a (path strategy) e §c (build fresco) intocados.** `usePathUrlStrategy()` continua obrigatório; `webapp-build` antes de `e2e-webapp` continua.
 - **IDR-004 refinada.** Gate continua local e pré-tag. O conteúdo do gate muda (integration_test + smoke Playwright em vez de só Playwright completo). Smoke curl pós-deploy continua igual.
 - **IDR-009 ganha caminho de cobertura nativa.** No native, o sheet do SO do `image_picker` é testável via Patrol — não fica como buraco de cobertura.
-- **Patrol vira dependência do projeto.** STORY-035 instala. Adiciona configuração Android (gradle, runner) e iOS (Podfile, test target). Custo de manutenção real, justificado pela ausência de alternativa para cenários nativos.
-- **Tempo de gate** pode aumentar. STORY-034 mede e compara. Se passar de +30%, escalar antes de aceitar.
+- **Patrol vira dependência do projeto.** STORY-039 instala. Adiciona configuração Android (gradle, runner) e iOS (Podfile, test target). Custo de manutenção real, justificado pela ausência de alternativa para cenários nativos.
+- **Tempo de gate** pode aumentar. STORY-038 mede e compara. Se passar de +30%, escalar antes de aceitar.
 - **Padrão registrado para STORY-022+.** Novos fluxos do WebApp (cadastro, agenda, perfil, etc.) nascem em `integration_test` seguindo IDR-011. Reduz dívida de reescrita quando native chegar.
 
 ## Tabela de decisão rápida
@@ -108,8 +108,8 @@ Sai 0 quando todos passam. Sai não-zero no primeiro fail. Patrol e gate mobile 
 
 A IDR-006 §b foi a decisão certa para o momento dela — `integration_test` não tinha sido avaliado, Patrol não tinha sido nomeado, native ainda não estava no roadmap. Esta IDR não corrige um erro; ela reconhece que o contexto mudou (decisão de virar nativo + maturidade de ferramentas) e ajusta o desenho. O padrão antigo continua válido para o subconjunto residual (smoke HTTP).
 
-## Atualização — quando esta decisão for aceita
+## Atualização — aplicada na aceitação (2026-06-01)
 
-- Atualizar header de IDR-006 com nota inline em §b: "parcialmente superseded por IDR-010 a partir de <data>".
-- Atualizar IDR-004 com nota refinando o conteúdo do gate (não a política).
-- IDR-011 entra em paralelo com esta para fechar o padrão de teste Flutter.
+- IDR-006 §b anotado como "parcialmente superseded por IDR-010 a partir de 2026-06-01" no header e na nota inline da seção §b.
+- IDR-004 anotado com refinamento sobre o conteúdo do gate (integration_test + smoke Playwright em vez de só Playwright completo). Política inalterada.
+- IDR-011 aceita em paralelo (mesma data, mesma sessão dedicada do PO — regra 7 da SPRINT-2026-W26).

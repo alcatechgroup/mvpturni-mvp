@@ -1,5 +1,5 @@
 ---
-story_id: STORY-038
+story_id: STORY-041
 slug: identidade-visual-icones-pwa-turni
 title: Identidade visual — ícones do PWA com a marca Turni (substitui logo padrão do Flutter)
 epic_id: EPIC-008
@@ -11,12 +11,13 @@ design_screen_id: null
 status: draft
 owner_agent: null
 created_at: 2026-05-31
-updated_at: 2026-05-31
+updated_at: 2026-06-01  # renomeado de STORY-038 → STORY-041 (colisão com EPIC-007 STORY-038)
 estimated_session_size: S
-produces_idr: null  # IDR-020 (proposta pela STORY-039) cobre formato/tamanhos
+produces_idr: null  # IDR-020 (proposta pela STORY-042) cobre formato/tamanhos
+renamed_from: STORY-038  # 2026-06-01 — colisão com EPIC-007 STORY-038 (integration_test)
 ---
 
-# STORY-038 — Ícones do PWA com a marca Turni
+# STORY-041 — Ícones do PWA com a marca Turni
 
 > **Para o agente que vai executar:** leia esta estória inteira antes de começar. Pequena, mas sensível: ícones errados quebram a "cara" do app na home do dispositivo, e mudar `index.html` exige cuidado porque o auto-update do WebApp (STORY-037 / IDR-017) depende do entry chain servindo `no-cache`. Esta story **não** altera headers do `firebase.json` nem o service worker — só conteúdo de imagens e 1 atributo de `<link>`.
 
@@ -28,7 +29,7 @@ O `manifest.json` já está estruturalmente correto: declara os 4 ícones nas ch
 
 O `favicon.png` atual é 16×16 — pequeno e sem versão retina. Aproveitamos para entregar um favicon decente em 32×32.
 
-Esta story entrega os arquivos. A **ação de instalar** (botão + fluxo iOS) fica em STORY-039.
+Esta story entrega os arquivos. A **ação de instalar** (botão + fluxo iOS) fica em STORY-042.
 
 - Épico: `docs/project-state/epics/EPIC-008-pwa-instalavel/epic.md`
 - Documentos canônicos a ler ANTES de codificar:
@@ -37,7 +38,7 @@ Esta story entrega os arquivos. A **ação de instalar** (botão + fluxo iOS) fi
   - `docs/project-state/decisions/ddr/DDR-001-fundacao-do-design-system.md` (paleta — `brandGreen #00A868`, `surfacePageLight #F7F4EC`).
   - `docs/project-state/decisions/idr/IDR-017-auto-atualizacao-webapp-polling-skipwaiting-banner.md` + emenda — entender por que **não pode** mexer no `firebase.json` no entry chain.
   - `firebase.json` (homolog + prod) — **só leitura**; entender o glob `**/*.@(js|css|wasm)` e os blocos do entry chain Flutter (`no-cache`). Confirmar que PNGs caem no default e que isso é OK (troca de identidade é evento raro e o ciclo de "Atualizar agora" da STORY-037 limpa Cache Storage).
-  - IDR-020 (proposta pela STORY-039) — define dimensões e safe zone do maskable (80% do diâmetro). Esta story consome o que IDR-020 fixar.
+  - IDR-020 (proposta pela STORY-042) — define dimensões e safe zone do maskable (80% do diâmetro). Esta story consome o que IDR-020 fixar.
 
 ## O quê (objetivo desta estória)
 
@@ -62,7 +63,7 @@ Entregar, no diretório `apps/webapp/web/`:
 
 - `<link rel="apple-touch-icon" href="icons/Icon-192.png">` → trocar para `<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">`.
 - `<link rel="icon" type="image/png" href="favicon.png"/>` → manter; opcionalmente adicionar `sizes="32x32"`.
-- **Não tocar** em mais nada do `<head>` ou do `<body>`. O `<script>` pré-Flutter da feature de instalação é responsabilidade da STORY-039 (esta story só toca os ícones).
+- **Não tocar** em mais nada do `<head>` ou do `<body>`. O `<script>` pré-Flutter da feature de instalação é responsabilidade da STORY-042 (esta story só toca os ícones).
 
 ### 4. `manifest.json` revisitado
 
@@ -93,7 +94,7 @@ Entregar, no diretório `apps/webapp/web/`:
 ### index.html
 
 - [ ] **CA-5:** `<link rel="apple-touch-icon">` aponta para `icons/apple-touch-icon.png` com `sizes="180x180"`. Demais `<link>` e `<meta>` do `<head>` permanecem como estão (em particular: `apple-mobile-web-app-capable`, `apple-mobile-web-app-title`, `theme-color`).
-- [ ] **CA-6:** `<script src="flutter_bootstrap.js" async>` permanece intocado; nenhum outro `<script>` é adicionado nesta story (cabe à STORY-039).
+- [ ] **CA-6:** `<script src="flutter_bootstrap.js" async>` permanece intocado; nenhum outro `<script>` é adicionado nesta story (cabe à STORY-042).
 
 ### manifest.json
 
@@ -113,7 +114,7 @@ Entregar, no diretório `apps/webapp/web/`:
 
 ### Smoke visual
 
-- [ ] **CA-14:** Em Android Chrome, instalar a PWA (após STORY-039 estar no ar, ou via menu "Adicionar à Tela de Início" do Chrome) mostra o ícone Turni — não Flutter — na home e no drawer. Captura de tela anexada em chat.
+- [ ] **CA-14:** Em Android Chrome, instalar a PWA (após STORY-042 estar no ar, ou via menu "Adicionar à Tela de Início" do Chrome) mostra o ícone Turni — não Flutter — na home e no drawer. Captura de tela anexada em chat.
 - [ ] **CA-15:** Em iOS Safari, instalar a PWA via "Compartilhar → Adicionar à Tela de Início" mostra o ícone Turni na home. Captura de tela anexada em chat.
 
 ## Fora de escopo
@@ -134,8 +135,8 @@ Entregar, no diretório `apps/webapp/web/`:
 
 ## Dependências
 
-- **Bloqueada por:** **IDR-020 com a especificação dos ícones** (tamanhos, safe zone do maskable, posição do "T"). STORY-039 propõe IDR-020. Sequência sugerida: STORY-039 redige IDR-020 primeiro com a parte de ícones; STORY-038 consome em paralelo.
-- **Bloqueia:** smoke visual da STORY-039 (ela depende dos ícones para validar o fluxo "instalou → ícone Turni na home").
+- **Bloqueada por:** **IDR-020 com a especificação dos ícones** (tamanhos, safe zone do maskable, posição do "T"). STORY-042 propõe IDR-020. Sequência sugerida: STORY-042 redige IDR-020 primeiro com a parte de ícones; STORY-041 consome em paralelo.
+- **Bloqueia:** smoke visual da STORY-042 (ela depende dos ícones para validar o fluxo "instalou → ícone Turni na home").
 
 ## Decisões já tomadas (não as reabra)
 
@@ -167,7 +168,7 @@ Você NÃO decide:
 - [ ] PR mergeado; pré-push hook verde.
 - [ ] Capturas de tela do ícone na home Android e iOS anexadas ao relatório da STORY (ou linkadas em chat).
 - [ ] Smoke CA-13 (não-regressão STORY-037) atestado em chat pelo PO em homolog.
-- [ ] `index.json` atualizado: `STORY-038 status: done`.
+- [ ] `index.json` atualizado: `STORY-041 status: done`.
 - [ ] README do WebApp tem 1 parágrafo "Regenerar ícones".
 
 ## Notas do agente (preenchido durante/após execução)

@@ -7,13 +7,13 @@ decided_at: 2026-05-31
 decided_by: programador
 approved_by: null  # PO assina após smokes CA-19/CA-20 verdes em homolog
 owner_agent: null
-related_story: STORY-039
+related_story: STORY-042  # renomeada de STORY-039 em 2026-06-01 (colisão com EPIC-007)
 related_adrs: [ADR-001]
 related_idrs: [IDR-002, IDR-017]
 supersedes: null
 superseded_by: null
 created_at: 2026-05-31
-updated_at: 2026-05-31
+updated_at: 2026-06-01
 ---
 
 # IDR-020 — Ação "Instalar app": prompt nativo Android/Chromium + instruções no iOS + identidade visual
@@ -84,7 +84,7 @@ As 9 decisões operacionais:
 - O padrão de **conditional import + stub VM + interop web** registrado em IDR-017 (e usado em `lib/core/app_update/`) agora tem segunda instância (`lib/core/install/`). É o padrão do projeto para qualquer feature que toca `package:web`/`dart:js_interop`. Documentar nessa seção sempre que adicionar nova feature do tipo.
 - Microcopy do card e do modal iOS é fixada por este IDR. Trocar exige nova decisão.
 - A `AppVersionLabel` segue como rótulo discreto no rodapé; o `InstallActionCard` fica **acima** dela quando ambas estão visíveis (versão é informação; instalar é ação).
-- Os ícones do PWA são source-of-truth nos SVGs em `web/icons/source/`. Qualquer mudança de identidade visual edita o SVG e regera os PNGs com o script da STORY-038.
+- Os ícones do PWA são source-of-truth nos SVGs em `web/icons/source/`. Qualquer mudança de identidade visual edita o SVG e regera os PNGs com o script da STORY-041.
 
 ### Para o projeto
 - Nenhuma dependência transversal nova. `package:web` já está no `pubspec.yaml`.
@@ -94,7 +94,7 @@ As 9 decisões operacionais:
 
 ### Trade-offs aceitos
 - **iOS sem prompt programático.** Limitação WebKit; mitigada pelo modal de instruções. Não é regressão; é a realidade da plataforma (RNF reconhece como "suporte parcial").
-- **Cache do ícone antigo em PWAs já instaladas.** iOS cacheia o `apple-touch-icon` por *muito* tempo (ciclo de vida da home screen). Após esta entrega, usuários que já tinham o app instalado continuam vendo o ícone antigo até desinstalar/reinstalar. Documentado na STORY-038. Aceitável: instalações novas — público maior em homolog — pegam o ícone novo direto.
+- **Cache do ícone antigo em PWAs já instaladas.** iOS cacheia o `apple-touch-icon` por *muito* tempo (ciclo de vida da home screen). Após esta entrega, usuários que já tinham o app instalado continuam vendo o ícone antigo até desinstalar/reinstalar. Documentado na STORY-041. Aceitável: instalações novas — público maior em homolog — pegam o ícone novo direto.
 - **Firefox desktop sem instalação.** Sem `beforeinstallprompt` no Firefox; o card não aparece para essa fatia. Não é regressão; é falta da feature.
 - **Sniffing iOS por user-agent.** Aceito como state-of-the-art; revisitar se o UA Reduction do Chrome mexer com isso (não muda iOS Safari, mas pode mudar iOS Chrome).
 
@@ -118,4 +118,4 @@ As 9 decisões operacionais:
 
 ## Histórico
 
-- 2026-05-31 — criada como `proposed` pelo PO (sessão Cowork) como parte do rascunho do EPIC-008 / STORY-039 a partir do pedido de Alexandro: "ação para o webapp se instalar na tela inicial, fallback iOS, ícone simples, não quebrar update automático". A numeração saltou de IDR-017 → IDR-020 porque IDR-018 (`render-aceite-adesao-secao1-e-documento-hash`) e IDR-019 (`session-driver-cookie-na-api-cloud-run`) já estavam ocupadas.
+- 2026-05-31 — criada como `proposed` pelo PO (sessão Cowork) como parte do rascunho do EPIC-008 / STORY-042 a partir do pedido de Alexandro: "ação para o webapp se instalar na tela inicial, fallback iOS, ícone simples, não quebrar update automático". A numeração saltou de IDR-017 → IDR-020 porque IDR-018 (`render-aceite-adesao-secao1-e-documento-hash`) e IDR-019 (`session-driver-cookie-na-api-cloud-run`) já estavam ocupadas.
