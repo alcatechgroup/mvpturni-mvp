@@ -20,22 +20,19 @@ class _FakeCatalogo extends CadastroService {
 }
 
 class _FakeService extends CompletarCadastroService {
-  _FakeService({this.contexto, this.previewResult, this.completarResult});
+  _FakeService({this.previewResult, this.completarResult});
 
-  final CompletarContexto? contexto;
   final PreviewResult Function()? previewResult;
   final CadastroResult Function()? completarResult;
   int completarCalls = 0;
 
   @override
-  Future<CompletarContexto?> fetchContexto() async =>
-      contexto ??
-      const CompletarContexto(
-        nome: 'Maria Silva',
-        tipoPessoa: 'PF',
-        documentoTipo: 'CPF',
-        funcaoId: 1,
-      );
+  Future<CompletarContexto?> fetchContexto() async => const CompletarContexto(
+    nome: 'Maria Silva',
+    tipoPessoa: 'PF',
+    documentoTipo: 'CPF',
+    funcaoId: 1,
+  );
 
   @override
   Future<PreviewResult> preview(String documento) async =>
