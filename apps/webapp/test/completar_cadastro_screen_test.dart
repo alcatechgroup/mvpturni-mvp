@@ -14,8 +14,10 @@ import 'package:turni_webapp/features/cadastro/completar_cadastro_service.dart';
 class _FakeCatalogo extends CadastroService {
   @override
   Future<List<Funcao>> fetchFuncoes() async => const [
-    Funcao(id: 1, nome: 'Garçom / Garçonete'),
+    Funcao(id: 1, nome: 'Garçom / Garçonete'), // primária (excluída)
     Funcao(id: 2, nome: 'Bartender'),
+    Funcao(id: 3, nome: 'Cozinheiro / Cozinheira'),
+    Funcao(id: 4, nome: 'Copeiro / Copeira'),
   ];
 }
 
@@ -115,6 +117,49 @@ Future<void> _preencher(WidgetTester tester) async {
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
+
+  testWidgets('funções secundárias: seletor buscável seleciona e exibe chip', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    await tester.ensureVisible(
+      find.byKey(const Key('completar-cadastro:funcoes-add')),
+    );
+    await tester.tap(find.byKey(const Key('completar-cadastro:funcoes-add')));
+    await tester.pumpAndSettle();
+
+    // A busca filtra a lista (catálogo grande continua usável).
+    await tester.enterText(
+      find.byKey(const Key('completar-cadastro:funcoes-busca')),
+      'cozi',
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('completar-cadastro:funcao-opcao-3')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('completar-cadastro:funcao-opcao-2')),
+      findsNothing,
+    );
+
+    // Seleciona e conclui.
+    await tester.tap(
+      find.byKey(const Key('completar-cadastro:funcao-opcao-3')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const Key('completar-cadastro:funcoes-concluir')),
+    );
+    await tester.pumpAndSettle();
+
+    // Chip da função selecionada visível fora do modal.
+    expect(
+      find.byKey(const Key('completar-cadastro:funcao-chip-3')),
+      findsOneWidget,
+    );
+  });
 
   testWidgets(
     'CA-1: renderiza a tela com rótulo de documento conforme tipo_pessoa (PF→CPF)',

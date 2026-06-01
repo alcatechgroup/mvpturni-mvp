@@ -536,6 +536,13 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
         .toList();
     if (disponiveis.isEmpty) return const SizedBox.shrink();
 
+    final muted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+    final selecionadas = disponiveis
+        .where((f) => _funcoesSecundarias.contains(f.id))
+        .toList();
+
     return Padding(
       padding: const EdgeInsets.only(top: TurniSpacing.md),
       child: Column(
@@ -543,36 +550,76 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
         children: [
           Text(
             'Funções secundárias (opcional)',
-            style: TextStyle(
-              fontSize: 13,
-              color: isDark
-                  ? TurniColors.textMutedDark
-                  : TurniColors.textMutedLight,
-            ),
+            style: TextStyle(fontSize: 13, color: muted),
           ),
           const SizedBox(height: TurniSpacing.xs),
-          Wrap(
-            spacing: TurniSpacing.xs,
-            runSpacing: TurniSpacing.xs,
-            children: disponiveis.map((f) {
-              final sel = _funcoesSecundarias.contains(f.id);
-              return FilterChip(
-                key: Key('completar-cadastro:funcao-${f.id}'),
-                label: Text(f.nome),
-                selected: sel,
-                selectedColor: accent.withValues(alpha: 0.18),
-                checkmarkColor: accent,
-                onSelected: (v) => setState(() {
-                  if (v) {
-                    _funcoesSecundarias.add(f.id);
-                  } else {
-                    _funcoesSecundarias.remove(f.id);
-                  }
-                }),
-              );
-            }).toList(),
+          // Selecionadas como chips removíveis — visíveis sem abrir o seletor.
+          if (selecionadas.isNotEmpty) ...[
+            Wrap(
+              spacing: TurniSpacing.xs,
+              runSpacing: TurniSpacing.xs,
+              children: selecionadas
+                  .map(
+                    (f) => InputChip(
+                      key: Key('completar-cadastro:funcao-chip-${f.id}'),
+                      label: Text(f.nome),
+                      onDeleted: () =>
+                          setState(() => _funcoesSecundarias.remove(f.id)),
+                      deleteIconColor: accent,
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: TurniSpacing.xs),
+          ],
+          // Seletor buscável (modal) — escala para muitas funções sem quebrar layout.
+          OutlinedButton.icon(
+            key: const Key('completar-cadastro:funcoes-add'),
+            onPressed: () => _abrirSeletorFuncoes(disponiveis, isDark, accent),
+            icon: const Icon(Icons.add, size: 18),
+            label: Text(
+              selecionadas.isEmpty
+                  ? 'Selecionar funções'
+                  : 'Adicionar ou remover',
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: accent,
+              side: BorderSide(color: accent),
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Modal de seleção múltipla buscável das funções secundárias (CA-2 — usabilidade
+  /// com catálogo grande): campo de busca + lista de checkboxes rolável. Atualiza a
+  /// seleção (estado do pai) ao vivo; os chips de selecionadas refletem fora do modal.
+  Future<void> _abrirSeletorFuncoes(
+    List<Funcao> disponiveis,
+    bool isDark,
+    Color accent,
+  ) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: isDark
+          ? TurniColors.surfaceDark
+          : TurniColors.surfaceLight,
+      builder: (_) => _FuncoesPickerSheet(
+        disponiveis: disponiveis,
+        selecionadas: _funcoesSecundarias,
+        accent: accent,
+        isDark: isDark,
+        // Atualiza o estado do pai ao vivo (os chips fora do modal refletem).
+        onToggle: (id, sel) => setState(() {
+          if (sel) {
+            _funcoesSecundarias.add(id);
+          } else {
+            _funcoesSecundarias.remove(id);
+          }
+        }),
       ),
     );
   }
@@ -694,6 +741,139 @@ class _ProgressoFases extends StatelessWidget {
           const SizedBox(width: TurniSpacing.sm),
           Text('$passo/2', style: TextStyle(fontSize: 12, color: muted)),
         ],
+      ),
+    );
+  }
+}
+
+/// Conteúdo do seletor de funções secundárias (busca + checklist rolável). É um
+/// StatefulWidget próprio para que o controller da busca seja descartado no `dispose`
+/// do widget — descartá-lo logo após `Navigator.pop` quebraria a animação de saída do
+/// modal (TextEditingController usado após dispose).
+class _FuncoesPickerSheet extends StatefulWidget {
+  const _FuncoesPickerSheet({
+    required this.disponiveis,
+    required this.selecionadas,
+    required this.onToggle,
+    required this.accent,
+    required this.isDark,
+  });
+
+  final List<Funcao> disponiveis;
+  final Set<int> selecionadas;
+  final void Function(int id, bool selecionado) onToggle;
+  final Color accent;
+  final bool isDark;
+
+  @override
+  State<_FuncoesPickerSheet> createState() => _FuncoesPickerSheetState();
+}
+
+class _FuncoesPickerSheetState extends State<_FuncoesPickerSheet> {
+  final _busca = TextEditingController();
+
+  @override
+  void dispose() {
+    _busca.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = widget.isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+    final q = _busca.text.trim().toLowerCase();
+    final filtradas = q.isEmpty
+        ? widget.disponiveis
+        : widget.disponiveis
+              .where((f) => f.nome.toLowerCase().contains(q))
+              .toList();
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SizedBox(
+        height: MediaQuery.sizeOf(context).height * 0.7,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                TurniSpacing.lg,
+                0,
+                TurniSpacing.lg,
+                TurniSpacing.sm,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Funções secundárias',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: TurniSpacing.sm),
+                  TextField(
+                    key: const Key('completar-cadastro:funcoes-busca'),
+                    controller: _busca,
+                    decoration: const InputDecoration(
+                      hintText: 'Buscar função...',
+                      prefixIcon: Icon(Icons.search),
+                      isDense: true,
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: filtradas.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Nenhuma função encontrada.',
+                        style: TextStyle(color: muted),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: filtradas.length,
+                      itemBuilder: (_, i) {
+                        final f = filtradas[i];
+                        return CheckboxListTile(
+                          key: Key('completar-cadastro:funcao-opcao-${f.id}'),
+                          value: widget.selecionadas.contains(f.id),
+                          title: Text(f.nome),
+                          activeColor: widget.accent,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          onChanged: (v) {
+                            widget.onToggle(f.id, v ?? false);
+                            setState(() {});
+                          },
+                        );
+                      },
+                    ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(TurniSpacing.lg),
+              child: SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: FilledButton(
+                  key: const Key('completar-cadastro:funcoes-concluir'),
+                  onPressed: () => Navigator.pop(context),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: widget.accent,
+                    shape: const StadiumBorder(),
+                  ),
+                  child: Text(
+                    widget.selecionadas.isEmpty
+                        ? 'Concluir'
+                        : 'Concluir (${widget.selecionadas.length})',
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

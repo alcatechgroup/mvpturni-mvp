@@ -80,7 +80,7 @@ progresso `progress.steps` (1/2 → 2/2) dá orientação. Chave de tela: `compl
 | Campo | Componente | Validação client | Observação |
 |---|---|---|---|
 | Documento (CPF/CNPJ) | `field.text` (`completar-cadastro:documento`) | obrigatório; nº de dígitos por tipo | rótulo/hint conforme `documento_tipo` do contexto; dígitos verificadores no servidor |
-| Funções secundárias | `chip.filter` (`completar-cadastro:funcao-{id}`) | — (opcional) | exclui a função primária; multi-seleção |
+| Funções secundárias | seletor buscável (`completar-cadastro:funcoes-add` abre modal com busca + checklist; selecionadas viram chips removíveis `completar-cadastro:funcao-chip-{id}`) | — (opcional) | exclui a função primária; multi-seleção; escala p/ catálogo grande sem quebrar layout |
 | Raio máx. (km) | `field.text` (`completar-cadastro:raio`) | inteiro 1–500 | |
 | Preço/hora (R$) | `field.text` (`completar-cadastro:preco`) | numérico ≥1 | aceita vírgula |
 | Bio | `field.text` (`completar-cadastro:bio`) | ≤500 chars | opcional |
