@@ -36,7 +36,7 @@ O sprint **NÃO** abre frente nova: tudo é fechamento do EPIC-001. EPIC-002 (va
 | ID        | Título                                                                          | Épico    | Tipo           | Papel       | Tamanho | Design? | Status atual |
 | --------- | ------------------------------------------------------------------------------- | -------- | -------------- | ----------- | ------- | ------- | ------------ |
 | STORY-021 | E-mails transacionais (aprovação + lembrete completar cadastro + reset de senha) | EPIC-001 | implementation | programador | M       | sim     | **done** (2026-05-30) |
-| STORY-023 | Completar cadastro de Profissional no WebApp + geração do AceiteEletronico     | EPIC-001 | implementation | programador | **L**   | sim     | ready        |
+| STORY-023 | Completar cadastro de Profissional no WebApp + geração do AceiteEletronico     | EPIC-001 | implementation | programador | **L**   | sim     | **done** (2026-06-01, rc.41) |
 | STORY-024 | Completar cadastro de Contratante no WebApp + geração do AceiteEletronico       | EPIC-001 | implementation | programador | M       | sim     | ready        |
 | STORY-025 | Validação final do EPIC-001 Cadastro e aprovação                                 | EPIC-001 | validation     | validador   | M       | não     | ready (aguarda 023/024/037) |
 | STORY-034 | Worker em Cloud Run Job + Cloud Scheduler (substitui GCE worker-vm)             | EPIC-001 | implementation | programador | M       | não     | **done** (2026-05-30) |

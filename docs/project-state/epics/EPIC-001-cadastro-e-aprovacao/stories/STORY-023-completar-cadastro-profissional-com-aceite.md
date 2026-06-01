@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-023-completar-cadastro-profissional
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-programador-2026-06-01
 created_at: 2026-05-28
 updated_at: 2026-06-01
@@ -241,12 +241,33 @@ curl + evidência psql —
 aceites (sem checkbox bloqueia). CA-16 coberto por teste de integração no api (não precisa de E2E —
 a própria estória admite "E2E OU integração").
 
-### Pendências para fechar (homolog)
-- [ ] Confirmar deploy homolog verde (CI principal verde em `105d425`) e repetir evidência de cripto
-      em repouso (psql) + imutabilidade (CA-11) no banco de homolog — gate de `done` (PO confirma).
-- [ ] Métrica/alerta de cadastros completados (observabilidade §3 — pode ir junto com STORY-025).
-- Lição: rodar o lint COMPLETO local antes de push (flutter analyze + pint api/admin), não só o hook
-  — queimei 3 runs de CI por isso. Registrado em memória.
+### Homolog + aprovação do PO — 2026-06-01
+**Deployado em homolog** e **validado ao vivo pelo PO** (Alexandro) no fluxo completo
+(registro → aprovação no backoffice → welcome → completar cadastro → aceite). Sequência de rc:
+`rc.38` (falhou no migrate+seed — drift da rc.37), `rc.39` (migration idempotente → verde),
+`rc.40` (mensagem explicativa de e-mail já cadastrado), `rc.41` (validação da chave Pix
+simplificada p/ ≥6 chars). **PO aprovou a story em 2026-06-01 → `done`.**
+
+Ajustes feitos durante a validação em homolog (todos commitados/deployados):
+- Máscaras CPF/CNPJ + R$ na digitação; seletor de arquivo nativo no Web (troca do `file_picker`,
+  que dava MissingPluginException) — commits `d06aa0b`/`ccb7de9`.
+- Fix de upload: `router.php` (proxy dev) tratando arquivo em array + limites PHP/nginx 2M→12M/30M
+  (dev image + Dockerfile.prod + nginx) — commit `37d6ad4`. (Lacuna do E2E registrada: usa picker
+  fake + proxy Node, não exercita o `:8003`/router.php nem tamanhos reais.)
+- Seletor buscável de funções secundárias (escala p/ catálogo grande) — commit `d07ceda`.
+- Keys alinhadas à IDR-011 (`completar-cadastro:*`) — commit `6175b9c`.
+- **Fora do escopo, feito p/ destravar:** `APP_URL` do admin (link do e-mail de aprovação ia
+  `localhost`) — commit `d48f4ba`; mensagem explicativa de e-mail já cadastrado (decisão PO:
+  prioriza clareza sobre anti-enumeração da STORY-017/018 CA-4) — commit `6d8e37a`; chave Pix
+  só ≥6 chars (formato fica p/ momento dedicado) — commit `00e2481`.
+
+### Pendências (não bloqueiam o done; carry-over)
+- Métrica/alerta de cadastros completados (observabilidade §3) — pode ir junto com STORY-025.
+- E2E real de upload através do `:8003`/router.php (a lacuna que deixou passar o bug do upload) —
+  candidato a smoke autenticado no gate.
+- Validação completa de formato da chave Pix por tipo — momento dedicado (PO).
+- Lição registrada em memória: rodar o lint COMPLETO local (flutter analyze + dart format + pint
+  api/admin) antes de cada push — o hook de pré-push não cobre tudo que o CI checa.
 
 ### Links de evidência
 - Commits: `6ae7420` (backend), `1957df3` (notas), `ccb7de9` (frontend), `df28105` (spec+LGPD).
