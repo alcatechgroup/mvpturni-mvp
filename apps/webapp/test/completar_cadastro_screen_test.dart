@@ -100,9 +100,10 @@ Future<void> _preencher(WidgetTester tester) async {
     find.byKey(const Key('completar-cadastro:raio')),
     '15',
   );
+  // Valor monetário é mascarado em centavos: 4500 → R$ 45,00.
   await tester.enterText(
     find.byKey(const Key('completar-cadastro:preco')),
-    '45',
+    '4500',
   );
   await tester.enterText(
     find.byKey(const Key('completar-cadastro:pix')),

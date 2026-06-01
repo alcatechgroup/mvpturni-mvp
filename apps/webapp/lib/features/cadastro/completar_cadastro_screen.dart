@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,6 +10,8 @@ import '../auth/auth_service.dart';
 import 'cadastro_service.dart' show CadastroService, Funcao;
 import 'completar_cadastro_service.dart';
 import 'shared/cadastro_widgets.dart';
+import 'shared/document_picker.dart';
+import 'shared/input_formatters.dart';
 
 /// Fase do fluxo de completar cadastro (STORY-023).
 enum _Fase { form, preview, sucesso }
@@ -141,17 +142,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
         ),
       ];
     }
-    final result = await FilePicker.pickFiles(
-      allowMultiple: true,
-      withData: true,
-      type: FileType.custom,
-      allowedExtensions: const ['jpg', 'jpeg', 'png', 'pdf'],
-    );
-    if (result == null) return null;
-    return result.files
-        .where((f) => f.bytes != null)
-        .map((f) => ArquivoUpload(bytes: f.bytes!, filename: f.name))
-        .toList();
+    return pickDocuments();
   }
 
   bool _validarExtras() {
@@ -202,7 +193,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
       documento: _documento.text.trim(),
       funcoesSecundarias: _funcoesSecundarias.toList(),
       raioMaxKm: int.tryParse(_raio.text.trim()) ?? 0,
-      precoHora: _preco.text.trim().replaceAll(',', '.'),
+      precoHora: moedaParaNumero(_preco.text).toStringAsFixed(2),
       bio: _bio.text.trim(),
       chavePix: _pix.text.trim(),
       documentos: _documentos,
@@ -297,6 +288,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
                 ? '000.000.000-00'
                 : '00.000.000/0000-00',
             keyboardType: TextInputType.number,
+            inputFormatters: [DocumentoInputFormatter(_documentoTipo)],
             helper: 'Usado no contrato. Fica criptografado.',
             validator: (v) {
               final digits = (v ?? '').replaceAll(RegExp(r'\D'), '');
@@ -327,13 +319,13 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
             fieldKey: 'completar-cadastro:preco',
             controller: _preco,
             label: 'Preço/hora pretendido (R\$)',
-            hint: 'Ex.: 45',
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            hint: 'Ex.: R\$ 45,00',
+            keyboardType: TextInputType.number,
+            inputFormatters: [MoedaInputFormatter()],
             helper: 'Valor por hora que você pretende receber.',
             validator: (v) {
-              final n = double.tryParse((v ?? '').trim().replaceAll(',', '.'));
-              if (n == null || n < 1) {
-                return 'Informe um valor por hora (ex.: 45).';
+              if (moedaParaNumero(v ?? '') < 1) {
+                return 'Informe um valor por hora (ex.: R\$ 45,00).';
               }
               return _serverErrors['preco_hora'];
             },
