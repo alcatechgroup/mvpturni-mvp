@@ -7,7 +7,7 @@ sprint_id: SPRINT-2026-W26
 type: enablement
 target_role: programador
 requires_design: false
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-programador-2026-06-01
 created_at: 2026-05-29
 updated_at: 2026-06-01
@@ -81,45 +81,45 @@ Para **profissional** e **contratante** futuros, valor zero direto — esta é f
 
 ### Scaffolding
 
-- [ ] **CA-1:** `apps/webapp/pubspec.yaml` tem `integration_test` (SDK) em `dev_dependencies`. `flutter pub get` roda sem erro. `flutter pub deps` mostra `integration_test` resolvido.
-- [ ] **CA-2:** `apps/webapp/integration_test/helpers/` existe com `pump_app.dart`, `login_helper.dart`, `route_helper.dart`. Cada helper tem ao menos 1 docstring de uso. Convenções seguem IDR-011 (proposto nesta story).
-- [ ] **CA-3:** Keys padronizadas adicionadas nos widgets (`ValueKey('login:email')`, etc.). Convenção `<feature>:<element>` documentada em IDR-011. Widgets antigos sem Key continuam funcionando (zero regressão visual).
+- [x] **CA-1:** `apps/webapp/pubspec.yaml` tem `integration_test` (SDK) em `dev_dependencies`. `flutter pub get` roda sem erro. `flutter pub deps` mostra `integration_test` resolvido.
+- [x] **CA-2:** `apps/webapp/integration_test/helpers/` existe com `pump_app.dart`, `login_helper.dart`, `route_helper.dart`. Cada helper tem ao menos 1 docstring de uso. Convenções seguem IDR-011 (proposto nesta story).
+- [x] **CA-3:** Keys padronizadas adicionadas nos widgets (`ValueKey('login:email')`, etc.). Convenção `<feature>:<element>` documentada em IDR-011. Widgets antigos sem Key continuam funcionando (zero regressão visual).
 
 ### Migração dos cenários
 
-- [ ] **CA-4:** Cenário "exibe campos e-mail, senha, link de recuperação e botão Entrar" (CA-5 da IDR-006/STORY-016) migrado para `integration_test/auth/login_structure_test.dart` e passa via `flutter test integration_test/auth/login_structure_test.dart -d chrome --headless`.
-- [ ] **CA-5:** Cenário "validação: submeter vazio exibe erro de campo obrigatório" migrado para `integration_test/auth/login_validation_test.dart` e passa.
-- [ ] **CA-6:** Cenário "credencial inválida não autentica — permanece em /login" migrado para `integration_test/auth/login_validation_test.dart` e passa.
-- [ ] **CA-7:** Cenário "profissional ativo loga e é roteado para /app" (CA-13b) migrado para `integration_test/auth/rbac_profissional_test.dart` e passa. Roda contra docker-compose + seed (mesmo modelo do Playwright atual).
-- [ ] **CA-8:** Cenário "admin não loga no WebApp — vê banner de redirecionamento" (CA-13c) migrado para `integration_test/auth/rbac_admin_rejected_test.dart` e passa.
-- [ ] **CA-9:** Cenários de funnel guard "/welcome sem auth → /login" e "/completar-cadastro sem auth → /login" (CA-10/CA-11) migrados para `integration_test/auth/funnel_guard_test.dart` e passam.
-- [ ] **CA-10:** `apps/webapp/tests/e2e/rbac-login.spec.ts` removido do repositório (todos os 7 cenários ficam cobertos por `integration_test`).
+- [x] **CA-4:** Cenário "exibe campos e-mail, senha, link de recuperação e botão Entrar" (CA-5 da IDR-006/STORY-016) migrado para `integration_test/auth/login_structure_test.dart` e passa via `flutter test integration_test/auth/login_structure_test.dart -d chrome --headless`.
+- [x] **CA-5:** Cenário "validação: submeter vazio exibe erro de campo obrigatório" migrado para `integration_test/auth/login_validation_test.dart` e passa.
+- [x] **CA-6:** Cenário "credencial inválida não autentica — permanece em /login" migrado para `integration_test/auth/login_validation_test.dart` e passa.
+- [x] **CA-7:** Cenário "profissional ativo loga e é roteado para /app" (CA-13b) migrado para `integration_test/auth/rbac_profissional_test.dart` e passa. Roda contra docker-compose + seed (mesmo modelo do Playwright atual).
+- [x] **CA-8:** Cenário "admin não loga no WebApp — vê banner de redirecionamento" (CA-13c) migrado para `integration_test/auth/rbac_admin_rejected_test.dart` e passa.
+- [x] **CA-9:** Cenários de funnel guard "/welcome sem auth → /login" e "/completar-cadastro sem auth → /login" (CA-10/CA-11) migrados para `integration_test/auth/funnel_guard_test.dart` e passam.
+- [x] **CA-10:** `apps/webapp/tests/e2e/rbac-login.spec.ts` removido do repositório (todos os 7 cenários ficam cobertos por `integration_test`).
 
 ### Smoke Playwright preservado
 
-- [ ] **CA-11:** `apps/webapp/tests/e2e/webapp-hello-world.spec.ts` continua intocado (4 cenários, 1 `test.fixme` em `/health`).
-- [ ] **CA-12:** Novo cenário "deep link `/login` direto na URL não cai em WelcomeScreen" adicionado a `webapp-hello-world.spec.ts` — proteção contra regressão da IDR-006 §a. Passa contra `localhost:8003`.
+- [x] **CA-11:** `apps/webapp/tests/e2e/webapp-hello-world.spec.ts` continua intocado (4 cenários, 1 `test.fixme` em `/health`).
+- [x] **CA-12:** Novo cenário "deep link `/login` direto na URL não cai em WelcomeScreen" adicionado a `webapp-hello-world.spec.ts` — proteção contra regressão da IDR-006 §a. Passa contra `localhost:8003`.
 
 ### Gate
 
-- [ ] **CA-13:** `make e2e-webapp` roda (a) `webapp-build` (b) `flutter test integration_test -d chrome --headless` (c) `npx playwright test`, nesta ordem. Sai 0 quando todos passam. Sai não-zero ao primeiro fail.
-- [ ] **CA-14:** `make e2e-webapp-integration` e `make e2e-webapp-smoke` existem como targets isolados para iteração em dev. Documentados em comentário no Makefile.
-- [ ] **CA-15:** 5 execuções consecutivas locais de `make e2e-webapp` verdes, sem flake. Evidência (logs ou hash de relatórios) em "Notas do agente".
-- [ ] **CA-16:** Wall-time de `make e2e-webapp` documentado em "Notas do agente" e comparado ao baseline atual (~tempo do report 2026-05-29 01:27 UTC). Se aumentar, justificar; se aumentar >30%, escalar para PO.
+- [x] **CA-13:** `make e2e-webapp` roda (a) `webapp-build` (b) `flutter test integration_test -d chrome --headless` (c) `npx playwright test`, nesta ordem. Sai 0 quando todos passam. Sai não-zero ao primeiro fail.
+- [x] **CA-14:** `make e2e-webapp-integration` e `make e2e-webapp-smoke` existem como targets isolados para iteração em dev. Documentados em comentário no Makefile.
+- [x] **CA-15:** 5 execuções consecutivas locais de `make e2e-webapp` verdes, sem flake. Evidência (logs ou hash de relatórios) em "Notas do agente".
+- [x] **CA-16:** Wall-time de `make e2e-webapp` documentado em "Notas do agente" e comparado ao baseline atual (~tempo do report 2026-05-29 01:27 UTC). Se aumentar, justificar; se aumentar >30%, escalar para PO.
 
 ### Decisões
 
-- [ ] **CA-17:** IDR-010 (modelo híbrido) escrita em `decisions/idr/IDR-010-e2e-hibrida-integration-test-playwright-patrol.md`, `status: proposed`. Inclui supersede parcial de IDR-006 §b.
-- [ ] **CA-18:** IDR-011 (padrão de teste Flutter) escrita em `decisions/idr/IDR-011-padrao-teste-flutter-keys-mocks-helpers.md`, `status: proposed`. Cobre Keys, mocks vs API real, helpers, naming.
-- [ ] **CA-19:** IDR-006 atualizada: header anota "§b parcialmente superseded por IDR-010 em 2026-XX-XX"; §b ganha nota inline. §a e §c intocados.
+- [x] **CA-17:** IDR-010 (modelo híbrido) escrita em `decisions/idr/IDR-010-e2e-hibrida-integration-test-playwright-patrol.md`, `status: proposed`. Inclui supersede parcial de IDR-006 §b.
+- [x] **CA-18:** IDR-011 (padrão de teste Flutter) escrita em `decisions/idr/IDR-011-padrao-teste-flutter-keys-mocks-helpers.md`, `status: proposed`. Cobre Keys, mocks vs API real, helpers, naming.
+- [x] **CA-19:** IDR-006 atualizada: header anota "§b parcialmente superseded por IDR-010 em 2026-XX-XX"; §b ganha nota inline. §a e §c intocados.
 
 ### Documentação
 
-- [ ] **CA-20:** `apps/webapp/README.md` tem seção "Testes E2E" com: o que cada ferramenta cobre, comandos (`make e2e-webapp*`), como rodar 1 cenário isolado, como debugar.
+- [x] **CA-20:** `apps/webapp/README.md` tem seção "Testes E2E" com: o que cada ferramenta cobre, comandos (`make e2e-webapp*`), como rodar 1 cenário isolado, como debugar.
 
 ### Pendência herdada
 
-- [ ] **CA-21:** Nenhuma. EPIC-000 F-NB-1 (migrate:rollback) é responsabilidade da STORY-016, não desta.
+- [x] **CA-21:** Nenhuma. EPIC-000 F-NB-1 (migrate:rollback) é responsabilidade da STORY-016, não desta.
 
 ## Fora de escopo
 
@@ -174,15 +174,15 @@ Você **não** decide:
 
 ## Definição de Pronto (DoD)
 
-- [ ] CA-1 a CA-20 atendidos (CA-21 N/A).
-- [ ] `make e2e-webapp` verde 5x consecutivos local; logs/evidência em "Notas".
-- [ ] Cobertura unitária do WebApp ≥ 80% (não regredida).
-- [ ] IDR-010 e IDR-011 em `status: proposed`, aguardando aprovação do PO; IDR-006 anotada com supersede parcial.
-- [ ] README do WebApp atualizado.
-- [ ] `tests/e2e/rbac-login.spec.ts` removido.
-- [ ] `index.json` atualizado: `status: done`.
-- [ ] PR aberto, hooks de pré-push verdes.
-- [ ] "Notas do agente" preenchidas com decisões, bloqueios, comparativo de tempo.
+- [x] CA-1 a CA-20 atendidos (CA-21 N/A).
+- [x] `make e2e-webapp` verde 5x consecutivos local; logs/evidência em "Notas".
+- [~] Cobertura unitária do WebApp ≥ 80% — **NÃO atingida (74%)**. **Não regredida** por esta story (enablement, zero lógica de produção nova — só renomeia Keys + adiciona testes; 97 widget tests verdes). Débito pré-existente. **PO aceitou na aprovação (2026-06-01) com ação separada para endereçar o gap** (ver "CAs — situação final" e Decisões).
+- [x] IDR-010 e IDR-011 — superam o pedido: já `accepted` (não só `proposed`); IDR-006 anotada com supersede parcial de §b.
+- [x] README do WebApp atualizado (seção "Testes E2E").
+- [x] `tests/e2e/rbac-login.spec.ts` removido.
+- [x] `index.json` atualizado: `status: done`.
+- [x] Hooks de pré-push verdes em todos os pushes (workflow Turni: commit direto na main, sem PR — `feedback_git_workflow`).
+- [x] "Notas do agente" preenchidas com decisões, bloqueios, comparativo de tempo.
 
 ## Protocolo do agente (obrigatório)
 
@@ -407,6 +407,21 @@ CA-1..CA-9 ✅ · CA-10 ✅ · CA-11 ✅ · CA-12 ✅ · CA-13 ✅ (smoke escopa
 · CA-14 ✅ · CA-15 ✅ · CA-16 ✅ · CA-17/18 ✅ (IDRs já accepted) · CA-19 ✅ · CA-20 ✅ · CA-21 N/A.
 **Todos os CAs da STORY-038 atendidos.** Pendências fora dos CAs desta story: migração de welcome/pre-cadastro/
 app-update (story de enabling do harness) e cobertura pré-existente <80% (sinalização ao PO).
+
+### Aprovação do PO — 2026-06-01
+
+PO (Alexandro) **aprovou** a STORY-038: `in_review` → `done`. Todos os CA-1..CA-20 `[x]` (CA-21 N/A).
+
+- **Cobertura 74% (<80%):** aceita com justificativa — esta é uma story de **enablement** que não adiciona lógica
+  de produção (só renomeia strings de Key + adiciona testes); a cobertura **não regrediu**. O gap de 80% é débito
+  pré-existente e será endereçado em **ação separada** (não bloqueia esta story).
+- **Solução de raiz para a área logada:** o muro descoberto (chamadas autenticadas pós-login exigem harness
+  same-origin) foi promovido a **STORY-043** (criada e incluída na SPRINT-2026-W26), com o Caminho 1 já provado
+  por spike. A migração de welcome/pre-cadastro/app-update acontece lá.
+- **Specs Playwright legados flaky** seguem em `make e2e-webapp-playwright-legacy` (não-gating) até a STORY-043 migrá-los.
+
+EPIC-007 avança: STORY-038 `done`, IDR-010/011 `accepted`, IDR-006 §b anotada. Faltam STORY-039 (Patrol),
+STORY-040 (gate mobile) e STORY-043 (harness same-origin) para fechar o épico.
 
 ### Bloqueios encontrados
 - **Resolvidos/encaminhados:** CA-15/16 (decisão do PO acima); sintaxe IDR-010 (corrigida na própria IDR);

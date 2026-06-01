@@ -1206,7 +1206,7 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-opus-4-8-programador-2026-06-01",
       "sprint_id": "SPRINT-2026-W26",
       "path": "epics/EPIC-007-e2e-hibrida-flutter/stories/STORY-038-adotar-integration-test-no-webapp.md",
