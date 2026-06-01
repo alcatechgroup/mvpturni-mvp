@@ -105,7 +105,8 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
 
     for (final a in arquivos) {
       final lower = a.filename.toLowerCase();
-      final extOk = lower.endsWith('.jpg') ||
+      final extOk =
+          lower.endsWith('.jpg') ||
           lower.endsWith('.jpeg') ||
           lower.endsWith('.png') ||
           lower.endsWith('.pdf');
@@ -205,7 +206,9 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
           _serverErrors.addAll(errors);
           _fase = _Fase.form;
           if (errors.containsKey('documentos_comprobatorios') ||
-              errors.keys.any((k) => k.startsWith('documentos_comprobatorios'))) {
+              errors.keys.any(
+                (k) => k.startsWith('documentos_comprobatorios'),
+              )) {
             _docsError = 'Revise os documentos enviados.';
           }
         });
@@ -225,8 +228,9 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? TurniColors.accentDark : TurniColors.accentLight;
-    final surfacePage =
-        isDark ? TurniColors.surfacePageDark : TurniColors.surfacePageLight;
+    final surfacePage = isDark
+        ? TurniColors.surfacePageDark
+        : TurniColors.surfacePageLight;
     final width = MediaQuery.sizeOf(context).width;
     final isDesktop = width >= 840;
 
@@ -253,17 +257,20 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
   }
 
   Widget _formView(bool isDark, bool isDesktop, Color accent) {
-    final muted =
-        isDark ? TurniColors.textMutedDark : TurniColors.textMutedLight;
+    final muted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
     return Form(
       key: _formKey,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _header('Complete seu cadastro',
-              'Falta pouco para você começar a pegar turnos. Esses dados ficam protegidos.',
-              isDark),
+          _header(
+            'Complete seu cadastro',
+            'Falta pouco para você começar a pegar turnos. Esses dados ficam protegidos.',
+            isDark,
+          ),
           _ProgressoFases(fase: _fase, accent: accent, isDark: isDark),
 
           CadastroSection('Seu documento ($_documentoTipo)'),
@@ -271,7 +278,9 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
             fieldKey: 'input-documento',
             controller: _documento,
             label: _documentoTipo,
-            hint: _documentoTipo == 'CPF' ? '000.000.000-00' : '00.000.000/0000-00',
+            hint: _documentoTipo == 'CPF'
+                ? '000.000.000-00'
+                : '00.000.000/0000-00',
             keyboardType: TextInputType.number,
             helper: 'Usado no contrato. Fica criptografado.',
             validator: (v) {
@@ -308,7 +317,8 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
             helper: 'Valor por hora que você pretende receber.',
             validator: (v) {
               final n = double.tryParse((v ?? '').trim().replaceAll(',', '.'));
-              if (n == null || n < 1) return 'Informe um valor por hora (ex.: 45).';
+              if (n == null || n < 1)
+                return 'Informe um valor por hora (ex.: 45).';
               return _serverErrors['preco_hora'];
             },
           ),
@@ -358,7 +368,9 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
 
           const SizedBox(height: TurniSpacing.lg),
           const Center(
-            child: AppVersionLabel(key: Key('app-version-label-completar-cadastro')),
+            child: AppVersionLabel(
+              key: Key('app-version-label-completar-cadastro'),
+            ),
           ),
         ],
       ),
@@ -370,9 +382,11 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _header('Revise e aceite o contrato',
-            'Leia o contrato com seus dados. Você só conclui o cadastro após aceitar.',
-            isDark),
+        _header(
+          'Revise e aceite o contrato',
+          'Leia o contrato com seus dados. Você só conclui o cadastro após aceitar.',
+          isDark,
+        ),
         _ProgressoFases(fase: _fase, accent: accent, isDark: isDark),
         const SizedBox(height: TurniSpacing.md),
         Container(
@@ -403,7 +417,9 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
         Center(
           child: TextButton(
             key: const Key('btn-voltar-editar'),
-            onPressed: _loading ? null : () => setState(() => _fase = _Fase.form),
+            onPressed: _loading
+                ? null
+                : () => setState(() => _fase = _Fase.form),
             style: TextButton.styleFrom(foregroundColor: accent),
             child: const Text('Voltar e editar os dados'),
           ),
@@ -431,10 +447,9 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
         const SizedBox(height: TurniSpacing.md),
         Text(
           'Cadastro concluído!',
-          style: Theme.of(context)
-              .textTheme
-              .headlineSmall
-              ?.copyWith(fontWeight: FontWeight.w700),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: TurniSpacing.sm),
         const Text(
@@ -456,8 +471,9 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
   /// Consentimento explícito do contrato (CA-8). Distinto do aceite de Termos/Política
   /// do pré-cadastro — aqui o usuário aceita o contrato renderizado exibido acima.
   Widget _consentimento(bool isDark, Color accent) {
-    final textColor =
-        isDark ? TurniColors.textStrongDark : TurniColors.textStrongLight;
+    final textColor = isDark
+        ? TurniColors.textStrongDark
+        : TurniColors.textStrongLight;
     return InkWell(
       key: const Key('checkbox-aceite'),
       onTap: () => setState(() => _aceitou = !_aceitou),
@@ -484,8 +500,9 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
   }
 
   Widget _header(String titulo, String subtitulo, bool isDark) {
-    final muted =
-        isDark ? TurniColors.textMutedDark : TurniColors.textMutedLight;
+    final muted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -493,10 +510,9 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
           header: true,
           child: Text(
             titulo,
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),
         const SizedBox(height: TurniSpacing.xs),
@@ -507,8 +523,9 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
   }
 
   Widget _funcoesSecundariasField(bool isDark, Color accent) {
-    final disponiveis =
-        _funcoes.where((f) => f.id != _contexto?.funcaoId).toList();
+    final disponiveis = _funcoes
+        .where((f) => f.id != _contexto?.funcaoId)
+        .toList();
     if (disponiveis.isEmpty) return const SizedBox.shrink();
 
     return Padding(
@@ -567,9 +584,11 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
           key: const Key('btn-anexar-documentos'),
           onPressed: _pickDocumentos,
           icon: const Icon(Icons.upload_file),
-          label: Text(_documentos.isEmpty
-              ? 'Anexar documento'
-              : 'Trocar (${_documentos.length} anexado(s))'),
+          label: Text(
+            _documentos.isEmpty
+                ? 'Anexar documento'
+                : 'Trocar (${_documentos.length} anexado(s))',
+          ),
           style: OutlinedButton.styleFrom(
             foregroundColor: accent,
             side: BorderSide(color: accent),
@@ -611,8 +630,13 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : Text(label,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            : Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }
@@ -633,8 +657,9 @@ class _ProgressoFases extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final passo = fase == _Fase.form ? 1 : 2;
-    final muted =
-        isDark ? TurniColors.textMutedDark : TurniColors.textMutedLight;
+    final muted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
     return Semantics(
       label: 'Passo $passo de 2',
       child: Row(

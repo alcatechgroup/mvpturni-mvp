@@ -8,7 +8,14 @@ import 'shared/cadastro_types.dart';
 
 // Tipos de resultado de cadastro (Success/ValidationError/Generic/Throttle/Server)
 // reusados do helper compartilhado (IDR-012).
-export 'shared/cadastro_types.dart' show CadastroResult, CadastroSuccess, CadastroValidationError, CadastroGenericError, CadastroThrottle, CadastroServerError;
+export 'shared/cadastro_types.dart'
+    show
+        CadastroResult,
+        CadastroSuccess,
+        CadastroValidationError,
+        CadastroGenericError,
+        CadastroThrottle,
+        CadastroServerError;
 
 /// Arquivo comprobatório selecionado (bytes + nome). JPG/PNG/PDF (CA-5).
 class ArquivoUpload {
@@ -23,7 +30,8 @@ class CompletarContexto {
   final String nome;
   final String tipoPessoa; // PF | MEI | PJ
   final String documentoTipo; // CPF | CNPJ
-  final int? funcaoId; // função primária (excluída do multi-select de secundárias)
+  final int?
+  funcaoId; // função primária (excluída do multi-select de secundárias)
 
   const CompletarContexto({
     required this.nome,
@@ -61,7 +69,7 @@ class PreviewError extends PreviewResult {
 /// — o cookie de sessão já trafega same-origin (mesma regra de markWelcomeSeen / IDR-019).
 class CompletarCadastroService {
   CompletarCadastroService({http.Client? client})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final http.Client _client;
 
@@ -70,7 +78,9 @@ class CompletarCadastroService {
     http.Response res;
     try {
       res = await _client.get(
-        Uri.parse('$cadastroApiBase/api/cadastro/profissional/completar/contexto'),
+        Uri.parse(
+          '$cadastroApiBase/api/cadastro/profissional/completar/contexto',
+        ),
         headers: {'Accept': 'application/json'},
       );
     } catch (_) {
@@ -85,12 +95,19 @@ class CompletarCadastroService {
     http.Response res;
     try {
       res = await _client.post(
-        Uri.parse('$cadastroApiBase/api/cadastro/profissional/completar/preview'),
-        headers: {'Accept': 'application/json', 'Content-Type': 'application/json'},
+        Uri.parse(
+          '$cadastroApiBase/api/cadastro/profissional/completar/preview',
+        ),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
         body: jsonEncode({'documento': documento}),
       );
     } catch (_) {
-      return PreviewError('Não foi possível carregar o contrato. Tente novamente.');
+      return PreviewError(
+        'Não foi possível carregar o contrato. Tente novamente.',
+      );
     }
 
     final data = _json(res.body);
@@ -98,7 +115,8 @@ class CompletarCadastroService {
       return PreviewSuccess(data['conteudo'] as String? ?? '');
     }
     return PreviewError(
-      _firstError(data) ?? 'Não foi possível carregar o contrato. Verifique o documento.',
+      _firstError(data) ??
+          'Não foi possível carregar o contrato. Verifique o documento.',
     );
   }
 
@@ -112,27 +130,31 @@ class CompletarCadastroService {
     required String chavePix,
     required List<ArquivoUpload> documentos,
   }) async {
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('$cadastroApiBase/api/cadastro/profissional/completar'),
-    )
-      ..headers['Accept'] = 'application/json'
-      ..fields['documento'] = documento
-      ..fields['raio_max_km'] = raioMaxKm.toString()
-      ..fields['preco_hora'] = precoHora
-      ..fields['bio'] = bio
-      ..fields['chave_pix'] = chavePix;
+    final request =
+        http.MultipartRequest(
+            'POST',
+            Uri.parse('$cadastroApiBase/api/cadastro/profissional/completar'),
+          )
+          ..headers['Accept'] = 'application/json'
+          ..fields['documento'] = documento
+          ..fields['raio_max_km'] = raioMaxKm.toString()
+          ..fields['preco_hora'] = precoHora
+          ..fields['bio'] = bio
+          ..fields['chave_pix'] = chavePix;
 
     for (var i = 0; i < funcoesSecundarias.length; i++) {
-      request.fields['funcoes_secundarias[$i]'] = funcoesSecundarias[i].toString();
+      request.fields['funcoes_secundarias[$i]'] = funcoesSecundarias[i]
+          .toString();
     }
     for (final arquivo in documentos) {
-      request.files.add(http.MultipartFile.fromBytes(
-        'documentos_comprobatorios[]',
-        arquivo.bytes,
-        filename: arquivo.filename,
-        contentType: _mediaTypeFor(arquivo.filename),
-      ));
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'documentos_comprobatorios[]',
+          arquivo.bytes,
+          filename: arquivo.filename,
+          contentType: _mediaTypeFor(arquivo.filename),
+        ),
+      );
     }
 
     http.Response res;
@@ -146,7 +168,9 @@ class CompletarCadastroService {
     final data = _json(res.body);
     switch (res.statusCode) {
       case 201:
-        return CadastroSuccess(data['message'] as String? ?? 'Cadastro concluído!');
+        return CadastroSuccess(
+          data['message'] as String? ?? 'Cadastro concluído!',
+        );
       case 422:
         final errors = data['errors'] as Map<String, dynamic>?;
         if (errors != null && errors.isNotEmpty) {

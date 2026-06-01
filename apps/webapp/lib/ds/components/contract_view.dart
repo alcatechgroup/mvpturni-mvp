@@ -16,10 +16,12 @@ class ContractView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor =
-        isDark ? TurniColors.textStrongDark : TurniColors.textStrongLight;
-    final mutedColor =
-        isDark ? TurniColors.textMutedDark : TurniColors.textMutedLight;
+    final textColor = isDark
+        ? TurniColors.textStrongDark
+        : TurniColors.textStrongLight;
+    final mutedColor = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
 
     final blocks = <Widget>[];
     for (final rawLine in markdown.split('\n')) {
@@ -30,10 +32,12 @@ class ContractView extends StatelessWidget {
         continue;
       }
       if (line.trim() == '---') {
-        blocks.add(const Padding(
-          padding: EdgeInsets.symmetric(vertical: TurniSpacing.sm),
-          child: Divider(height: 1),
-        ));
+        blocks.add(
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: TurniSpacing.sm),
+            child: Divider(height: 1),
+          ),
+        );
         continue;
       }
       if (line.startsWith('### ')) {
@@ -53,27 +57,38 @@ class ContractView extends StatelessWidget {
         if (RegExp(r'^\s*\|[\s:|-]+\|?\s*$').hasMatch(line)) {
           continue; // separador de cabeçalho (|---|---|) — não renderiza
         }
-        blocks.add(Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: SelectableText(
-            line.replaceAll('**', ''),
-            style: TextStyle(fontFamily: 'monospace', fontSize: 13, color: textColor),
+        blocks.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: SelectableText(
+              line.replaceAll('**', ''),
+              style: TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 13,
+                color: textColor,
+              ),
+            ),
           ),
-        ));
+        );
         continue;
       }
       final bullet = line.trimLeft().startsWith('- ');
-      blocks.add(Padding(
-        padding: EdgeInsets.only(
-          top: 2,
-          bottom: 2,
-          left: bullet ? TurniSpacing.md : 0,
+      blocks.add(
+        Padding(
+          padding: EdgeInsets.only(
+            top: 2,
+            bottom: 2,
+            left: bullet ? TurniSpacing.md : 0,
+          ),
+          child: SelectableText.rich(
+            _inline(
+              bullet ? '• ${line.trimLeft().substring(2)}' : line,
+              textColor,
+            ),
+            style: TextStyle(fontSize: 14, height: 1.5, color: textColor),
+          ),
         ),
-        child: SelectableText.rich(
-          _inline(bullet ? '• ${line.trimLeft().substring(2)}' : line, textColor),
-          style: TextStyle(fontSize: 14, height: 1.5, color: textColor),
-        ),
-      ));
+      );
     }
 
     return Column(
@@ -83,7 +98,11 @@ class ContractView extends StatelessWidget {
         const SizedBox(height: TurniSpacing.sm),
         Text(
           'Leia o contrato por inteiro antes de aceitar.',
-          style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: mutedColor),
+          style: TextStyle(
+            fontSize: 12,
+            fontStyle: FontStyle.italic,
+            color: mutedColor,
+          ),
         ),
       ],
     );
@@ -91,11 +110,17 @@ class ContractView extends StatelessWidget {
 
   Widget _heading(BuildContext context, String text, double size) {
     return Padding(
-      padding: const EdgeInsets.only(top: TurniSpacing.sm, bottom: TurniSpacing.xs),
+      padding: const EdgeInsets.only(
+        top: TurniSpacing.sm,
+        bottom: TurniSpacing.xs,
+      ),
       child: SelectableText.rich(
-        _inline(text, Theme.of(context).brightness == Brightness.dark
-            ? TurniColors.textStrongDark
-            : TurniColors.textStrongLight),
+        _inline(
+          text,
+          Theme.of(context).brightness == Brightness.dark
+              ? TurniColors.textStrongDark
+              : TurniColors.textStrongLight,
+        ),
         style: TextStyle(fontSize: size, fontWeight: FontWeight.w700),
       ),
     );
@@ -107,13 +132,15 @@ class ContractView extends StatelessWidget {
     final parts = text.split('**');
     for (var i = 0; i < parts.length; i++) {
       if (parts[i].isEmpty) continue;
-      spans.add(TextSpan(
-        text: parts[i],
-        style: TextStyle(
-          color: color,
-          fontWeight: i.isOdd ? FontWeight.w700 : FontWeight.w400,
+      spans.add(
+        TextSpan(
+          text: parts[i],
+          style: TextStyle(
+            color: color,
+            fontWeight: i.isOdd ? FontWeight.w700 : FontWeight.w400,
+          ),
         ),
-      ));
+      );
     }
     return TextSpan(children: spans);
   }

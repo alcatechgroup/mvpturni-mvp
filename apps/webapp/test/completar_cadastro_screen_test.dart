@@ -14,17 +14,13 @@ import 'package:turni_webapp/features/cadastro/completar_cadastro_service.dart';
 class _FakeCatalogo extends CadastroService {
   @override
   Future<List<Funcao>> fetchFuncoes() async => const [
-        Funcao(id: 1, nome: 'Garçom / Garçonete'),
-        Funcao(id: 2, nome: 'Bartender'),
-      ];
+    Funcao(id: 1, nome: 'Garçom / Garçonete'),
+    Funcao(id: 2, nome: 'Bartender'),
+  ];
 }
 
 class _FakeService extends CompletarCadastroService {
-  _FakeService({
-    this.contexto,
-    this.previewResult,
-    this.completarResult,
-  });
+  _FakeService({this.contexto, this.previewResult, this.completarResult});
 
   final CompletarContexto? contexto;
   final PreviewResult Function()? previewResult;
@@ -65,16 +61,17 @@ class _FakeService extends CompletarCadastroService {
   }
 }
 
-Future<List<ArquivoUpload>?> _fakeDocs() async =>
-    [ArquivoUpload(bytes: Uint8List.fromList([1, 2, 3]), filename: 'rg.jpg')];
+Future<List<ArquivoUpload>?> _fakeDocs() async => [
+  ArquivoUpload(bytes: Uint8List.fromList([1, 2, 3]), filename: 'rg.jpg'),
+];
 
 UserSession _liberadoSession() => const UserSession(
-      name: 'Maria Silva',
-      role: 'profissional',
-      status: 'liberado',
-      welcomeVisto: true,
-      cadastroCompleto: false,
-    );
+  name: 'Maria Silva',
+  role: 'profissional',
+  status: 'liberado',
+  welcomeVisto: true,
+  cadastroCompleto: false,
+);
 
 Future<void> _pump(
   WidgetTester tester, {
@@ -98,10 +95,16 @@ Future<void> _pump(
 }
 
 Future<void> _preencher(WidgetTester tester) async {
-  await tester.enterText(find.byKey(const Key('input-documento')), '111.444.777-35');
+  await tester.enterText(
+    find.byKey(const Key('input-documento')),
+    '111.444.777-35',
+  );
   await tester.enterText(find.byKey(const Key('input-raio')), '15');
   await tester.enterText(find.byKey(const Key('input-preco')), '45');
-  await tester.enterText(find.byKey(const Key('input-pix')), 'maria@exemplo.com');
+  await tester.enterText(
+    find.byKey(const Key('input-pix')),
+    'maria@exemplo.com',
+  );
   await tester.tap(find.byKey(const Key('btn-anexar-documentos')));
   await tester.pumpAndSettle();
 }
@@ -109,16 +112,23 @@ Future<void> _preencher(WidgetTester tester) async {
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets('CA-1: renderiza a tela com rótulo de documento conforme tipo_pessoa (PF→CPF)',
-      (tester) async {
-    await _pump(tester);
-    expect(find.byKey(const Key('screen-completar-cadastro')), findsOneWidget);
-    expect(find.byKey(const Key('input-documento')), findsOneWidget);
-    expect(find.text('SEU DOCUMENTO (CPF)'), findsOneWidget);
-    expect(find.widgetWithText(TextFormField, 'CPF'), findsOneWidget);
-  });
+  testWidgets(
+    'CA-1: renderiza a tela com rótulo de documento conforme tipo_pessoa (PF→CPF)',
+    (tester) async {
+      await _pump(tester);
+      expect(
+        find.byKey(const Key('screen-completar-cadastro')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('input-documento')), findsOneWidget);
+      expect(find.text('SEU DOCUMENTO (CPF)'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, 'CPF'), findsOneWidget);
+    },
+  );
 
-  testWidgets('CA-2: formulário vazio bloqueia revisão e mostra erros', (tester) async {
+  testWidgets('CA-2: formulário vazio bloqueia revisão e mostra erros', (
+    tester,
+  ) async {
     await _pump(tester);
     await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
     await tester.pumpAndSettle();
@@ -129,73 +139,85 @@ void main() {
     expect(find.textContaining('documento comprobatório'), findsWidgets);
   });
 
-  testWidgets('CA-7/8: revisar mostra contrato e botão de aceite só habilita com checkbox',
-      (tester) async {
-    await _pump(tester);
-    await _preencher(tester);
+  testWidgets(
+    'CA-7/8: revisar mostra contrato e botão de aceite só habilita com checkbox',
+    (tester) async {
+      await _pump(tester);
+      await _preencher(tester);
 
-    await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
+      await tester.pumpAndSettle();
 
-    // Fase preview: contrato renderizado com dados do usuário.
-    expect(find.byKey(const Key('contract-preview')), findsOneWidget);
-    expect(find.textContaining('Maria Silva'), findsWidgets);
-    expect(find.textContaining('111.444.777-35'), findsWidgets);
+      // Fase preview: contrato renderizado com dados do usuário.
+      expect(find.byKey(const Key('contract-preview')), findsOneWidget);
+      expect(find.textContaining('Maria Silva'), findsWidgets);
+      expect(find.textContaining('111.444.777-35'), findsWidgets);
 
-    // Botão de aceite começa DESABILITADO (checkbox não marcado).
-    FilledButton botao() =>
-        tester.widget<FilledButton>(find.byKey(const Key('btn-aceitar')));
-    expect(botao().onPressed, isNull);
+      // Botão de aceite começa DESABILITADO (checkbox não marcado).
+      FilledButton botao() =>
+          tester.widget<FilledButton>(find.byKey(const Key('btn-aceitar')));
+      expect(botao().onPressed, isNull);
 
-    // Marca o checkbox → habilita.
-    await tester.tap(find.byKey(const Key('checkbox-aceite')));
-    await tester.pumpAndSettle();
-    expect(botao().onPressed, isNotNull);
-  });
+      // Marca o checkbox → habilita.
+      await tester.tap(find.byKey(const Key('checkbox-aceite')));
+      await tester.pumpAndSettle();
+      expect(botao().onPressed, isNotNull);
+    },
+  );
 
-  testWidgets('CA-12: aceitar conclui o cadastro, marca sessão e mostra sucesso',
-      (tester) async {
-    final service = _FakeService();
-    await _pump(tester, service: service);
-    await _preencher(tester);
+  testWidgets(
+    'CA-12: aceitar conclui o cadastro, marca sessão e mostra sucesso',
+    (tester) async {
+      final service = _FakeService();
+      await _pump(tester, service: service);
+      await _preencher(tester);
 
-    await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('checkbox-aceite')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('btn-aceitar')));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('checkbox-aceite')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('btn-aceitar')));
+      await tester.pumpAndSettle();
 
-    expect(service.completarCalls, 1);
-    expect(find.byKey(const Key('completar-sucesso')), findsOneWidget);
-    expect(find.text('Cadastro concluído!'), findsOneWidget);
-    expect(AuthService().session!.cadastroCompleto, isTrue);
-    expect(AuthService().session!.funnelState, FunnelState.active);
-  });
+      expect(service.completarCalls, 1);
+      expect(find.byKey(const Key('completar-sucesso')), findsOneWidget);
+      expect(find.text('Cadastro concluído!'), findsOneWidget);
+      expect(AuthService().session!.cadastroCompleto, isTrue);
+      expect(AuthService().session!.funnelState, FunnelState.active);
+    },
+  );
 
-  testWidgets('erro de validação do servidor volta ao formulário e exibe o erro',
-      (tester) async {
-    final service = _FakeService(
-      completarResult: () =>
-          CadastroValidationError({'documento': 'Não foi possível usar este documento.'}),
-    );
-    await _pump(tester, service: service);
-    await _preencher(tester);
-    await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('checkbox-aceite')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('btn-aceitar')));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'erro de validação do servidor volta ao formulário e exibe o erro',
+    (tester) async {
+      final service = _FakeService(
+        completarResult: () => CadastroValidationError({
+          'documento': 'Não foi possível usar este documento.',
+        }),
+      );
+      await _pump(tester, service: service);
+      await _preencher(tester);
+      await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('checkbox-aceite')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('btn-aceitar')));
+      await tester.pumpAndSettle();
 
-    // Voltou ao formulário (contrato sumiu) e mostra o erro do campo.
-    expect(find.byKey(const Key('contract-preview')), findsNothing);
-    expect(find.byKey(const Key('input-documento')), findsOneWidget);
-    expect(find.textContaining('Não foi possível usar este documento.'), findsOneWidget);
-  });
+      // Voltou ao formulário (contrato sumiu) e mostra o erro do campo.
+      expect(find.byKey(const Key('contract-preview')), findsNothing);
+      expect(find.byKey(const Key('input-documento')), findsOneWidget);
+      expect(
+        find.textContaining('Não foi possível usar este documento.'),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets('preview com erro mostra banner e não avança', (tester) async {
-    final service = _FakeService(previewResult: () => PreviewError('Documento inválido.'));
+    final service = _FakeService(
+      previewResult: () => PreviewError('Documento inválido.'),
+    );
     await _pump(tester, service: service);
     await _preencher(tester);
     await tester.tap(find.byKey(const Key('btn-revisar-contrato')));
@@ -213,11 +235,14 @@ void main() {
     expect(find.textContaining('rg.jpg'), findsOneWidget);
   });
 
-  testWidgets('CA-5: documento com extensão inválida é rejeitado', (tester) async {
+  testWidgets('CA-5: documento com extensão inválida é rejeitado', (
+    tester,
+  ) async {
     await _pump(
       tester,
-      docs: () async =>
-          [ArquivoUpload(bytes: Uint8List.fromList([1]), filename: 'malware.exe')],
+      docs: () async => [
+        ArquivoUpload(bytes: Uint8List.fromList([1]), filename: 'malware.exe'),
+      ],
     );
     await tester.tap(find.byKey(const Key('btn-anexar-documentos')));
     await tester.pumpAndSettle();
