@@ -14,12 +14,15 @@ import 'auth/login_validation_test.dart' as login_validation;
 import 'auth/navigation_test.dart' as navigation;
 import 'auth/rbac_admin_rejected_test.dart' as rbac_admin;
 import 'auth/rbac_profissional_test.dart' as rbac_profissional;
+import 'auth/welcome_test.dart' as welcome;
 
-// Encadeia os 7 cenários migrados de rbac-login.spec.ts (+ navegação). Os cenários
-// que batem na API real (login_validation CA-6, rbac_*, e as telas de cadastro do
-// navigation, que fazem fetch ao montar) exigem --dart-define=API_BASE_URL=<origem>
-// ao rodar via flutter drive, pois a porta efêmera do web-server não tem o proxy
-// /api do container :8003. Ver Makefile (make e2e-webapp-integration) e Notas da STORY-038.
+// Encadeia os cenários de auth migrados de rbac-login.spec.ts + welcome.spec.ts.
+// TODOS rodam SAME-ORIGIN sob o harness da STORY-043 (proxy reverso + --web-launch-url —
+// ver Makefile `e2e-webapp-integration` e IDR-021): o app e a API/Sanctum aparecem na
+// mesma origem para o browser, então o cookie de sessão trafega como em produção. Isso
+// substitui o --dart-define=API_BASE_URL cross-origin da STORY-038 e habilita os fluxos
+// AUTENTICADOS pós-login (welcome → POST welcome-visto). O welcome fica por ÚLTIMO porque
+// muta estado no backend (welcome_visto) — re-semeado por run via `make _e2e-seed` (CA-5).
 void main() {
   login_structure.main();
   login_validation.main();
@@ -27,4 +30,5 @@ void main() {
   rbac_profissional.main();
   rbac_admin.main();
   navigation.main();
+  welcome.main();
 }
