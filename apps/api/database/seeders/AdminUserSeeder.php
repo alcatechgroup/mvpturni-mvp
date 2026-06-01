@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\ContratanteProfile;
+use App\Models\Funcao;
 use App\Models\ProfissionalProfile;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -98,7 +99,7 @@ class AdminUserSeeder extends Seeder
         //    para o E2E do completar cadastro (STORY-023 CA-15): um PF e um MEI. Cada run
         //    reseta os campos de completar (documento*, novo aceite) para determinismo —
         //    espelha a lição do welcome_test ("2º run pega usuário já completado").
-        $funcao = \App\Models\Funcao::where('ativo', true)->orderBy('id')->first();
+        $funcao = Funcao::where('ativo', true)->orderBy('id')->first();
 
         foreach ([
             ['email' => 'completar.pf@turni.local', 'nome' => 'Completar PF (seed)', 'tipo' => 'PF'],
