@@ -102,3 +102,34 @@ Política "dado sensível/identificador fiscal só pós-aprovação humana" (`do
 - **CNPJ:** identificador fiscal da PJ — só após aprovação (STORY-024).
 - **Endereço completo (logradouro, bairro, UF, CEP, complemento):** STORY-024.
 - **Segmento, cultura/valores, ano de fundação, nº de funcionários, redes sociais, contatos adicionais, logo:** STORY-024.
+
+---
+
+## STORY-024 — Completar cadastro de Contratante (pós-aprovação)
+
+- **Fluxo:** rota autenticada `/completar-cadastro` → `POST /api/cadastro/contratante/completar`
+  (multipart). Disponível só ao contratante `liberado, welcome_visto=true, cadastro_completo=false`.
+  Busca de CEP por `GET /api/cadastro/contratante/completar/cep/{cep}` (fail-soft, IDR-024).
+- **Base legal:** execução de contrato/medidas pré-contratuais (LGPD art. 7º, V) +
+  **consentimento explícito** dos Termos de Adesão à Plataforma, registrado como `AceiteEletronico`
+  imutável (timestamp + IP + fingerprint) no clique de "Aceito e concluir cadastro" (ADR-010 /
+  IDR-023). Fixa a condição comercial da taxa Turni 15% (PDR-004).
+- **Titular:** o **responsável** pelo estabelecimento (PF que opera a conta do contratante PJ).
+- **Retenção:** enquanto a conta existir. O aceite eletrônico é **imutável** (trigger + REVOKE).
+- **Controle de acesso:** o CNPJ (abaixo) só é acessível a `admin` via permissões controladas;
+  nunca trafega em log claro (mascarado — ADR-008).
+
+| Campo | Classificação | Observações |
+|---|---|---|
+| CNPJ | **Pessoal/empresarial** (identificador fiscal da PJ) | **Criptografado em repouso** (Eloquent encrypted cast — ADR-009 5A). Unicidade via `cnpj_hash` HMAC-SHA256 determinístico (IDR-022 d). Dígitos verificadores validados server-side; sem consulta à Receita (PDR-001). |
+| Endereço completo (logradouro, número, bairro, cidade, UF, CEP, complemento) | Pessoal **comum** (contato/localização) | Não classificado como sensível. CEP pode ser autopreenchido via ViaCEP (IDR-024); falha não bloqueia. |
+| Apelido do estabelecimento | **Não-pessoal** (dado da empresa) | Texto curto para UI compacta. |
+| Segmento | **Não-pessoal** (dado da empresa) | Texto livre. |
+| Ano de fundação | **Não-pessoal** (dado da empresa) | Inteiro. |
+| Quantidade de funcionários (faixa) | **Não-pessoal** (dado da empresa) | Enum de faixa. |
+| Turnos de operação típicos | **Não-pessoal** (dado da empresa) | Texto livre. |
+| Cultura e valores-chave | **Não-pessoal** (dado da empresa) | Texto livre. |
+| Site e redes sociais | **Não-pessoal** (dado público da empresa) | URLs opcionais. |
+| Contatos adicionais (nome, função, telefone) | Pessoal **comum** (de terceiros) | Dados de funcionários indicados pelo contratante (gerente/chef/etc.). Coletados sob responsabilidade do contratante; uso restrito à operação na plataforma. |
+| Logo | **Não-pessoal** (marca da empresa) | Upload JPG/PNG ≤5 MB; MIME validado server-side; disco privado, path não-enumerável (ADR-004). |
+| Aceite eletrônico (conteúdo renderizado, timestamp, IP, fingerprint) | Registro de **consentimento** + evidência jurídica | Imutável (ADR-010). Referencia `termos_plataforma_contratante` (IDR-023). |

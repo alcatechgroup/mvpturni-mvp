@@ -195,11 +195,51 @@ adesão (IDR-022 a). Consequências:
 Escalei ao PO (ver pergunta na sessão). Não escrevo código de contrato até a decisão. Restante da
 estória (campos/validação/CEP/upload/transição/UI) não depende dela e pode começar em paralelo.
 
+### Contrato de placeholders para o texto-seed `termos_plataforma_contratante` (PO)
+⚠️ **Importante para o PO:** o renderer (`AceiteAdesaoRenderer`, ADR-010/IDR-022) faz **falha dura**
+se o template citar um `{{placeholder}}` que o serviço **não** fornece — nenhum aceite incompleto é
+gerado. Use **apenas** os placeholders abaixo no texto-seed (pode usar um subconjunto; usar um fora
+da lista quebra a renderização):
+
+- `{{contratante.razao_social}}` — `nome_estabelecimento`
+- `{{contratante.cnpj}}` — CNPJ formatado `00.000.000/0000-00`
+- `{{contratante.endereco_completo}}` — endereço composto (logradouro, nº — bairro, cidade/UF · CEP)
+- `{{plataforma.taxa_turni}}` — `"15%"` (PDR-004; cláusula permanente)
+- `{{aceite.timestamp}}`, `{{aceite.ip}}`, `{{aceite.fingerprint}}` — carimbos de assinatura
+
+Estrutura esperada (mesma do `mei_pj_b2b` p/ o renderer cortar certo): preâmbulo + bloco(s) `## …`
+(o corpo de adesão). Blocos `## Seção 2`, `## Histórico de validação` e `## Notas do PO` são
+**omitidos** automaticamente (IDR-022 a) — pode deixar notas internas nesses blocos sem vazar ao
+usuário. Quando o texto chegar: adiciono o slug ao `TemplatesContratuaisSeeder` + vendoro a cópia em
+`database/seeders/contracts/` (com SHA-256), e troco o template-fixture dos testes por asserções
+contra o seed real. Só então CA-7/9 fecham em homolog (CA-15 E2E junto).
+
 ### Sync Designer↔Programador
-(a preencher)
+FEITO (projeto solo). `SCREEN-STORY-024` criada espelhando a `SCREEN-023`, **ready**, indexada em
+`design.screens[]`. Decisão de UX: **wizard de 3 passos** (Identidade do Estabelecimento / Operação /
+Cultura & Contatos) + fase de revisão/aceite — pelo volume de campos do contratante (~15), form único
+sufocaria a persona (princípio #1); a própria estória sugere 3 passos. Tema **contratante mostarda**
+(`accent #9A6E25` claro / `#D4A95C` escuro). `repeater.row` para contatos adicionais; CEP autocompleta
+sem bloquear; `contract.view` reusado da 023. Keys lógicas `completar-cadastro:*` no spec.
 
 ### Decisões tomadas
-(a preencher)
+- **IDR-023** — contratante adere a template próprio `termos_plataforma_contratante` (não `mei_pj_b2b`);
+  taxa Turni 15% como cláusula permanente. Decisão PO.
+- **IDR-024** — busca de CEP via ViaCEP, `Http` nativo (sem lib nova), fail-soft (CA-4).
+- Reuso de `DocumentoValidator::cnpjValido()` (já testado na STORY-023) — sem `CnpjValidator` novo.
+- `cnpj_hash` HMAC-SHA256 p/ unicidade (IDR-022 d), espelhando `documento_hash` do profissional.
+- Plano `member_start` gravado na conclusão (domain/usuario.md §Contratante/Planos).
+- Endpoints fora do FunnelGuard (usuário em `await_cadastro`); `authorize()` garante o estado.
+  Endereço do contrato é composto a partir do **payload** (render antes da transação), não do perfil.
+
+### Cobertura final (parcial — backend)
+api (núcleo do story, medido isolado): `CompletarCadastroContratanteService` **100%**,
+`CompletarCadastroContratanteRequest` **100%**, `CepLookup` **100%**, controller 89% (ramos
+defensivos), `ContratanteProfile` 87.5%. Suíte api completa: **238 passed**. Pint limpo.
+Falta: widget tests do WebApp + E2E (CA-15) + asserção contra o seed real (pós-texto do PO).
+
+### IDRs criados
+- IDR-023 (template próprio do contratante), IDR-024 (CEP ViaCEP fail-soft).
 
 ### Descobertas
 (a preencher)
