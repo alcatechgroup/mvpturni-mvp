@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-023-completar-cadastro-profissional
-status: in_progress
+status: in_review
 owner_agent: claude-opus-4-8-programador-2026-06-01
 created_at: 2026-05-28
 updated_at: 2026-06-01
@@ -233,12 +233,20 @@ curl + evidência psql —
 - **CA-11 (imutabilidade):** `UPDATE`/`DELETE` direto em `aceites_eletronicos` →
   `ERROR: aceites_eletronicos é imutável após criação` (trigger). Evidência de runbook.
 
-### Pendências para fechar (fase de pipeline/homolog — carry-over)
-- [ ] E2E browser real CA-15 (PF + MEI + bloqueio sem checkbox) e CA-16 no integration_test/pipeline.
-      Bloqueio técnico do upload via `file_picker` em Chrome headless documentado em §Descobertas
-      (precisa de seam de teste — candidato a IDR). O restante do fluxo já tem evidência de stack real.
-- [ ] Push → deploy homolog verde + repetir evidência de cripto/imutabilidade em homolog (psql).
+### E2E browser real — FEITO (CA-15)
+`make e2e-webapp-integration` verde local (Chrome headless, same-origin IDR-021): auth + cadastro +
+3 novos cenários do completar. Seam `E2E_FAKE_PICKER` (dart-define) resolve o bloqueio do
+`file_picker` em headless. Evidência no banco pós-run: `completar.pf`=ativo/`pf_autonomo_eventual`,
+`completar.mei`=ativo/`mei_pj_b2b` (template correto por tipo_pessoa), `completar.block`=liberado/0
+aceites (sem checkbox bloqueia). CA-16 coberto por teste de integração no api (não precisa de E2E —
+a própria estória admite "E2E OU integração").
+
+### Pendências para fechar (homolog)
+- [ ] Confirmar deploy homolog verde (CI principal verde em `105d425`) e repetir evidência de cripto
+      em repouso (psql) + imutabilidade (CA-11) no banco de homolog — gate de `done` (PO confirma).
 - [ ] Métrica/alerta de cadastros completados (observabilidade §3 — pode ir junto com STORY-025).
+- Lição: rodar o lint COMPLETO local antes de push (flutter analyze + pint api/admin), não só o hook
+  — queimei 3 runs de CI por isso. Registrado em memória.
 
 ### Links de evidência
 - Commits: `6ae7420` (backend), `1957df3` (notas), `ccb7de9` (frontend), `df28105` (spec+LGPD).
