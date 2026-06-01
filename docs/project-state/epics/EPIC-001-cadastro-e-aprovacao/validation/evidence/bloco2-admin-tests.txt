@@ -1,0 +1,191 @@
+docker compose up -d postgres
+ Container mvpturni-mvp-postgres-1 Running 
+/Applications/Xcode.app/Contents/Developer/usr/bin/make _wait-db
+aguardando Postgres ok
+docker compose run --rm --no-deps -e DB_DATABASE=turni_test admin ./vendor/bin/pest --colors=always
+ Container mvpturni-mvp-admin-run-ec08041ee30c Creating 
+ Container mvpturni-mvp-admin-run-ec08041ee30c Created 
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\EmailAclTest[39m
+  [32;1m✓[39;22m[90m [39m[90mmascara o e-mail preservando inicial e domínio[39m[90m                      [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mmascara e-mail sem domínio sem quebrar[39m
+  [32;1m✓[39;22m[90m [39m[90madapter log-only registra dispatch com e-mail mascarado e sem PII[39m
+  [32;1m✓[39;22m[90m [39m[90mjob resolve a ACL do container e delega o envio[39m
+  [32;1m✓[39;22m[90m [39m[90mjob é configurado para a fila database com 3 tentativas (ADR-011)[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\SmokeTest[39m
+  [32;1m✓[39;22m[90m [39m[90maparato de teste plugado (1 + 1 = 2)[39m[90m                                [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mpackage de domínio compartilhado está ligado ao admin[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Templates\TemplateContentValidatorTest[39m
+  [32;1m✓[39;22m[90m [39m[90mextrai placeholders sem duplicatas e tolera espaços[39m
+  [32;1m✓[39;22m[90m [39m[90maceita todos os placeholders canônicos (ADR-010)[39m
+  [32;1m✓[39;22m[90m [39m[90mdetecta placeholder fora da lista canônica e o devolve por extenso[39m
+  [32;1m✓[39;22m[90m [39m[90mconteúdo sem placeholders não acusa desconhecidos[39m
+  [32;1m✓[39;22m[90m [39m[90maviso soft: detecta seções nomeadas ausentes[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Templates\TemplateRendererTest[39m
+  [32;1m✓[39;22m[90m [39m[90mrenderiza markdown para html[39m[90m                                        [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mmantém placeholders visíveis como chips[39m
+  [32;1m✓[39;22m[90m [39m[90mmarca placeholder inválido com classe de erro[39m
+  [32;1m✓[39;22m[90m [39m[90mdescarta HTML bruto do admin (sem template injection / execução de código)[39m
+{"message":"admin.user.approved","context":{"event":"admin.user.approved","service":"backoffice","request_id":"dd7d90b8-39b2-4e2b-928c-92d0291bf4fe","actor_user_id":1,"target_user_id":2,"target_role":"profissional"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.286422+00:00","extra":{}}
+{"message":"admin.user.approved","context":{"event":"admin.user.approved","service":"backoffice","request_id":"a1d049d3-e30d-43ab-bf20-b745e720b0e4","actor_user_id":3,"target_user_id":4,"target_role":"profissional"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.307357+00:00","extra":{}}
+{"message":"admin.user.approved","context":{"event":"admin.user.approved","service":"backoffice","request_id":"87441fe8-a688-4b71-b21c-10ad755875ff","actor_user_id":5,"target_user_id":6,"target_role":"profissional"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.321352+00:00","extra":{}}
+{"message":"admin.user.approved","context":{"event":"admin.user.approved","service":"backoffice","request_id":"e5821fff-f7e0-4c24-892b-7ec806805c85","actor_user_id":7,"target_user_id":8,"target_role":"contratante"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.334869+00:00","extra":{}}
+{"message":"admin.user.removed","context":{"event":"admin.user.removed","service":"backoffice","request_id":"16c1cf58-0e03-4f47-b68f-785e81a9fb4d","actor_user_id":11,"target_user_id":12,"target_role":"profissional"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.359359+00:00","extra":{}}
+{"message":"admin.user.removed","context":{"event":"admin.user.removed","service":"backoffice","request_id":"3ebb66a7-f6f5-446f-911f-00629e53ddfb","actor_user_id":13,"target_user_id":14,"target_role":"contratante"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.373571+00:00","extra":{}}
+{"message":"admin.user.removed","context":{"event":"admin.user.removed","service":"backoffice","request_id":"9b7d99bf-f9d7-43ec-8bcf-e9739c2d9732","actor_user_id":15,"target_user_id":16,"target_role":"profissional"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.385820+00:00","extra":{}}
+{"message":"admin.user.approved","context":{"event":"admin.user.approved","service":"backoffice","request_id":"0bdc93b8-3e14-49fa-9bb4-650a8bafa8e5","actor_user_id":19,"target_user_id":20,"target_role":"profissional"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.410907+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Aprovacoes\ApprovalServiceTest[39m
+  [32;1m✓[39;22m[90m [39m[90maprovar transiciona pendente_aprovacao para liberado[39m[90m                [39m [90m0.27s[39m  
+  [32;1m✓[39;22m[90m [39m[90maprovar grava admin.user.approved no audit log com role e tipo_pess[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90maprovar enfileira e-mail aprovacao_concedida na fila database[39m[90m       [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90maprovar contratante grava tipo_pessoa nulo no audit log[39m[90m             [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90maprovar cadastro que já não está pendente lança exceção sem efeito[39m[90m… [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mremover marca status recusado e preserva o registro[39m[90m                 [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mremover grava admin.user.removed com previous_status[39m[90m                [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mremover não envia e-mail ao removido (PDR-001)[39m[90m                      [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mremover cadastro que já não está pendente lança exceção[39m[90m             [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90maudit log é imutável — UPDATE lança exceção de banco[39m[90m                [39m [90m0.01s[39m  
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"75d56f1f-90d7-4765-890f-b0eecbfb9b4e","method":"GET","path":"aprovacoes","status_code":200,"duration_ms":9},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.441721+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"d9a42f7f-25b0-4de2-ab50-a45d642bd599","method":"GET","path":"aprovacoes","status_code":302,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.455351+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"8f15beea-8e2c-4bb6-a030-ff18fc34d760","method":"GET","path":"aprovacoes","status_code":403,"duration_ms":1},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.468851+00:00","extra":{}}
+{"message":"admin.user.approved","context":{"event":"admin.user.approved","service":"backoffice","request_id":"409c168e-9619-4a2e-923f-020dccca26e1","actor_user_id":37,"target_user_id":38,"target_role":"profissional"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.577845+00:00","extra":{}}
+{"message":"admin.user.removed","context":{"event":"admin.user.removed","service":"backoffice","request_id":"65e67969-ccfe-4cd1-97f1-1b18946d08ec","actor_user_id":41,"target_user_id":42,"target_role":"contratante"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.627295+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Aprovacoes\FilaAprovacaoTest[39m
+  [32;1m✓[39;22m[90m [39m[90mrota /aprovacoes responde 200 para admin autenticado[39m[90m                [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrota /aprovacoes redireciona não-autenticado para /login[39m[90m            [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrota /aprovacoes retorna 403 para não-admin autenticado[39m[90m             [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mlista mostra apenas pendentes em ordem FIFO[39m[90m                         [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfiltro por papel restringe a lista[39m[90m                                  [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfiltro por tipo_pessoa restringe profissionais[39m[90m                      [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcontador agregado reflete o backlog por papel e tipo[39m[90m                [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90maprovar pelo componente transiciona, audita, despacha e some da lis[39m[90m…[39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90maprovar cadastro já processado por outro admin mostra toast de erro[39m[90m [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mremover pelo componente marca recusado, audita e some da lista[39m[90m      [39m [90m0.02s[39m  
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"0bc26797-9550-4b15-a47f-d4711a193735","method":"GET","path":"/","status_code":200,"duration_ms":1},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.646060+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"396b8c70-d6bd-46c0-a8d0-593643fbe60e","method":"GET","path":"aprovacoes","status_code":200,"duration_ms":4},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.661946+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Aprovacoes\NavegacaoTest[39m
+  [32;1m✓[39;22m[90m [39m[90mdashboard do admin tem link para a fila de aprovação no menu[39m[90m        [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90ma fila renderiza o item de menu ativo[39m[90m                               [39m [90m0.02s[39m  
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"73f1bfee-f6f4-4c71-8003-f7f520ff107a","method":"GET","path":"/","status_code":302,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.684883+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\EnvironmentTest[39m
+  [32;1m✓[39;22m[90m [39m[90mo admin conecta no PostgreSQL[39m[90m                                       [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90ma rota raiz do admin responde (redireciona para login sem auth)[39m[90m     [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mLivewire está disponível no admin[39m[90m                                   [39m [90m0.01s[39m  
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"d41a1e5a-a1f5-48be-b568-ba475b1faa58","method":"GET","path":"health","status_code":200,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.706609+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"50744fb7-8306-4a9d-b603-35f9d516e58b","method":"GET","path":"health","status_code":200,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.717821+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"8a856310-d743-42b0-909b-a10a2f72cccc","method":"GET","path":"health","status_code":200,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.719321+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"ce86a16f-84e8-4b8f-8237-0f2f5d5085f1","method":"GET","path":"health","status_code":200,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.730248+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"ec7f438e-b71e-4396-856d-b8ad4672254c","method":"GET","path":"health","status_code":503,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.741253+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"db389733-f7a3-4a4f-a685-07afee02ec8e","method":"GET","path":"health","status_code":200,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.752078+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"3aba499e-c741-4b44-b27c-cefb1acfa17a","method":"GET","path":"health","status_code":200,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.763408+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\HealthCheckTest[39m
+  [32;1m✓[39;22m[90m [39m[90mhealth endpoint retorna 200 com campos obrigatórios (CA-4)[39m[90m          [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mhealth campo service é sempre "backoffice" (CA-4)[39m[90m                   [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mhealth endpoint sem deep=1 é liveness — não depende do banco (CA-5)[39m[90m [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mhealth endpoint com deep=1 retorna 503 quando banco falha (CA-5)[39m[90m    [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mhealth endpoint responde em menos de 500ms em condição normal (CA-6[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mhealth endpoint retorna timestamp ISO 8601 válido[39m[90m                   [39m [90m0.01s[39m  
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"6f8d1701-125c-4bae-9a92-aeeda1f18366","method":"POST","path":"login","status_code":302,"duration_ms":99},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:49.971410+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"261af252-d372-4646-aa16-d3aa09ad0822","method":"POST","path":"login","status_code":302,"duration_ms":98},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:50.181374+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"48abfdc7-8047-41da-bb60-6e4877bc3fc3","method":"POST","path":"login","status_code":302,"duration_ms":97},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:50.292617+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"f198d887-ba23-471f-8a8c-26d15d0c1c28","method":"POST","path":"login","status_code":302,"duration_ms":95},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:50.402349+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"9ed89798-3ed6-441b-920f-95bc821bc74c","method":"POST","path":"login","status_code":302,"duration_ms":1},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:50.415725+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"5fe94e43-6912-43bf-83d0-f7c0b06a0105","method":"POST","path":"login","status_code":403,"duration_ms":97},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:50.618371+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"61727553-3a49-448c-81ce-780a97e3f5ea","method":"POST","path":"login","status_code":403,"duration_ms":99},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:50.823642+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"dcf447c2-6270-418d-b8eb-0f85e8f48f20","method":"POST","path":"login","status_code":403,"duration_ms":93},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.023740+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"e20e2e1a-26da-4915-b381-5a1f5fdb716e","method":"GET","path":"/","status_code":302,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.039045+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"05e1b1d5-d4ab-40e8-b944-22954c48ffbf","method":"GET","path":"/","status_code":200,"duration_ms":1},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.052615+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"0dc763bb-a87a-4784-aa96-0394a4dbd6a7","method":"POST","path":"logout","status_code":302,"duration_ms":1},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.067581+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Identity\AdminLoginTest[39m
+  [32;1m✓[39;22m[90m [39m[90madmin faz login com sucesso e é redirecionado para dashboard[39m[90m        [39m [90m0.21s[39m  
+  [32;1m✓[39;22m[90m [39m[90mlogin do admin grava admin.login no audit log[39m[90m                       [39m [90m0.21s[39m  
+  [32;1m✓[39;22m[90m [39m[90mlogin com credencial inválida retorna erro sem revelar e-mail[39m[90m       [39m [90m0.11s[39m  
+  [32;1m✓[39;22m[90m [39m[90mlogin com credencial inválida grava admin.login_failed no audit log[39m[90m [39m [90m0.11s[39m  
+  [32;1m✓[39;22m[90m [39m[90mlogin com campos vazios retorna erro de validação[39m[90m                   [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcontratante tentando logar no backoffice é rejeitado com 403[39m[90m        [39m [90m0.20s[39m  
+  [32;1m✓[39;22m[90m [39m[90mprofissional tentando logar no backoffice é rejeitado com 403[39m[90m       [39m [90m0.21s[39m  
+  [32;1m✓[39;22m[90m [39m[90mtentativa de não-admin no backoffice grava admin.login_attempt_non_[39m[90m…[39m [90m0.20s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrota protegida redireciona para /login quando não autenticado[39m[90m       [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrota protegida retorna 200 para admin autenticado[39m[90m                   [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mlogout invalida sessão e redireciona para /login[39m[90m                    [39m [90m0.01s[39m  
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"b7751550-70b9-4cd2-89e8-99163aad35da","method":"GET","path":"/","status_code":302,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.083731+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"133523cf-6767-4880-8089-fc4009e7143b","method":"GET","path":"/","status_code":302,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.095499+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"105445aa7843bc8bf206b12000100000","method":"GET","path":"/","status_code":302,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.109810+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"ff78e096-e756-464e-afde-605cb46d1ffb","method":"GET","path":"/","status_code":302,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.121217+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"a59ce190-2b0f-481e-ad38-2a7ad3d4110f","method":"GET","path":"/","status_code":302,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.122641+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\RequestLogMiddlewareTest[39m
+  [32;1m✓[39;22m[90m [39m[90mrequisição propaga X-Request-Id no response (CA-7)[39m[90m                  [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mX-Request-Id é um UUID ou trace id válido (CA-7)[39m[90m                    [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mX-Cloud-Trace-Context entrante é reutilizado como request_id (CA-7)[39m[90m [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrequest_id diferente quando não há X-Cloud-Trace-Context (CA-7)[39m[90m     [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mmiddleware loga campos canônicos do ADR-008 (CA-7)[39m[90m                  [39m [90m0.01s[39m  
+{"message":"admin.template.version_created","context":{"event":"admin.template.version_created","service":"backoffice","request_id":"274a124f-f9ed-43d9-a40b-173df42d941e","actor_user_id":54,"template_slug":"aut-temporibus","template_versao":2},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.153405+00:00","extra":{}}
+{"message":"admin.template.version_created","context":{"event":"admin.template.version_created","service":"backoffice","request_id":"adedf235-e9c8-4b90-a5a4-1f061317a104","actor_user_id":56,"template_slug":"pf_autonomo_eventual","template_versao":1},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.166456+00:00","extra":{}}
+{"message":"admin.template.version_activated","context":{"event":"admin.template.version_activated","service":"backoffice","request_id":"af64eea8-8797-48d7-beb1-ed500c0d863e","actor_user_id":59,"template_slug":"aspernatur-occaecati","template_versao":2},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.205276+00:00","extra":{}}
+{"message":"admin.template.version_activated","context":{"event":"admin.template.version_activated","service":"backoffice","request_id":"2d1bf7ed-895d-4509-a341-a031c0d06333","actor_user_id":62,"template_slug":"mei_pj_b2b","template_versao":2},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.221159+00:00","extra":{}}
+{"message":"admin.template.version_activated","context":{"event":"admin.template.version_activated","service":"backoffice","request_id":"5c3a1235-d9f0-4875-980d-6c3f3464357a","actor_user_id":65,"template_slug":"earum-enim","template_versao":1},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.237414+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Templates\TemplateServiceTest[39m
+  [32;1m✓[39;22m[90m [39m[90mcriarVersao gera a próxima versão sequencial como rascunho[39m[90m          [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcriarVersao grava admin.template.version_created no audit log[39m[90m       [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcriarVersao bloqueia placeholder fora da lista canônica (CA-5) sem[39m[90m… [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcriarVersao rejeita conteúdo vazio[39m[90m                                  [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mativar troca a versão ativa atomicamente (uma só ativa por template[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mativar grava admin.template.version_activated no audit log[39m[90m          [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvoltar para versão anterior reativa uma versão histórica (CA-11)[39m[90m    [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mativar é no-op silencioso se a versão já está ativa[39m[90m                 [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mconteudo de uma versão é imutável após criação (trigger Postgres)[39m[90m   [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mpartial unique index impede duas versões ativas no mesmo template[39m[90m   [39m [90m0.01s[39m  
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"992523d0-1cd7-49ac-ba9c-b6c594f1ca17","method":"GET","path":"templates","status_code":302,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.292697+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"c4998b3b-a300-4055-ba01-54e95f452840","method":"GET","path":"templates","status_code":403,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.305850+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"fdb26e67-78ca-4a53-9ef2-bef565e69e6e","method":"GET","path":"templates","status_code":200,"duration_ms":3},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.323368+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"7311a0c4-e0dd-49c7-8f58-867db3b0e380","method":"GET","path":"templates/slug-inexistente","status_code":404,"duration_ms":2},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.372381+00:00","extra":{}}
+{"message":"admin.template.version_created","context":{"event":"admin.template.version_created","service":"backoffice","request_id":"70c827ba-ca87-457b-acfc-0937c12c434a","actor_user_id":87,"template_slug":"pf_autonomo_eventual","template_versao":2},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.426558+00:00","extra":{}}
+{"message":"admin.template.version_activated","context":{"event":"admin.template.version_activated","service":"backoffice","request_id":"8393b72b-e2a9-476a-85cd-b0ec05a48c39","actor_user_id":94,"template_slug":"pf_autonomo_eventual","template_versao":2},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.492284+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Templates\TemplatesLivewireTest[39m
+  [32;1m✓[39;22m[90m [39m[90mguest é redirecionado ao login (fail-secure)[39m[90m                        [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mnão-admin recebe 403 fail-secure[39m[90m                                    [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90madmin acessa o catálogo (200)[39m[90m                                       [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcatálogo lista os templates com a versão ativa[39m[90m                      [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mdetalhe renderiza a versão ativa com placeholder visível e o histór[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mslug desconhecido devolve 404[39m[90m                                       [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90meditor pré-carrega o conteúdo da versão ativa[39m[90m                       [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90msalvar com placeholder inválido bloqueia e não cria versão (CA-5)[39m[90m   [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90msalvar conteúdo válido cria nova versão (rascunho) e redireciona ao[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mver completa expande e recolhe o conteúdo de uma versão do históric[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mativar versão obsoleta (sumiu) devolve toast de erro e não quebra[39m[90m   [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfluxo de ativação: pedir confirmação e ativar a versão histórica[39m[90m    [39m [90m0.03s[39m  
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.515865+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.517211+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.532076+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.533264+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.549023+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.550255+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Templates\TemplatesSeederTest[39m
+  [32;1m✓[39;22m[90m [39m[90msemeia os 2 templates do MVP com a v1 ativa[39m[90m                         [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mé idempotente: rodar 2× não duplica template nem versão[39m[90m             [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mo conteúdo da v1 vem do texto-seed e usa só placeholders canônicos[39m[90m… [39m [90m0.02s[39m  
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"f0bca705-b021-4d15-ac3d-3e6c54bd6592","method":"GET","path":"/","status_code":302,"duration_ms":0},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.566156+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"1e132230-0001-4570-a4ae-76e296fbb74f","method":"GET","path":"/","status_code":200,"duration_ms":1},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.584707+00:00","extra":{}}
+{"message":"request.handled","context":{"service":"backoffice","env":"local","version":"unknown","request_id":"6a909214-4b80-42cb-88fe-4763da9cd2ad","method":"GET","path":"/","status_code":200,"duration_ms":1},"level":200,"level_name":"INFO","channel":"local","datetime":"2026-06-01T22:46:51.603674+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\WelcomePageTest[39m
+  [32;1m✓[39;22m[90m [39m[90mrota raiz sem auth redireciona para /login (STORY-016)[39m[90m              [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrota raiz retorna 200 para admin autenticado (CA-1)[39m[90m                 [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mdashboard do admin identifica o Backoffice (CA-1)[39m[90m                   [39m [90m0.02s[39m  
+
+  [90mTests:[39m    [32;1m91 passed[39;22m[90m (201 assertions)[39m
+  [90mDuration:[39m [39m2.67s[39m
+

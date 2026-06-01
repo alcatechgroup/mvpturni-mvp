@@ -133,16 +133,32 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/val
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+- Rodada 1, sessão 1 — iniciada em 2026-06-01. Commit validado: `0e1e406` (branch `main`). Homolog em `v0.1.0-rc.42`.
+- Leitura prévia: esta estória, `validador/SKILL.md`, `validation/checklist.md`, `verdict-criteria.md`, template do relatório, `ci.yml`/`release.yml`, runbook de homolog.
+- Duas decisões de PO registradas no início (via pergunta direta): (1) PRE-2 não cumprida ao pé da letra (épico `ready`, não `in_review`) → **proceder, registrar como ressalva**; (2) Cloud SQL homolog é private-IP-only → **imutabilidade evidenciada por migração+trigger+runbook+suíte**, sem re-rodar psql ao vivo.
 
 ### Pré-condições
-(a preencher — `index.json` consultado, estado das STORYs)
+- PRE-1 ✅ STORY-012..024 `done` no `index.json` (também STORY-034/037 do EPIC-001 `done`).
+- PRE-2 ⚠️ EPIC-001 `status: ready` (esperado `in_review`); `validation_report: null` — ressalva por decisão do PO.
+- PRE-3 ✅ WebApp `app.homolog` (rc.42) e admin Cloud Run (rc.42) acessíveis.
 
 ### Itens executados (com evidência)
-(a preencher por bloco — mesma estrutura do `report.md` do EPIC-000 serve como modelo)
+Ver `validation/report.md` (status EM ANDAMENTO). Verificados nesta sessão com evidência: Blocos 2 (suítes + cobertura medida: api 96,1%/238, admin 91, webapp 121/76,8%), 3 (CI verde/deploy/scheduler), 5 (imutabilidade por trigger+REVOKE; Argon2id; throttling; encrypted casts; gitleaks/Trivy/composer audit; rollback F-NB-1), 7 (runbook; notas dos agentes), e parte do Bloco 1 (ADRs, seed, imutabilidade, telas homolog 200, testes mapeados a CAs). Evidências pesadas em `validation/evidence/`.
+
+**Achado estrutural principal:** o pipeline CI **não** roda testes/cobertura/E2E — são gates **locais** (`make test` no pre-push; `make e2e` por IDR-004). Afeta a leitura de CA-2-1/2-2/2-3 e CA-3-1.
+
+### Verificações executadas após a entrada inicial (mesma sessão)
+- **E2E local `make e2e` verde** (browser real, Chrome 148): WebApp integration_test "All tests passed" + smoke; Backoffice 13 passed (1 flaky no retry) — cobre RBAC vivo, fila (lista/filtra/aprova/remove/**race**), editor (cria+ativa+placeholder bloqueado).
+- **Cobertura medida**: api 96,1%, admin 93,6%, webapp 76,8% (app-inteiro).
+- **PDR-012 central (CA-B1-53)** coberto por teste `CompletarCadastroProfissionalTest` CA-16 (aceite mantém versão original após nova ativação) + CA-11 (imutável) — Postgres real.
+- **Observabilidade**: 4 métricas RED + 3 alertas ENABLED (falha e-mail crítico, indisponível, 5xx). **Alerta SLA>20h não observado** (F-NB-1).
+- **Acessibilidade (Lighthouse)**: admin /login 100; WebApp /login 88; /cadastro 92.
+
+### Pendente (não-central, não verificado nesta sessão — ver "Limitações" no report)
+Cronometragem exata da métrica primária (CA-4-1), cookies de sessão autenticada (CA-5-6), entrega real de e-mail em inbox (CA-B1-36), lista LGPD de dados (CA-5-7), Argon2id efetivo em homolog (CA-5-3), psql ao vivo (decisão PO).
 
 ### Veredito final
-(a preencher: `approved` | `approved_with_pending` | `rejected`)
+`approved_with_pending` — zero fails bloqueantes; 1 fail não-bloqueante (alerta SLA>20h); pendências de verificação viva não-centrais. Decisão de fechamento do épico é do PO.
 
 ### Resultado final / evidência
-(a preencher — link do `report.md`)
+`docs/project-state/epics/EPIC-001-cadastro-e-aprovacao/validation/report.md` (+ `validation/evidence/`).

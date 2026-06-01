@@ -1,0 +1,615 @@
+docker compose up -d postgres
+ Container mvpturni-mvp-postgres-1 Running 
+/Applications/Xcode.app/Contents/Developer/usr/bin/make _wait-db
+aguardando Postgres ok
+docker compose run --rm --no-deps -e DB_DATABASE=turni_test api ./vendor/bin/pest --colors=always --coverage --min=80
+ Container mvpturni-mvp-api-run-d59413489ef5 Creating 
+ Container mvpturni-mvp-api-run-d59413489ef5 Created 
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\AuditLogServiceTest[39m
+  [32;1m✓[39;22m[90m [39m[90mAuditLogService cria entrada no audit log com campos corretos[39m[90m       [39m [90m0.31s[39m  
+  [32;1m✓[39;22m[90m [39m[90mAuditLogService cria entrada com actor_id nulo para tentativas sem[39m[90m… [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mAuditLogService persiste IP e user_agent da requisição[39m[90m              [39m [90m0.02s[39m  
+{"message":"cadastro.cep_lookup_falhou","context":{"status":500},"level":300,"level_name":"WARNING","channel":"testing","datetime":"2026-06-01T22:46:36.756919+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Cadastro\CepLookupTest[39m
+  [32;1m✓[39;22m[90m [39m[90mCA-4: CEP válido retorna endereço mapeado[39m[90m                           [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-4: aceita CEP com máscara ou só dígitos (normaliza antes de cham[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-4: CEP malformado (≠8 dígitos) retorna null sem chamar a API[39m[90m     [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-4: CEP inexistente (erro do ViaCEP) retorna null[39m[90m                 [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-4: falha da API externa não lança, retorna null e loga falha de[39m[90m… [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-4: status de erro HTTP do ViaCEP retorna null[39m[90m                    [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-4: CEP vazio retorna null sem chamar a API[39m[90m                       [39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Cadastro\ChavePixValidatorTest[39m
+  [32;1m✓[39;22m[90m [39m[90mdetecta tipo de chave Pix válida with dataset "email"[39m[90m               [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mdetecta tipo de chave Pix válida with dataset "cpf"[39m[90m                 [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mdetecta tipo de chave Pix válida with dataset "cnpj"[39m[90m                [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mdetecta tipo de chave Pix válida with dataset "telefone E.164"[39m[90m      [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mdetecta tipo de chave Pix válida with dataset "aleatoria (UUID)"[39m[90m    [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrejeita chave Pix inválida with dataset "vazia"[39m[90m                     [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrejeita chave Pix inválida with dataset "email malformado"[39m[90m          [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrejeita chave Pix inválida with dataset "cpf inválido"[39m[90m              [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrejeita chave Pix inválida with dataset "telefone sem +"[39m[90m            [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrejeita chave Pix inválida with dataset "texto livre"[39m[90m               [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrejeita chave Pix inválida with dataset "uuid incompleto"[39m[90m           [39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Cadastro\DocumentoValidatorTest[39m
+  [32;1m✓[39;22m[90m [39m[90mnormaliza removendo máscara[39m[90m                                         [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mtipoDocumento mapeia tipo_pessoa (PDR-001)[39m[90m                          [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCPF válido passa (com e sem máscara)[39m[90m                                [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCPF inválido reprova with dataset "dígito errado"[39m[90m                   [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCPF inválido reprova with dataset "sequência repetida"[39m[90m              [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCPF inválido reprova with dataset "curto"[39m[90m                           [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCPF inválido reprova with dataset "sequência clássica"[39m[90m              [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCNPJ válido passa (com e sem máscara)[39m[90m                               [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCNPJ inválido reprova with dataset "dígito errado"[39m[90m                  [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCNPJ inválido reprova with dataset "sequência repetida"[39m[90m             [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCNPJ inválido reprova with dataset "curto"[39m[90m                          [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalidarParaTipoPessoa exige CPF p/ PF e CNPJ p/ MEI/PJ[39m[90m              [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mformata para exibição[39m[90m                                               [39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\ContratanteProfileModelTest[39m
+  [32;1m✓[39;22m[90m [39m[90mCNPJ do contratante é criptografado em repouso e decripta na leitur[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcnpj_hash é único entre contratantes (CA-3)[39m[90m                         [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcampos estruturados do contratante fazem round-trip (endereço, cont[39m[90m…[39m [90m0.02s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Contratos\AceiteAdesaoRendererTest[39m
+  [32;1m✓[39;22m[90m [39m[90mextrairCorpoAdesao mantém Seção 1 e Assinatura, descarta Seção 2 e[39m[90m… [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrenderiza o aceite de adesão com os dados do profissional[39m[90m           [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mplaceholder ausente causa falha dura (nenhum aceite incompleto)[39m[90m     [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mpreview usa marcador pendente nos campos de assinatura e bate com o[39m[90m…[39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\PiiTest[39m
+  [32;1m✓[39;22m[90m [39m[90mmascara e-mail mantendo a primeira letra e o domínio[39m[90m                [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mmascara e-mail com parte local de um caractere[39m[90m                      [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mretorna placeholder para entrada vazia ou inválida[39m[90m                  [39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\ProfileModelsTest[39m
+  [32;1m✓[39;22m[90m [39m[90mProfissionalProfile pode ser criado e relacionado ao usuário[39m[90m        [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mContratanteProfile pode ser criado e relacionado ao usuário[39m[90m         [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mAdminAuditLog relaciona ao usuário pelo actor_id[39m[90m                    [39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\SmokeTest[39m
+  [32;1m✓[39;22m[90m [39m[90maparato de teste plugado (1 + 1 = 2)[39m[90m                                [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mpackage de domínio compartilhado está ligado ao api[39m[90m                 [39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\UserModelTest[39m
+  [32;1m✓[39;22m[90m [39m[90misAdmin retorna true para role=admin[39m[90m                                [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90misAdmin retorna false para role=profissional[39m[90m                        [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90misProfissional retorna true para role=profissional[39m[90m                  [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90misProfissional retorna false para role=contratante[39m[90m                  [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90misContratante retorna true para role=contratante[39m[90m                    [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcanAccessWebApp retorna true para contratante[39m[90m                       [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcanAccessWebApp retorna true para profissional[39m[90m                      [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcanAccessWebApp retorna false para admin[39m[90m                            [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90misAtivo retorna true para status=ativo[39m[90m                              [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90misAtivo retorna false para status=liberado[39m[90m                          [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90misLiberado retorna true para status=liberado[39m[90m                        [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90misPendente retorna true para status=pendente_aprovacao[39m[90m              [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfunnelState retorna await_approval para pendente_aprovacao[39m[90m          [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfunnelState retorna rejected para recusado[39m[90m                          [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfunnelState retorna await_welcome para liberado sem welcome[39m[90m         [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfunnelState retorna await_cadastro para liberado com welcome mas se[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfunnelState retorna active para usuario ativo[39m[90m                       [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfunnelState retorna active para ativo mesmo com timestamps nulos (a[39m[90m…[39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Auth\PasswordResetTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit e-mail conhecido recebe recuperacao_senha pela ACL com link e TT[39m[90m…[39m [90m0.24s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit e-mail desconhecido devolve a MESMA resposta neutra e não enfile[39m[90m…[39m [90m0.23s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit redefine a senha com token válido e a nova senha passa a valer ([39m[90m…[39m [90m0.61s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit token inválido não redefine a senha[39m[90m                              [39m [90m0.44s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit pedido repetido é throttled e mantém a resposta neutra, sem 2º e[39m[90m…[39m [90m0.43s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit o link de reset expira em 60 minutos (ADR-007 §f)[39m[90m                [39m [90m0.03s[39m  
+{"message":"email.sent","context":{"event":"email.sent","tipo":"aprovacao_concedida","destinatario":"m•••@example.com","message_id":null,"latencia_ms":0},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:39.465143+00:00","extra":{}}
+{"message":"email.failed","context":{"event":"email.failed","tipo":"aprovacao_concedida","destinatario":"m•••@example.com","causa":"SMTP caiu","latencia_ms":0},"level":400,"level_name":"ERROR","channel":"testing","datetime":"2026-06-01T22:46:39.480151+00:00","extra":{}}
+{"message":"email.aprovacao.falhou","context":{"event":"email.aprovacao.falhou","tipo":"aprovacao_concedida","destinatario":"m•••@example.com","causa":"estourou"},"level":400,"level_name":"ERROR","channel":"testing","datetime":"2026-06-01T22:46:39.516518+00:00","extra":{}}
+{"message":"email.lembrete.falhou","context":{"event":"email.lembrete.falhou","tipo":"lembrete_completar_cadastro","destinatario":"j•••@example.com","causa":"estourou"},"level":300,"level_name":"WARNING","channel":"testing","datetime":"2026-06-01T22:46:39.529487+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Email\EmailTransacionalTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit renderiza aprovacao_concedida com assunto, from, H1, nome e CTA[39m[90m… [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit renderiza lembrete_completar_cadastro com assunto e CTA corretos[39m[90m [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit renderiza recuperacao_senha com TTL e aviso de segurança[39m[90m         [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit usa fallback "Olá." quando o nome está ausente (SCREEN §5 borda)[39m[90m [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit envia pelo Mail e loga email.sent com destinatário mascarado (CA[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit relança falha do transporte como EmailTransacionalException e lo[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit uniqueId deriva da idempotencyKey e deduplica o despacho (CA-14)[39m[90m [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit sem idempotencyKey, cada despacho é único (não deduplica)[39m[90m        [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit aprovação esgotada loga ERROR com event=email.aprovacao.falhou m[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit lembrete esgotado loga apenas WARNING (não crítico)[39m[90m              [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit o job enfileira na conexão database e resolve a ACL do container[39m[90m [39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Email\LembreteCadastroTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit envia o 1º lembrete após 48h e registra na tabela auxiliar[39m[90m       [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit não envia antes de 48h[39m[90m                                           [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit não envia para quem já completou o cadastro[39m[90m                      [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit não envia para quem ainda não viu a welcome[39m[90m                      [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit não envia para cadastro pendente de aprovação[39m[90m                    [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit envia o 2º lembrete aos 5 dias quando o 1º já foi enviado[39m[90m        [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit envia o 3º lembrete aos 14 dias e grava a observação de expiraçã[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit para de enviar após o 3º lembrete (teto de 3)[39m[90m                    [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit é idempotente: rodar 2× no mesmo dia não reenvia o mesmo lembret[39m[90m…[39m [90m0.02s[39m  
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:39.994678+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:39.996236+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:39.997635+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\EnvironmentTest[39m
+  [32;1m✓[39;22m[90m [39m[90ma aplicação conecta no PostgreSQL[39m[90m                                   [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mas migrações criam as tabelas base do framework[39m[90m                     [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90ma rota raiz do api responde 200[39m[90m                                     [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mo seed cria o usuário admin de teste[39m[90m                                [39m [90m0.25s[39m  
+  [32;1m✓[39;22m[90m [39m[90mo seed do admin é idempotente[39m[90m                                       [39m [90m0.24s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\HealthCheckTest[39m
+  [32;1m✓[39;22m[90m [39m[90mhealth endpoint retorna 200 com campos obrigatórios[39m[90m                 [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mhealth endpoint não retorna version vazia[39m[90m                           [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mhealth endpoint sem deep=1 retorna 200 mesmo sem banco[39m[90m              [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mhealth endpoint com deep=1 verifica Postgres[39m[90m                        [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mhealth endpoint com deep=1 retorna 503 quando banco falha[39m[90m           [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mhealth timestamp não é vazio[39m[90m                                        [39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Identity\AuditLogTest[39m
+  [32;1m✓[39;22m[90m [39m[90maudit log pode ser criado (INSERT funciona)[39m[90m                         [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90maudit log é imutável — UPDATE lança exceção do banco (trigger)[39m[90m      [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90maudit log é imutável — DELETE lança exceção do banco (trigger)[39m[90m      [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90maudit log — Eloquent update() lança exceção[39m[90m                         [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90maudit log — Eloquent delete() lança exceção[39m[90m                         [39m [90m0.02s[39m  
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.438751+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.439698+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.440673+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.466150+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.467556+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.468858+00:00","extra":{}}
+{"message":"user.cadastro_completed","context":{"event":"user.cadastro_completed","user_id":51,"role":"contratante","template_versao_id":9},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.479875+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.501596+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.502548+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.503475+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.526976+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.528226+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.529584+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.551700+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.552564+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.553469+00:00","extra":{}}
+{"message":"user.cadastro_completed","context":{"event":"user.cadastro_completed","user_id":57,"role":"contratante","template_versao_id":18},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.561322+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.585527+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.586900+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.588150+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.610730+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.611733+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.612666+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.638125+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.639747+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.641070+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.664164+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.665227+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.666163+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.692509+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.693821+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.695156+00:00","extra":{}}
+{"message":"user.cadastro_completed","context":{"event":"user.cadastro_completed","user_id":68,"role":"contratante","template_versao_id":33},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.704077+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.722580+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.723495+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.724507+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.749770+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.751075+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.752396+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.774966+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.775843+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.776813+00:00","extra":{}}
+{"message":"user.cadastro_completed","context":{"event":"user.cadastro_completed","user_id":74,"role":"contratante","template_versao_id":42},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.785788+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.807232+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.808526+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.809833+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.831596+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.832586+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.833521+00:00","extra":{}}
+{"message":"cadastro.cep_lookup_falhou","context":{"status":500},"level":300,"level_name":"WARNING","channel":"testing","datetime":"2026-06-01T22:46:40.836351+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.855529+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.856888+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.858224+00:00","extra":{}}
+{"message":"user.cadastro_completed","context":{"event":"user.cadastro_completed","user_id":80,"role":"contratante","template_versao_id":51},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.867371+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.888745+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.889924+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.890901+00:00","extra":{}}
+{"message":"cadastro.template_indisponivel","context":{"user_id":82,"erro":"Sem versão ativa do template 'termos_plataforma_contratante'."},"level":400,"level_name":"ERROR","channel":"testing","datetime":"2026-06-01T22:46:40.897325+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.918915+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.920195+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.921686+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.942725+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.943732+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.944649+00:00","extra":{}}
+{"message":"user.cadastro_completed","context":{"event":"user.cadastro_completed","user_id":86,"role":"contratante","template_versao_id":60},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.952729+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.973175+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.974580+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:40.975973+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Identity\CompletarCadastroContratanteTest[39m
+  [32;1m✓[39;22m[90m [39m[90mCA-1: contexto retorna nome do responsável e documento_tipo CNPJ[39m[90m    [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-9/12: contratante conclui cadastro, gera aceite, vira ativo com[39m[90m… [39m [90m0.04s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-7: preview renderiza termos com CNPJ, razão e marcador de assina[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-3: CNPJ inválido (dígitos verificadores) é rejeitado[39m[90m             [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-3: CNPJ duplicado bloqueia com erro genérico e nada persiste[39m[90m     [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-2: campo de endereço obrigatório ausente é rejeitado[39m[90m             [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-2: ano de fundação fora de faixa é rejeitado[39m[90m                     [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-2: faixa de funcionários fora do enum é rejeitada[39m[90m                [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-2: contato adicional sem nome é rejeitado (borda da lista dinâmi[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-2: sem contatos adicionais é aceito (lista vazia — borda)[39m[90m        [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-5: logo com MIME não permitido é rejeitada[39m[90m                       [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-5: logo acima de 5 MB é rejeitada[39m[90m                                [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-5: logo válida é armazenada em disco privado[39m[90m                     [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-4: endpoint de CEP retorna endereço (caminho feliz)[39m[90m              [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-4: falha da API de CEP não bloqueia (204), submit manual segue[39m[90m   [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-6: CNPJ fica cifrado no Postgres (query direta não vê texto clar[39m[90m…[39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-10: sem versão ativa do template, nada persiste (503) e estado é[39m[90m…[39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcontratante pendente não acessa completar cadastro (403)[39m[90m            [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcontratante já ativo não reabre completar cadastro (403)[39m[90m            [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mnão autenticado recebe 401[39m[90m                                          [39m [90m0.02s[39m  
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.008534+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.009901+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.011215+00:00","extra":{}}
+{"message":"user.cadastro_completed","context":{"event":"user.cadastro_completed","user_id":89,"role":"profissional","tipo_pessoa":"PF","template_versao_id":64},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.022709+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.046742+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.048114+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.049395+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.074374+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.075649+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.076912+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.103296+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.104611+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.105942+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.130353+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.131591+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.132918+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.156778+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.158111+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.159398+00:00","extra":{}}
+{"message":"user.cadastro_completed","context":{"event":"user.cadastro_completed","user_id":100,"role":"profissional","tipo_pessoa":"PF","template_versao_id":79},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.169091+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.194490+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.196014+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.197341+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.222101+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.223406+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.224683+00:00","extra":{}}
+{"message":"user.cadastro_completed","context":{"event":"user.cadastro_completed","user_id":105,"role":"profissional","tipo_pessoa":"PF","template_versao_id":85},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.234817+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.254907+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.256218+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.257522+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.282131+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.283509+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.284796+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.312819+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.314064+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.315458+00:00","extra":{}}
+{"message":"user.cadastro_completed","context":{"event":"user.cadastro_completed","user_id":111,"role":"profissional","tipo_pessoa":"PF","template_versao_id":94},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.326300+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.347014+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.348371+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.349636+00:00","extra":{}}
+{"message":"user.cadastro_completed","context":{"event":"user.cadastro_completed","user_id":113,"role":"profissional","tipo_pessoa":"PF","template_versao_id":97},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.360159+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.380942+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.382425+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.383759+00:00","extra":{}}
+{"message":"user.cadastro_completed","context":{"event":"user.cadastro_completed","user_id":115,"role":"profissional","tipo_pessoa":"PF","template_versao_id":100},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.396124+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.428451+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.430081+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.431874+00:00","extra":{}}
+{"message":"cadastro.template_indisponivel","context":{"user_id":117,"erro":"Sem versão ativa do template 'pf_autonomo_eventual'."},"level":400,"level_name":"ERROR","channel":"testing","datetime":"2026-06-01T22:46:41.443241+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.467633+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.469131+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.470552+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.495573+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.496968+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.498297+00:00","extra":{}}
+{"message":"user.cadastro_completed","context":{"event":"user.cadastro_completed","user_id":121,"role":"profissional","tipo_pessoa":"PF","template_versao_id":110},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.508829+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.531833+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.533152+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:41.534543+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Identity\CompletarCadastroProfissionalTest[39m
+  [32;1m✓[39;22m[90m [39m[90mCA-9/12: PF conclui cadastro, gera aceite e vira ativo[39m[90m              [39m [90m0.05s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-7: preview renderiza contrato com CPF e marcador de assinatura p[39m[90m…[39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcontexto retorna tipo_pessoa e documento_tipo do perfil[39m[90m             [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-3: PF com CPF inválido é rejeitado[39m[90m                               [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-3: MEI precisa de CNPJ — CPF é rejeitado[39m[90m                         [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-3: documento duplicado bloqueia com erro genérico e nada persist[39m[90m…[39m [90m0.04s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-4: chave Pix curta demais (<6) é rejeitada[39m[90m                       [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-4: chave Pix com 6+ chars é aceita (qualquer formato)[39m[90m            [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-5: rejeita arquivo com MIME não permitido[39m[90m                        [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-5: rejeita arquivo acima de 10 MB[39m[90m                                [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-6: documento e chave Pix ficam cifrados no Postgres (query diret[39m[90m…[39m [90m0.04s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-11: aceite é imutável — UPDATE/DELETE direto lançam exceção do b[39m[90m…[39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-16: aceite continua na versão original após admin ativar nova ve[39m[90m…[39m [90m0.04s[39m  
+  [32;1m✓[39;22m[90m [39m[90mCA-10: sem versão ativa do template, nada persiste e arquivos são l[39m[90m…[39m [90m0.04s[39m  
+  [32;1m✓[39;22m[90m [39m[90musuário pendente não acessa completar cadastro (403)[39m[90m                [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90musuário já ativo não reabre completar cadastro (403)[39m[90m                [39m [90m0.04s[39m  
+  [32;1m✓[39;22m[90m [39m[90mnão autenticado recebe 401[39m[90m                                          [39m [90m0.03s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Identity\FuncoesEndpointTest[39m
+  [32;1m✓[39;22m[90m [39m[90mlista apenas funções ativas, ordenadas por nome, sem auth[39m[90m           [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mnão expõe a coluna ativo no payload[39m[90m                                 [39m [90m0.02s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Identity\LoginTest[39m
+  [32;1m✓[39;22m[90m [39m[90mlogin bem-sucedido retorna 200 com role status e flags do funil[39m[90m     [39m [90m0.21s[39m  
+  [32;1m✓[39;22m[90m [39m[90mlogin bem-sucedido não retorna a senha no body[39m[90m                      [39m [90m0.21s[39m  
+  [32;1m✓[39;22m[90m [39m[90mlogin retorna cookie de sessão httpOnly[39m[90m                             [39m [90m0.21s[39m  
+  [32;1m✓[39;22m[90m [39m[90mlogin com senha errada retorna 401 sem revelar se e-mail existe[39m[90m     [39m [90m0.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90mlogin com campos vazios retorna 422[39m[90m                                 [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mlogout invalida sessão — request subsequente com mesmo cookie retor[39m[90m…[39m [90m0.21s[39m  
+  [32;1m✓[39;22m[90m [39m[90madmin tentando login na api retorna 403 com mensagem de redireciona[39m[90m…[39m [90m0.20s[39m  
+  [32;1m✓[39;22m[90m [39m[90mmensagem de admin no WebApp é diferente da mensagem de credencial i[39m[90m…[39m [90m0.21s[39m  
+  [32;1m✓[39;22m[90m [39m[90mrequisição ao /api/login sem header de host válido não cria sessão[39m[90m… [39m [90m0.20s[39m  
+  [32;1m✓[39;22m[90m [39m[90musuário liberado com welcome_visto=false recebe 423 em rota interna[39m[90m [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90musuário liberado com welcome_visto=true e cadastro incompleto receb[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90musuário ativo acessa /api/user normalmente[39m[90m                          [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90musuário pendente_aprovacao recebe 423 com estado correto[39m[90m            [39m [90m0.02s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Identity\MigrationSchemaTest[39m
+  [32;1m✓[39;22m[90m [39m[90mtabela users tem as colunas de identidade do EPIC-001 (ADR-009)[39m[90m     [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mtabela profissional_profiles existe com colunas obrigatórias[39m[90m        [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mtabela contratante_profiles existe com colunas obrigatórias[39m[90m         [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mtabela admin_audit_log existe com colunas do ADR-009[39m[90m                [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90madmin_audit_log não tem coluna updated_at — é append-only[39m[90m           [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90musers.role permite apenas valores válidos (constraint CHECK ou enum[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90musers.status permite apenas valores válidos[39m[90m                         [39m [90m0.01s[39m  
+{"message":"user.preregistered","context":{"event":"user.preregistered","role":"contratante","tipo_operacao":"restaurante","masked_email":"r***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:43.457500+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","role":"contratante","tipo_operacao":"bar","masked_email":"b***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:43.575551+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","role":"contratante","tipo_operacao":"hotel","masked_email":"h***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:43.692654+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","role":"contratante","tipo_operacao":"evento","masked_email":"e***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:43.810113+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","role":"contratante","tipo_operacao":"catering","masked_email":"c***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:43.926763+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","role":"contratante","tipo_operacao":"outro","masked_email":"o***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:44.044943+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","role":"contratante","tipo_operacao":"bar","masked_email":"h***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:44.170246+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","role":"contratante","tipo_operacao":"bar","masked_email":"f***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:44.585393+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","role":"contratante","tipo_operacao":"bar","masked_email":"i***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:44.720660+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","role":"contratante","tipo_operacao":"bar","masked_email":"n***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:45.037640+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Identity\PreCadastroContratanteTest[39m
+  [32;1m✓[39;22m[90m [39m[90mcria contratante pendente_aprovacao com perfil do estabelecimento w[39m[90m…[39m [90m0.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcria contratante pendente_aprovacao com perfil do estabelecimento w[39m[90m…[39m [90m0.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcria contratante pendente_aprovacao com perfil do estabelecimento w[39m[90m…[39m [90m0.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcria contratante pendente_aprovacao com perfil do estabelecimento w[39m[90m…[39m [90m0.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcria contratante pendente_aprovacao com perfil do estabelecimento w[39m[90m…[39m [90m0.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcria contratante pendente_aprovacao com perfil do estabelecimento w[39m[90m…[39m [90m0.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90msenha é hasheada com argon2id e nunca aparece no response[39m[90m           [39m [90m0.22s[39m  
+  [32;1m✓[39;22m[90m [39m[90memite log estruturado user.preregistered com e-mail mascarado e sem[39m[90m…[39m [90m0.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90me-mail já cadastrado retorna mensagem explicativa para o usuário[39m[90m    [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90maceite dos termos não marcado é bloqueado no servidor[39m[90m               [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90maceite dos termos ausente é bloqueado no servidor[39m[90m                   [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfoto com tipo não permitido é rejeitada[39m[90m                             [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfoto acima de 5MB é rejeitada[39m[90m                                       [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfoto de ~2MB (tamanho típico de celular) é aceita[39m[90m                   [39m [90m0.11s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfoto ausente é rejeitada[39m[90m                                            [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mnão coleta nem persiste CNPJ, endereço ou segmento no pré-cadastro[39m[90m  [39m [90m0.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "nome curto"[39m[90m     [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "nome longo"[39m[90m     [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "email malformad[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "telefone inváli[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "estabelecimento[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "estabelecimento[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "estabelecimento[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "tipo_operacao i[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "tipo_operacao a[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "cidade ausente"[39m[90m [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "senha curta"[39m[90m    [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "senha sem confi[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mnão autentica o usuário após o cadastro[39m[90m                             [39m [90m0.11s[39m  
+{"message":"user.preregistered","context":{"event":"user.preregistered","tipo_pessoa":"PF","masked_email":"p***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:45.170847+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","tipo_pessoa":"MEI","masked_email":"m***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:45.288833+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","tipo_pessoa":"PJ","masked_email":"p***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:45.410993+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","tipo_pessoa":"PF","masked_email":"h***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:45.535202+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","tipo_pessoa":"PF","masked_email":"f***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:45.957444+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","tipo_pessoa":"PF","masked_email":"d***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:46.091630+00:00","extra":{}}
+{"message":"user.preregistered","context":{"event":"user.preregistered","tipo_pessoa":"PF","masked_email":"n***@example.com"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:46.385730+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Identity\PreCadastroProfissionalTest[39m
+  [32;1m✓[39;22m[90m [39m[90mcria profissional pendente_aprovacao com perfil para cada tipo_pess[39m[90m…[39m [90m0.13s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcria profissional pendente_aprovacao com perfil para cada tipo_pess[39m[90m…[39m [90m0.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcria profissional pendente_aprovacao com perfil para cada tipo_pess[39m[90m…[39m [90m0.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90msenha é hasheada com argon2id e nunca aparece no response[39m[90m           [39m [90m0.22s[39m  
+  [32;1m✓[39;22m[90m [39m[90memite log estruturado user.preregistered com e-mail mascarado e sem[39m[90m…[39m [90m0.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90me-mail já cadastrado retorna mensagem explicativa para o usuário[39m[90m    [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90maceite dos termos não marcado é bloqueado no servidor[39m[90m               [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90maceite dos termos ausente é bloqueado no servidor[39m[90m                   [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfoto com tipo não permitido é rejeitada[39m[90m                             [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfoto acima de 5MB é rejeitada[39m[90m                                       [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfoto de ~2MB (tamanho típico de celular) é aceita[39m[90m                   [39m [90m0.11s[39m  
+  [32;1m✓[39;22m[90m [39m[90mfoto ausente é rejeitada[39m[90m                                            [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mnão coleta nem persiste documento no pré-cadastro[39m[90m                   [39m [90m0.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "nome curto"[39m[90m     [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "nome longo"[39m[90m     [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "email malformad[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "telefone inváli[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "cidade ausente"[39m[90m [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "bairro ausente"[39m[90m [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "tipo_pessoa inv[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "funcao inexiste[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "senha curta"[39m[90m    [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mvalida campos obrigatórios e formatos with dataset "senha sem confi[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mnão autentica o usuário após o cadastro[39m[90m                             [39m [90m0.11s[39m  
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:46.639131+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:46.640500+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:46.641879+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:46.876973+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:46.878246+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:46.879608+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:47.111301+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:47.112582+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:47.113854+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:47.350234+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:47.351583+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:47.352877+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"pf_autonomo_eventual","versao":1,"content_sha256":"ad8ab0d9fe5150199c0f6982c43e48195902fb22025fdc41d5bd638c590ecf80"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:47.798476+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"mei_pj_b2b","versao":1,"content_sha256":"f909d489ddcb5bd1f67143c485972033db4779b8127bdf9f5bb5786ab1fc642c"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:47.799768+00:00","extra":{}}
+{"message":"admin.template.seeded","context":{"event":"admin.template.seeded","service":"seed","template_slug":"termos_plataforma_contratante","versao":1,"content_sha256":"ef248bb7a4e431a84fa8f852d129f3bd5ca51faaf035f65f25e778eb43632360"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:47.801083+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Identity\SeedTest[39m
+  [32;1m✓[39;22m[90m [39m[90mseed cria admin@turni.local com role admin e status ativo[39m[90m           [39m [90m0.26s[39m  
+  [32;1m✓[39;22m[90m [39m[90mseed cria contratante.teste@turni.local com role e status corretos[39m[90m  [39m [90m0.24s[39m  
+  [32;1m✓[39;22m[90m [39m[90mseed cria profissional.teste@turni.local com role e tipo_pessoa cor[39m[90m…[39m [90m0.23s[39m  
+  [32;1m✓[39;22m[90m [39m[90mseed é idempotente — rodar duas vezes produz os mesmos 3 usuários[39m[90m   [39m [90m0.45s[39m  
+  [32;1m✓[39;22m[90m [39m[90msenha do seed nunca aparece em log ou serialização JSON[39m[90m             [39m [90m0.24s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Identity\WebAppOnlyMiddlewareTest[39m
+  [32;1m✓[39;22m[90m [39m[90madmin autenticado acessando rota /api/user recebe 403 via WebAppOnl[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcontratante ativo acessa /api/user sem ser bloqueado pelo WebAppOnl[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mprofissional ativo acessa /api/user sem ser bloqueado pelo WebAppOn[39m[90m…[39m [90m0.02s[39m  
+{"message":"user.welcome_seen","context":{"event":"user.welcome_seen","user_id":226,"role":"profissional","timestamp":"2026-06-01T22:46:47+00:00"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:47.871872+00:00","extra":{}}
+{"message":"user.welcome_seen","context":{"event":"user.welcome_seen","user_id":227,"role":"profissional","timestamp":"2026-06-01T22:46:47+00:00"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:47.890143+00:00","extra":{}}
+{"message":"user.welcome_seen","context":{"event":"user.welcome_seen","user_id":229,"role":"profissional","timestamp":"2026-06-01T22:46:47+00:00"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:47.923910+00:00","extra":{}}
+{"message":"user.welcome_seen","context":{"event":"user.welcome_seen","user_id":231,"role":"profissional","timestamp":"2026-06-01T22:46:47+00:00"},"level":200,"level_name":"INFO","channel":"testing","datetime":"2026-06-01T22:46:47.973843+00:00","extra":{}}
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Identity\WelcomeSeenTest[39m
+  [32;1m✓[39;22m[90m [39m[90musuário liberado com welcome_visto=false marca welcome e recebe nov[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mo funnel state do usuário avança de await_welcome para await_cadast[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mmarcar welcome quando já marcado é no-op silencioso e não sobrescre[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mmarcar welcome duas vezes seguidas retorna 200 nas duas[39m[90m             [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mnão-autenticado não pode marcar welcome[39m[90m                             [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90madmin não acessa o endpoint do WebApp[39m[90m                               [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mendpoint welcome-visto NÃO é bloqueado pelo funnel guard para usuár[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mmarcar welcome emite log estruturado user.welcome_seen sem PII clar[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mlogin bem-sucedido inclui name no payload[39m[90m                           [39m [90m0.21s[39m  
+
+  [90mTests:[39m    [32;1m238 passed[39;22m[90m (790 assertions)[39m
+  [90mDuration:[39m [39m11.93s[39m
+
+
+
+[1;37;40mCode Coverage Report:        [0m
+[1;37;40m  2026-06-01 22:46:48        [0m
+[1;37;40m                             [0m
+[1;37;40m Summary:                    [0m
+[30;43m  Classes: 60.47% (26/43)    [0m
+[30;43m  Methods: 80.70% (92/114)   [0m
+[30;42m  Lines:   96.20% (1139/1184)[0m
+
+App\Console\Commands\EnviarLembretesCadastroCommand
+  [37;41mMethods:   0.00% ( 0/ 1)[0m   [30;42mLines:  95.56% ( 43/ 45)[0m
+App\Domain\Cadastro\CepLookup
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% ( 22/ 22)[0m
+App\Domain\Cadastro\ChavePixValidator
+  [30;42mMethods: 100.00% ( 2/ 2)[0m   [30;42mLines: 100.00% ( 16/ 16)[0m
+App\Domain\Cadastro\DocumentoDuplicadoException
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% (  1/  1)[0m
+App\Domain\Cadastro\DocumentoValidator
+  [30;43mMethods:  87.50% ( 7/ 8)[0m   [30;42mLines:  96.97% ( 32/ 33)[0m
+App\Domain\Contratos\AceiteAdesaoRenderer
+  [30;42mMethods: 100.00% ( 3/ 3)[0m   [30;42mLines: 100.00% ( 23/ 23)[0m
+App\Domain\Contratos\RenderizacaoIncompletaException
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% (  1/  1)[0m
+App\Domain\Contratos\TemplateIndisponivelException
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% (  1/  1)[0m
+App\Email\MailEnviaEmailTransacional
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% ( 21/ 21)[0m
+App\Http\Controllers\AuthController
+  [37;41mMethods:  50.00% ( 1/ 2)[0m   [30;43mLines:  87.50% ( 35/ 40)[0m
+App\Http\Controllers\Cadastro\CompletarCadastroContratanteController
+  [30;43mMethods:  57.14% ( 4/ 7)[0m   [30;43mLines:  89.02% ( 73/ 82)[0m
+App\Http\Controllers\Cadastro\CompletarCadastroProfissionalController
+  [30;43mMethods:  66.67% ( 4/ 6)[0m   [30;43mLines:  87.32% ( 62/ 71)[0m
+App\Http\Controllers\Cadastro\ContratanteCadastroController
+  [37;41mMethods:   0.00% ( 0/ 1)[0m   [30;42mLines:  92.68% ( 38/ 41)[0m
+App\Http\Controllers\Cadastro\FuncaoController
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% (  5/  5)[0m
+App\Http\Controllers\Cadastro\ProfissionalCadastroController
+  [37;41mMethods:   0.00% ( 0/ 1)[0m   [30;42mLines:  92.50% ( 37/ 40)[0m
+App\Http\Controllers\Usuario\WelcomeController
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% ( 16/ 16)[0m
+App\Http\Middleware\FunnelGuard
+  [37;41mMethods:   0.00% ( 0/ 1)[0m   [30;42mLines:  90.00% (  9/ 10)[0m
+App\Http\Middleware\WebAppOnly
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% (  8/  8)[0m
+App\Http\Requests\CompletarCadastroContratanteRequest
+  [30;42mMethods: 100.00% ( 4/ 4)[0m   [30;42mLines: 100.00% ( 43/ 43)[0m
+App\Http\Requests\CompletarCadastroProfissionalRequest
+  [30;42mMethods: 100.00% ( 4/ 4)[0m   [30;42mLines: 100.00% ( 30/ 30)[0m
+App\Http\Requests\StoreContratantePreCadastroRequest
+  [30;42mMethods: 100.00% ( 3/ 3)[0m   [30;42mLines: 100.00% ( 36/ 36)[0m
+App\Http\Requests\StoreProfissionalPreCadastroRequest
+  [30;42mMethods: 100.00% ( 3/ 3)[0m   [30;42mLines: 100.00% ( 37/ 37)[0m
+App\Http\Responses\NeutralPasswordResetLinkResponse
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% (  3/  3)[0m
+App\Mail\TransacionalMail
+  [30;42mMethods: 100.00% ( 4/ 4)[0m   [30;42mLines: 100.00% ( 60/ 60)[0m
+App\Models\AceiteEletronico
+  [30;43mMethods:  66.67% ( 2/ 3)[0m   [30;43mLines:  83.33% (  5/  6)[0m
+App\Models\AdminAuditLog
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% (  1/  1)[0m
+App\Models\CadastroLembrete
+  [37;41mMethods:  50.00% ( 1/ 2)[0m   [30;43mLines:  80.00% (  4/  5)[0m
+App\Models\ContratanteProfile
+  [37;41mMethods:  50.00% ( 1/ 2)[0m   [30;43mLines:  87.50% (  7/  8)[0m
+App\Models\Funcao
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% (  1/  1)[0m
+App\Models\ProfissionalProfile
+  [37;41mMethods:  33.33% ( 1/ 3)[0m   [30;43mLines:  84.62% ( 11/ 13)[0m
+App\Models\Template
+  [37;41mMethods:  50.00% ( 1/ 2)[0m   [37;41mLines:  50.00% (  1/  2)[0m
+App\Models\TemplateVersao
+  [37;41mMethods:  50.00% ( 1/ 2)[0m   [30;43mLines:  83.33% (  5/  6)[0m
+App\Models\User
+  [30;42mMethods: 100.00% (12/12)[0m   [30;42mLines: 100.00% ( 32/ 32)[0m
+App\Providers\AppServiceProvider
+  [30;42mMethods: 100.00% ( 2/ 2)[0m   [30;42mLines: 100.00% (  2/  2)[0m
+App\Services\AuditLogService
+  [30;42mMethods: 100.00% ( 2/ 2)[0m   [30;42mLines: 100.00% ( 10/ 10)[0m
+App\Services\CompletarCadastroContratanteService
+  [30;42mMethods: 100.00% ( 8/ 8)[0m   [30;42mLines: 100.00% ( 91/ 91)[0m
+App\Services\CompletarCadastroProfissionalService
+  [30;43mMethods:  85.71% ( 6/ 7)[0m   [30;42mLines:  98.68% ( 75/ 76)[0m
+App\Support\Pii
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% (  5/  5)[0m
+Database\Seeders\AdminUserSeeder
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% (129/129)[0m
+Database\Seeders\DatabaseSeeder
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% (  4/  4)[0m
+Database\Seeders\FilaAprovacaoPendentesSeeder
+  [37;41mMethods:  50.00% ( 1/ 2)[0m   [30;42mLines:  98.04% ( 50/ 51)[0m
+Database\Seeders\FuncaoSeeder
+  [30;42mMethods: 100.00% ( 1/ 1)[0m   [30;42mLines: 100.00% ( 18/ 18)[0m
+Database\Seeders\TemplatesContratuaisSeeder
+  [37;41mMethods:   0.00% ( 0/ 2)[0m   [30;42mLines:  92.31% ( 36/ 39)[0m
+  app/Console/Commands/EnviarLembretesCadastroCommand [90m.........[39m [33m71..72[39m[33m [39m[90m/[39m[33m 95.6%[39m  
+  app/Domain/Cadastro/CepLookup [90m.......................................[39m [32m100.0%[39m  
+  app/Domain/Cadastro/ChavePixValidator [90m...............................[39m [32m100.0%[39m  
+  app/Domain/Cadastro/DocumentoDuplicadoException [90m.....................[39m [32m100.0%[39m  
+  app/Domain/Cadastro/DocumentoValidator [90m..........................[39m [33m72[39m[33m [39m[90m/[39m[33m 97.0%[39m  
+  app/Domain/Contratos/AceiteAdesaoRenderer [90m...........................[39m [32m100.0%[39m  
+  app/Domain/Contratos/RenderizacaoIncompletaException [90m................[39m [32m100.0%[39m  
+  app/Domain/Contratos/TemplateIndisponivelException [90m..................[39m [32m100.0%[39m  
+  app/Email/MailEnviaEmailTransacional [90m................................[39m [32m100.0%[39m  
+  app/Http/Controllers/AuthController [90m.........................[39m [33m32..37[39m[33m [39m[90m/[39m[33m 87.5%[39m  
+  app/Http/Controllers/Cadastro/CompletarCadastroContratanteControlle…  [33m78..81, 114, 128..130, 164, 80[39m[33m [39m[90m/[39m[33m 89.0%[39m  
+  app/Http/Controllers/Cadastro/CompletarCadastroProfissionalControll…  [33m60..65, 98, 112..114[39m[33m [39m[90m/[39m[33m 87.3%[39m  
+  app/Http/Controllers/Cadastro/ContratanteCadastroController [90m.[39m [33m70..73[39m[33m [39m[90m/[39m[33m 92.7%[39m  
+  app/Http/Controllers/Cadastro/FuncaoController [90m......................[39m [32m100.0%[39m  
+  app/Http/Controllers/Cadastro/ProfissionalCadastroController  [33m68..71[39m[33m [39m[90m/[39m[33m 92.5%[39m  
+  app/Http/Controllers/Controller [90m.....................................[39m [32m100.0%[39m  
+  app/Http/Controllers/Usuario/WelcomeController [90m......................[39m [32m100.0%[39m  
+  app/Http/Middleware/FunnelGuard [90m.................................[39m [33m24[39m[33m [39m[90m/[39m[33m 90.0%[39m  
+  app/Http/Middleware/WebAppOnly [90m......................................[39m [32m100.0%[39m  
+  app/Http/Requests/CompletarCadastroContratanteRequest [90m...............[39m [32m100.0%[39m  
+  app/Http/Requests/CompletarCadastroProfissionalRequest [90m..............[39m [32m100.0%[39m  
+  app/Http/Requests/StoreContratantePreCadastroRequest [90m................[39m [32m100.0%[39m  
+  app/Http/Requests/StoreProfissionalPreCadastroRequest [90m...............[39m [32m100.0%[39m  
+  app/Http/Responses/NeutralPasswordResetLinkResponse [90m.................[39m [32m100.0%[39m  
+  app/Mail/TransacionalMail [90m...........................................[39m [32m100.0%[39m  
+  app/Models/AceiteEletronico [90m.....................................[39m [33m48[39m[33m [39m[90m/[39m[33m 83.3%[39m  
+  app/Models/AdminAuditLog [90m............................................[39m [32m100.0%[39m  
+  app/Models/CadastroLembrete [90m.....................................[39m [33m28[39m[33m [39m[90m/[39m[33m 80.0%[39m  
+  app/Models/ContratanteProfile [90m...................................[39m [33m58[39m[33m [39m[90m/[39m[33m 87.5%[39m  
+  app/Models/Funcao [90m...................................................[39m [32m100.0%[39m  
+  app/Models/ProfissionalProfile [90m..............................[39m [33m57..62[39m[33m [39m[90m/[39m[33m 84.6%[39m  
+  app/Models/Template [90m.............................................[39m [33m20[39m[33m [39m[90m/[39m[33m 50.0%[39m  
+  app/Models/TemplateVersao [90m.......................................[39m [33m31[39m[33m [39m[90m/[39m[33m 83.3%[39m  
+  app/Models/User [90m.....................................................[39m [32m100.0%[39m  
+  app/Providers/AppServiceProvider [90m....................................[39m [32m100.0%[39m  
+  app/Services/AuditLogService [90m........................................[39m [32m100.0%[39m  
+  app/Services/CompletarCadastroContratanteService [90m....................[39m [32m100.0%[39m  
+  app/Services/CompletarCadastroProfissionalService [90m..............[39m [33m130[39m[33m [39m[90m/[39m[33m 98.7%[39m  
+  app/Support/Pii [90m.....................................................[39m [32m100.0%[39m  
+  database/seeders/AdminUserSeeder [90m....................................[39m [32m100.0%[39m  
+  database/seeders/DatabaseSeeder [90m.....................................[39m [32m100.0%[39m  
+  database/seeders/FilaAprovacaoPendentesSeeder [90m...................[39m [33m24[39m[33m [39m[90m/[39m[33m 98.0%[39m  
+  database/seeders/FuncaoSeeder [90m.......................................[39m [32m100.0%[39m  
+  database/seeders/TemplatesContratuaisSeeder [90m.............[39m [33m44, 93, 99[39m[33m [39m[90m/[39m[33m 92.3%[39m  
+  [90m────────────────────────────────────────────────────────────────────────────[39m  
+                                                                 [1mTotal: 96.1 %[22m  
+

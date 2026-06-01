@@ -1,0 +1,139 @@
+/Applications/Xcode.app/Contents/Developer/usr/bin/make e2e-webapp
+Resolving dependencies...
+Downloading packages...
+  code_assets 1.2.0 (1.2.1 available)
+  hooks 2.0.0 (2.0.1 available)
+  matcher 0.12.19 (0.12.20 available)
+  meta 1.17.0 (1.18.2 available)
+  test_api 0.7.10 (0.7.12 available)
+  vector_math 2.2.0 (2.3.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Compiling lib/main.dart for the Web...                          
+Wasm dry run succeeded. Consider building and testing your application with the `--wasm` flag. See docs for more info: https://docs.flutter.dev/platform-integration/web/wasm
+Use --no-wasm-dry-run to disable these warnings.
+Compiling lib/main.dart for the Web...                             16,2s
+✓ Built build/web
+/Applications/Xcode.app/Contents/Developer/usr/bin/make e2e-webapp-integration
+/Applications/Xcode.app/Contents/Developer/usr/bin/make _e2e-seed
+docker compose exec -T api php artisan migrate --force
+
+   INFO  Nothing to migrate.  
+
+docker compose exec -T api php artisan db:seed --force
+
+   INFO  Seeding database.  
+
+  Database\Seeders\AdminUserSeeder ................................... RUNNING  
+  Database\Seeders\AdminUserSeeder ............................... 142 ms DONE  
+
+  Database\Seeders\FuncaoSeeder ...................................... RUNNING  
+  Database\Seeders\FuncaoSeeder .................................... 3 ms DONE  
+
+  Database\Seeders\FilaAprovacaoPendentesSeeder ...................... RUNNING  
+  Database\Seeders\FilaAprovacaoPendentesSeeder .................. 103 ms DONE  
+
+  Database\Seeders\TemplatesContratuaisSeeder ........................ RUNNING  
+  Database\Seeders\TemplatesContratuaisSeeder ...................... 3 ms DONE  
+
+chromedriver --port=4444 >/tmp/turni-chromedriver.log 2>&1 & \
+	  CD_PID=$!; \
+	  PROXY_PORT=3000 APP_PORT=7357 API_PORT=${API_PORT:-8001} \
+	    node scripts/e2e-webapp-proxy.js >/tmp/turni-e2e-proxy.log 2>&1 & \
+	  PROXY_PID=$!; \
+	  trap 'kill $CD_PID $PROXY_PID 2>/dev/null' EXIT INT TERM; \
+	  for i in $(seq 1 20); do curl -fsS http://localhost:4444/status >/dev/null 2>&1 && break; sleep 0.5; done; \
+	  for i in $(seq 1 20); do curl -sS -o /dev/null http://localhost:3000/ 2>/dev/null && break; sleep 0.3; done; \
+	  cd apps/webapp && flutter drive --driver=test_driver/integration_test.dart \
+	    --target=integration_test/web_test.dart \
+	    -d web-server --browser-name=chrome --headless \
+	    --web-hostname=127.0.0.1 --web-port=7357 \
+	    --dart-define=E2E_FAKE_PICKER=true \
+	    --web-launch-url=http://localhost:3000
+Resolving dependencies...
+Downloading packages...
+  code_assets 1.2.0 (1.2.1 available)
+  hooks 2.0.0 (2.0.1 available)
+  matcher 0.12.19 (0.12.20 available)
+  meta 1.17.0 (1.18.2 available)
+  test_api 0.7.10 (0.7.12 available)
+  vector_math 2.2.0 (2.3.0 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Launching integration_test/web_test.dart on Web Server in debug mode...
+Waiting for connection from debug service on Web Server...          7,6s
+integration_test/web_test.dart is being served at http://127.0.0.1:7357
+The web-server device requires the Dart Debug Chrome extension for debugging. Consider using the Chrome or Edge devices for an improved development workflow.
+Debug service listening on ws://127.0.0.1:64272/6-rlW_zjxwE=/ws
+A Dart VM Service on Web Server is available at: http://127.0.0.1:64272/6-rlW_zjxwE=
+The Flutter DevTools debugger and profiler on Web Server is available at: http://127.0.0.1:64272/6-rlW_zjxwE=/devtools/?uri=ws://127.0.0.1:64272/6-rlW_zjxwE=/ws
+All tests passed.
+Application finished.
+/Applications/Xcode.app/Contents/Developer/usr/bin/make e2e-webapp-smoke
+cd apps/webapp && (test -d node_modules || npm ci) \
+	  && (test -d node_modules/playwright-core/.local-browsers || npx playwright install chromium --with-deps) \
+	  && npx playwright test webapp-hello-world.spec.ts
+
+Running 5 tests using 1 worker
+
+  ✓  1 [chromium] › tests/e2e/webapp-hello-world.spec.ts:13:5 › WebApp — hello world (CA-10) › raiz retorna 200 com título Turni (177ms)
+  -  2 [chromium] › tests/e2e/webapp-hello-world.spec.ts:24:10 › WebApp — hello world (CA-10) › /health retorna 200 com payload ADR-008 (service=webapp)
+  ✓  3 [chromium] › tests/e2e/webapp-hello-world.spec.ts:36:5 › WebApp — hello world (CA-10) › /version.json expõe a tag deployada (58ms)
+  ✓  4 [chromium] › tests/e2e/webapp-hello-world.spec.ts:47:5 › WebApp — hello world (CA-10) › página carrega sem erros de console críticos (5.1s)
+  ✓  5 [chromium] › tests/e2e/webapp-hello-world.spec.ts:70:5 › WebApp — deep link path strategy (CA-12) › deep link /login direto na URL carrega e permanece em /login (3.1s)
+
+  1 skipped
+  4 passed (8.8s)
+/Applications/Xcode.app/Contents/Developer/usr/bin/make e2e-admin
+cd apps/admin && (test -d node_modules || npm ci) \
+	  && (test -d node_modules/playwright-core/.local-browsers || npx playwright install chromium --with-deps) \
+	  && npx playwright test
+
+Running 14 tests using 4 workers
+
+  ✓   1 [chromium] › tests/e2e/admin-hello-world.spec.ts:17:5 › Backoffice — smoke público (pós-STORY-016) › `/` sem autenticação redireciona para /login (guard AdminOnly) (187ms)
+  ✓   5 [chromium] › tests/e2e/admin-hello-world.spec.ts:24:5 › Backoffice — smoke público (pós-STORY-016) › /health retorna 200 com payload ADR-008 (service=backoffice, version) (352ms)
+  ✓   3 [chromium] › tests/e2e/rbac-login.spec.ts:20:3 › Backoffice — login admin (CA-13b) › admin loga com sucesso e vê dashboard (623ms)
+  ✓   6 [chromium] › tests/e2e/admin-hello-world.spec.ts:36:5 › Backoffice — smoke público (pós-STORY-016) › X-Request-Id está presente no response (CA-7) (129ms)
+  ✓   2 [chromium] › tests/e2e/templates-editor.spec.ts:34:3 › Backoffice — editor de templates (CA-15) › (a) catálogo lista os 2 templates do MVP (784ms)
+  ✓   7 [chromium] › tests/e2e/rbac-login.spec.ts:34:3 › Backoffice — login admin (CA-13b) › tela de login do admin tem campos com data-testid corretos (158ms)
+  ✓   9 [chromium] › tests/e2e/rbac-login.spec.ts:47:3 › Backoffice — não-admin rejeitado (CA-13d) › contratante tentando logar no backoffice recebe erro (1.3s)
+  ✓  10 [chromium] › tests/e2e/rbac-login.spec.ts:67:3 › Backoffice — logout › admin consegue fazer logout e é redirecionado para /login (401ms)
+  ✓   8 [chromium] › tests/e2e/templates-editor.spec.ts:42:3 › Backoffice — editor de templates (CA-15) › (b+c) cria nova versão do PF, salva e ativa → catálogo aponta a nova ativa (1.8s)
+  ✓  11 [chromium] › tests/e2e/templates-editor.spec.ts:98:3 › Backoffice — editor de templates (CA-15) › (d) salvar com placeholder fora da lista é bloqueado com mensagem acionável (CA-5) (622ms)
+  ✘   4 [chromium] › tests/e2e/fila-aprovacao.spec.ts:31:3 › Backoffice — fila de aprovação (CA-13) › (a) lista pendentes e filtra por profissional MEI (30.0s)
+  ✓  12 [chromium] › tests/e2e/fila-aprovacao.spec.ts:31:3 › Backoffice — fila de aprovação (CA-13) › (a) lista pendentes e filtra por profissional MEI (retry #1) (594ms)
+  ✓  13 [chromium] › tests/e2e/fila-aprovacao.spec.ts:49:3 › Backoffice — fila de aprovação (CA-13) › (b) aprova um profissional → item sai da fila e e-mail é despachado (617ms)
+  ✓  14 [chromium] › tests/e2e/fila-aprovacao.spec.ts:68:3 › Backoffice — fila de aprovação (CA-13) › (c) aprovar o mesmo cadastro em 2 abas — 2ª erra com mensagem clara (1.1s)
+  ✓  15 [chromium] › tests/e2e/fila-aprovacao.spec.ts:97:3 › Backoffice — fila de aprovação (CA-13) › (d) remove um cadastro com confirmação dupla (532ms)
+
+
+  1) [chromium] › tests/e2e/fila-aprovacao.spec.ts:31:3 › Backoffice — fila de aprovação (CA-13) › (a) lista pendentes e filtra por profissional MEI 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[data-testid="aprovacoes-filter-tipo-mei"]')[22m
+
+
+      40 |     // Filtra por Profissional → MEI.
+      41 |     await page.locator('[data-testid="aprovacoes-filter-papel-profissional"]').click();
+    > 42 |     await page.locator('[data-testid="aprovacoes-filter-tipo-mei"]').click();
+         |                                                                      ^
+      43 |
+      44 |     await expect(page.getByText('Carlos Henrique Silva')).toBeVisible();
+      45 |     await expect(page.getByText('Pizzaria Mooca Ltda')).toHaveCount(0); // contratante sumiu
+        at /Users/alexandro/Projetos/mvpturni-mvp/apps/admin/tests/e2e/fila-aprovacao.spec.ts:42:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fila-aprovacao-Backoffice--80171-filtra-por-profissional-MEI-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fila-aprovacao-Backoffice--80171-filtra-por-profissional-MEI-chromium/error-context.md
+
+  1 flaky
+    [chromium] › tests/e2e/fila-aprovacao.spec.ts:31:3 › Backoffice — fila de aprovação (CA-13) › (a) lista pendentes e filtra por profissional MEI 
+  13 passed (33.5s)

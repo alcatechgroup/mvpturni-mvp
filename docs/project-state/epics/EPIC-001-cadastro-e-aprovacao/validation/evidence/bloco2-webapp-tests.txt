@@ -1,0 +1,138 @@
+00:00 +0: loading /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/password_reset_test.dart
+00:00 +0: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_version_test.dart: AppVersion igualdade é por valor
+00:00 +1: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_version_test.dart: AppVersion isDifferentFrom compara por valor
+00:00 +2: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_version_test.dart: AppVersion isDev é true para "dev" e para vazio, false para tag de release
+00:00 +3: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_version_test.dart: AppVersion toString retorna a tag bruta
+00:00 +4: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_version_test.dart: AppVersion AppVersion.current lê o default "dev" sem dart-define
+00:00 +5: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_version_label_test.dart: mostra "Turni · <tag>" para release
+00:00 +6: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_version_label_test.dart: mostra "Turni · <tag>" para release
+00:00 +7: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_version_label_test.dart: mostra "Turni · <tag>" para release
+00:00 +8: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_version_label_test.dart: mostra "Turni · <tag>" para release
+00:00 +9: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_version_label_test.dart: mostra "Turni · <tag>" para release
+00:00 +10: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_version_label_test.dart: mostra "Turni · <tag>" para release
+00:00 +11: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +12: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +13: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +14: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +15: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +16: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +17: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +18: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +19: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +20: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +21: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +22: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +23: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +24: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +25: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +26: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +27: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +28: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +29: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-1: renderiza o passo 1 com CNPJ e título do estabelecimento
+00:00 +30: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/password_reset_test.dart: ForgotPasswordScreen falha de rede → mostra erro
+00:00 +31: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +31: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_update_controller_test.dart: AppUpdateController — estado updateAvailable (CA-3) versão diferente + release → updateAvailable true
+appUpdate.detected serverVersion=v2 currentVersion=v1
+00:00 +32: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +33: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +34: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +35: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +35: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_update_controller_test.dart: AppUpdateController — update some quando o servidor volta (CA-3) updateAvailable volta a false se o servidor reverte para a corrente
+appUpdate.detected serverVersion=v2 currentVersion=v1
+00:00 +36: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +37: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +38: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +39: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +40: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +41: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +42: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +43: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +44: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +45: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +45: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_update_controller_test.dart: AppUpdateController — "Depois" (CA-7) dismiss esconde o banner mas mantém updateAvailable
+appUpdate.detected serverVersion=v2 currentVersion=v1
+00:00 +46: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +46: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_update_controller_test.dart: AppUpdateController — "Depois" (CA-7) próxima checagem reabre o banner se ainda houver versão nova
+appUpdate.detected serverVersion=v2 currentVersion=v1
+00:00 +47: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +47: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/app_update_controller_test.dart: AppUpdateController — "Atualizar agora" (CA-5) applyUpdate chama o bridge
+appUpdate.userAccepted
+00:00 +48: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +49: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +50: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +51: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +52: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +53: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +54: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:00 +55: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:01 +56: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:01 +57: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:01 +58: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-2: passo 1 vazio bloqueia avanço e mostra erros
+00:01 +59: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/password_reset_test.dart: RedefinirSenhaScreen senhas diferentes → validação bloqueia
+00:01 +60: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-4: buscar CEP preenche logradouro/bairro/cidade/UF
+00:01 +61: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-4: buscar CEP preenche logradouro/bairro/cidade/UF
+00:01 +62: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-4: buscar CEP preenche logradouro/bairro/cidade/UF
+00:01 +63: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-4: CEP não encontrado mostra aviso não-bloqueante
+00:01 +64: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/update_banner_test.dart: UpdateBanner (CA-4) mostra microcopy fixo e os dois CTAs
+00:01 +65: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: wizard: navega passo 1 → 2 → 3 e contatos add/remove
+00:01 +66: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: wizard: navega passo 1 → 2 → 3 e contatos add/remove
+00:01 +67: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: wizard: navega passo 1 → 2 → 3 e contatos add/remove
+00:01 +67: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/update_banner_test.dart: UpdateBannerHost (CA-4 / CA-7) aparece quando há update; "Depois" o esconde
+appUpdate.detected serverVersion=v2 currentVersion=v1
+00:01 +68: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: wizard: navega passo 1 → 2 → 3 e contatos add/remove
+00:01 +68: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/app_update/update_banner_test.dart: UpdateBannerHost (CA-4 / CA-7) "Atualizar agora" chama o bridge (CA-5)
+appUpdate.detected serverVersion=v2 currentVersion=v1
+appUpdate.userAccepted
+00:01 +69: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: wizard: navega passo 1 → 2 → 3 e contatos add/remove
+00:01 +70: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: wizard: navega passo 1 → 2 → 3 e contatos add/remove
+00:01 +71: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: renderiza os campos principais e o CTA (CA-2)
+00:02 +72: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: renderiza os campos principais e o CTA (CA-2)
+00:02 +73: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_contratante_test.dart: renderiza os campos principais e o CTA (CA-2)
+00:02 +74: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: funções secundárias: seletor buscável seleciona e exibe chip
+00:02 +75: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: funções secundárias: seletor buscável seleciona e exibe chip
+00:02 +76: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: funções secundárias: seletor buscável seleciona e exibe chip
+00:02 +77: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: funções secundárias: seletor buscável seleciona e exibe chip
+00:02 +78: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: funções secundárias: seletor buscável seleciona e exibe chip
+00:02 +79: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: funções secundárias: seletor buscável seleciona e exibe chip
+00:02 +80: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: funções secundárias: seletor buscável seleciona e exibe chip
+00:02 +81: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: funções secundárias: seletor buscável seleciona e exibe chip
+00:02 +82: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: funções secundárias: seletor buscável seleciona e exibe chip
+00:02 +83: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/welcome_funnel_screen_test.dart: WelcomeScreen — estrutura e conteúdo (CA-1, CA-2) tem key screen-welcome e logomarca
+00:02 +84: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/welcome_funnel_screen_test.dart: WelcomeScreen — estrutura e conteúdo (CA-1, CA-2) tem key screen-welcome e logomarca
+00:03 +85: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/welcome_funnel_screen_test.dart: WelcomeScreen — estrutura e conteúdo (CA-1, CA-2) tem key screen-welcome e logomarca
+00:03 +86: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/welcome_funnel_screen_test.dart: WelcomeScreen — estrutura e conteúdo (CA-1, CA-2) tem key screen-welcome e logomarca
+00:03 +87: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/welcome_funnel_screen_test.dart: WelcomeScreen — estrutura e conteúdo (CA-1, CA-2) tem key screen-welcome e logomarca
+00:03 +88: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +89: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +90: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +91: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +92: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +93: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +94: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +95: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +96: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +97: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +98: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +99: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +100: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +101: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: caminho feliz envia e mostra a tela de recebido (CA-7)
+00:03 +102: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: CA-7/8: revisar mostra contrato e botão de aceite só habilita com checkbox
+00:03 +103: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: preview com erro mostra banner e não avança
+00:03 +104: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: preview com erro mostra banner e não avança
+00:03 +105: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: preview com erro mostra banner e não avança
+00:03 +106: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: preview com erro mostra banner e não avança
+00:03 +107: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: preview com erro mostra banner e não avança
+00:03 +108: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: preview com erro mostra banner e não avança
+00:03 +109: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: preview com erro mostra banner e não avança
+00:03 +110: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: preview com erro mostra banner e não avança
+00:03 +111: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_contratante_test.dart: e-mail já existente mostra banner genérico sem enumeração (CA-4)
+00:03 +112: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_contratante_test.dart: e-mail já existente mostra banner genérico sem enumeração (CA-4)
+00:03 +113: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: e-mail já existente mostra banner genérico sem enumeração (CA-4)
+00:03 +114: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/pre_cadastro_profissional_test.dart: e-mail já existente mostra banner genérico sem enumeração (CA-4)
+00:03 +115: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-5: logo com extensão inválida é rejeitada
+00:03 +116: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_contratante_screen_test.dart: CA-5: logo com extensão inválida é rejeitada
+00:03 +117: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: preview com erro mostra banner e não avança
+00:04 +118: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: preview com erro mostra banner e não avança
+00:04 +119: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: CA-5: anexar documento exibe o nome do arquivo
+00:04 +120: /Users/alexandro/Projetos/mvpturni-mvp/apps/webapp/test/completar_cadastro_screen_test.dart: CA-5: documento com extensão inválida é rejeitado
+00:04 +121: All tests passed!

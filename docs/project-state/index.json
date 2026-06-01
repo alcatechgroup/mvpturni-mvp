@@ -123,7 +123,7 @@
    "slug": "cadastro-e-aprovacao",
    "title": "Cadastro e aprovação de profissional e contratante",
    "wave": "WAVE-2026-01",
-   "status": "ready",
+   "status": "done",
    "path": "epics/EPIC-001-cadastro-e-aprovacao/epic.md",
    "story_ids": [
     "STORY-012",
@@ -142,7 +142,12 @@
     "STORY-025",
     "STORY-034"
    ],
-   "validation_report": null,
+   "validation_report": {
+    "path": "epics/EPIC-001-cadastro-e-aprovacao/validation/report.md",
+    "verdict": "approved_with_pending",
+    "validated_at": "2026-06-01",
+    "validated_by": "claude-opus-4-8-validador (STORY-025, rodada 1)"
+   },
    "validation_checklist_path": "epics/EPIC-001-cadastro-e-aprovacao/validation/checklist.md",
    "next_action": "SPRINT-2026-W24 ENCERRADA em 2026-05-29 por goal-atingido (10/10 estórias done; goal_outcome=achieved). Funil de identidade vivo em homolog (pré-cadastro → fila de aprovação com audit log imutável → login → welcome real). Estado do EPIC-001 ao fim da W24: 10/14 estórias done (012-020, 022), 4 ainda a entregar (021/023/024/025). Próximo: abrir SPRINT-2026-W25 com STORY-021 (e-mails — promovida do stretch, fecha gap de UX consciente) + STORY-023/024 (completar cadastro PF/Contratante + AceiteEletronico gerado no clique do usuário, consumindo ADR-010 e templates de STORY-020) + STORY-025 (validação final EPIC-001). EPIC-001 fica concluído ao fim da W25.",
    "last_sprint": "SPRINT-2026-W24",
@@ -952,7 +957,7 @@
    "target_role": "validador",
    "requires_design": false,
    "design_screen_id": null,
-   "status": "ready",
+   "status": "done",
    "owner_agent": null,
    "sprint_id": "SPRINT-2026-W25",
    "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-025-validacao-final-epic-001.md",
@@ -977,7 +982,7 @@
    "validation_checklist_path": "epics/EPIC-001-cadastro-e-aprovacao/validation/checklist.md",
    "validation_report_path": "epics/EPIC-001-cadastro-e-aprovacao/validation/report.md",
    "created_at": "2026-05-28",
-   "updated_at": "2026-05-30"
+   "updated_at": "2026-06-01"
   },
   {
    "id": "STORY-026",
