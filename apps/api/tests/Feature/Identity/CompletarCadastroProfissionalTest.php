@@ -104,6 +104,19 @@ test('CA-7: preview renderiza contrato com CPF e marcador de assinatura pendente
         ->not->toContain('{{');
 });
 
+test('contexto retorna tipo_pessoa e documento_tipo do perfil', function () {
+    $pf = profissionalEmCadastro('PF');
+    $this->actingAs($pf)->getJson('/api/cadastro/profissional/completar/contexto')
+        ->assertStatus(200)
+        ->assertJsonPath('tipo_pessoa', 'PF')
+        ->assertJsonPath('documento_tipo', 'CPF');
+
+    $mei = profissionalEmCadastro('MEI', 'João MEI');
+    $this->actingAs($mei)->getJson('/api/cadastro/profissional/completar/contexto')
+        ->assertStatus(200)
+        ->assertJsonPath('documento_tipo', 'CNPJ');
+});
+
 // ── CA-3 — documento por tipo + unicidade ────────────────────────────────────
 
 test('CA-3: PF com CPF inválido é rejeitado', function () {

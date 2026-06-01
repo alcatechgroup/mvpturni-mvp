@@ -30,6 +30,24 @@ class CompletarCadastroProfissionalController extends Controller
 {
     public function __construct(private readonly CompletarCadastroProfissionalService $service) {}
 
+    /**
+     * Contexto do formulário: tipo_pessoa + tipo de documento esperado (CPF/CNPJ).
+     * O WebApp precisa disso para máscara/rótulo do campo — não trafega no payload de
+     * sessão e a rota /api/user (FunnelGuard) bloquearia um usuário em await_cadastro.
+     */
+    public function contexto(Request $request): JsonResponse
+    {
+        $user = $this->profissionalEmCadastro($request);
+        $tipoPessoa = $user->profissionalProfile->tipo_pessoa;
+
+        return response()->json([
+            'nome' => $user->name,
+            'tipo_pessoa' => $tipoPessoa,
+            'documento_tipo' => DocumentoValidator::tipoDocumento($tipoPessoa),
+            'funcao_id' => $user->profissionalProfile->funcao_id,
+        ]);
+    }
+
     /** Preview do contrato renderizado (CA-7). Não persiste nada. */
     public function preview(Request $request): JsonResponse
     {

@@ -225,6 +225,18 @@ class AuthService extends ChangeNotifier {
     return true;
   }
 
+  /// Marca o cadastro como concluído na sessão local (STORY-023 CA-12). O servidor já
+  /// transicionou o usuário para `ativo` ao gerar o aceite; aqui reidratamos a sessão
+  /// para que o funnel guard passe a rotear para a home (`active`).
+  Future<void> markCadastroCompleto() async {
+    final current = _session;
+    if (current == null) return;
+    final updated = current.copyWith(cadastroCompleto: true);
+    await _saveSession(updated);
+    _session = updated;
+    notifyListeners();
+  }
+
   Future<void> logout() async {
     try {
       await _client.post(

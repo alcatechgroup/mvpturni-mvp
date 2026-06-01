@@ -42,6 +42,7 @@ Route::middleware(['auth:web', WebAppOnly::class, StartSession::class])->group(f
     // Completar cadastro do profissional (STORY-023). FORA do FunnelGuard: o usuário está
     // em `await_cadastro` (o guard o bloquearia com 423). O controller/Request garantem o
     // estado. preview = contrato renderizado; store = aceite imutável + transição → ativo.
+    Route::get('/cadastro/profissional/completar/contexto', [CompletarCadastroProfissionalController::class, 'contexto']);
     Route::post('/cadastro/profissional/completar/preview', [CompletarCadastroProfissionalController::class, 'preview']);
     Route::post('/cadastro/profissional/completar', [CompletarCadastroProfissionalController::class, 'store']);
 });
