@@ -5,6 +5,7 @@
 // auth.protected: requer sessão ativa + role check + funnel guard.
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Cadastro\CompletarCadastroContratanteController;
 use App\Http\Controllers\Cadastro\CompletarCadastroProfissionalController;
 use App\Http\Controllers\Cadastro\ContratanteCadastroController;
 use App\Http\Controllers\Cadastro\FuncaoController;
@@ -45,6 +46,13 @@ Route::middleware(['auth:web', WebAppOnly::class, StartSession::class])->group(f
     Route::get('/cadastro/profissional/completar/contexto', [CompletarCadastroProfissionalController::class, 'contexto']);
     Route::post('/cadastro/profissional/completar/preview', [CompletarCadastroProfissionalController::class, 'preview']);
     Route::post('/cadastro/profissional/completar', [CompletarCadastroProfissionalController::class, 'store']);
+
+    // Completar cadastro do contratante (STORY-024). Mesmo padrão: FORA do FunnelGuard;
+    // contexto + busca de CEP (fail-soft, IDR-024) + preview dos termos + aceite imutável.
+    Route::get('/cadastro/contratante/completar/contexto', [CompletarCadastroContratanteController::class, 'contexto']);
+    Route::get('/cadastro/contratante/completar/cep/{cep}', [CompletarCadastroContratanteController::class, 'cep']);
+    Route::post('/cadastro/contratante/completar/preview', [CompletarCadastroContratanteController::class, 'preview']);
+    Route::post('/cadastro/contratante/completar', [CompletarCadastroContratanteController::class, 'store']);
 });
 
 // Rotas protegidas — requerem sessão + WebApp-only + funnel guard
