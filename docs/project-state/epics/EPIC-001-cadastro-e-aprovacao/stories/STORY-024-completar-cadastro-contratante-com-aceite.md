@@ -232,11 +232,15 @@ sem bloquear; `contract.view` reusado da 023. Keys lógicas `completar-cadastro:
 - Endpoints fora do FunnelGuard (usuário em `await_cadastro`); `authorize()` garante o estado.
   Endereço do contrato é composto a partir do **payload** (render antes da transação), não do perfil.
 
-### Cobertura final (parcial — backend)
-api (núcleo do story, medido isolado): `CompletarCadastroContratanteService` **100%**,
+### Cobertura final (backend + frontend)
+**api** (núcleo do story, medido isolado): `CompletarCadastroContratanteService` **100%**,
 `CompletarCadastroContratanteRequest` **100%**, `CepLookup` **100%**, controller 89% (ramos
 defensivos), `ContratanteProfile` 87.5%. Suíte api completa: **238 passed**. Pint limpo.
-Falta: widget tests do WebApp + E2E (CA-15) + asserção contra o seed real (pós-texto do PO).
+**webapp**: 10 widget tests novos (`completar_cadastro_contratante_screen_test.dart`) cobrindo
+CA-1/2/4/5/7/8/12 + navegação do wizard + erro de preview/servidor + contatos add/remove. Suíte
+webapp completa: **121 passed**. `flutter analyze` + `dart format` limpos.
+Falta (pós-texto do PO): asserção contra o seed real + wiring do `TemplatesContratuaisSeeder` +
+E2E em browser real (CA-15) + deploy homolog + smoke.
 
 ### IDRs criados
 - IDR-023 (template próprio do contratante), IDR-024 (CEP ViaCEP fail-soft).
