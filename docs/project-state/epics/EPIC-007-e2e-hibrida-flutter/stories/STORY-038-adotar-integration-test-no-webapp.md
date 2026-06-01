@@ -307,6 +307,36 @@ No `flutter drive -d web-server` o app é servido de `localhost:<porta-efêmera>
 Vou precisar resolver base-URL (provável `--dart-define=API_BASE_URL=...`) + CORS + cookie Sanctum cross-origin, ou outra
 estratégia. Spike dedicado no início da fatia 2 antes de migrar os cenários de login com rede.
 
+### Progresso — Fatia 2 (2026-06-01): spike de API + CA-5..CA-9 ✅ (7 cenários migrados)
+
+**Spike de base-URL da API — RESOLVIDO sem mudar código de produção nem desabilitar segurança do browser:**
+- `/api/login` **não exige CSRF** (curl direto a `:8001/api/login` sem csrf-cookie → 200/403). Logo o cookie
+  Sanctum não precisa persistir no browser do teste.
+- **CORS está aberto**: `:8001` e `:8003` respondem `Access-Control-Allow-Origin: *` (e o preflight OPTIONS →
+  204 com `Allow-Methods: POST`, `Allow-Headers: content-type`). Então o app servido na porta efêmera **lê** as
+  respostas de login cross-origin.
+- Como o desfecho dos cenários (redirect / banner) vem do **corpo da resposta**, não de um cookie persistido,
+  basta rodar com `--dart-define=API_BASE_URL=http://localhost:8001`. Sem `--disable-web-security`, sem
+  `withCredentials`, sem tocar `AuthService`. Esse dart-define entra no target `make e2e-webapp-integration`.
+- Detalhe de timing: durante o login em voo o botão mostra `CircularProgressIndicator` (animação contínua) →
+  `pumpAndSettle()` nunca quiesce. Helpers novos: `awaitRouteLeaves` e `pumpUntilFound` (pump curto até a
+  condição), em vez de pumpAndSettle pós-submit. `loginAs` termina com um único `pump()` e devolve o controle.
+
+**Cenários migrados e verdes (via `flutter drive ... --dart-define=API_BASE_URL=http://localhost:8001`):**
+- **CA-5 ✅** `auth/login_validation_test.dart` — submeter vazio → "Este campo é obrigatório." (client-side).
+- **CA-6 ✅** `auth/login_validation_test.dart` — credencial inexistente → banner `login:error-banner` + fica em /login.
+- **CA-7 ✅** `auth/rbac_profissional_test.dart` — `profissional.teste@turni.local` loga → sai de /login (`awaitRouteLeaves`).
+- **CA-8 ✅** `auth/rbac_admin_rejected_test.dart` — `admin@turni.local` → 403 → banner `login:admin-banner`
+  ("Este usuário acessa o Backoffice.") + fica em /login.
+- **CA-9 ✅** `auth/funnel_guard_test.dart` — root `/`, `/welcome`, `/completar-cadastro` sem sessão → /login.
+- **Navegação (preserva cobertura, sem CA próprio) ✅** `auth/navigation_test.dart` — links criar-conta →
+  `/cadastro/profissional` e `/cadastro/contratante` (telas fazem fetch ao montar; passam com o dart-define).
+
+Suíte completa de integração verde no Web (`integration_test/auth_test.dart`) → "All tests passed". `flutter analyze`
+limpo. Widget suite continua 97/97. **Falta** (fatia 3): remover `rbac-login.spec.ts` (CA-10), deep-link no smoke
+Playwright (CA-12), Makefile (CA-13/14), nota inline IDR-006 §b (CA-19), README (CA-20), 5x verde + wall-time (CA-15/16),
+cobertura ≥80%.
+
 ### Bloqueios encontrados
 - _Nenhum bloqueante._ Observação de sintaxe da IDR-010 (corrigida via nota na própria IDR) e risco de base-URL da API
   na fatia 2 (a spikar) registrados acima.

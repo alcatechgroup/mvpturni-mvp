@@ -45,3 +45,21 @@ Future<void> awaitRouteChange(
     await tester.pump(const Duration(milliseconds: 100));
   }
 }
+
+/// Espera (fazendo `pump` curto até [timeout]) o go_router **sair** de [path].
+/// Útil pós-login bem-sucedido, quando o destino depende do estado do funil do
+/// usuário (ativo → `/`, demais → rotas de funil) — o que importa é não ficar
+/// preso em `/login`. Lança via [fail] se continuar em [path] ao estourar.
+Future<void> awaitRouteLeaves(
+  WidgetTester tester,
+  String path, {
+  Duration timeout = const Duration(seconds: 10),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (currentRoute() == path) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('rota continuou em "$path" após ${timeout.inSeconds}s');
+    }
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
