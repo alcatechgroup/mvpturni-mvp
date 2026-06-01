@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-024-completar-cadastro-contratante
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8-programador-2026-06-01
 created_at: 2026-05-28
-updated_at: 2026-05-30
+updated_at: 2026-06-01
 estimated_session_size: M
 ---
 
@@ -54,7 +54,7 @@ Entregar fluxo de completar cadastro do contratante:
    - Contatos adicionais (gerente/chef/sommelier — lista dinâmica de nome + função + telefone, ≥0 entradas).
    - Logo (upload, opcional, JPG/PNG, ≤5 MB).
 4. **Dados sensíveis criptografados em repouso** conforme ADR-009 (CNPJ; CEP/endereço não necessariamente sensível — siga a classificação do ADR).
-5. **Preview do contrato** antes do aceite — texto integral da versão ativa do template `mei_pj_b2b` renderizado com dados do contratante. Apenas seção "Termos gerais aplicáveis a todo turno" (sem turno específico — aceite de adesão).
+5. **Preview do contrato** antes do aceite — texto integral da versão ativa do template `termos_plataforma_contratante` renderizado com dados do contratante. (Decisão PO 2026-06-01 — ver IDR-023 e §"Decisões já tomadas": era `mei_pj_b2b`, mas a Seção 1 daquele template é do _profissional_; contratante adere a um template próprio de Termos de Adesão à Plataforma com a taxa Turni 15% como cláusula permanente.)
 6. **Geração do AceiteEletronico** ao clique final, mesmo padrão de STORY-023: transação atômica que persiste campos + cria aceite + transiciona `liberado → ativo`.
 7. Após aceite, contratante cai em rota interna placeholder ("Cadastro concluído — em breve você poderá publicar vagas" — vagas reais é EPIC-002).
 8. **Plano contratado**: na criação implícita do contratante, fica `Member Start` (gratuito) — `domain/usuario.md` §Contratante/Planos. Sem UI de mudança aqui.
@@ -71,15 +71,15 @@ Direto: contratante fica `ativo`, pronto para publicar vagas (no futuro). Aceite
 - [ ] **CA-4:** Busca de endereço por CEP funciona (caminho feliz com ViaCEP ou equivalente); falha da API externa **não** bloqueia o submit (degrada para entrada manual + log de falha de integração).
 - [ ] **CA-5:** Upload de logo funciona (opcional, MIME server-side, signed URL).
 - [ ] **CA-6:** Dados sensíveis criptografados em repouso conforme ADR-009. Evidência via psql.
-- [ ] **CA-7:** Preview do contrato renderiza versão ativa de `mei_pj_b2b` com dados do contratante substituídos. Texto coerente: apenas seção "Termos gerais".
+- [ ] **CA-7:** Preview do contrato renderiza versão ativa de `termos_plataforma_contratante` (era `mei_pj_b2b` — ajuste PO 2026-06-01, IDR-023) com dados do contratante substituídos. Texto coerente para o contratante (Termos de Adesão à Plataforma).
 - [ ] **CA-8:** Checkbox + botão "Aceito e concluir cadastro" — botão só habilita após checkbox marcado E preview exibido.
-- [ ] **CA-9:** Clique final gera `AceiteEletronico` no banco com `template_versao_id` da versão ativa de `mei_pj_b2b`, `conteudo_renderizado` igual ao preview, `dados_renderizados` JSON, `timestamp`, `ip`, `fingerprint`.
+- [ ] **CA-9:** Clique final gera `AceiteEletronico` no banco com `template_versao_id` da versão ativa de `termos_plataforma_contratante` (ajuste PO 2026-06-01, IDR-023), `conteudo_renderizado` igual ao preview, `dados_renderizados` JSON, `timestamp`, `ip`, `fingerprint`.
 - [ ] **CA-10:** Transação atômica (mesma régua de STORY-023 CA-10).
 - [ ] **CA-11:** Aceite imutável (mesma régua de STORY-023 CA-11). Evidência registrada — pode ser a mesma do runbook de STORY-023.
 - [ ] **CA-12:** Após aceite, contratante transiciona para `ativo, cadastro_completo=true`. Plano `Member Start` registrado.
 - [ ] **CA-13:** Acessibilidade WCAG 2.1 AA; tema dual.
 - [ ] **CA-14:** Cobertura ≥ 80% / ≥ 98% núcleo (validação CNPJ, integração CEP, transação atômica, renderização, criptografia, transição).
-- [ ] **CA-15:** **E2E em browser real**: seed contratante `liberado, welcome_visto=true`; preenche os 3 passos; vê preview com CNPJ + endereço; aceita; cai em placeholder; verifica no banco o aceite com `template_versao_id` da versão ativa de `mei_pj_b2b`.
+- [ ] **CA-15:** **E2E em browser real**: seed contratante `liberado, welcome_visto=true`; preenche os 3 passos; vê preview com CNPJ + endereço; aceita; cai em placeholder; verifica no banco o aceite com `template_versao_id` da versão ativa de `termos_plataforma_contratante` (ajuste PO 2026-06-01, IDR-023).
 - [ ] **CA-16:** Log estruturado `user.cadastro_completed` com `user_id, role=contratante, template_versao_id` — sem dado pessoal claro.
 - [ ] **CA-17:** LGPD: lista de campos atualizada (CNPJ + endereço + contatos = dados pessoais comuns/contato; classificar conforme `non-functional.md`).
 
@@ -118,6 +118,15 @@ Direto: contratante fica `ativo`, pronto para publicar vagas (no futuro). Aceite
 - **Decisão PO sobre momento do aceite** — gerado no clique final do completar cadastro.
 - **`domain/usuario.md`** — lista de campos.
 - **DDR-001 + PDR-013**.
+- **Decisão PO 2026-06-01 (IDR-023) — template do contratante:** o contratante adere a um template
+  **próprio**, `termos_plataforma_contratante` ("Termos de Adesão à Plataforma para Contratante"),
+  com a taxa Turni 15% (PDR-004) como **cláusula permanente** (não por turno). **Não** reusa
+  `mei_pj_b2b` (cuja Seção 1 identifica o profissional). Motivo: reuso seria juridicamente
+  incoerente; PDR-004 exige aceite de plataforma além do por-turno; concretiza os "dois usos
+  distintos" do ADR-010 citados no contexto. **Texto-seed é authoring do PO** (extensão de
+  STORY-015), entregue em 24–48h e validado cláusula a cláusula antes do seed. CA-7/9/15 ajustadas.
+  Trabalho que não depende do texto (migration, service de campos, validação CNPJ, CEP, upload,
+  UI multi-step, transição) segue em paralelo; só preview + persistência do aceite ficam atrás do seed.
 
 ## Liberdade técnica do agente
 
@@ -151,7 +160,40 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-(a preencher)
+2026-06-01 — assumida em `in_progress` (claude-opus-4-8-programador). Li a estória inteira, a
+STORY-023 (espelho, `done`), `domain/usuario.md` (§Contratante), `compliance.md` §"Aceite
+eletrônico por turno", IDR-022, LGPD `campos-coletados.md`, ADR-009/010 (via STORY-023), e o código
+de STORY-023 no `api` (`CompletarCadastroProfissionalService/Controller/Request`,
+`AceiteAdesaoRenderer`, `DocumentoValidator`, models, migration). Também os dois textos-seed de
+template (`mei_pj_b2b`, `pf_autonomo_eventual`) e o `TemplatesContratuaisSeeder`.
+
+**Plano (FE + BE espelhando STORY-023):** migration p/ colunas do completar contratante +
+`cnpj_hash`; `ContratanteProfile` ganha encrypted cast no CNPJ; `CompletarCadastroContratanteService`
+(transação atômica campos + aceite + `liberado→ativo`, plano `Member Start`); `CnpjValidator`
+(dígitos verificadores); endpoints `contexto/preview/store` fora do FunnelGuard; integração CEP com
+fallback (IDR); upload de logo signed; tela Flutter multi-step (3 passos) + preview + checkbox;
+widget tests + feature/unit tests api (4 categorias) + E2E browser real (same-origin, IDR-021).
+
+**[ESCALONAMENTO-PO] Bloqueio de produto encontrado ANTES de codar — qual contrato o contratante
+adere?** A estória manda renderizar a versão ativa de `mei_pj_b2b`, **apenas Seção 1 (Termos
+gerais)**, com dados do contratante (CA-7/9). Mas ao reler o texto-seed real de `mei_pj_b2b`
+descobri que a **Seção 1 identifica o _Prestador (Profissional)_** e seus únicos placeholders de
+identidade são `{{profissional.nome}}`, `{{profissional.documento}}`,
+`{{profissional.endereco_completo}}` — **não há placeholder de contratante na Seção 1**. A
+identidade do contratante (`contratante.razao_social/cnpj/endereco_completo`) e a taxa Turni 15%
+vivem só na **Seção 2 (turno-específico)**, que o `AceiteAdesaoRenderer` **omite** no aceite de
+adesão (IDR-022 a). Consequências:
+- Reusar `mei_pj_b2b` + renderer de adesão como está **falharia** (RenderizacaoIncompletaException:
+  não há valores de `profissional.*` para um contratante) — ou, se eu injetasse dados do contratante
+  nos placeholders `profissional.*`, o documento imprimiria o contratante como "Prestador
+  (Profissional)", o que é juridicamente incoerente.
+- `compliance.md` só descreve o aceite do contratante **por turno** (Seção 2, ao aprovar
+  candidatura). Não existe, em lugar nenhum da spec, um texto de contrato/Termos de adesão para o
+  contratante. Authoring de texto contratual é responsabilidade PO/jurídico (STORY-015), fora da
+  minha alçada ("Você NÃO decide: …").
+
+Escalei ao PO (ver pergunta na sessão). Não escrevo código de contrato até a decisão. Restante da
+estória (campos/validação/CEP/upload/transição/UI) não depende dela e pode começar em paralelo.
 
 ### Sync Designer↔Programador
 (a preencher)

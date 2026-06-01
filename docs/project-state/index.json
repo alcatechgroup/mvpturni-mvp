@@ -923,8 +923,8 @@
    "target_role": "programador",
    "requires_design": true,
    "design_screen_id": "SCREEN-STORY-024-completar-cadastro-contratante",
-   "status": "ready",
-   "owner_agent": null,
+   "status": "in_progress",
+   "owner_agent": "claude-opus-4-8-programador-2026-06-01",
    "sprint_id": "SPRINT-2026-W25",
    "path": "epics/EPIC-001-cadastro-e-aprovacao/stories/STORY-024-completar-cadastro-contratante-com-aceite.md",
    "blocked_by": [
@@ -2135,6 +2135,17 @@
     "decided_by": "programador",
     "source_story": "STORY-023",
     "note": "Corpo de adesão = preâmbulo + Seção 1 + Assinatura; preview com carimbo pendente; documento_hash HMAC-SHA256 (encrypted cast é não-determinístico). Reusado pela STORY-024."
+   },
+   {
+    "id": "IDR-023",
+    "title": "Contratante adere a template próprio (termos_plataforma_contratante), não ao mei_pj_b2b",
+    "status": "accepted",
+    "path": "decisions/idr/IDR-023-template-proprio-de-adesao-do-contratante.md",
+    "decided_at": "2026-06-01",
+    "decided_by": "PO (Alexandro) + programador",
+    "approved_by": "Alexandro",
+    "source_story": "STORY-024",
+    "note": "Divergência spec×seed: mei_pj_b2b Seção 1 é do profissional (sem placeholder de contratante). Contratante ganha template próprio com taxa Turni 15% como cláusula permanente (PDR-004). Texto-seed é authoring do PO (24–48h); CA-7/9/15 ajustadas. Resto da STORY-024 segue em paralelo."
    }
   ],
   "ddr": [
