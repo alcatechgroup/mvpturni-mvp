@@ -18,13 +18,18 @@ COMPOSE_RUN := $(DC) run --rm --no-deps
 #                       (localhost:3000 já está no default de SANCTUM_STATEFUL_DOMAINS).
 #   E2E_APP_PORT      — porta do dev-server do flutter drive (--web-port).
 #   E2E_HEADLESS      — 1 (default, gate) roda Chrome headless; 0 abre o browser VISÍVEL
-#                       (debug): `make e2e-webapp-integration E2E_HEADLESS=0`.
+#                       para debug: `make e2e-webapp-integration E2E_HEADLESS=0`.
+#                       (Mantém `-d web-server --browser-name=chrome` nos dois modos: só ele
+#                       honra --web-launch-url e mantém o same-origin via proxy. `-d chrome`
+#                       NÃO serve: ignora --web-launch-url, abre :7357 direto, e o /api volta
+#                       como HTML — quebra os testes autenticados.)
 CHROMEDRIVER_PORT ?= 4444
 E2E_PROXY_PORT ?= 3000
 E2E_APP_PORT ?= 7357
 E2E_HEADLESS ?= 1
-# Flag --headless só quando E2E_HEADLESS != 0 (vazio = browser visível).
-E2E_HEADLESS_FLAG := $(if $(filter 0,$(E2E_HEADLESS)),,--headless)
+# flutter drive (web-driver) tem default HEADLESS — precisa do --no-headless EXPLÍCITO para
+# abrir janela; só omitir --headless não basta. E2E_HEADLESS=0 → --no-headless (Chrome visível).
+E2E_HEADLESS_FLAG := $(if $(filter 0,$(E2E_HEADLESS)),--no-headless,--headless)
 
 .DEFAULT_GOAL := help
 .PHONY: help setup up down clean logs ps env build install key migrate seed \
