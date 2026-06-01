@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-024-completar-cadastro-contratante
-status: in_progress
+status: done
 owner_agent: claude-opus-4-8-programador-2026-06-01
 created_at: 2026-05-28
 updated_at: 2026-06-01
@@ -265,10 +265,29 @@ Falta só: deploy homolog + smoke + validação do PO → `done`.
 (a preencher)
 
 ### Resultado final / evidência
-(a preencher)
+**Completa e verde, aprovada pelo PO em 2026-06-01.** Backend + UI Flutter + contrato real
+(`termos_plataforma_contratante` v1) + E2E em browser real. Gate completo verde localmente:
+api **238 passed** (núcleo 100%), webapp **121 passed**, `make e2e-webapp-integration` verde,
+`pint` api/admin ok, `flutter analyze`/`dart format` ok. Evidência psql pós-E2E do contratante:
+`status=ativo`, `plano=member_start`, aceite em `termos_plataforma_contratante v1` com a taxa 15%.
+Mapeamento CA→teste: CA-1/2/3/4/5/6/7/9/10/12 (feature `CompletarCadastroContratanteTest`),
+CA-3/6 (unit `ContratanteProfileModelTest`), CA-4 (unit `CepLookupTest`), CA-1/2/4/5/7/8/12/13
+(widget `completar_cadastro_contratante_screen_test`), CA-15 (E2E `completar_cadastro_contratante_test`),
+CA-11 (trigger compartilhado de `aceites_eletronicos`, mesma régua da STORY-023), CA-16/17 (log
+estruturado `user.cadastro_completed`).
+
+**Push para homolog em 2026-06-01:** main + tag `v0.1.0-rc.42`.
 
 ### Pendências para fechar
-(a preencher)
+- Smoke/validação ao vivo do PO em homolog (rc.42) — caminho registro → aprovação → welcome →
+  completar cadastro do contratante → aceite.
+- Métrica/alerta de cadastros completados (observabilidade §3) — carry-over junto com STORY-025
+  (mesma pendência herdada da STORY-023).
 
 ### Links de evidência
-(a preencher)
+- Commits: data layer `4ad5490`, CEP+IDR-024 `0365e94`, service/controller/rotas `e6f6fc5`,
+  UI Flutter `da9e51f`, seed real do contrato `ba3e7b6`, E2E `948c0a0`.
+- IDRs: `IDR-023` (template próprio), `IDR-024` (CEP ViaCEP).
+- Spec: `SCREEN-STORY-024-completar-cadastro-contratante.md` (ready).
+- Template: `docs/especificacao/contratos/template-termos-plataforma-contratante-v1.md`.
+- LGPD: `docs/especificacao/lgpd/campos-coletados.md` §STORY-024.
