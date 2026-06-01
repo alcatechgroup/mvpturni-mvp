@@ -2,18 +2,21 @@
 story_id: STORY-039
 slug: adotar-patrol-cenarios-nativos
 title: Adotar Patrol para cenários nativos — scaffolding + 1 cenário de smoke
-epic_id: EPIC-007
-sprint_id: SPRINT-2026-W26
+epic_id: EPIC-009
+sprint_id: null
 type: enablement
 target_role: programador
 requires_design: false
-status: ready
+status: backlog
 owner_agent: null
 created_at: 2026-05-29
 updated_at: 2026-06-01
 estimated_session_size: M
 renamed_from: STORY-035 (EPIC-007 original; renomeada em 2026-05-31 por colisão com EPIC-001 STORY-035)
+moved_from_epic: EPIC-007 (re-escopo Web-only em 2026-06-01 — MVP sem mobile; ver EPIC-009/epic.md)
 ---
+
+> **⚠️ Backlog (re-escopo 2026-06-01):** esta story saiu do EPIC-007/SPRINT-2026-W26 para o **EPIC-009 (mobile E2E nativo, backlog)** porque o MVP **não terá mobile**. Não puxar para sprint sem decisão de PO. **Pré-requisito descoberto ao iniciar:** `apps/webapp/` é Web-only (sem `android/`/`ios/`) — a execução precisa gerar o scaffolding nativo (`flutter create --org br.com.turni --platforms=android,ios .`) antes da config Patrol. Versões já validadas no spike de 2026-06-01: `patrol 4.6.1` resolve com Flutter 3.41.6; `patrol_cli 4.4.0` instala via `dart pub global activate patrol_cli`.
 
 # STORY-039 — Adotar Patrol para cenários nativos
 

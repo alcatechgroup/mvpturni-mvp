@@ -1,16 +1,22 @@
 ---
 epic_id: EPIC-007
 slug: e2e-hibrida-flutter
-title: E2E híbrida do WebApp — integration_test (UI) + Playwright (smoke HTTP) + Patrol (nativo)
+title: E2E do WebApp Web — integration_test (UI) + Playwright (smoke HTTP)
 wave: WAVE-2026-01
-status: draft
+status: done
 owner_role: po
 created_at: 2026-05-29
-updated_at: 2026-05-29
+updated_at: 2026-06-01
 target_completion: 2026-08-15  # estimativa orientativa — sem sprint alvo
+closed_at: 2026-06-01
+closed_by: "PO (Alexandro / Claude)"
+rescoped_at: 2026-06-01
+rescoped_note: "Re-escopado para Web-only — a camada Patrol/nativa (STORY-039/040) saiu para o EPIC-009 (backlog) porque o MVP não terá mobile. Goal Web batido: STORY-038 + STORY-043 done, IDR-010/011 accepted, IDR-006 §b anotada."
 ---
 
-# EPIC-007 — E2E híbrida do WebApp Flutter
+# EPIC-007 — E2E do WebApp Web (integration_test + Playwright)
+
+> **⚠️ Re-escopo 2026-06-01 (PO):** o MVP **não terá mobile**, então a camada nativa deste épico — **Patrol** (STORY-039) e **gate mobile Android/iOS** (STORY-040) — foi **removida do escopo** e migrada para o **EPIC-009 (backlog, mobile E2E nativo)**, a ser reativada quando a 1ª release mobile entrar no roadmap. O épico fecha **Web-only**: `integration_test` (UI Flutter Web) + Playwright (smoke HTTP), entregue por STORY-038 + STORY-043. As menções a Patrol/Android/iOS abaixo são a **visão original** e ficam como contexto histórico — a parte vigente é a Web. `status: done` em 2026-06-01.
 
 ## Por que existimos (problema do time)
 
@@ -90,17 +96,11 @@ A IDR-006 §a (path strategy) e §c (build fresco no gate) continuam vigentes. A
   - Path: `stories/STORY-034-adotar-integration-test-no-webapp.md`
   - Entregável: 7 cenários reescritos em `integration_test`, Playwright reduzido a smoke HTTP, `make e2e-webapp` verde, IDR-010 e IDR-011 propostos. Sem bloqueio.
 
-- [ ] **STORY-035** — Adotar Patrol para cenários nativos (smoke do framework)
-  - `type: enablement`, `target_role: programador`, `status: draft`
-  - Path: `stories/STORY-035-adotar-patrol-cenarios-nativos.md`
-  - Entregável: dependência `patrol` + `patrol_cli` instalados, Android e iOS configurados, 1 cenário de smoke rodando em emulator local. Bloqueada por STORY-034 (precisa do scaffolding de `integration_test` e do IDR-010 aceito).
+- ~~**STORY-035** — Adotar Patrol para cenários nativos~~ → **renomeada STORY-039, movida para EPIC-009** (re-escopo 2026-06-01). Mobile fora do MVP. Ver `docs/project-state/epics/EPIC-009-e2e-mobile-nativo/`.
 
-- [ ] **STORY-036** — Gate E2E mobile local (Android emulator + iOS simulator)
-  - `type: enablement`, `target_role: programador`, `status: draft`
-  - Path: `stories/STORY-036-gate-e2e-mobile-android-ios.md`
-  - Entregável: targets no Makefile (`make e2e-webapp-android`, `make e2e-webapp-ios`), runbook de setup local, política documentada (gate mobile opcional no MVP; obrigatório quando 1ª release mobile chegar). Bloqueada por STORY-034 e STORY-035.
+- ~~**STORY-036** — Gate E2E mobile local (Android emulator + iOS simulator)~~ → **renomeada STORY-040, movida para EPIC-009** (re-escopo 2026-06-01). Mobile fora do MVP. Ver `docs/project-state/epics/EPIC-009-e2e-mobile-nativo/`.
 
-> Nota: as estórias acima (034/035/036 no rascunho do épico) foram renomeadas em 2026-05-31 para **STORY-038/039/040** por colisão de ID. Ver `index.json` e os arquivos em `stories/`.
+> Nota: as estórias 035/036 (rascunho do épico) foram renomeadas em 2026-05-31 para **STORY-039/040** e, em 2026-06-01, **transferidas para o EPIC-009 (backlog mobile)** no re-escopo Web-only. STORY-034 → STORY-038 permaneceu neste épico. Ver `index.json`.
 
 - [ ] **STORY-043** — Harness same-origin para `integration_test` no Web (cobrir a área logada)
   - `type: enablement`, `target_role: programador`, `status: ready` (adicionada 2026-06-01, SPRINT-2026-W26)
@@ -111,8 +111,11 @@ A IDR-006 §a (path strategy) e §c (build fresco no gate) continuam vigentes. A
 
 Critérios em `validation/checklist.md` (a escrever junto com o detalhamento das stories quando o PO aprovar). Relatório do validador em `validation/report.md`.
 
-**Definição de épico concluído**: STORY-038/039/040/043 em `done` + IDR-010 e IDR-011 aceitas + IDR-006 atualizada com nota de supersede parcial de §b + harness same-origin (STORY-043) cobrindo a área logada no gate + 5 execuções consecutivas verdes de `make e2e-webapp` (incl. fluxos autenticados) + 1 cenário Patrol verde em Android emulator local + relatório de validação `approved`.
+**Definição de épico concluído (Web-only, vigente após re-escopo 2026-06-01)**: STORY-038 + STORY-043 em `done` + IDR-010 e IDR-011 aceitas + IDR-006 atualizada com nota de supersede parcial de §b + harness same-origin (STORY-043) cobrindo a área logada no gate + `make e2e-webapp` verde (integration_test UI + smoke Playwright, incl. fluxos autenticados). **A camada Patrol/mobile saiu para o EPIC-009** — "1 cenário Patrol verde em Android emulator" e "gate mobile" **não** são mais critério deste épico.
+
+~~**Definição original (pré-re-escopo)**: STORY-038/039/040/043 em `done` + ... + 1 cenário Patrol verde em Android emulator local.~~ Substituída em 2026-06-01.
 
 ## Histórico
 
 - 2026-05-29 — Criado por PO (Alexandro / Claude) após análise do estado dos E2E e decisão de adotar modelo híbrido em preparação para a migração do WebApp para nativo (Android/iOS).
+- 2026-06-01 — **Re-escopado para Web-only e fechado (`done`)** por PO (Alexandro / Claude). Motivo: MVP não terá mobile. Camada nativa (Patrol STORY-039 + gate mobile STORY-040) transferida para **EPIC-009 (backlog)**. Goal Web atingido: STORY-038 + STORY-043 `done`, IDR-010/011 `accepted`, IDR-006 §b anotada. Decisão tomada durante o início da STORY-039 — ao tocar o scaffolding, descobriu-se que `apps/webapp/` era Web-only (sem `android/`/`ios/`); o PO optou por despriorizar mobile em vez de criar a base nativa agora.

@@ -1,20 +1,24 @@
 ---
-story_id: STORY-036
+story_id: STORY-040
 slug: gate-e2e-mobile-android-ios
 title: Gate E2E mobile local — Android emulator + iOS simulator, runbook e política
-epic_id: EPIC-007
+epic_id: EPIC-009
 sprint_id: null
 type: enablement
 target_role: programador
 requires_design: false
-status: draft
+status: backlog
 owner_agent: null
 created_at: 2026-05-29
-updated_at: 2026-05-29
+updated_at: 2026-06-01
 estimated_session_size: M
+renamed_from: STORY-036 (EPIC-007 original; renomeada em 2026-05-31 por colisão de ID — frontmatter corrigido em 2026-06-01)
+moved_from_epic: EPIC-007 (re-escopo Web-only em 2026-06-01 — MVP sem mobile; ver EPIC-009/epic.md)
 ---
 
-# STORY-036 — Gate E2E mobile (Android + iOS), runbook e política
+> **⚠️ Backlog (re-escopo 2026-06-01):** transferida do EPIC-007/SPRINT-2026-W26 para o **EPIC-009 (mobile E2E nativo, backlog)** — MVP sem mobile. Bloqueada por STORY-039. Não puxar para sprint sem decisão de PO.
+
+# STORY-040 — Gate E2E mobile (Android + iOS), runbook e política
 
 > **Para o agente que vai executar:** leia esta estória por inteiro antes de começar. Esta estória **só faz sentido depois de STORY-034 e STORY-035**. Aqui o objetivo é fechar o ciclo: rodar os `integration_test` existentes (UI Flutter) em Android emulator e iOS simulator, decidir e documentar quando esse gate é obrigatório, e deixar o runbook escrito para quem for replicar o setup. **Não** é tornar o gate mobile obrigatório no MVP — é deixá-lo pronto e documentado.
 

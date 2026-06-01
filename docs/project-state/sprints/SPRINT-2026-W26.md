@@ -1,17 +1,22 @@
 ---
 sprint_id: SPRINT-2026-W26
 wave: WAVE-2026-01
-status: planned
+status: closed
 start_date: null
-end_date: null
+end_date: 2026-06-01
 soft_cap_date: null
 opened_at: 2026-05-31
 opened_by: "PO (Alexandro / Claude)"
-closure_rule: "Fechamento por goal-atingido: encerra quando STORY-038, STORY-039 e STORY-040 estiverem `done` E IDR-010 e IDR-011 estiverem `accepted` E IDR-006 estiver atualizada anotando supersede parcial de §b. Soft-cap a definir na ativação (~14 dias úteis após `start_date`) serve como gatilho de reavaliação — não é prazo de entrega. `status: active` quando SPRINT-2026-W25 fechar e STORY-038 for promovida a `ready` (após aceitação de IDR-010/011 pelo PO)."
-goal: "Fechar o EPIC-007 — modelo E2E híbrido do WebApp em vigor: `integration_test` cobrindo UI Flutter (7 cenários de RBAC/funnel migrados de Playwright, rodando 0 flake em Chrome headless), Playwright reduzido a smoke HTTP do build deployado, Patrol em pé como framework com 1 cenário de smoke em Android emulator local. `make e2e-webapp` orquestrando as duas primeiras camadas. IDR-010 e IDR-011 aceitas; IDR-006 §b marcada como parcialmente superseded. Padrão de teste Flutter (Keys/mocks/helpers/naming) registrado antes da STORY-022+ entrar para reduzir retrabalho."
+closed_at: 2026-06-01
+closed_by: "PO (Alexandro / Claude)"
+goal_outcome: achieved_rescoped
+closure_rule: "[RE-ESCOPADA 2026-06-01 — Web-only] Encerra por goal-atingido quando STORY-038 e STORY-043 estiverem `done` E IDR-010 e IDR-011 estiverem `accepted` E IDR-006 estiver atualizada anotando supersede parcial de §b. A camada Patrol/mobile (STORY-039/040) saiu do escopo — MVP sem mobile — e migrou para o EPIC-009 (backlog), portanto NÃO é mais critério de fechamento. [Regra original: exigia STORY-038/039/040 `done` + IDR-010/011 aceitas + IDR-006 anotada.]"
+goal: "[RE-ESCOPADO 2026-06-01 — Web-only] Fechar o EPIC-007 na parte Web — modelo E2E híbrido do WebApp em vigor: `integration_test` cobrindo UI Flutter (7 cenários de RBAC/funnel migrados de Playwright + área logada same-origin via STORY-043, rodando 0 flake em Chrome headless), Playwright reduzido a smoke HTTP do build deployado. `make e2e-webapp` orquestrando as camadas Web. IDR-010 e IDR-011 aceitas; IDR-006 §b marcada como parcialmente superseded. Padrão de teste Flutter (Keys/mocks/helpers/naming) registrado antes da STORY-022+ entrar para reduzir retrabalho. [Goal original incluía 'Patrol em pé com 1 cenário smoke em Android emulator' — removido no re-escopo; ver EPIC-009.]"
 ---
 
 # SPRINT-2026-W26
+
+> **⚠️ Fechada e re-escopada em 2026-06-01 (`status: closed`, `achieved_rescoped`).** O escopo Web foi entregue (STORY-038 + STORY-043 `done`, IDR-010/011 aceitas, IDR-006 §b anotada) e o EPIC-007 fechou Web-only. A camada **Patrol/mobile (STORY-039/040)** foi **despriorizada — o MVP não terá mobile** — e migrada para o **EPIC-009 (backlog)**. As seções abaixo são o **plano de abertura** (3→4 stories, incl. mobile) e ficam como contexto histórico; o resultado real está em §"Fechamento do sprint". Detalhes do corte em §"Mudanças no escopo".
 
 ## Objetivo do sprint
 
@@ -36,14 +41,14 @@ O sprint **NÃO** abre frente nova fora do EPIC-007: EPIC-002 (vaga + feed + can
 
 ## Estórias incluídas
 
-| ID        | Título                                                                                | Épico    | Tipo       | Papel       | Tamanho | Design? | Status atual                                          |
+| ID        | Título                                                                                | Épico    | Tipo       | Papel       | Tamanho | Design? | Status final                                          |
 | --------- | ------------------------------------------------------------------------------------- | -------- | ---------- | ----------- | ------- | ------- | ----------------------------------------------------- |
-| STORY-038 | Adotar `integration_test` no WebApp Flutter Web e migrar os 7 cenários de RBAC/funnel | EPIC-007 | enablement | programador | **L**   | não     | draft (vira `ready` quando IDR-010/011 forem aceitas) |
-| STORY-039 | Adotar Patrol para cenários nativos — scaffolding + 1 cenário de smoke                | EPIC-007 | enablement | programador | M       | não     | draft (bloqueada por STORY-038)                       |
-| STORY-040 | Gate E2E mobile local — Android emulator + iOS simulator, runbook e política          | EPIC-007 | enablement | programador | M       | não     | draft (bloqueada por STORY-038 e STORY-039)           |
-| STORY-043 | Harness same-origin para integration_test no Web — cobrir a área logada e migrar os fluxos flaky restantes | EPIC-007 | enablement | programador | **L**   | não     | ready (bloqueada por STORY-038; adicionada 2026-06-01) |
+| STORY-038 | Adotar `integration_test` no WebApp Flutter Web e migrar os 7 cenários de RBAC/funnel | EPIC-007 | enablement | programador | **L**   | não     | **`done`**                                            |
+| STORY-043 | Harness same-origin para integration_test no Web — cobrir a área logada e migrar os fluxos flaky restantes | EPIC-007 | enablement | programador | **L**   | não     | **`done`**                                            |
+| ~~STORY-039~~ | ~~Adotar Patrol para cenários nativos~~ → **movida p/ EPIC-009 (backlog)**         | EPIC-009 | enablement | programador | M       | não     | **de-escopada** 2026-06-01 (MVP sem mobile)           |
+| ~~STORY-040~~ | ~~Gate E2E mobile local — Android emulator + iOS simulator~~ → **movida p/ EPIC-009** | EPIC-009 | enablement | programador | M       | não     | **de-escopada** 2026-06-01 (MVP sem mobile)           |
 
-**Sizing total**: 2L + 2M (era 1L + 2M; +STORY-043 em 2026-06-01). **Sem estória stretch.** Justificativa: o objetivo é fechar EPIC-007 limpo; STORY-043 entrou porque o spike da STORY-038 revelou que matar o flake **também na área logada** (chamadas autenticadas pós-login) exige um harness same-origin — peça de fundação que pertence ao EPIC-007 e destrava a STORY-022+ (toda autenticada). Caminho técnico já provado por spike, o que reduz o risco do novo L.
+**Sizing entregue**: **2L** (STORY-038 + STORY-043, ambas `done`). Plano original era 2L+2M; as 2M (STORY-039/040, Patrol/mobile) foram **de-escopadas em 2026-06-01** quando o PO decidiu que o MVP não terá mobile — migraram para o EPIC-009 (backlog). **Sem estória stretch.** O objetivo Web — gate determinístico + área logada testável — foi atingido pelas 2L.
 
 **Sem `requires_design: true` em nenhuma das 3 estórias.** Designer não é gargalo aqui — sprint exclusivamente de programador. Designer pode usar a folga para adiantar specs do EPIC-002 (vaga + feed + candidatura).
 
@@ -169,6 +174,7 @@ Regras novas para W26:
 |---|---|---|---|
 | 2026-05-31 | Abertura: 3 estórias no escopo (STORY-038/039/040, EPIC-007). Renomeação preventiva de STORY-034/035/036 → STORY-038/039/040 por colisão com STORY-034 worker (EPIC-001, done em W25). | Pedido do PO em chat: "criar uma sprint para implementarmos o EPIC-007". Renomeação necessária porque EPIC-001 STORY-034 já está `done` com IDR-016 e commits — colisão impede registro consistente em `index.json`. EPIC-007 stories nunca tinham sido indexadas, então rename é mais barato que renomear EPIC-001 STORY-034. | Sem deslocamento de outras estórias. Sprint EPIC-002 (sequência natural pós-EPIC-001) fica para SPRINT-2026-W27, dentro do compromisso da wave (target_completion 2026-08-31, folga preservada). |
 | 2026-06-01 | **+STORY-043 (L)** no escopo: harness same-origin para `integration_test` no Web (cobrir área logada) + migração dos fluxos flaky restantes (welcome, validações de pré-cadastro) para `integration_test`; `app-update` fica como smoke Playwright; `tests/e2e/` reduzido ao smoke HTTP. Sizing 1L+2M → **2L+2M**. Closure-rule passa a exigir STORY-043 `done`. | Durante a STORY-038, o spike de 2026-06-01 provou que matar o flake **também na área logada** (chamadas autenticadas pós-login, ex.: welcome `welcome-visto`) exige um harness same-origin sob `flutter drive` — maior que o escopo da STORY-038 e tocando IDR-014/009. PO optou pela **solução de raiz** e incluiu a story de enabling nesta sprint, com o Caminho 1 (reverse-proxy + `--web-launch-url`) **já provado**. | Sem deslocamento de outras estórias. EPIC-002 segue para W27. STORY-043 paraleliza com STORY-039/040 (Web vs. nativo). Risco do novo L mitigado pela receita já provada. |
+| 2026-06-01 | **−STORY-039 e −STORY-040 (2M)** saem do escopo e migram para o **EPIC-009 (backlog, mobile E2E nativo)**. Sizing **2L+2M → 2L** (só Web). Closure-rule re-escopada para Web-only (038+043). Sprint **fechada** (`achieved_rescoped`). EPIC-007 re-escopado para Web-only e marcado `done`. | Decisão de PO: **o MVP não terá mobile**. Ao iniciar a STORY-039 descobriu-se ainda que `apps/webapp/` é Web-only (sem `android/`/`ios/`) — montar a base nativa só para o smoke do Patrol seria investir numa superfície (gradle/Podfile/signing/minSdk) que o produto não usa hoje. Despriorizar mobile e fechar o épico na parte Web (já 100% entregue: 038+043 `done`, IDRs aceitas) é o corte honesto. | Sem deslocamento de estórias Web. STORY-039/040 preservadas (sem renúmero) no EPIC-009, reativáveis quando a 1ª release mobile entrar no roadmap. Trabalho não-commitado da 039 (deps Patrol + scaffolding `android/`/`ios/`) revertido — árvore limpa. |
 
 ## Aprendizados em curso (mid-sprint)
 
@@ -178,12 +184,27 @@ _(seção vazia na abertura — preencher durante execução)_
 
 ## Fechamento do sprint
 
-> Preencher no encerramento.
+> Fechada em 2026-06-01 por PO (Alexandro / Claude). Resultado: **`achieved_rescoped`** — goal Web atingido; mobile despriorizado e movido para backlog.
 
 ### O que foi entregue
 
+- **STORY-038** (`done`) — `integration_test` no WebApp Flutter Web; 7 cenários de RBAC/funnel migrados de Playwright para Dart, rodando em Chrome headless; Playwright reduzido a smoke HTTP; gate híbrido no Makefile. IDR-010 e IDR-011 propostas e aceitas.
+- **STORY-043** (`done`) — harness same-origin (reverse-proxy + `--web-launch-url`) para `integration_test` cobrir a **área logada** sob `flutter drive` (cookie Sanctum funcionando); welcome e validações de pré-cadastro migrados para `integration_test`; `app-update` como smoke Playwright; `tests/e2e/` reduzido ao smoke HTTP. IDR-021 aceita.
+- **IDR-010** e **IDR-011** em `accepted`. **IDR-006 §b** anotada como parcialmente superseded (desde 2026-06-01).
+- **EPIC-007** re-escopado para **Web-only** e fechado (`done`).
+
 ### O que ficou para trás (e por quê)
+
+- **STORY-039 (Patrol)** e **STORY-040 (gate mobile Android/iOS)** — **despriorizadas por decisão de PO: o MVP não terá mobile.** Migradas sem renúmero para o **EPIC-009 (backlog, mobile E2E nativo)**, com gatilho de reativação "1ª release mobile no roadmap". Não são carry-over para uma próxima sprint — são backlog sem sprint alvo.
+- Implicação descoberta na execução: `apps/webapp/` é **Web-only** (sem `android/`/`ios/`). A base nativa teria de ser criada do zero (`flutter create --platforms=android,ios`), o que reforçou a decisão de não pagar esse custo agora. O scaffolding gerado durante a tentativa foi revertido — árvore limpa.
 
 ### Aprendizados
 
+- **Sprint de fundação técnica fecha bem por goal-atingido**, mesmo com re-escopo no meio: a parte Web (038+043) já satisfazia o valor real (gate determinístico + área logada testável); a camada mobile era investimento antecipado para um alvo (mobile) que o MVP não tem. Cortar cedo evitou montar e manter `android/`+`ios/` sem produto que os use.
+- **Validar a premissa "o app já tem as plataformas nativas" antes de planejar stories nativas.** O EPIC-007 assumia que o scaffolding Android/iOS existia (herança implícita da STORY-034); não existia. Stories de enablement mobile devem listar "gerar/validar plataforma nativa" como item próprio (registrado no EPIC-009).
+- **Re-escopo é decisão de produto, não de execução**: o agente parou ao detectar o gap e escalou ao PO em vez de criar a base nativa por conta própria.
+
 ### Ajustes para o próximo sprint
+
+- **SPRINT-2026-W27** abre o **EPIC-002** (vaga + feed + candidatura), conforme já previsto. Todas as stories novas do WebApp nascem em `integration_test` seguindo IDR-011 (padrão agora de pé).
+- **EPIC-009** permanece em backlog até decisão de roadmap mobile; quando reativado, sua 1ª story trata o scaffolding nativo como item explícito.
