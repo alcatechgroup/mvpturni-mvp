@@ -2125,6 +2125,16 @@
     "approved_by": "Alexandro",
     "source_story": "STORY-043",
     "note": "Caminho 1 do spike, produtizado. Blocker real descoberto: bind IPv6/IPv4 (--web-hostname=127.0.0.1). Aceita pelo PO junto da aprovação da STORY-043."
+   },
+   {
+    "id": "IDR-022",
+    "title": "Renderização do aceite de adesão (omite Seção 2 + notas internas), preview vs. assinatura, e documento_hash para unicidade",
+    "status": "accepted",
+    "path": "decisions/idr/IDR-022-render-aceite-adesao-e-documento-hash.md",
+    "decided_at": "2026-06-01",
+    "decided_by": "programador",
+    "source_story": "STORY-023",
+    "note": "Corpo de adesão = preâmbulo + Seção 1 + Assinatura; preview com carimbo pendente; documento_hash HMAC-SHA256 (encrypted cast é não-determinístico). Reusado pela STORY-024."
    }
   ],
   "ddr": [

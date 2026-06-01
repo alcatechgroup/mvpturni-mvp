@@ -168,9 +168,9 @@ do zero** (revert `690a252` descartou a implementação anterior, que chegou a `
 repensada.
 
 ### Sync Designer↔Programador
-PENDENTE. A `SCREEN-STORY-023` foi revertida junto (não está mais em disco; o índice dizia
-"preservada", mas o revert a removeu). Precisa ser recriada e promovida a `ready` antes de
-finalizar a UI (fase 2 — frontend).
+FEITO. A `SCREEN-STORY-023` foi recriada (o revert a removeu, apesar do índice dizer "preservada")
+refletindo fielmente a UI construída e promovida a `ready` (commit `df28105`). Projeto solo — sync
+registrado na própria spec.
 
 ### Decisões tomadas
 - **IDR-022** (ver abaixo): corte do corpo de adesão (preâmbulo + Seção 1 + Assinatura; omite Seção
@@ -192,6 +192,14 @@ finalizar a UI (fase 2 — frontend).
   ser renderizadas ao usuário (tratado no IDR-022).
 - `UploadedFile::fake()->image()` exige extensão GD (ausente no container) — usar
   `->create(name, kb, 'image/jpeg')` nos testes.
+- O WebApp não tinha `tipo_pessoa` na sessão e a rota `/api/user` (FunnelGuard) bloquearia um
+  usuário em `await_cadastro` — daí o endpoint dedicado `GET .../completar/contexto`.
+- `file_picker` 11 mudou a API: `FilePicker.pickFiles(...)` estático (sem `.platform`).
+- **E2E (CA-15) — limitação real:** o `file_picker` abre diálogo nativo do SO que o Chrome
+  headless do `flutter drive` não consegue dirigir, e o router monta a tela sem seam de injeção
+  (a injeção `documentPicker` existe só para widget test). Rodar a etapa de upload no
+  integration_test exige um seam de teste (candidato a IDR) ou fica coberta pela evidência de
+  stack real (HTTP+psql) já produzida. Carry-over para a fase de pipeline.
 
 ### Bloqueios encontrados
 Nenhum bloqueio duro. Pendência de design (screen spec) registrada acima.
@@ -201,29 +209,41 @@ Nenhum bloqueio duro. Pendência de design (screen spec) registrada acima.
   assinatura, e `documento_hash` para unicidade.
 
 ### Cobertura final
-Backend (parcial — fase 1): suíte `api` 206 passed; núcleo do story ~98%
-(`CompletarCadastroProfissionalService` 98.68% linhas, `AceiteAdesaoRenderer`/`ChavePixValidator`/
-`RenderizacaoIncompletaException`/`CompletarCadastroProfissionalRequest` 100%, `DocumentoValidator`
-96.97%). `pint` ok. **Falta** cobertura do frontend Flutter (widget tests) e E2E.
+- **api**: 208 passed (43+ do story); núcleo ~98% (`CompletarCadastroProfissionalService` 98.68%,
+  `AceiteAdesaoRenderer`/`ChavePixValidator`/`RenderizacaoIncompletaException`/
+  `CompletarCadastroProfissionalRequest` 100%, `DocumentoValidator` 96.97%). Gate `--min=80` ok. `pint` ok.
+- **webapp**: 105 passed (8 novos do story); `flutter analyze` limpo nos arquivos da estória.
 
 ### Resultado final / evidência
-**Fase 1 (backend) concluída e commitada** (`6ae7420`). CA cobertos por testes no backend:
-CA-3 (documento por tipo + unicidade), CA-4 (Pix), CA-5 (upload mimes/10MB), CA-6 (cripto em
-repouso — query direta não vê texto claro), CA-9 (aceite com versão/conteúdo/dados/ip/fingerprint),
-CA-10 (transação atômica — template indisponível não persiste nada + limpa arquivos), CA-11
-(imutabilidade trigger), CA-12 (transição → ativo), CA-16 (aceite mantém versão original após nova
-versão ativa), CA-17 (log `user.cadastro_completed`).
+**Implementação (backend + frontend) concluída e commitada.** Commits: `6ae7420` (backend),
+`ccb7de9` (frontend), `df28105` (screen spec + LGPD).
 
-### Pendências para fechar (fase 2)
-- [ ] Recriar `SCREEN-STORY-023` + sync designer↔programador (CA-1/7/13).
-- [ ] Frontend Flutter: rota `/completar-cadastro` real (multi-step), upload, preview, checkbox +
-      botão "Aceito e concluir cadastro" (CA-1/2/7/8/13), tema dual, a11y WCAG AA. Widget tests.
-- [ ] E2E browser real: CA-15 (PF + MEI + bloqueio sem checkbox) e CA-16 na pipeline.
-- [ ] CA-18: atualizar lista de campos LGPD em `non-functional.md` (classificação sensível).
-- [ ] Evidência em homolog: cripto em repouso (psql) + imutabilidade (CA-11/runbook) + deploy verde.
-- [ ] Métrica/alerta de cadastros completados (observabilidade §3).
+CA cobertos por testes automatizados: CA-1/2/7/8/12 (widget tests Flutter), CA-3/4/5/6/9/10/11/12/16/17
+(feature/unit tests api).
+
+**Verificação na stack real rodando (dev — api :8001 + Postgres):** fluxo Sanctum completo via
+curl + evidência psql —
+- login → contexto (`tipo_pessoa=PF`, `documento_tipo=CPF`) → preview (3930 chars, contém CPF,
+  **sem** `## Seção 2`, **sem** Notas do PO, com marcador pendente) → completar **201**.
+- DB pós-aceite: `user.status=ativo`, `cadastro_completed_at` set (CA-12); aceite com
+  `template_versao_id=1`, ip, fingerprint SHA-256 (64), conteúdo com CPF e **sem placeholder**
+  remanescente (CA-9).
+- **CA-6 (cripto em repouso):** `SELECT documento_encrypted` retorna ciphertext Laravel
+  (`eyJpdiI6...`) — sem CPF/Pix em claro; o model decripta corretamente; `documento_hash` 64 chars.
+- **CA-11 (imutabilidade):** `UPDATE`/`DELETE` direto em `aceites_eletronicos` →
+  `ERROR: aceites_eletronicos é imutável após criação` (trigger). Evidência de runbook.
+
+### Pendências para fechar (fase de pipeline/homolog — carry-over)
+- [ ] E2E browser real CA-15 (PF + MEI + bloqueio sem checkbox) e CA-16 no integration_test/pipeline.
+      Bloqueio técnico do upload via `file_picker` em Chrome headless documentado em §Descobertas
+      (precisa de seam de teste — candidato a IDR). O restante do fluxo já tem evidência de stack real.
+- [ ] Push → deploy homolog verde + repetir evidência de cripto/imutabilidade em homolog (psql).
+- [ ] Métrica/alerta de cadastros completados (observabilidade §3 — pode ir junto com STORY-025).
 
 ### Links de evidência
-- Commit fase 1: `6ae7420`.
-- Testes: `apps/api/tests/Feature/Identity/CompletarCadastroProfissionalTest.php`,
+- Commits: `6ae7420` (backend), `1957df3` (notas), `ccb7de9` (frontend), `df28105` (spec+LGPD).
+- Testes api: `apps/api/tests/Feature/Identity/CompletarCadastroProfissionalTest.php`,
   `apps/api/tests/Unit/Cadastro/*`, `apps/api/tests/Unit/Contratos/*`.
+- Testes webapp: `apps/webapp/test/completar_cadastro_screen_test.dart`.
+- Screen spec: `docs/project-state/design/screens/SCREEN-STORY-023-completar-cadastro-profissional.md`.
+- LGPD: `docs/especificacao/lgpd/campos-coletados.md` §STORY-023.
