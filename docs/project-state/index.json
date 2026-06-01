@@ -2146,6 +2146,16 @@
     "approved_by": "Alexandro",
     "source_story": "STORY-024",
     "note": "Divergência spec×seed: mei_pj_b2b Seção 1 é do profissional (sem placeholder de contratante). Contratante ganha template próprio com taxa Turni 15% como cláusula permanente (PDR-004). Texto-seed é authoring do PO (24–48h); CA-7/9/15 ajustadas. Resto da STORY-024 segue em paralelo."
+   },
+   {
+    "id": "IDR-024",
+    "title": "Busca de endereço por CEP via ViaCEP, fail-soft (não bloqueia o cadastro)",
+    "status": "accepted",
+    "path": "decisions/idr/IDR-024-busca-de-cep-via-viacep-fail-soft.md",
+    "decided_at": "2026-06-01",
+    "decided_by": "programador",
+    "source_story": "STORY-024",
+    "note": "ViaCEP via Http nativo (sem lib nova), timeout 4s, fail-soft: CepLookup nunca lança, retorna null e loga cadastro.cep_lookup_falhou. BrasilAPI fica como fallback (troca base_url). CA-4."
    }
   ],
   "ddr": [

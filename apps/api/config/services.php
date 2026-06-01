@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    // STORY-024 CA-4 / IDR-024 — busca de endereço por CEP (fail-soft).
+    'viacep' => [
+        'base_url' => env('VIACEP_BASE_URL', 'https://viacep.com.br/ws'),
+        'timeout' => (int) env('VIACEP_TIMEOUT', 4),
+    ],
+
 ];
