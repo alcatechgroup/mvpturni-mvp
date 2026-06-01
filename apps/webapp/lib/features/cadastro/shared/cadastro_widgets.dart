@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../ds/tokens.dart';
@@ -84,7 +83,6 @@ class CadastroTextField extends StatelessWidget {
     this.helper,
     this.keyboardType,
     this.textCapitalization = TextCapitalization.none,
-    this.inputFormatters,
     this.validator,
   }) : super(key: key ?? ValueKey('$fieldKey-field'));
 
@@ -95,7 +93,6 @@ class CadastroTextField extends StatelessWidget {
   final String? helper;
   final TextInputType? keyboardType;
   final TextCapitalization textCapitalization;
-  final List<TextInputFormatter>? inputFormatters;
   final String? Function(String?)? validator;
 
   @override
@@ -106,7 +103,6 @@ class CadastroTextField extends StatelessWidget {
       controller: controller,
       keyboardType: keyboardType,
       textCapitalization: textCapitalization,
-      inputFormatters: inputFormatters,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       decoration: InputDecoration(
         labelText: label,

@@ -8,12 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-023-completar-cadastro-profissional
-status: done
-owner_agent: claude-opus-programador-designer-2026-05-30
+status: ready
+owner_agent: null
 created_at: 2026-05-28
-updated_at: 2026-05-31
-approved_by: Alexandro
-approved_at: 2026-05-31
+updated_at: 2026-05-30
 estimated_session_size: L
 ---
 
@@ -72,24 +70,24 @@ Direto: profissional fica `ativo` e pronto para usar a plataforma. Aceite eletr�
 
 ## Critérios de aceite
 
-- [x] **CA-1:** Rota `/completar-cadastro` em homolog renderiza o fluxo real (substitui o placeholder). Verificado em `app.homolog` (rc.37).
-- [x] **CA-2:** Formulário coleta todos os campos (3 passos), com validação client + server e mensagens acionáveis.
-- [x] **CA-3:** Documento validado por `tipo_pessoa` (CPF/CNPJ + dígitos); `documento_hash` único (IDR-018). Feature tests cobrem válido/inválido/duplicado.
-- [x] **CA-4:** Chave Pix exigida (não-vazia). **Validação de FORMATO deferida** por decisão PO (2026-05-31) — fora do escopo do MVP; `ChavePixValidator` fica no domínio para reativar (estória futura).
-- [x] **CA-5:** Upload (≤10 MB, JPG/PNG/PDF), MIME server-side, disco privado com path não-enumerável (ADR-004). Feature tests cobrem.
-- [x] **CA-6:** CPF/CNPJ + chave Pix em Encrypted Cast (ADR-009); doc comprobatório em disco privado. Feature test verifica ciphertext na query direta. *(Evidência psql em homolog: opcional — PO aceitou sem capturar.)*
-- [x] **CA-7:** Preview renderiza só a Seção 1 (Termos gerais) + Assinatura, com os dados do usuário, **formatado em markdown** (MarkdownLite); tema dual. Verificado em homolog.
-- [x] **CA-8:** Checkbox + CTA "Aceito e concluir" só habilita após preview rolado E checkbox marcado. Coberto por widget test + E2E (CA-8 verde local + homolog).
-- [x] **CA-9:** Aceite criado com `template_versao_id` da versão ativa, `conteudo_renderizado`, `dados_renderizados`, `ip`, `fingerprint`. Feature + E2E.
-- [x] **CA-10:** Transação atômica (rollback total em falha pós-escrita) — feature test com falha injetada no INSERT do aceite.
-- [x] **CA-11:** Trigger BEFORE UPDATE OR DELETE + REVOKE em `aceites_eletronicos`; feature test confirma `QueryException` em UPDATE/DELETE. *(Evidência psql em homolog: opcional — PO aceitou.)*
-- [x] **CA-12:** Transição `liberado → ativo, cadastro_completo=true` + tela de conclusão. Feature + widget + E2E.
-- [x] **CA-13:** Multi-step navegável por teclado, foco, `Semantics`, contraste, alvos ≥48dp, tema dual.
-- [x] **CA-14:** Núcleo bem coberto (renderer 95%, serviço/transação 97%, validador ~100%, request 100%). Suíte api 214 verde.
-- [x] **CA-15:** E2E Playwright (PF + MEI + bloqueio sem checkbox) verde local; CA-8 também verde **contra homolog** (rc.37).
-- [x] **CA-16:** Imutabilidade após nova versão coberta por teste de integração (feature): aceite mantém `template_versao_id` e `conteudo_renderizado` originais após ativação de v2.
-- [x] **CA-17:** Log `user.cadastro_completed` com `user_id, role, tipo_pessoa, template_versao_id`, sem PII clara. Feature test (Log::spy).
-- [x] **CA-18:** Inventário LGPD em `docs/especificacao/non-functional.md` com classificação (CPF/CNPJ + foto + Pix = sensíveis).
+- [ ] **CA-1:** Rota `/completar-cadastro` em homolog renderiza fluxo real (substituindo placeholder) para profissional `liberado, welcome_visto=true`.
+- [ ] **CA-2:** Formulário coleta todos os campos listados em §O quê (item 3), com validação client + server e mensagens acionáveis.
+- [ ] **CA-3:** Validação de documento por `tipo_pessoa`: PF → CPF (formato + dígitos verificadores válidos); MEI/PJ → CNPJ (formato + dígitos válidos). Documento único no sistema; tentativa de cadastrar documento já existente bloqueia com erro genérico.
+- [ ] **CA-4:** Chave Pix validada (tipo + formato básico). Aceita CPF/CNPJ/e-mail/telefone/aleatória.
+- [ ] **CA-5:** Upload de documentos comprobatórios funciona (≤10 MB, JPG/PNG/PDF), MIME validado server-side, armazenamento conforme ADR-004 com signed URLs / path não enumerável.
+- [ ] **CA-6:** Dados sensíveis (CPF/CNPJ, chave Pix, fotos de documentos) criptografados em repouso conforme ADR-009. Verificação: query direta no Postgres não retorna texto claro (depende do mecanismo escolhido; trigger uma sql para evidência).
+- [ ] **CA-7:** Preview do contrato renderiza o **texto integral da versão ativa do template aplicável** com placeholders substituídos pelos dados do usuário. Texto coerente: só seção "Termos gerais" (sem turno específico). Visual legível (escala de fonte, espaçamento), tema dual claro/escuro.
+- [ ] **CA-8:** Checkbox "Li, entendi e aceito" + botão "Aceito e concluir cadastro" — o botão **só habilita** após checkbox marcado E preview exibido (testar que não é possível submeter sem preview visto).
+- [ ] **CA-9:** Clique final gera `AceiteEletronico` no banco com todos os campos corretos: `template_versao_id` correto (versão ativa no momento), `conteudo_renderizado` igual ao preview exibido, `dados_renderizados` JSON estruturado, `timestamp`, `ip`, `fingerprint` conforme ADR-010.
+- [ ] **CA-10:** Transação atômica: se qualquer parte (criação do aceite, atualização dos campos, transição de status) falhar, **nada** persiste; usuário recebe erro acionável e estado anterior preservado.
+- [ ] **CA-11:** Aceite **imutável**: tentativa de UPDATE/DELETE direto no Postgres numa linha de `aceites_eletronicos` falha (mecanismo de ADR-010). Evidência no runbook.
+- [ ] **CA-12:** Após aceite com sucesso, usuário transiciona para `ativo, cadastro_completo=true` e cai em placeholder de feed (texto + logout). Funnel guard não redireciona mais.
+- [ ] **CA-13:** Acessibilidade WCAG 2.1 AA em todo o fluxo (multi-step, preview, checkbox final); tema dual.
+- [ ] **CA-14:** Cobertura ≥ 80% / ≥ 98% no núcleo (validação documento por tipo_pessoa, transação atômica de aceite, renderização correta da versão ativa, criptografia em repouso, transição de status).
+- [ ] **CA-15:** **E2E em browser real**: (a) seed profissional `liberado, welcome_visto=true, tipo_pessoa=PF`; navega completar cadastro; preenche os 3 passos; vê preview com CPF + dados pessoais; aceita; cai em rota interna placeholder; verifica no banco que `AceiteEletronico` existe com `template_versao_id` correto e `conteudo_renderizado` igual ao preview. (b) Mesma sequência para MEI (CNPJ + template MEI/PJ). (c) Tentativa de aceitar sem checkbox marcado é bloqueada.
+- [ ] **CA-16:** **Cenário crítico de imutabilidade**: após aceite criado, admin ativa nova versão do template aplicável (STORY-020); aceite existente do usuário deste teste continua **referenciando a versão original** e renderizando exatamente o texto original. Teste E2E ou de integração cobre.
+- [ ] **CA-17:** Log estruturado (ADR-008): evento `user.cadastro_completed` com `user_id, role, tipo_pessoa, template_versao_id` — sem dado pessoal claro.
+- [ ] **CA-18:** LGPD: lista de campos coletados nesta estória atualizada em `docs/especificacao/non-functional.md` (ou arquivo dedicado) com classificação (CPF/CNPJ + foto de documento + chave Pix = **dados sensíveis**; demais = dados pessoais comuns). Acesso a esses campos sempre via permissões controladas (admin lê; outros não).
 
 ## Fora de escopo
 
@@ -164,98 +162,31 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-
-**Assumida em** 2026-05-30 por `claude-opus-programador-designer-2026-05-30` (dupla Designer+Programador na mesma sessão — aprendizado #1 da W24).
-
-**Documentos lidos (íntegra):** esta estória; SPRINT-2026-W25; ADR-009 (perfis 1:1, funil status+timestamps, transição atômica `liberado→ativo`, Encrypted Cast para dados sensíveis); ADR-010 (schema Template/TemplateVersao/AceiteEletronico, partial unique index, motor de renderização por regex com falha-dura em placeholder ausente, imutabilidade por trigger + REVOKE); `domain/usuario.md` §Profissional pós-aprovação; `domain/compliance.md` §placeholders; SKILL programador + designer. Código: webapp (`pre_cadastro_profissional_screen`, `cadastro/shared/*`, `completar_cadastro_placeholder_screen`, router, funnel); api (`routes/api.php`, `FunnelGuard`, `WelcomeController`, `User`, `ProfissionalProfile`, migrations de identidade/templates, `TemplatesContratuaisSeeder`, seeds dos 2 templates); admin (`TemplateRenderer` — só destaca placeholders, não substitui).
-
-**Entendimento consolidado (minhas palavras):** o profissional `liberado, welcome_visto=true, cadastro_completo=false` preenche um formulário multi-step (Identidade → Profissional → Financeiro/Documentos), vê no último passo o **contrato renderizado com seus dados** (Seção 1 dos termos gerais + bloco de assinatura), marca "Li, entendi e aceito" e clica "Aceito e concluir cadastro". Nesse clique único e atômico: cria-se o `AceiteEletronico` imutável (referenciando a `template_versao` ativa do slug por `tipo_pessoa`), gravam-se os campos sensíveis criptografados, e o usuário transiciona para `ativo, cadastro_completo=true`. Tudo ou nada.
-
-**Descobertas que mudam o plano:** (a) `api` não tem models Template/TemplateVersao/AceiteEletronico nem a migration de `aceites_eletronicos` — preciso criá-los (models duplicados por app, como User/Funcao já são); (b) não há motor de substituição de placeholders em `api` — preciso implementá-lo (ADR-010 Decisão 3A); (c) colunas de completar-cadastro (`raio_max_km`, `preco_hora`, `funcoes_secundarias`, `documento_path`) não existem em `profissional_profiles`; (d) Encrypted Casts ainda não estão ligados no model `ProfissionalProfile`.
-
-**Plano (fases):**
-1. **Backend foundation (TDD):** migration (colunas completar-cadastro + `aceites_eletronicos` com trigger BEFORE UPDATE OR DELETE + REVOKE); models `Template`/`TemplateVersao`/`AceiteEletronico` em `api`; Encrypted Casts em `ProfissionalProfile`; validador CPF/CNPJ (dígitos) e chave Pix; `AceiteRenderer` (substituição por regex, falha-dura, render só Seção 1 + Assinatura); `CompletarCadastroService` (transação atômica) + `CompletarCadastroController` + rota `POST /api/usuarios/me/completar-cadastro` (fora do FunnelGuard, dentro de auth:web+WebAppOnly — convenção IDR-014). Upload de documento (ADR-004, signed URL / path não-enumerável). Unit + Feature tests (núcleo ≥98%).
-2. **Frontend (Flutter multi-step + preview + aceite) + widget tests.**
-3. **E2E browser (PF + MEI + bloqueio sem checkbox) + CA-16 (imutabilidade pós-nova-versão).**
-4. **Deploy homolog + verificação cripto em repouso (psql) + imutabilidade (psql) + LGPD doc + observabilidade.**
-
-**Dúvidas/ambiguidades:** ver §Decisões tomadas (resolvidas com default defensável) e §Bloqueios (flag de conteúdo do template para o PO).
+(a preencher)
 
 ### Sync Designer↔Programador
-
-Sessão única (mesmo agente nos dois papéis). Alinhamento antes da primeira linha de UI:
-- **Fluxo:** 3 passos (`Stepper`) — (1) Identidade: documento por `tipo_pessoa` (CPF/CNPJ, máscara + validação dígitos); (2) Profissional: funções secundárias (multi-select `FilterChip`), raio (km), preço/hora (com faixa sugerida), bio (≤500, contador); (3) Financeiro/Documentos: chave Pix (tipo + valor) + upload do documento comprobatório. Último passo expande o **preview do contrato** (full-screen scrollável) + checkbox + CTA final desabilitado até preview visto E checkbox marcado.
-- **Reuso:** componentes de `cadastro/shared/` (CadastroTextField, CadastroDropdownField, CadastroPhotoField→documento, CadastroSection, CadastroErrorText, banner). Tokens DDR-001 (tema dual). Sem componente novo de DS previsto.
-- **Limitações técnicas levantadas (programador→designer):** preview precisa do contrato renderizado **server-side** (mesmo texto que vai pro aceite — CA-9 exige `conteudo_renderizado == preview`); logo o preview faz um POST de "render preview" antes do aceite, ou o render acontece client-side a partir do template+dados. Decisão: **render server-side** (fonte única de verdade; evita divergência preview×aceite). Endpoint `POST /api/usuarios/me/completar-cadastro/preview` devolve o `conteudo_renderizado` sem persistir; o aceite final re-renderiza e persiste na transação.
-- **Identificadores estáveis sugeridos:** `screen-completar-cadastro`, `step-identidade|profissional|financeiro`, `input-documento`, `input-chave-pix`, `input-raio`, `input-preco-hora`, `input-bio`, `chips-funcoes-secundarias`, `field-documento-upload`, `contract-preview`, `check-aceite`, `btn-aceito-concluir`.
+(a preencher)
 
 ### Decisões tomadas
-
-- **IDR-018 (a criar) — Motor de renderização do aceite em `api` + render só da Seção 1:** implementa ADR-010 Decisão 3A (regex `preg_replace_callback`, falha-dura em placeholder ausente). Para o aceite de adesão (EPIC-001, sem turno), renderiza **apenas a Seção 1 (Termos gerais) + o bloco "Assinatura eletrônica"**; omite a Seção 2 (turno) e os blocos de meta-autoria (`## Histórico de validação`, `## Notas do PO`) presentes no `conteudo` seedado. Acoplamento documentado: a omissão é por marcador de heading (`## Seção 2`, `## Assinatura eletrônica`, `## Histórico`, `## Notas`). Reusado/estendido no EPIC-003 (aceite por turno renderiza Seção 1 + Seção 2).
-- **`profissional.endereco_completo`:** não é campo coletado no completar-cadastro (story §3 / `usuario.md`). Composto de `bairro, cidade` do pré-cadastro. Evita pedir endereço completo não-especificado; satisfaz a falha-dura do renderer.
-- **REVOKE com usuário único `turni`:** segue o padrão da migration de templates existente (não o split de dois usuários que o ADR descreve como ideal). Trigger BEFORE UPDATE OR DELETE garante a imutabilidade independentemente; REVOKE UPDATE,DELETE é a 2ª camada.
-- **Preview renderizado server-side** (ver Sync acima) — fonte única; `conteudo_renderizado` do aceite == preview exibido (CA-7/CA-9).
+(a preencher)
 
 ### Descobertas
-
-- O `api` não tinha models Template/TemplateVersao/AceiteEletronico nem a migration de `aceites_eletronicos` (existiam só no `admin`). Criados no `api` (models duplicados por app — padrão do projeto).
-- O `TemplateRenderer` do `admin` apenas **destaca** placeholders; o motor de **substituição** (ADR-010 Decisão 3A) não existia — implementado em `App\Domain\Aceites\AceiteRenderer`.
-- O `conteudo` seedado dos templates inclui blocos de meta-autoria (`## Histórico de validação`, `## Notas do PO`) — o render de adesão os omite (ver IDR-018). **Flag para o PO:** convém limpar o texto-seed para conter só o documento jurídico.
-- A migration de templates usa **um** usuário de banco (`turni`) no REVOKE, não o split de dois usuários do ADR — segui o padrão existente.
+(a preencher)
 
 ### Bloqueios encontrados
-
-Nenhum bloqueador. Uma flag de conteúdo registrada para o PO (meta-autoria no texto-seed dos templates — ver IDR-018 §sinais de revisão).
+(a preencher)
 
 ### IDRs criados
-
-- **IDR-018** — render do aceite de adesão por seções (Seção 1 + Assinatura) + `documento_hash` HMAC-SHA256 para unicidade sobre dado criptografado.
-- **IDR-019** — `SESSION_COOKIE=__session` na api atrás do Firebase Hosting (corrige 401 após login em homolog — bug geral pré-existente, não só STORY-023).
+(a preencher)
 
 ### Cobertura final
-
-Backend (parcial — só o que foi entregue nesta fase). Núcleo bem coberto:
-- `AceiteRenderer` 95% linhas · `CompletarCadastroProfissional` (serviço/transação atômica) 97% · `CompletarCadastroProfissionalRequest` 100% · `DocumentoValidator`/`ChavePixValidator` ~97–100% · `CompletarCadastroController` 81%.
-- Suíte api inteira **verde: 214 passed (689 assertions)**; 51 testes novos (34 unit + 17 feature). Pint limpo. Cobertura de **frontend/E2E pendente** (fase 2/3).
+(a preencher)
 
 ### Resultado final / evidência
-
-**STATUS: done — aprovada por Alexandro (PO) em 2026-05-31.** Funcionando em homolog (rc.37, `app.homolog.turni.com.br/completar-cadastro`). Backend + frontend + E2E verdes (api 214, webapp 109, E2E PF/MEI/bloqueio; CA-8 verde também contra homolog). CAs 1–18 marcados — com 2 itens aceitos pelo PO: **CA-4** validação de FORMATO da chave Pix deferida (fora do MVP); evidência psql de homolog para CA-6/CA-11 não capturada (opcional — coberto por feature tests). Deploys: rc.33→rc.37.
-
-**Durante o trabalho corrigi 2 bugs reais que só apareciam fora do unit/feature:**
-1. `CompletarCadastroService` chamava `/sanctum/csrf-cookie` antes do POST autenticado → regenerava a sessão e deslogava (401). Pego pelo E2E em browser. Removido.
-2. **Bug geral de homolog (não só STORY-023):** auth quebrada atrás do Firebase Hosting — o Hosting só encaminha ao Cloud Run o cookie `__session`; o `laravel-session` era descartado → login 200 mas tudo depois 401. Corrigido com `SESSION_COOKIE=__session` + `SESSION_DRIVER=database` (IDR-019). Expôs gap: o E2E só roda contra localhost.
-
-**STATUS anterior: in_review (2026-05-31).** Backend + frontend + E2E completos e verdes localmente.
-
-**Bug real encontrado e corrigido pelo E2E (importante):** o `CompletarCadastroService` chamava `GET /sanctum/csrf-cookie` antes do POST autenticado (preview/completar) — hit no csrf-cookie no meio de uma sessão ativa **regenera a sessão e desloga o usuário** (401 → banner "Não conseguimos enviar agora"). Removido (mesmo padrão de `markWelcomeSeen`). Sem o E2E em browser real, isso só apareceria no celular do PO. Reforça a regra "validar no browser de verdade".
-
-**Suítes locais verdes:** api 214 · admin 91 · webapp 109 (widget) · E2E Playwright 3/3 (PF + MEI + bloqueio sem checkbox) · Pint + dart format limpos.
-
----
-_(histórico da Fase 1 abaixo mantido)_
-
-**STATUS anterior: Fase 1 (backend) concluída.**
-
-**Entregue (fase 1 — backend):**
-- Migration `2026_05_30_140000_completar_cadastro_profissional_e_aceites` (colunas completar-cadastro em `profissional_profiles` + `aceites_eletronicos` com trigger BEFORE UPDATE OR DELETE + REVOKE).
-- Models `Template`, `TemplateVersao`, `AceiteEletronico` (api) + Encrypted Casts em `ProfissionalProfile` (CA-6).
-- `DocumentoValidator` (CPF/CNPJ por dígitos — CA-3), `ChavePixValidator` (CA-4), `AceiteRenderer` (CA-7/CA-9), `CompletarCadastroProfissional` (transação atômica — CA-10).
-- `CompletarCadastroProfissionalRequest` (CA-2/3/4/5) + `CompletarCadastroController` (preview + completar) + rotas `POST /api/usuarios/me/completar-cadastro[/preview]` fora do FunnelGuard (IDR-014).
-- Cobertura por teste: CA-1,2,3,4,5,6,7,9,10,11,12,16,17 no nível backend/integração.
-- Designer: `SCREEN-STORY-023` em `draft` (spec dos 3 passos + preview + estados + microcopy + identificadores). IDR-018.
-
-**Pendente (fases 2–4):** ver §Pendências.
+(a preencher)
 
 ### Pendências para fechar
-
-**Nenhuma bloqueante — estória `done` (PO aprovou 2026-05-31).** Carry-forward não-bloqueante (registrar como tarefas futuras, fora desta estória):
-1. **Validação de formato da chave Pix** (CA-4) — deferida do MVP; reativar `ChavePixValidator` (idealmente via DICT) numa estória futura.
-2. **Limpeza do texto-seed dos templates** — remover `## Notas do PO` / `## Histórico de validação` do `conteudo` (o renderer já os omite, mas o seed deveria conter só o documento jurídico). Decisão de conteúdo do PO.
-3. **Smoke autenticado pós-deploy no `release.yml`** (sinal de revisão do IDR-019) — o gap que escondeu o bug de auth de homolog (E2E só roda local).
-4. **Evidência psql opcional** em homolog para CA-6/CA-11 (já coberto por feature tests) — se o PO quiser registro no runbook.
+(a preencher)
 
 ### Links de evidência
-
-- Suíte api local verde: `make test-api` → 214 passed (689 assertions), 2026-05-30.
-- IDR-018; SCREEN-STORY-023 (draft).
+(a preencher)
