@@ -23,6 +23,11 @@ RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS postgresql-dev \
 # deixaria database/seeders de fora da cobertura. Apontamos para a raiz do app.
 RUN echo 'pcov.directory=/app' > /usr/local/etc/php/conf.d/zz-pcov-directory.ini
 
+# Limites de upload: os defaults do PHP (upload 2M / post 8M) bloqueiam no layer do
+# PHP os documentos comprobatórios de até 10 MB (STORY-023 CA-5) — alinha o dev com a
+# app (10 MB/arquivo) + folga p/ múltiplos arquivos, dentro do teto do Cloud Run (32 MB).
+RUN { echo 'upload_max_filesize=12M'; echo 'post_max_size=30M'; } > /usr/local/etc/php/conf.d/zz-uploads.ini
+
 # Composer (copiado da imagem oficial — sem instalar globalmente na mão)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 

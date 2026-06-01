@@ -64,11 +64,32 @@ curl_setopt_array($ch, [
 if (! in_array($_SERVER['REQUEST_METHOD'], ['GET', 'HEAD'], true)) {
     if ($isMultipart) {
         // multipart/form-data: o PHP já consumiu php://input e populou $_POST/$_FILES,
-        // deixando php://input vazio. Reconstruímos os campos + arquivos como array para
-        // o cURL remontar o corpo multipart (com boundary próprio).
-        $fields = $_POST;
+        // deixando php://input vazio. Reconstruímos os campos + arquivos para o cURL
+        // remontar o corpo multipart (com boundary próprio). O CURLOPT_POSTFIELDS exige
+        // um array PLANO (scalar ou CURLFile): campos aninhados (ex.: `funcoes_secundarias[]`)
+        // e arquivos múltiplos (`documentos_comprobatorios[]`) são achatados em `chave[i]`.
+        $fields = [];
+        $flatten = function (array $data, string $prefix) use (&$flatten, &$fields): void {
+            foreach ($data as $key => $value) {
+                $name = $prefix === '' ? (string) $key : $prefix.'['.$key.']';
+                if (is_array($value)) {
+                    $flatten($value, $name);
+                } else {
+                    $fields[$name] = $value;
+                }
+            }
+        };
+        $flatten($_POST, '');
+
         foreach ($_FILES as $field => $file) {
-            if (is_uploaded_file($file['tmp_name']) || is_file($file['tmp_name'])) {
+            // Campo de arquivo múltiplo: name/type/tmp_name vêm como arrays indexados.
+            if (is_array($file['tmp_name'])) {
+                foreach ($file['tmp_name'] as $i => $tmp) {
+                    if ($tmp !== '' && (is_uploaded_file($tmp) || is_file($tmp))) {
+                        $fields[$field.'['.$i.']'] = new CURLFile($tmp, $file['type'][$i] ?? '', $file['name'][$i] ?? '');
+                    }
+                }
+            } elseif ($file['tmp_name'] !== '' && (is_uploaded_file($file['tmp_name']) || is_file($file['tmp_name']))) {
                 $fields[$field] = new CURLFile($file['tmp_name'], $file['type'], $file['name']);
             }
         }

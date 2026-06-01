@@ -56,10 +56,12 @@ RUN apk add --no-cache \
 RUN echo 'opcache.enable=1' >> /etc/php84/conf.d/turni.ini \
     && echo 'opcache.validate_timestamps=0' >> /etc/php84/conf.d/turni.ini \
     && echo 'opcache.memory_consumption=128' >> /etc/php84/conf.d/turni.ini \
-    # Upload de foto (STORY-017): defaults do PHP (upload 2M / post 8M) bloqueariam
-    # fotos entre 2–5 MB no layer do PHP. Alinha com o limite da app (5 MB) + folga.
-    && echo 'upload_max_filesize=8M' >> /etc/php84/conf.d/turni.ini \
-    && echo 'post_max_size=10M' >> /etc/php84/conf.d/turni.ini
+    # Uploads: defaults do PHP (upload 2M / post 8M) bloqueariam no layer do PHP a foto
+    # do pré-cadastro (≤5 MB, STORY-017) e os documentos comprobatórios (≤10 MB/arquivo,
+    # STORY-023 CA-5). Alinha com o maior limite da app (10 MB) + folga p/ múltiplos
+    # arquivos, dentro do teto de request do Cloud Run (32 MB).
+    && echo 'upload_max_filesize=12M' >> /etc/php84/conf.d/turni.ini \
+    && echo 'post_max_size=30M' >> /etc/php84/conf.d/turni.ini
 
 COPY infra/docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY infra/docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
