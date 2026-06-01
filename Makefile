@@ -178,6 +178,7 @@ e2e-webapp-integration: ## integration_test (UI) do WebApp no Chrome headless, s
 	    --target=integration_test/web_test.dart \
 	    -d web-server --browser-name=chrome $(E2E_HEADLESS_FLAG) \
 	    --web-hostname=127.0.0.1 --web-port=$(E2E_APP_PORT) \
+	    --dart-define=E2E_FAKE_PICKER=true \
 	    --web-launch-url=http://localhost:$(E2E_PROXY_PORT)
 
 # Smoke HTTP do WebApp em Playwright (IDR-010): SÓ webapp-hello-world.spec.ts — título,

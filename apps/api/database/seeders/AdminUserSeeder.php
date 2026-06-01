@@ -93,5 +93,47 @@ class AdminUserSeeder extends Seeder
             ['user_id' => $bemVindo->id],
             ['tipo_pessoa' => 'MEI'],
         );
+
+        // 5. Profissionais em `await_cadastro` (liberado + welcome visto, cadastro pendente)
+        //    para o E2E do completar cadastro (STORY-023 CA-15): um PF e um MEI. Cada run
+        //    reseta os campos de completar (documento*, novo aceite) para determinismo —
+        //    espelha a lição do welcome_test ("2º run pega usuário já completado").
+        $funcao = \App\Models\Funcao::where('ativo', true)->orderBy('id')->first();
+
+        foreach ([
+            ['email' => 'completar.pf@turni.local', 'nome' => 'Completar PF (seed)', 'tipo' => 'PF'],
+            ['email' => 'completar.mei@turni.local', 'nome' => 'Completar MEI (seed)', 'tipo' => 'MEI'],
+            // Usuário do cenário "sem checkbox" — o E2E nunca o conclui (fica await_cadastro).
+            ['email' => 'completar.block@turni.local', 'nome' => 'Completar Block (seed)', 'tipo' => 'PF'],
+        ] as $u) {
+            $user = User::updateOrCreate(
+                ['email' => $u['email']],
+                [
+                    'name' => $u['nome'],
+                    'password' => $password,
+                    'role' => 'profissional',
+                    'status' => 'liberado',
+                    'welcome_seen_at' => now(),
+                    'cadastro_completed_at' => null, // reset a cada run → await_cadastro
+                ],
+            );
+
+            ProfissionalProfile::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'tipo_pessoa' => $u['tipo'],
+                    'telefone' => '11999990000',
+                    'cidade' => 'São Paulo',
+                    'bairro' => 'Centro',
+                    'funcao_id' => $funcao?->id,
+                    // Limpa os campos do completar para o E2E recomeçar do zero a cada run.
+                    'documento_encrypted' => null,
+                    'documento_tipo' => null,
+                    'documento_hash' => null,
+                    'chave_pix_encrypted' => null,
+                    'documentos_comprobatorios' => null,
+                ],
+            );
+        }
     }
 }

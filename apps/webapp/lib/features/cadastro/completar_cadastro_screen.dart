@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +14,11 @@ import 'shared/cadastro_widgets.dart';
 
 /// Fase do fluxo de completar cadastro (STORY-023).
 enum _Fase { form, preview, sucesso }
+
+/// Seam de E2E (IDR-021/harness): o `file_picker` abre um diálogo nativo do SO que o
+/// Chrome headless do `flutter drive` não consegue dirigir. Sob `--dart-define=E2E_FAKE_PICKER=true`
+/// (só no gate E2E — nunca em build de produção), o picker padrão devolve um arquivo em memória.
+const _e2eFakePicker = bool.fromEnvironment('E2E_FAKE_PICKER');
 
 /// Tela de completar cadastro do profissional + aceite eletrônico (STORY-023).
 ///
@@ -126,6 +133,14 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
   }
 
   Future<List<ArquivoUpload>?> _defaultDocumentPicker() async {
+    if (_e2eFakePicker) {
+      return [
+        ArquivoUpload(
+          bytes: Uint8List.fromList([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]),
+          filename: 'documento-e2e.jpg',
+        ),
+      ];
+    }
     final result = await FilePicker.pickFiles(
       allowMultiple: true,
       withData: true,
@@ -317,8 +332,9 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
             helper: 'Valor por hora que você pretende receber.',
             validator: (v) {
               final n = double.tryParse((v ?? '').trim().replaceAll(',', '.'));
-              if (n == null || n < 1)
+              if (n == null || n < 1) {
                 return 'Informe um valor por hora (ex.: 45).';
+              }
               return _serverErrors['preco_hora'];
             },
           ),
