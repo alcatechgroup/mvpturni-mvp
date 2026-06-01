@@ -8,8 +8,8 @@ type: implementation
 target_role: programador
 requires_design: false
 design_screen_id: null
-status: ready
-owner_agent: null
+status: done
+owner_agent: "Programador (claude-opus-4-8)"
 created_at: 2026-05-30
 updated_at: 2026-05-30
 estimated_session_size: M
