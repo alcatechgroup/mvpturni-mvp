@@ -278,8 +278,15 @@ estruturado `user.cadastro_completed`).
 
 **Push para homolog em 2026-06-01:** main + tag `v0.1.0-rc.42`.
 
+**Validação ao vivo do PO — APROVADA em 2026-06-01 (rc.42, homolog, mobile):** Alexandro percorreu o
+fluxo completo no celular — registro do contratante → aprovação no backoffice → e-mail de aprovação
+→ welcome → completar cadastro (wizard) → aceite → ativo. (Nota: o 1º e-mail de teste não chegou por
+endereço errado no cadastro; com `xandroalmeida+3@gmail.com` chegou normalmente. O pipeline de e-mail
+estava correto — `email.sent`, domínio autenticado; era typo, não falha.) **PO aprovou a story.**
+
 ### Pendências para fechar
-- Smoke/validação ao vivo do PO em homolog (rc.42) — caminho registro → aprovação → welcome →
+- ~~Smoke/validação ao vivo do PO em homolog (rc.42)~~ — **FEITO** (validado no mobile, ver acima).
+  Caminho original: registro → aprovação → welcome →
   completar cadastro do contratante → aceite.
 - ~~Métrica/alerta de cadastros completados (observabilidade §3)~~ — **FEITO** 2026-06-01:
   `infra/modules/monitoring/main.tf` ganhou a métrica `turni_<env>_cadastros_completados` (sucesso,
