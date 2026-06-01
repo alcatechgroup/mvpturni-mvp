@@ -1,20 +1,21 @@
 ---
-story_id: STORY-034
+story_id: STORY-038
 slug: adotar-integration-test-no-webapp
 title: Adotar integration_test no WebApp Flutter Web e migrar os 7 cenários de RBAC/funnel
 epic_id: EPIC-007
-sprint_id: null
+sprint_id: SPRINT-2026-W26
 type: enablement
 target_role: programador
 requires_design: false
-status: draft
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8-programador-2026-06-01
 created_at: 2026-05-29
-updated_at: 2026-05-29
+updated_at: 2026-06-01
 estimated_session_size: L
+renamed_from: STORY-034 (EPIC-007 original; renomeada em 2026-05-31 por colisão com EPIC-001 STORY-034)
 ---
 
-# STORY-034 — Adotar integration_test no WebApp e migrar cenários de RBAC/funnel
+# STORY-038 — Adotar integration_test no WebApp e migrar cenários de RBAC/funnel
 
 > **Para o agente que vai executar:** leia esta estória por inteiro antes de começar. Esta estória é a base do EPIC-007 — ela cria o scaffolding de `integration_test`, define o padrão de teste Flutter (via IDR-011) e migra a cobertura existente sem regressão. STORY-035 (Patrol) e STORY-036 (gate mobile) dependem do que sai daqui. Se algo estiver ambíguo, registre em "Notas do agente" e pause em vez de adivinhar.
 
@@ -195,14 +196,120 @@ Siga `docs/skills/po/references/agent-task-format.md`. Particular:
 
 ## Notas do agente (preenchido durante/após execução)
 
+### Plano inicial (registrado antes de codar — 2026-06-01)
+
+**Documentos lidos:** esta estória inteira; `epic.md` do EPIC-007; IDR-004, IDR-006 (header + §a/§b/§c),
+IDR-009; **IDR-010 e IDR-011 (já `accepted` no repositório — ver Descobertas)**; `rbac-login.spec.ts`,
+`webapp-hello-world.spec.ts`, `playwright.config.ts`; `test/login_screen_test.dart` (estilo Dart + Keys
+referenciadas); `lib/features/auth/login_screen.dart`; `lib/router.dart`; `Makefile` targets `e2e*`/`_e2e-seed`;
+`docs/skills/programador/SKILL.md`.
+
+**Entendimento consolidado:** instalar o pé de `integration_test` no WebApp e migrar os 7 cenários de
+RBAC/funnel do Playwright (`rbac-login.spec.ts`) para Dart nativo, rodando contra a stack real
+(docker-compose + seed). Playwright fica reduzido a smoke HTTP. Gate `make e2e-webapp` passa a rodar
+build → integration_test (Chrome headless) → smoke Playwright. As decisões transversais (IDR-010 modelo
+híbrido, IDR-011 padrão de teste Flutter) **já foram aceitas pelo PO** em sessão dedicada (2026-06-01),
+então não há gate de aprovação pendente — implemento seguindo IDR-011 à risca.
+
+**Dúvidas:** nenhuma bloqueante. Pontos resolvidos localmente registrados em "Decisões tomadas".
+
+**Plano (commits pequenos):**
+1. Spike de toolchain: `integration_test` no `pubspec` + chromedriver + 1 teste trivial verde contra a stack
+   viva (de-risca o Web antes de escrever os 7).
+2. Keys `login:*` na LoginScreen (renomeia `input-email`→`login:email` etc.) + atualiza `login_screen_test.dart`.
+3. Helpers `pump_app.dart`, `login_helper.dart`, `route_helper.dart` (IDR-011 §c).
+4. Migração por grupo: `login_structure` → `login_validation` → `rbac_profissional` → `rbac_admin_rejected`
+   → `funnel_guard` (+ navegação extra: root→/login e links criar-conta, ver Decisões).
+5. Smoke Playwright: deep link `/login` em `webapp-hello-world.spec.ts`; remover `rbac-login.spec.ts`.
+6. Makefile (`e2e-webapp`, `e2e-webapp-integration`, `e2e-webapp-smoke`) + README §"Testes E2E".
+7. 5x `make e2e-webapp` verde + wall-time; finalizar Notas; `in_review`.
+
+**Mapeamento CA → teste (planejado):**
+- CA-4 (estrutura login) → `integration_test/auth/login_structure_test.dart` :: "exibe e-mail, senha, link recuperação, botão Entrar".
+- CA-5 (validação vazio) → `auth/login_validation_test.dart` :: "submeter vazio → erro de campo obrigatório".
+- CA-6 (credencial inválida) → `auth/login_validation_test.dart` :: "credencial inválida → permanece em /login".
+- CA-7 (profissional ativo) → `auth/rbac_profissional_test.dart` :: "profissional ativo loga → sai de /login".
+- CA-8 (admin rejeitado) → `auth/rbac_admin_rejected_test.dart` :: "admin → banner 'acessa o Backoffice' + fica em /login".
+- CA-9 (funnel guard) → `auth/funnel_guard_test.dart` :: "/welcome sem auth → /login" e "/completar-cadastro sem auth → /login".
+- Navegação extra (sem CA próprio, preserva cobertura) → `auth/funnel_guard_test.dart` ou `auth/navigation_test.dart` :: "root / sem auth → /login", "link criar conta profissional → /cadastro/profissional", "link criar conta estabelecimento → /cadastro/contratante".
+- CA-12 (deep link smoke) → `tests/e2e/webapp-hello-world.spec.ts` :: "deep link /login direto na URL não cai em WelcomeScreen".
+
 ### Decisões tomadas
-- _A preencher pelo agente executor._
+- **Frontmatter corrigido:** `story_id` estava `STORY-034` (resíduo da renomeação de 2026-05-31). Corrigido para
+  `STORY-038` + H1; `status: in_progress`, `owner_agent`, `sprint_id: SPRINT-2026-W26`, `renamed_from` adicionado.
+  Referências em prosa a "STORY-034/035/036" no corpo são do épico original e não bloqueiam — não reescritas.
+- **Convenção de Keys (IDR-011 §a):** a LoginScreen é tocada por esta story, então migra para `login:*`
+  (`input-email`→`login:email`, `input-password`→`login:password`, `btn-submit-login`→`login:submit`,
+  `link-forgot-password`→`login:forgot-password`, banner de erro genérico ganha `login:error-banner`). Como Key é
+  contrato (IDR-011 §a regra 4), atualizo todos os usos em `test/login_screen_test.dart` no mesmo commit.
+- **Cenários extras do `rbac-login.spec.ts`:** além dos 7 listados, o arquivo tem um grupo "navegação"
+  (root `/`→/login, links criar-conta, `/info`). Como CA-10 manda remover o arquivo inteiro, migro também
+  root-redirect e os 2 links criar-conta para `integration_test` (navegação interna, tabela IDR-010) para não
+  regredir cobertura (quality-standards §1.4). `/info` (load de rota pública) é candidato a smoke Playwright.
 
 ### Descobertas
-- _A preencher pelo agente executor._
+- **IDR-010 e IDR-011 já existem e estão `accepted`** (`decided_at: 2026-06-01`, `decided_by: Alexandro`,
+  `source_story: STORY-038`). O PO as aceitou ANTES da execução, em sessão dedicada ("regra 7 da SPRINT-2026-W26").
+  Logo CA-17/CA-18 superam o exigido (a story pedia `proposed`; estão `accepted`). Não recriar.
+- **IDR-006 já anotada (CA-19 parcial):** header tem `superseded_partial_by: IDR-010 (§b — desde 2026-06-01)`.
+  Falta confirmar/garantir a nota inline na §b.
+- **chromedriver ausente** no ambiente — pré-requisito para integration_test no Web. Resolvido no spike:
+  brew instala 149 (≠ Chrome 148 → mismatch de major); baixei o chromedriver 148.0.7778.178 do Chrome for
+  Testing (mac-arm64) e coloquei no PATH, de-quarentinado. Documentar no Makefile/README (pin de major do Chrome).
+- **⚠️ Discrepância com a IDR-010 (aceita) sobre o comando de gate — escala leve ao PO:** a IDR-010 §a/§d
+  especifica `flutter test integration_test -d chrome --headless`. **Esse comando não funciona:** o Flutter
+  responde "Web devices are not supported for integration tests yet" e `--headless` não é flag de `flutter test`.
+  O caminho suportado para Web é `flutter drive` + chromedriver:
+  ```
+  chromedriver --port=4444 &
+  flutter drive --driver=test_driver/integration_test.dart \
+    --target=integration_test/<arquivo>_test.dart \
+    -d web-server --browser-name=chrome --headless
+  ```
+  **Spike validado**: rodou um teste trivial via esse comando → "All tests passed". O Makefile do CA-13 vai
+  orquestrar exatamente assim (subir chromedriver → drive → derrubar). Implicação: `flutter drive` roda **um
+  target por vez**; para a suíte inteira o Makefile fará loop sobre `integration_test/**/*_test.dart` OU usará
+  um arquivo agregador. Proposta: anexar nota de correção à IDR-010 (comando real) — não muda a decisão, só a
+  sintaxe. Decidir com PO se vira "Atualização" na IDR-010 ou nota na STORY.
+- **Artefatos do spike commitados como scaffolding permanente:** `test_driver/integration_test.dart` (driver do
+  Web, fica) + `integration_test/` (pasta criada). `integration_test/spike_test.dart` foi removido (cumpriu o papel).
+
+- **Constraint de import no `flutter drive` Web:** o `org-dartlang-app:/` é enraizado no **diretório do
+  `--target`**, e `..` não escapa dele. Um target em `integration_test/auth/login_structure_test.dart` que
+  importa `../helpers/...` **não compila** ("File not found"). Solução validada: o `--target` é um **entrypoint
+  agregador no topo** (`integration_test/auth_test.dart`) que encadeia os `main()` dos arquivos de `auth/`;
+  com a raiz em `integration_test/`, os arquivos de `auth/` resolvem `../helpers/` normalmente. Os cenários
+  continuam 1-por-arquivo em `auth/` (IDR-011 §d intacto); o agregador é só o ponto de entrada do drive no Web.
+  Em Android/iOS o agregador é dispensável (`flutter test integration_test/auth -d <device>` roda a pasta).
+- **Escopo do rename de Keys:** só a **LoginScreen** migrou para `login:*`. As keys `input-email`/`input-password`
+  em `pre_cadastro_*` e `password_reset` são de **outras telas** (não tocadas) — ficam legadas (IDR-011 §a:
+  sem refator retroativo obrigatório). Tive de corrigir `test/widget_test.dart` (testava `screen-login-webapp`
+  e `btn-submit-login` do login) que eu havia esquecido — pegou na suíte completa.
+
+### Progresso — Fatia 1 (2026-06-01): CA-1, CA-2, CA-3, CA-4 ✅
+
+- **CA-1 ✅** — `integration_test` (SDK) em `dev_dependencies`; `flutter pub get` ok; `flutter pub deps` mostra resolvido.
+- **CA-2 ✅** — `integration_test/helpers/` com `pump_app.dart`, `login_helper.dart`, `route_helper.dart`, cada um com
+  docstring de uso. (`login_helper` será exercitado na fatia 2, junto dos cenários que batem na API.)
+- **CA-3 ✅** — Keys `login:*` na LoginScreen (`login:email/password/submit/toggle-password/forgot-password/screen`,
+  `login:create-professional`, `login:create-establishment`, banners `login:*-banner`). `test/login_screen_test.dart`
+  e `test/widget_test.dart` atualizados. **Suíte completa de widget tests verde: 97/97.** `flutter analyze` limpo.
+- **CA-4 ✅** — `integration_test/auth/login_structure_test.dart` passa via
+  `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/auth_test.dart -d web-server --browser-name=chrome --headless`
+  → "All tests passed". (No Web o target é o agregador; o cenário vive em `auth/`.)
+
+**Pré-requisito de ambiente documentado:** chromedriver com major casando o Chrome local, rodando em `:4444`
+antes do `flutter drive`. Spike usou Chrome 148 + chromedriver 148.0.7778.178 (mac-arm64, baixado do Chrome for Testing
+porque o brew traz só o 149). A automação disso (subir/derrubar chromedriver, pin de versão) entra no Makefile (CA-13/CA-14).
+
+**Risco mapeado p/ fatia 2 (cenários que batem na API — CA-6/CA-7/CA-8):** `_apiBase` faz default a same-origin.
+No `flutter drive -d web-server` o app é servido de `localhost:<porta-efêmera>`, **sem o proxy `/api`** do container `:8003`.
+Vou precisar resolver base-URL (provável `--dart-define=API_BASE_URL=...`) + CORS + cookie Sanctum cross-origin, ou outra
+estratégia. Spike dedicado no início da fatia 2 antes de migrar os cenários de login com rede.
 
 ### Bloqueios encontrados
-- _A preencher pelo agente executor._
+- _Nenhum bloqueante._ Observação de sintaxe da IDR-010 (corrigida via nota na própria IDR) e risco de base-URL da API
+  na fatia 2 (a spikar) registrados acima.
 
 ### IDRs criados
 - IDR-010 (proposto nesta story).

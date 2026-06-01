@@ -113,3 +113,31 @@ A IDR-006 §b foi a decisão certa para o momento dela — `integration_test` n�
 - IDR-006 §b anotado como "parcialmente superseded por IDR-010 a partir de 2026-06-01" no header e na nota inline da seção §b.
 - IDR-004 anotado com refinamento sobre o conteúdo do gate (integration_test + smoke Playwright em vez de só Playwright completo). Política inalterada.
 - IDR-011 aceita em paralelo (mesma data, mesma sessão dedicada do PO — regra 7 da SPRINT-2026-W26).
+
+## Atualização — correção de sintaxe do comando no Web (2026-06-01, STORY-038)
+
+Durante a execução da STORY-038, o comando especificado em §a e §d —
+`flutter test integration_test -d chrome --headless` — provou-se **incorreto para o Web**:
+
+- `flutter test ... -d chrome` responde `Web devices are not supported for integration tests yet`.
+- `--headless` não é flag de `flutter test`.
+
+O caminho **suportado** para rodar `integration_test` no Web (Chrome headless) é `flutter drive` com
+um chromedriver de versão-major casada com o Chrome local, servindo via `web-server`:
+
+```bash
+chromedriver --port=4444 &                       # major deve casar com o Chrome instalado
+flutter drive \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/<feature>/<arquivo>_test.dart \
+  -d web-server --browser-name=chrome --headless
+```
+
+- Exige `apps/webapp/test_driver/integration_test.dart` (delega para `integrationDriver()`).
+- `flutter drive` roda **um target por vez**; a suíte inteira no gate é orquestrada por loop no Makefile
+  (`make e2e-webapp-integration`) ou por arquivo agregador.
+- **Android/iOS continuam com `flutter test integration_test -d <device>`** (a limitação é só do alvo Web) —
+  a tabela de §a permanece válida para mobile; apenas o Web usa `flutter drive`.
+
+Esta correção **não altera a decisão** (modelo híbrido inalterado); ajusta apenas o "como" no Web.
+Validado por spike em 2026-06-01 (Chrome 148 + chromedriver 148.0.7778.178, mac-arm64) → "All tests passed".

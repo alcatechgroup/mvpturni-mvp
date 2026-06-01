@@ -1206,8 +1206,8 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "draft",
-      "owner_agent": null,
+      "status": "in_progress",
+      "owner_agent": "claude-opus-4-8-programador-2026-06-01",
       "sprint_id": "SPRINT-2026-W26",
       "path": "epics/EPIC-007-e2e-hibrida-flutter/stories/STORY-038-adotar-integration-test-no-webapp.md",
       "blocked_by": [],
@@ -1219,7 +1219,7 @@
       "produces_idr": null,
       "renamed_from": "STORY-034 (EPIC-007 original; renomeada em 2026-05-31 por colisão com EPIC-001 STORY-034)",
       "created_at": "2026-05-29",
-      "updated_at": "2026-05-31"
+      "updated_at": "2026-06-01"
     },
     {
       "id": "STORY-039",
