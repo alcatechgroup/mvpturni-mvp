@@ -2,6 +2,8 @@
     "name": "Turni",
     "short_name": "Turni",
     "description": "Hospitalidade on-demand",
+    "id": "/",
+    "categories": ["business", "productivity"],
     "start_url": "/",
     "display": "standalone",
     "background_color": "#F7F4EC",

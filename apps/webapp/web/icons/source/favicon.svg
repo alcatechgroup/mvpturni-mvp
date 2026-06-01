@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Turni favicon — versão simplificada/encorpada para tamanhos pequenos (16/32 px).
+     Source-of-truth (STORY-041 / IDR-020 §8). "T" branco mais espesso sobre brandGreen
+     (#00A868) para continuar legível em 16 px sem virar pixel-mush. Regerar: npm run icons. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" ry="80" fill="#00A868"/>
+  <path d="M100 112 H412 V192 H304 V432 H208 V192 H100 Z" fill="#FFFFFF"/>
+</svg>

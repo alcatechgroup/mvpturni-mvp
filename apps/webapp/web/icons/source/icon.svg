@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Turni PWA icon — full (no maskable safe zone). Source-of-truth (STORY-041 / IDR-020 §8).
+     "T" branco (#FFFFFF) sobre fundo brandGreen (#00A868, DDR-001), squircle aproximado por
+     cantos arredondados. T ocupa ~61% da altura do canvas. Regerar PNGs: npm run icons. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="114" ry="114" fill="#00A868"/>
+  <path d="M126 104 H386 V168 H290 V416 H222 V168 H126 Z" fill="#FFFFFF"/>
+</svg>

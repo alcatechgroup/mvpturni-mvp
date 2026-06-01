@@ -1336,7 +1336,7 @@
       "requires_design": false,
       "design_screen_id": null,
       "status": "ready",
-      "owner_agent": null,
+      "owner_agent": "programador",
       "sprint_id": "SPRINT-2026-W27",
       "path": "epics/EPIC-008-pwa-instalavel/stories/STORY-041-identidade-visual-icones-pwa-turni.md",
       "blocked_by": [],

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Turni PWA icon — maskable. Source-of-truth (STORY-041 / IDR-020 §8).
+     Fundo brandGreen (#00A868) cobre 100% do canvas; o "T" branco fica dentro do safe zone
+     interno de 80% (raio ~12.5% de respiro) para não ser comido pelo cropper circular/squircle
+     da launcher do Android. Regerar PNGs: npm run icons. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#00A868"/>
+  <path d="M150 128 H363 V180 H284 V384 H228 V180 H150 Z" fill="#FFFFFF"/>
+</svg>

@@ -95,6 +95,18 @@ make e2e-webapp-integration E2E_HEADLESS=0
 
 Os arquivos de cenário vivem em `integration_test/<feature>/<feature>_test.dart` (IDR-011 §d); no Web o `flutter drive` enraíza imports no diretório do `--target`, então os entrypoints ficam no topo (`auth_test.dart`, `cadastro_test.dart`, e o gate `web_test.dart` que os compõe) encadeando os `main()` — assim os leaves resolvem `../helpers/`.
 
+## Regenerar ícones
+
+Os ícones do PWA (`web/icons/`, `web/favicon.png`) têm como **source-of-truth** os SVGs versionados em `web/icons/source/` (`icon.svg`, `icon-maskable.svg`, `favicon.svg`) — marca Turni: "T" branco sobre fundo brandGreen `#00A868` (DDR-001 / IDR-020 §8). Para mudar a identidade, edite o SVG e regere os PNGs com um comando:
+
+```bash
+cd apps/webapp
+npm install     # traz o sharp (rasterizador SVG→PNG), só na 1ª vez
+npm run icons   # gera Icon-192/512, Icon-maskable-192/512, apple-touch-icon (180), favicon (32)
+```
+
+O script (`scripts/generate-icons.mjs`) é uma utility de manutenção — **não** faz parte do `flutter build web`. Mantenha os paths dos PNGs como estão no `manifest.json` (PWAs já instaladas os referenciam).
+
 ## Notas
 
 - Pré-requisito: Flutter SDK ≥ 3.41 no host.

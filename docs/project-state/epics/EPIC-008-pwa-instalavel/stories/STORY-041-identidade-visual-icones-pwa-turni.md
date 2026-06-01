@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: false  # designer só revisa a SVG-fonte; não há SCREEN dedicada
 design_screen_id: null
-status: ready
-owner_agent: null
+status: ready  # impl local concluída 2026-06-01; vira `done` após CA-13/14/15 + sign-off do PO em homolog
+owner_agent: programador
 created_at: 2026-05-31
-updated_at: 2026-06-01  # promovida draft → ready na abertura da SPRINT-2026-W27
+updated_at: 2026-06-01  # impl local dos ícones (assets+pipeline+index.html+manifest+README)
 estimated_session_size: S
 produces_idr: null  # IDR-020 (proposta pela STORY-042) cobre formato/tamanhos
 renamed_from: STORY-038  # 2026-06-01 — colisão com EPIC-007 STORY-038 (integration_test)
@@ -173,14 +173,41 @@ Você NÃO decide:
 
 ## Notas do agente (preenchido durante/após execução)
 
+> **Status:** implementação local concluída em 2026-06-01 (assets + pipeline + index.html + manifest + README). Story permanece `ready` (não `done`) porque CA-13 (não-regressão STORY-037 em homolog), CA-14/CA-15 (smoke visual Android/iOS) e o sign-off do PO só fecham após deploy `rc.M+1` em homolog — ver "Pendências para fechar".
+
 ### Decisões tomadas
-- _A preencher pelo agente._
+- **Ferramenta SVG→PNG: `sharp`** (libvips). O toolchain do host não tinha `rsvg-convert`/`cairosvg`/ImageMagick/Inkscape; só `node`/`npm`. `sharp` é a opção mais acessível num toolchain Node (o webapp já usa Playwright via npm) — adicionada como `devDependency` e exposta em `npm run icons`. Render com `density: 384` antes do `resize` para bordas limpas no favicon de 32 px.
+- **Desenho do "T":** monograma em path único (cantos retos, bloco) — crisp em 16 px, sem detalhe fino que vire pixel-mush. Branco puro `#FFFFFF` (máximo contraste, conforme liberdade da story) sobre `brandGreen #00A868`.
+- **Geometria (viewBox 512):** full `icon.svg` — bg squircle (rounded rect rx=114, ~22%), "T" de altura 312px (~61%). `icon-maskable.svg` — bg `#00A868` cobrindo 100% (sem cantos), "T" reduzido (x150–363, y128–384) inteiramente dentro do círculo de raio 205 (safe zone 80%): canto mais distante a ~166px do centro < 205px. `favicon.svg` — "T" mais encorpado (bar h=80, stem w=96) para legibilidade em 16 px.
+- **`manifest.json`:** adicionados os opcionais `"id": "/"` (estabilidade da identidade do PWA no Chrome) e `"categories": ["business","productivity"]`. Campos vetados (`start_url`, `display`, `theme_color`, `background_color`) e os paths de `icons[]` **intocados** (CA-7).
+- **`index.html`:** `apple-touch-icon` agora aponta para `icons/apple-touch-icon.png` com `sizes="180x180"`; `<link rel="icon">` ganhou `sizes="32x32"`. `flutter_bootstrap.js` e todo o resto do `<head>`/`<body>` intocados (CA-6).
 
 ### Descobertas
-- _A preencher pelo agente._
+- Os PNGs antigos (datados 31 mai 12:29) já não eram o "F" azul do Flutter literal, mas placeholders — substituídos de qualquer forma; hashes mudaram (ver Evidência).
+- `flutter build web` copia `web/icons/source/*.svg` para `build/web/icons/source/` — os SVGs-fonte ficam servidos publicamente (poucos KB, inofensivo). Não vetado pela story; deixei como está.
+- O pre-push hook só roda `dart format` em `apps/webapp/lib/` (não em `test/`). `test/login_screen_test.dart` está desformatado **no HEAD** (pré-existente, fora desta story) — não bloqueia o push e não foi tocado.
 
 ### Bloqueios encontrados
-- _A preencher pelo agente._
+- Nenhum bloqueio técnico. CA-13/14/15 dependem de deploy em homolog + dispositivos reais (Android/iOS) — fora do alcance de uma sessão local; ficam para o ciclo de release + validação do PO.
 
 ### Evidência
-- _Hashes dos PNGs antes/depois, capturas de tela, output do `make e2e-webapp`._
+- **Hashes sha256 (antes → depois)** dos PNGs (CA-2):
+  - `Icon-192.png`: `3dce9907…` → `dc05f1f8…`
+  - `Icon-512.png`: `baccb205…` → `bb38e0b7…`
+  - `Icon-maskable-192.png`: `d2c842e2…` → `36653cce…`
+  - `Icon-maskable-512.png`: `6aee06cd…` → `29844969…`
+  - `favicon.png` (16×16 → **32×32**): `7ab2525f…` → `e9313982…`
+  - `apple-touch-icon.png` (180×180, **novo**): `4de0a1d7…`
+- **Dimensões** verificadas com `file`: todas batem com o nome (CA-2/3/4).
+- **CA-1:** `xmllint --noout` passa nos 3 SVGs-fonte.
+- **CA-8:** `flutter build web` ok; servindo `build/web` localmente, `/manifest.json` e os 6 PNGs retornam `HTTP 200` com `Content-Type: image/png` (manifest `application/json` no server local; o mapeamento `application/manifest+json` é do Firebase Hosting e não muda nesta story — nome/path do manifest preservados).
+- **CA-9:** `apps/webapp/scripts/generate-icons.mjs` regenera os 6 PNGs a partir dos SVGs (`npm run icons`); documentado no README ("Regenerar ícones").
+- **CA-11:** `flutter test` — **121/121 passaram** (story não adiciona Dart; cobertura inalterada).
+- **CA-12:** `firebase.json` **não** aparece no diff. Confirmado.
+- **`flutter analyze`:** 2 `info` pré-existentes (`curly_braces_in_flow_control_structures` em `pre_cadastro_*_screen.dart`) — não tocados por esta story.
+
+### Pendências para fechar (homolog + PO)
+- [ ] CA-13 — após deploy `rc.M+1`, smoke de não-regressão da STORY-037 (banner "Nova versão disponível" ≤ 5 min, "Atualizar agora" sem hard-reload). PO atesta em chat.
+- [ ] CA-14 — Android Chrome: instalar PWA mostra o ícone Turni na home/drawer. Captura anexada.
+- [ ] CA-15 — iOS Safari: "Adicionar à Tela de Início" mostra o ícone Turni. Captura anexada.
+- [ ] Flip `index.json` `STORY-041 status: done` após o sign-off acima.
