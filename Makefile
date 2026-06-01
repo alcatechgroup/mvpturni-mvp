@@ -11,15 +11,21 @@
 SHELL := /bin/bash
 DC := docker compose
 COMPOSE_RUN := $(DC) run --rm --no-deps
-# Porta do chromedriver usado pelo integration_test no Web (flutter drive). Override:
-# `make e2e-webapp-integration CHROMEDRIVER_PORT=4445`.
+# Harness same-origin do integration_test no Web (flutter drive) — STORY-043/IDR-021.
+# Override por env: `make e2e-webapp-integration CHROMEDRIVER_PORT=4445 E2E_PROXY_PORT=3000`.
+#   CHROMEDRIVER_PORT — porta do chromedriver.
+#   E2E_PROXY_PORT    — origem única que o browser abre; DEVE ser stateful no Sanctum
+#                       (localhost:3000 já está no default de SANCTUM_STATEFUL_DOMAINS).
+#   E2E_APP_PORT      — porta do dev-server do flutter drive (--web-port).
 CHROMEDRIVER_PORT ?= 4444
+E2E_PROXY_PORT ?= 3000
+E2E_APP_PORT ?= 7357
 
 .DEFAULT_GOAL := help
 .PHONY: help setup up down clean logs ps env build install key migrate seed \
         webapp-build hooks test test-api test-admin test-webapp lint fresh \
         e2e e2e-webapp e2e-webapp-integration e2e-webapp-smoke \
-        e2e-webapp-playwright-legacy e2e-admin
+        e2e-webapp-app-update e2e-admin
 
 help: ## Mostra os comandos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -134,24 +140,33 @@ e2e-webapp: webapp-build ## E2E híbrido do WebApp: integration_test (UI) + smok
 	$(MAKE) e2e-webapp-integration
 	$(MAKE) e2e-webapp-smoke
 
-# Iteração em dev: só os cenários de UI em integration_test (Chrome headless via flutter drive).
-# No Web, integration_test exige `flutter drive` + chromedriver com MAJOR igual ao do Chrome local
-# (ver README §"Testes E2E"). O app é servido numa porta efêmera SEM o proxy /api do :8003, então
-# passamos --dart-define=API_BASE_URL=<API> (CORS aberto + /api/login sem CSRF — ver correção da IDR-010).
+# Iteração em dev: cenários de UI em integration_test (Chrome headless via flutter drive),
+# rodando SAME-ORIGIN (STORY-043 / IDR-021). No Web, integration_test exige `flutter drive` +
+# chromedriver com MAJOR igual ao do Chrome local (ver README §"Testes E2E"). O dev-server do
+# flutter drive (E2E_APP_PORT) fica numa origem diferente da API — o que mataria o cookie Sanctum
+# em chamadas autenticadas pós-login. Por isso subimos um PROXY reverso (scripts/e2e-webapp-proxy.js)
+# numa origem única (E2E_PROXY_PORT, stateful no Sanctum) que roteia /api+/sanctum → API e o resto →
+# dev-server, e apontamos o browser para o proxy via `--web-launch-url`. App e API ficam same-origin,
+# como em produção (IDR-014) — sem --dart-define, sem CORS, sem withCredentials, sem tocar produção.
 # Pré-condição: stack no ar (`make up`) com seed (`make _e2e-seed` ou rode via `make e2e-webapp`).
-e2e-webapp-integration: ## integration_test (UI) do WebApp no Chrome headless — IDR-010/011
+e2e-webapp-integration: ## integration_test (UI) do WebApp no Chrome headless, same-origin — IDR-010/011/021
 	@command -v flutter >/dev/null 2>&1 || { echo "ERRO: Flutter ausente no PATH"; exit 1; }
 	@command -v chromedriver >/dev/null 2>&1 || { echo "ERRO: chromedriver ausente. Instale um chromedriver com MAJOR == seu Chrome (README §Testes E2E)."; exit 1; }
+	@command -v node >/dev/null 2>&1 || { echo "ERRO: node ausente no PATH (proxy same-origin)"; exit 1; }
 	@curl -sS -o /dev/null http://localhost:$${API_PORT:-8001} || { echo "ERRO: API não responde em :$${API_PORT:-8001}. Rode 'make up' antes."; exit 1; }
-	cd apps/webapp; \
-	  chromedriver --port=$(CHROMEDRIVER_PORT) >/tmp/turni-chromedriver.log 2>&1 & \
+	chromedriver --port=$(CHROMEDRIVER_PORT) >/tmp/turni-chromedriver.log 2>&1 & \
 	  CD_PID=$$!; \
-	  trap 'kill $$CD_PID 2>/dev/null' EXIT INT TERM; \
+	  PROXY_PORT=$(E2E_PROXY_PORT) APP_PORT=$(E2E_APP_PORT) API_PORT=$${API_PORT:-8001} \
+	    node scripts/e2e-webapp-proxy.js >/tmp/turni-e2e-proxy.log 2>&1 & \
+	  PROXY_PID=$$!; \
+	  trap 'kill $$CD_PID $$PROXY_PID 2>/dev/null' EXIT INT TERM; \
 	  for i in $$(seq 1 20); do curl -fsS http://localhost:$(CHROMEDRIVER_PORT)/status >/dev/null 2>&1 && break; sleep 0.5; done; \
-	  flutter drive --driver=test_driver/integration_test.dart \
-	    --target=integration_test/auth_test.dart \
+	  for i in $$(seq 1 20); do curl -sS -o /dev/null http://localhost:$(E2E_PROXY_PORT)/ 2>/dev/null && break; sleep 0.3; done; \
+	  cd apps/webapp && flutter drive --driver=test_driver/integration_test.dart \
+	    --target=integration_test/web_test.dart \
 	    -d web-server --browser-name=chrome --headless \
-	    --dart-define=API_BASE_URL=http://localhost:$${API_PORT:-8001}
+	    --web-hostname=127.0.0.1 --web-port=$(E2E_APP_PORT) \
+	    --web-launch-url=http://localhost:$(E2E_PROXY_PORT)
 
 # Smoke HTTP do WebApp em Playwright (IDR-010): SÓ webapp-hello-world.spec.ts — título,
 # /version.json, /health (homolog), console limpo, deep link /login. É a única camada que
@@ -163,15 +178,19 @@ e2e-webapp-smoke: ## smoke HTTP do WebApp (Playwright) contra localhost:8003 —
 	  && (test -d node_modules/playwright-core/.local-browsers || npx playwright install chromium --with-deps) \
 	  && npx playwright test webapp-hello-world.spec.ts
 
-# Specs Playwright LEGADOS de interação com a UI (pre-cadastro PF/contratante, welcome,
-# app-update) — usam o truque de semantics da IDR-006 §b e são FLAKY. FORA do gate
-# (não entram em `make e2e-webapp`) até migrarem para integration_test (STORY de enabling
-# do harness same-origin + Patrol para image_picker). Rode sob demanda para regressão manual.
-e2e-webapp-playwright-legacy: ## specs Playwright legados de UI (flaky, NÃO-gating) — pré-migração
+# app-update: comportamento WEB-PLATFORM (service worker, polling de /version.json,
+# page.route mock, skipWaiting+reload) — NÃO migra para integration_test (STORY-043 CA-7).
+# Fica em Playwright, em target próprio NÃO-gating: o banner de nova versão só dispara
+# contra um build com tag real (IDR-017 desabilita a checagem em dev, version='dev'):
+#   BASE_URL=https://app.homolog.turni.com.br make e2e-webapp-app-update
+# (welcome e as validações de pré-cadastro migraram para integration_test na STORY-043 —
+# o antigo `e2e-webapp-playwright-legacy` foi removido junto com os specs flaky de semantics.)
+e2e-webapp-app-update: ## smoke web-platform de auto-update (Playwright, NÃO-gating) — IDR-017/STORY-043
 	@command -v npx >/dev/null 2>&1 || { echo "ERRO: npx ausente no PATH (instale Node 22)"; exit 1; }
 	@curl -fsS -o /dev/null http://localhost:$${WEBAPP_PORT:-8003} || { echo "ERRO: WebApp não responde em :$${WEBAPP_PORT:-8003}. Rode 'make up' antes."; exit 1; }
 	cd apps/webapp && (test -d node_modules || npm ci) \
-	  && npx playwright test app-update.spec.ts pre-cadastro.spec.ts pre-cadastro-contratante.spec.ts welcome.spec.ts
+	  && (test -d node_modules/playwright-core/.local-browsers || npx playwright install chromium --with-deps) \
+	  && npx playwright test app-update.spec.ts
 
 e2e-admin: ## E2E Playwright do Backoffice contra localhost:8002 (exige `make up`)
 	@command -v npx >/dev/null 2>&1 || { echo "ERRO: npx ausente no PATH (instale Node 22)"; exit 1; }
