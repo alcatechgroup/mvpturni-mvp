@@ -147,13 +147,20 @@ test('CA-3: documento duplicado bloqueia com erro genérico e nada persiste', fu
     expect(AceiteEletronico::where('user_id', $segundo->id)->exists())->toBeFalse();
 });
 
-// ── CA-4 — chave Pix ─────────────────────────────────────────────────────────
+// ── CA-4 — chave Pix (validação simplificada: ≥6 chars; formato fica p/ depois) ──
 
-test('CA-4: chave Pix inválida é rejeitada', function () {
+test('CA-4: chave Pix curta demais (<6) é rejeitada', function () {
     $user = profissionalEmCadastro('PF');
 
-    $this->actingAs($user)->postJson('/api/cadastro/profissional/completar', payloadValido(['chave_pix' => 'chave qualquer']))
+    $this->actingAs($user)->postJson('/api/cadastro/profissional/completar', payloadValido(['chave_pix' => 'pix']))
         ->assertStatus(422)->assertJsonValidationErrors('chave_pix');
+});
+
+test('CA-4: chave Pix com 6+ chars é aceita (qualquer formato)', function () {
+    $user = profissionalEmCadastro('PF');
+
+    $this->actingAs($user)->post('/api/cadastro/profissional/completar', payloadValido(['chave_pix' => 'minha-chave-pix']))
+        ->assertStatus(201);
 });
 
 // ── CA-5 — upload de documentos ──────────────────────────────────────────────

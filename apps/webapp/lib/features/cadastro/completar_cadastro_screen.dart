@@ -348,9 +348,15 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
             label: 'Chave Pix',
             hint: 'CPF, CNPJ, e-mail, telefone (+55...) ou chave aleatória',
             helper: 'Você recebe por aqui, via Pix. Fica criptografada.',
-            validator: (v) => (v ?? '').trim().isEmpty
-                ? 'Informe sua chave Pix.'
-                : _serverErrors['chave_pix'],
+            // Validação simplificada (≥6 chars); formato por tipo fica p/ depois.
+            validator: (v) {
+              final t = (v ?? '').trim();
+              if (t.isEmpty) return 'Informe sua chave Pix.';
+              if (t.length < 6) {
+                return 'A chave Pix deve ter ao menos 6 caracteres.';
+              }
+              return _serverErrors['chave_pix'];
+            },
           ),
 
           const CadastroSection('Documento comprobatório'),
