@@ -6,6 +6,7 @@
 
 use App\Models\ContratanteProfile;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 
@@ -42,7 +43,7 @@ test('cnpj_hash é único entre contratantes (CA-3)', function () {
         'user_id' => User::factory()->contratante()->create()->id,
         'cnpj_encrypted' => '12345678000190',
         'cnpj_hash' => $hash,
-    ]))->toThrow(Illuminate\Database\QueryException::class);
+    ]))->toThrow(QueryException::class);
 });
 
 test('campos estruturados do contratante fazem round-trip (endereço, contatos, redes)', function () {
