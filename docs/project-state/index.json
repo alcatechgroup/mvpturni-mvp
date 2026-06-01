@@ -1276,8 +1276,8 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_review",
+      "owner_agent": "claude-opus-4-8-programador-2026-06-01",
       "sprint_id": "SPRINT-2026-W26",
       "path": "epics/EPIC-007-e2e-hibrida-flutter/stories/STORY-043-harness-same-origin-integration-test-web.md",
       "blocked_by": [
@@ -2077,6 +2077,16 @@
         "decided_by": "programador",
         "source_story": "STORY-042",
         "note": "PO assina após smokes CA-19/CA-20 verdes em homolog. STORY-042 era STORY-039 (EPIC-008) até 2026-06-01 — renomeada para resolver colisão com STORY-039 do EPIC-007 (Patrol)."
+      },
+      {
+        "id": "IDR-021",
+        "title": "Harness same-origin para integration_test no Web (proxy reverso + --web-launch-url)",
+        "status": "proposed",
+        "path": "decisions/idr/IDR-021-harness-same-origin-integration-test-web.md",
+        "decided_at": "2026-06-01",
+        "decided_by": "programador",
+        "source_story": "STORY-043",
+        "note": "Caminho 1 do spike, produtizado. Blocker real descoberto: bind IPv6/IPv4 (--web-hostname=127.0.0.1). Aguarda aprovação do PO."
       }
     ],
     "ddr": [

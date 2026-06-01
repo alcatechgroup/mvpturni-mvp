@@ -7,8 +7,8 @@ sprint_id: SPRINT-2026-W26
 type: enablement
 target_role: programador
 requires_design: false
-status: ready
-owner_agent: null
+status: in_review
+owner_agent: claude-opus-4-8-programador-2026-06-01
 created_at: 2026-06-01
 updated_at: 2026-06-01
 estimated_session_size: L
@@ -49,26 +49,26 @@ Fecha o flake na raiz (métrica primária do EPIC-007: 0 flake) **também para a
 
 ### Harness same-origin
 
-- [ ] **CA-1:** `make e2e-webapp-integration` monta o harness same-origin: sobe chromedriver + um **proxy reverso** (script versionado no repo, sem dependências externas pesadas) + o dev-server do `flutter drive`, e usa **`--web-launch-url`** para o browser abrir o **proxy**. O `--dart-define=API_BASE_URL` cross-origin da STORY-038 é **removido** (passa a same-origin). Sobe e **derruba** tudo de forma limpa (trap), idempotente, sai !=0 no 1º fail.
-- [ ] **CA-2:** O proxy roteia `/api` e `/sanctum` → API real e o restante → dev-server do Flutter, numa **origem única**. A origem é **stateful no Sanctum** sem mudar produção: usar uma porta já presente em `SANCTUM_STATEFUL_DOMAINS` (o spike usou `localhost:3000`) **ou** adicioná-la ao env de **dev** (documentado). **Sem CORS, sem `withCredentials`, sem mock, sem alterar `AuthService`/config de produção.**
-- [ ] **CA-3:** Existe um teste que prova a montagem: um cenário `integration_test` **autenticado** passa via o harness (welcome — CA-4) e **falharia** cross-origin (registrar o contraste em Notas/IDR como evidência, como no spike).
+- [x] **CA-1:** `make e2e-webapp-integration` monta o harness same-origin: sobe chromedriver + um **proxy reverso** (script versionado no repo, sem dependências externas pesadas) + o dev-server do `flutter drive`, e usa **`--web-launch-url`** para o browser abrir o **proxy**. O `--dart-define=API_BASE_URL` cross-origin da STORY-038 é **removido** (passa a same-origin). Sobe e **derruba** tudo de forma limpa (trap), idempotente, sai !=0 no 1º fail.
+- [x] **CA-2:** O proxy roteia `/api` e `/sanctum` → API real e o restante → dev-server do Flutter, numa **origem única**. A origem é **stateful no Sanctum** sem mudar produção: usar uma porta já presente em `SANCTUM_STATEFUL_DOMAINS` (o spike usou `localhost:3000`) **ou** adicioná-la ao env de **dev** (documentado). **Sem CORS, sem `withCredentials`, sem mock, sem alterar `AuthService`/config de produção.**
+- [x] **CA-3:** Existe um teste que prova a montagem: um cenário `integration_test` **autenticado** passa via o harness (welcome — CA-4) e **falharia** cross-origin (registrar o contraste em Notas/IDR como evidência, como no spike).
 
 ### Migração dos fluxos flaky
 
-- [ ] **CA-4:** Fluxo de **welcome** migrado para `integration_test/auth/welcome_test.dart`: login do profissional **liberado** → `/welcome` → "Vamos lá" (`POST /api/usuarios/me/welcome-visto` **autenticado**) → `/completar-cadastro`; **e** o cenário "2º login pula o welcome" (welcome já visto → cai direto em `/completar-cadastro`). Passa via harness. `tests/e2e/welcome.spec.ts` **removido**.
-- [ ] **CA-5:** Isolamento de dados garantido: fluxos que **mutam estado** (welcome_visto) re-semeiam por run **ou** usam usuário descartável, de modo que as 5 execuções consecutivas do gate sejam determinísticas (sem "2º run pega usuário já welcomado" — gotcha registrado no spike).
-- [ ] **CA-6:** **pré-cadastro** (profissional PF/MEI + contratante): cenários de **validação/texto/navegação** migrados para `integration_test` (determinísticos, sem semantics). O **happy-path com upload de foto** **permanece desativado** (`test.fixme`) — file picker é Patrol/IDR-009 (STORY-039), **fora de escopo** migrar aqui. `tests/e2e/pre-cadastro.spec.ts` e `pre-cadastro-contratante.spec.ts` removidos **se** não sobrar nenhum cenário ativo neles; senão, reduzidos ao que ficar (documentar).
-- [ ] **CA-7:** Decisão sobre **`app-update.spec.ts`** registrada e aplicada: por ser comportamento **web-platform** (service worker, polling de `/version.json`, `page.route` mock, `skipWaiting`+reload), **permanece em Playwright como smoke** (não migra para `integration_test`). Mover para a suíte de smoke do gate **ou** mantê-lo num target próprio — agente decide e documenta; o que **não** pode é continuar flaky no caminho do gate.
+- [x] **CA-4:** Fluxo de **welcome** migrado para `integration_test/auth/welcome_test.dart`: login do profissional **liberado** → `/welcome` → "Vamos lá" (`POST /api/usuarios/me/welcome-visto` **autenticado**) → `/completar-cadastro`; **e** o cenário "2º login pula o welcome" (welcome já visto → cai direto em `/completar-cadastro`). Passa via harness. `tests/e2e/welcome.spec.ts` **removido**.
+- [x] **CA-5:** Isolamento de dados garantido: fluxos que **mutam estado** (welcome_visto) re-semeiam por run **ou** usam usuário descartável, de modo que as 5 execuções consecutivas do gate sejam determinísticas (sem "2º run pega usuário já welcomado" — gotcha registrado no spike).
+- [x] **CA-6:** **pré-cadastro** (profissional PF/MEI + contratante): cenários de **validação/texto/navegação** migrados para `integration_test` (determinísticos, sem semantics). O **happy-path com upload de foto** **permanece desativado** (`test.fixme`) — file picker é Patrol/IDR-009 (STORY-039), **fora de escopo** migrar aqui. `tests/e2e/pre-cadastro.spec.ts` e `pre-cadastro-contratante.spec.ts` removidos **se** não sobrar nenhum cenário ativo neles; senão, reduzidos ao que ficar (documentar).
+- [x] **CA-7:** Decisão sobre **`app-update.spec.ts`** registrada e aplicada: por ser comportamento **web-platform** (service worker, polling de `/version.json`, `page.route` mock, `skipWaiting`+reload), **permanece em Playwright como smoke** (não migra para `integration_test`). Mover para a suíte de smoke do gate **ou** mantê-lo num target próprio — agente decide e documenta; o que **não** pode é continuar flaky no caminho do gate.
 
 ### Gate e limpeza
 
-- [ ] **CA-8:** `tests/e2e/` reduzido ao **smoke HTTP** (`webapp-hello-world.spec.ts` + o que a decisão de CA-7 mantiver). `make e2e-webapp-playwright-legacy` **removido** (ou reduzido ao resíduo de smoke, sem specs flaky de interação).
-- [ ] **CA-9:** `make e2e-webapp` (build → integration **incluindo os fluxos autenticados migrados** → smoke) roda **5x consecutivos verde, 0 flake**. Wall-time documentado e comparado ao baseline da STORY-038 (~49s); se subir, justificar.
+- [x] **CA-8:** `tests/e2e/` reduzido ao **smoke HTTP** (`webapp-hello-world.spec.ts` + o que a decisão de CA-7 mantiver). `make e2e-webapp-playwright-legacy` **removido** (ou reduzido ao resíduo de smoke, sem specs flaky de interação).
+- [x] **CA-9:** `make e2e-webapp` (build → integration **incluindo os fluxos autenticados migrados** → smoke) roda **5x consecutivos verde, 0 flake**. Wall-time documentado e comparado ao baseline da STORY-038 (~49s); se subir, justificar.
 
 ### Decisão e documentação
 
-- [ ] **CA-10:** Harness registrado em **IDR** (`status: proposed`): extensão da IDR-010 **ou** IDR nova (ex.: IDR-021 — "Harness same-origin para integration_test Web"). Documenta a receita (proxy + `--web-launch-url` + origem stateful), **por que same-origin** (espelha produção/IDR-014, evita tocar produção), e o contraste cross-origin (evidência do spike).
-- [ ] **CA-11:** `apps/webapp/README.md` §"Testes E2E" atualizado: o harness same-origin substitui o caveat do `--dart-define` cross-origin; como rodar/debugar 1 cenário autenticado.
+- [x] **CA-10:** Harness registrado em **IDR** (`status: proposed`): extensão da IDR-010 **ou** IDR nova (ex.: IDR-021 — "Harness same-origin para integration_test Web"). Documenta a receita (proxy + `--web-launch-url` + origem stateful), **por que same-origin** (espelha produção/IDR-014, evita tocar produção), e o contraste cross-origin (evidência do spike).
+- [x] **CA-11:** `apps/webapp/README.md` §"Testes E2E" atualizado: o harness same-origin substitui o caveat do `--dart-define` cross-origin; como rodar/debugar 1 cenário autenticado.
 
 ## Fora de escopo
 
@@ -104,12 +104,12 @@ Se o Caminho 1 falhar de forma irrecuperável, **pare e escale ao PO** antes de 
 
 ## Definição de Pronto (DoD)
 
-- [ ] CA-1 a CA-11 atendidos.
-- [ ] `make e2e-webapp` verde 5x consecutivos (incl. fluxos autenticados); evidência em Notas.
-- [ ] Cobertura unitária não regredida.
-- [ ] IDR do harness em `proposed` aguardando PO; README atualizado.
-- [ ] `tests/e2e/` reduzido ao smoke; `e2e-webapp-playwright-legacy` removido/reduzido.
-- [ ] `index.json` atualizado; "Notas do agente" preenchidas (CA→teste, wall-time, contraste cross-origin).
+- [x] CA-1 a CA-11 atendidos.
+- [x] `make e2e-webapp` verde 5x consecutivos (incl. fluxos autenticados); evidência em Notas.
+- [x] Cobertura unitária não regredida.
+- [x] IDR do harness em `proposed` aguardando PO; README atualizado.
+- [x] `tests/e2e/` reduzido ao smoke; `e2e-webapp-playwright-legacy` removido/reduzido.
+- [x] `index.json` atualizado; "Notas do agente" preenchidas (CA→teste, wall-time, contraste cross-origin).
 
 ## Protocolo do agente (obrigatório)
 
@@ -146,11 +146,115 @@ flutter drive --driver=test_driver/integration_test.dart \
 - Esperar a tela montar antes de tocar (`pumpUntilFound(find.byKey(Key('btn-vamos-la')))`) — `awaitRouteChange('/welcome')` retorna antes do botão renderizar.
 - O proxy do spike (≈40 linhas, node puro) está em `/tmp/turni-spike-proxy.js` da sessão de origem — recriável a partir da descrição acima; versione em `scripts/` ou equivalente.
 
+### Plano inicial (registrado antes de codar — 2026-06-01)
+
+**Documentos lidos:** esta estória inteira; STORY-038 (todas as Notas — receita do spike, helpers, agregador,
+gotchas); IDR-010 (header + correção de sintaxe `flutter drive`), IDR-014 (proxy same-origin de dev + endpoint
+`/me`), template de IDR; `Makefile` (targets `e2e-webapp*`, `_e2e-seed`); `apps/webapp/router.php` (proxy de
+referência de dev → `api:8000`); `apps/api/config/sanctum.php` (`localhost:3000` JÁ é stateful no default);
+`integration_test/` inteiro (agregador `auth_test.dart`, helpers `pump_app`/`login_helper`/`route_helper`,
+cenários migrados); specs a migrar (`welcome`, `pre-cadastro`, `pre-cadastro-contratante`, `app-update`);
+`lib/features/funnel/welcome_screen.dart` (keys `btn-vamos-la`, `welcome-headline`, `screen-welcome`);
+`lib/features/cadastro/pre_cadastro_*` + `shared/cadastro_widgets.dart` (keys `input-*`, `btn-submit-cadastro`,
+`link-entrar`, `screen-cadastro-*`); `lib/features/auth/auth_service.dart` (`_apiBase` default same-origin;
+`markWelcomeSeen` → POST autenticado); `lib/router.dart` (funnel guard + rotas); `AdminUserSeeder.php`
+(`bemvindo.profissional@turni.local` com `welcome_seen_at=null`, reset por `updateOrCreate` a cada `_e2e-seed`).
+
+**Entendimento consolidado:** o spike provou o Caminho 1 (proxy reverso same-origin + `--web-launch-url`). Minha
+tarefa é **produtizar** no Makefile (proxy versionado em `scripts/`) e **migrar** welcome + validações de
+pré-cadastro para `integration_test` (rodando same-origin, cookie Sanctum trafega como em produção/IDR-014).
+O `--dart-define=API_BASE_URL` cross-origin da STORY-038 sai — o app passa a default same-origin (`_apiBase=''`),
+servido pelo proxy `:3000`. `localhost:3000` já é stateful no Sanctum → zero mudança de produção. app-update fica
+em smoke Playwright (web-platform: service worker/version.json/page.route — não migra). Happy-path com foto
+continua `test.fixme` (Patrol/IDR-009, STORY-039).
+
+**Dúvidas:** nenhuma bloqueante. Caminho técnico já provado por spike; sigo a receita.
+
+**Plano (commits pequenos — regra 6 da W26: 43a = harness+welcome; 43b = pré-cadastro+app-update+limpeza):**
+1. Harness: `scripts/e2e-webapp-proxy.js` (node puro) + reescrever `make e2e-webapp-integration` (chromedriver +
+   proxy + `flutter drive --web-launch-url=http://localhost:3000`, sem `--dart-define`). (CA-1, CA-2)
+2. Welcome: `integration_test/auth/welcome_test.dart` (red→green via harness) + agregador + remover
+   `welcome.spec.ts`. Contraste cross-origin documentado (CA-3, CA-4, CA-5).
+3. Pré-cadastro: cenários de validação/navegação em `integration_test/cadastro/` + reduzir/remover specs (CA-6).
+4. app-update → smoke; limpar `tests/e2e/` e `e2e-webapp-playwright-legacy` (CA-7, CA-8).
+5. IDR-021 (proposed) + README §Testes E2E (CA-10, CA-11).
+6. 5x `make e2e-webapp` verde + wall-time; cobertura; finalizar Notas; `in_review` (CA-9, DoD).
+
+**Mapeamento CA → teste (planejado):**
+- CA-3/CA-4 → `integration_test/auth/welcome_test.dart` :: "profissional liberado segue por Vamos lá → /completar-cadastro"
+  (POST autenticado same-origin; falharia cross-origin — contraste no spike).
+- CA-4 (2º login) → `welcome_test.dart` :: "2º login com welcome_visto pula /welcome → /completar-cadastro".
+- CA-5 → garantido por `_e2e-seed` (reset `welcome_seen_at=null` via `updateOrCreate` a cada run do gate).
+- CA-6 → `integration_test/cadastro/pre_cadastro_profissional_test.dart` :: "tela pública carrega", "campo
+  obrigatório", "link Entrar → /login"; `pre_cadastro_contratante_test.dart` :: idem para contratante.
+- CA-7 → `tests/e2e/app-update.spec.ts` permanece (smoke Playwright, target próprio não-flaky).
+- CA-8 → `tests/e2e/` = `webapp-hello-world.spec.ts` + `app-update.spec.ts`; `e2e-webapp-playwright-legacy` removido.
+
 ### Decisões tomadas
-- _A preencher pelo agente executor._
+- **Proxy em Node puro versionado em `scripts/e2e-webapp-proxy.js`** (~90 linhas, sem deps), chamado pelo
+  Makefile. Roteia `/api`+`/sanctum` → API (`:8001`) e o resto → dev-server do `flutter drive` (`:7357`),
+  numa origem única `localhost:3000` (já stateful no Sanctum). Espelha o `router.php` de dev, mas no host
+  (o dev-server do drive roda no host, não no container). Tem log de request opcional (`E2E_PROXY_DEBUG=1`,
+  desligado por default) — foi essencial para diagnosticar o blocker abaixo; mantido gated por ser barato e útil.
+- **Entrypoints de drive:** `auth_test.dart` (auth, inclui welcome) e `cadastro_test.dart` (pré-cadastro) como
+  agregadores de feature para dev; `web_test.dart` (topo) compõe os dois e é o **alvo único do gate** — uma só
+  invocação de `flutter drive` (compila/abre browser 1x) para manter o wall-time baixo (CA-9).
+- **welcome em `auth/welcome_test.dart`** (2 cenários: segue por "Vamos lá" → /completar-cadastro; 2º login pula
+  welcome), rodando por ÚLTIMO no agregador por mutar `welcome_visto`. **CA-5** garantido pelo `_e2e-seed`
+  (`updateOrCreate` reseta `welcome_seen_at=null` a cada run) — re-semeia por run, sem usuário descartável.
+- **app-update fica em Playwright, target próprio NÃO-gating** `make e2e-webapp-app-update` (CA-7): é
+  comportamento web-platform (service worker, `/version.json`, `page.route`, `skipWaiting`+reload) e o banner só
+  dispara contra build com tag real (IDR-017). Não entra no gate → gate determinístico.
+- **`e2e-webapp-playwright-legacy` removido** (CA-8): welcome/pré-cadastro migraram; restou só app-update (target
+  próprio) + smoke `webapp-hello-world`.
+- **IDR nova (IDR-021)** em vez de estender a IDR-010 — o harness same-origin é decisão substancial e auto-contida
+  que a STORY-022+ vai herdar; merece registro próprio (a IDR-010 continua sendo o modelo híbrido).
 
 ### Descobertas
-- _A preencher pelo agente executor._
+- **🔑 BLOCKER REAL (não capturado pelo spike): binding IPv6 vs IPv4.** Com `--web-hostname=localhost`, o
+  dev-server do `flutter drive` no macOS bindava em `::1` (IPv6 localhost) **apenas**. O proxy Node conectava em
+  `127.0.0.1` (IPv4) → **ECONNREFUSED** em todo request → o browser recebia 502 no `GET /`, o bundle JS nunca
+  carregava, o app não bootava e o `flutter drive` **pendurava ~11 min** (timeout default do `pumpAndSettle`)
+  sem reportar. Diagnóstico: log de request no proxy mostrou só `GET /` repetido (sem `.js`); `curl localhost:7357`
+  funcionava mas `curl 127.0.0.1:7357` dava `exit 7`. **Fix:** `--web-hostname=127.0.0.1` (bind IPv4) + proxy
+  conecta em `127.0.0.1`. Após isso: bundle completo carrega via `:3000` e **"All tests passed"**. (O spike
+  provavelmente rodou onde `localhost` resolvia/bindava IPv4, mascarando isso.)
+- **`--web-launch-url` É honrado** no caminho `-d web-server --browser-name=chrome` (o browser do WebDriver abre a
+  URL do proxy). O canal de resultados browser↔runner é via WebDriver/chromedriver (`:4444`, direto ao Chrome),
+  independente do proxy — por isso o proxy só precisa servir app + API, não o canal de debug.
+- O `data:,` nos args do Chrome é só a URL de lançamento do chromedriver; a navegação real (para `:3000`) é via
+  comando WebDriver e não aparece em `ps` — descartar `ps` como evidência de navegação.
 
 ### Bloqueios encontrados
-- _A preencher pelo agente executor._
+- **Resolvido (sem escalar):** o hang de ~11 min era o binding IPv6/IPv4 acima — não uma falha do Caminho 1.
+  Caminho 1 (proxy + `--web-launch-url`) **funciona**; não foi preciso recorrer ao Caminho 2 nem escalar ao PO.
+- **Off-screen tap (resolvido):** o 1º gate full pegou o `btn-submit-cadastro` do contratante fora do viewport
+  (SingleChildScrollView) → tap não registrava → validação não exibia → `find.text` 0. Fix: `tester.ensureVisible`
+  antes do tap (em ambos os pré-cadastros). Rodada isolada de `cadastro_test.dart` → "All tests passed".
+
+### Mapeamento CA → teste (final)
+
+| CA | Como é provado |
+|---|---|
+| CA-1 | `make e2e-webapp-integration` sobe chromedriver + `scripts/e2e-webapp-proxy.js` + `flutter drive --web-launch-url`, sem `--dart-define`; `trap` derruba tudo; sai !=0 no 1º fail. |
+| CA-2 | Proxy roteia `/api`+`/sanctum` → `:8001`, resto → dev-server `:7357`, origem única `localhost:3000` (stateful no default do Sanctum). Sem CORS/withCredentials/mock/alteração de produção. |
+| CA-3 | `auth/welcome_test.dart` (cenário autenticado) passa via harness; o contraste cross-origin (trava em /welcome) está registrado no spike + IDR-021. |
+| CA-4 | `integration_test/auth/welcome_test.dart` :: "segue por Vamos lá → /completar-cadastro" (POST autenticado welcome-visto) **e** "2º login pula /welcome → /completar-cadastro". `welcome.spec.ts` removido. |
+| CA-5 | `make _e2e-seed` faz `updateOrCreate(welcome_seen_at=null)` em `bemvindo.profissional@turni.local` a cada run → re-semeia por run; 5x determinístico. |
+| CA-6 | `integration_test/cadastro/pre_cadastro_profissional_test.dart` e `pre_cadastro_contratante_test.dart` :: "tela pública carrega", "submeter vazio → erros obrigatórios", "link Entrar → /login". Happy-path c/ foto segue `test.fixme` nos specs Playwright (reduzidos). |
+| CA-7 | `app-update.spec.ts` permanece em Playwright, target próprio NÃO-gating `make e2e-webapp-app-update` (web-platform; banner só com tag real — IDR-017). |
+| CA-8 | `tests/e2e/` = `webapp-hello-world.spec.ts` (smoke) + `app-update.spec.ts` (não-gating) + `pre-cadastro*.spec.ts` reduzidos a `test.fixme`. `e2e-webapp-playwright-legacy` removido. |
+| CA-9 | 5x `make e2e-webapp` — ver "Resultado do gate" abaixo. |
+| CA-10 | IDR-021 `proposed` (`decisions/idr/IDR-021-...md`) + indexada. |
+| CA-11 | `apps/webapp/README.md` §"Testes E2E" reescrita (harness same-origin, comandos, debug 1 cenário). |
+
+### Resultado do gate (CA-9)
+- **5x `make e2e-webapp`: PASS · PASS · PASS · PASS · PASS** (zero flake). Cada run: integration "All tests
+  passed" + smoke "4 passed (~8.7s)".
+- **Wall-time por run:** 57s, 56s, 56s, 57s, 56s (média **~56,4s**). Baseline STORY-038 ~49s → **+~7s (+15%)**,
+  abaixo do teto de 30%. Justificado: o gate agora roda também o welcome (fluxo autenticado same-origin, com
+  login + POST welcome-visto) e 6 cenários de pré-cadastro, num único `flutter drive` (agregador `web_test.dart`).
+- **Cobertura unitária:** `flutter test --coverage` → **74,0% (1150/1555)**, **idêntica** ao baseline da
+  STORY-038 → **não regrediu** (esta story não adiciona lógica de produção; só testes + harness + Makefile +
+  proxy + docs). 97/97 widget tests verdes. O gap para 80% é débito pré-existente, **fora de escopo** (ação
+  separada do PO, conforme a própria story).
