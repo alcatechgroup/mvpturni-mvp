@@ -6,6 +6,7 @@ import 'features/auth/auth_service.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/redefinir_senha_screen.dart';
+import 'features/cadastro/completar_cadastro_contratante_screen.dart';
 import 'features/cadastro/completar_cadastro_screen.dart';
 import 'features/cadastro/pre_cadastro_contratante_screen.dart';
 import 'features/cadastro/pre_cadastro_profissional_screen.dart';
@@ -111,11 +112,14 @@ final router = GoRouter(
       path: '/welcome',
       builder: (context, state) => const funnel.WelcomeScreen(),
     ),
-    // Completar cadastro do profissional + aceite eletrônico (STORY-023).
-    // (Contratante completa em STORY-024 — mesma rota, ramificada por role no futuro.)
+    // Completar cadastro + aceite eletrônico. Mesma rota; o builder ramifica pelo papel:
+    // profissional (STORY-023) ou contratante (STORY-024). O funnel guard já garantiu
+    // sessão em `await_cadastro`.
     GoRoute(
       path: '/completar-cadastro',
-      builder: (context, state) => const CompletarCadastroScreen(),
+      builder: (context, state) => AuthService().session?.role == 'contratante'
+          ? const CompletarCadastroContratanteScreen()
+          : const CompletarCadastroScreen(),
     ),
 
     // Health (dev local)

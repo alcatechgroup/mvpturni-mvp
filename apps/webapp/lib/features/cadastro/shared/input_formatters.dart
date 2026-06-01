@@ -50,6 +50,29 @@ class DocumentoInputFormatter extends TextInputFormatter {
   }
 }
 
+/// Formata CEP conforme digita (`00000-000`); descarta não-dígitos e limita a 8 (STORY-024).
+class CepInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    var d = newValue.text.replaceAll(RegExp(r'\D'), '');
+    if (d.length > 8) d = d.substring(0, 8);
+
+    final b = StringBuffer();
+    for (var i = 0; i < d.length; i++) {
+      if (i == 5) b.write('-');
+      b.write(d[i]);
+    }
+    final masked = b.toString();
+    return TextEditingValue(
+      text: masked,
+      selection: TextSelection.collapsed(offset: masked.length),
+    );
+  }
+}
+
 /// Formata valor monetário em centavos conforme digita: os dígitos preenchem da direita
 /// para a esquerda (`4` → `R$ 0,04`, `4500` → `R$ 45,00`, `450000` → `R$ 4.500,00`).
 class MoedaInputFormatter extends TextInputFormatter {
