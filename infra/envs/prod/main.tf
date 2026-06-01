@@ -152,8 +152,12 @@ module "cloud_run_admin" {
   min_instances            = 1
 
   env_vars = {
-    APP_ENV       = "production"
-    APP_DEBUG     = "false"
+    APP_ENV   = "production"
+    APP_DEBUG = "false"
+    # APP_URL = WebApp: o e-mail de aprovação (admin ApprovalService) monta o CTA com
+    # config('app.webapp_url', config('app.url')); sem APP_URL ia http://localhost no
+    # e-mail. Backoffice é Livewire (URLs relativas) — não depende de APP_URL própria.
+    APP_URL       = "https://${local.webapp_host}"
     LOG_CHANNEL   = "stderr"
     DB_CONNECTION = "pgsql"
     DB_SOCKET     = local.cloudsql_socket

@@ -140,7 +140,7 @@ module "cloud_run_api" {
     # __session é obrigatório atrás do Firebase Hosting: o Hosting só encaminha ao Cloud Run
     # o cookie chamado `__session` (descarta os demais). Sem isso, a sessão não chega ao
     # backend e toda request autenticada cai em 401 após o login. Ver IDR-019.
-    SESSION_COOKIE   = "__session"
+    SESSION_COOKIE = "__session"
     # E-mail transacional (ADR-011 §c): provedor Resend em homolog; chave via Secret
     # Manager (secret_env_vars). Remetente no subdomínio dedicado mail.homolog.
     MAIL_MAILER       = "resend"
@@ -181,8 +181,13 @@ module "cloud_run_admin" {
   vpc_subnetwork = google_compute_subnetwork.main.name
 
   env_vars = {
-    APP_ENV        = "production"
-    APP_DEBUG      = "false"
+    APP_ENV   = "production"
+    APP_DEBUG = "false"
+    # APP_URL aponta para a WebApp: o e-mail de aprovação (admin ApprovalService) monta o
+    # CTA "Acessar o Turni" com config('app.webapp_url', config('app.url')); sem APP_URL o
+    # default do Laravel (http://localhost) ia no e-mail. O backoffice é Livewire (URLs
+    # relativas), então não depende de uma APP_URL própria.
+    APP_URL        = "https://${local.webapp_host}"
     LOG_CHANNEL    = "stderr"
     DB_CONNECTION  = "pgsql"
     DB_SOCKET      = local.cloudsql_socket
