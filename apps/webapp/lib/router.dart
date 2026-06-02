@@ -13,8 +13,10 @@ import 'features/cadastro/pre_cadastro_profissional_screen.dart';
 import 'features/feed/feed_screen.dart';
 import 'features/funnel/welcome_screen.dart' as funnel;
 import 'features/vagas/minhas_vagas_screen.dart';
+import 'features/vagas/painel_candidatos_screen.dart';
 import 'features/vagas/publicar_vaga_screen.dart';
 import 'features/vagas/vaga_detalhe_screen.dart';
+import 'features/vagas/vaga_service.dart' show VagaResumo;
 import 'features/welcome/welcome_screen.dart';
 
 // ──────────────────────────────────────────────────────────────
@@ -178,22 +180,25 @@ final router = GoRouter(
         successMessage: state.extra as String?,
       ),
     ),
-    // Painel de candidatos da vaga (STORY-051). Placeholder até aquela estória entrar;
-    // o link "Ver candidatos" de Minhas vagas (CA-6) aponta para cá.
+    // Painel de candidatos da vaga (STORY-051). RBAC (CA-1) tratado dentro da tela: profissional
+    // ou contratante não-dono (403) cai em "sem permissão"; 404 cai em "vaga não encontrada". O
+    // link "Ver candidatos" de Minhas vagas (047 CA-6) aponta para cá e passa o contexto da vaga
+    // (função/horário) por `extra` para a faixa de cabeçalho; no deep-link a faixa degrada para
+    // só a contagem (o contrato CA-1 não inclui dados da vaga).
     GoRoute(
       path: '/contratante/vagas/:id/candidatos',
-      builder: (context, state) => Scaffold(
-        appBar: AppBar(title: const Text('Candidatos')),
-        body: const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'O painel de candidatos chega na próxima estória.',
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ),
+      builder: (context, state) {
+        final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        final ctx = state.extra is VagaResumo
+            ? state.extra as VagaResumo
+            : null;
+        return PainelCandidatosScreen(
+          vagaId: id,
+          funcao: ctx?.funcao,
+          dataInicio: ctx?.dataInicio,
+          dataFim: ctx?.dataFim,
+        );
+      },
     ),
 
     // Health (dev local)

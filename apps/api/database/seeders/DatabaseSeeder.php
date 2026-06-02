@@ -34,5 +34,9 @@ class DatabaseSeeder extends Seeder
         // STORY-050 — par de vagas sobrepostas para o E2E de conflito de horário.
         // Depende de FeedSeeder (profissional.teste + função primária).
         $this->call(CandidaturaConflitoSeeder::class);
+
+        // STORY-051 — vaga do contratante.teste + 3 candidaturas ranqueadas (snapshot persistido)
+        // para o E2E do painel de candidatos. Depende de AdminUserSeeder + FuncaoSeeder.
+        $this->call(PainelCandidatosSeeder::class);
     }
 }

@@ -84,8 +84,8 @@ class CriarCandidaturaService
 
         $score = $this->calcularScore($profissional, $vaga);
 
-        $candidatura = DB::transaction(function () use ($profissional, $vaga, $score, $existente) {
-            $candidatura = $this->criarOuReativar($profissional, $vaga, $score, $existente);
+        $candidatura = DB::transaction(function () use ($profissional, $vaga, $score, $existente, $alerta) {
+            $candidatura = $this->criarOuReativar($profissional, $vaga, $score, $existente, $alerta);
 
             AuditLog::create([
                 'actor_id' => $profissional->id,
@@ -112,7 +112,7 @@ class CriarCandidaturaService
      * o UNIQUE de STORY-044 impede duas linhas, então a retirada é "ressuscitada" como nova:
      * volta a `pendente`, novo score, novo carimbo de criação — SCREEN-050 §4.9).
      */
-    private function criarOuReativar(User $profissional, Vaga $vaga, MatchScore $score, ?Candidatura $existente): Candidatura
+    private function criarOuReativar(User $profissional, Vaga $vaga, MatchScore $score, ?Candidatura $existente, bool $alerta): Candidatura
     {
         $versaoId = $this->versaoAtualId($vaga);
 
@@ -121,6 +121,10 @@ class CriarCandidaturaService
                 'estado' => CandidaturaEstado::Pendente,
                 'vaga_versao_id' => $versaoId,
                 'score_no_momento' => $score->total,
+                // Snapshot do match no instante da (re)candidatura — o painel lê sem recalcular
+                // (STORY-051 CA-2/CA-4). A reativação carimba o snapshot novo, como deve.
+                'score_breakdown' => $score->toArray(),
+                'alerta_habitualidade' => $alerta,
                 'revisao_prazo_em' => null,
                 'aprovada_em' => null,
                 'retirada_em' => null,
@@ -137,6 +141,8 @@ class CriarCandidaturaService
             'estado' => CandidaturaEstado::Pendente,
             'vaga_versao_id' => $versaoId,
             'score_no_momento' => $score->total,
+            'score_breakdown' => $score->toArray(),
+            'alerta_habitualidade' => $alerta,
         ]);
     }
 

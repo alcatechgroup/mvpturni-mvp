@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<!--
+  PROTÓTIPO DE VALIDAÇÃO — NÃO É CÓDIGO DE PRODUÇÃO.
+  SCREEN-STORY-051 — Painel de candidatos do contratante (lista ranqueada por match + breakdown).
+  HTML/CSS/JS vanilla, sem rede, sem build. Abra clicando no arquivo.
+  Tokens reais do tema CONTRATANTE (mostarda) + semânticos (DDR-001). Locale pt-BR / 24h (DDR-002).
+  Microcopy = §5 do spec, palavra por palavra. data-testid = §7. Breakdown reusa o de 049.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCREEN-STORY-051 — Painel de candidatos</title>
+<style>
+  :root {
+    --page: #F7F4EC; --surface: #FFFFFF;
+    --border-subtle: #E0DDD3; --border-strong: #C8C5BB;
+    --text-strong: #0F1B2D; --text-muted: #42504A;
+    --brand: #00A868;
+    /* Contratante (mostarda) — DDR-001 */
+    --accent: #9A6E25; --accent-ink: #6E4E12; --accent-soft: #FBEED1; --on-accent: #FFFFFF;
+    --track: #E8E5DB;
+    --success: #2D7A4F; --success-soft: #E2F0E5;
+    --warn: #9A6E25; --warn-soft: #FBEED1; --warn-ink: #6E4E12;
+    --error: #B83A3A; --error-soft: #FBE2E2;
+    --muted: #42504A;
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-full: 999px;
+    --s-xs: 4px; --s-sm: 8px; --s-md: 16px; --s-lg: 24px; --s-xl: 32px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #EAE6DA; color: var(--text-strong);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .proto-bar {
+    position: sticky; top: 0; z-index: 50; background: #2E2410; color: #F3ECD9;
+    padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px;
+  }
+  .proto-bar strong { color: #fff; }
+  .proto-bar a {
+    color: #F3ECD9; text-decoration: none; padding: 4px 10px; border: 1px solid #6E5A2E;
+    border-radius: var(--r-full); font-size: 12px;
+  }
+  .proto-bar a.on { background: #D4A95C; color: #2E2410; border-color: #D4A95C; font-weight: 700; }
+  .stage { display: flex; justify-content: center; padding: 20px; }
+  .device {
+    background: var(--page); width: 390px; min-height: 760px; border-radius: 28px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.25); overflow: hidden; position: relative;
+    border: 1px solid var(--border-strong);
+  }
+  .device.desktop { width: 900px; min-height: 640px; border-radius: 16px; }
+  .appbar {
+    display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+    background: var(--surface); border-bottom: 1px solid var(--border-subtle);
+  }
+  .appbar .back { font-size: 20px; width: 40px; height: 40px; display: grid; place-items: center;
+    border-radius: var(--r-full); cursor: pointer; }
+  .appbar h1 { font-size: 18px; margin: 0; font-weight: 800; }
+  .brand { text-align: center; font-weight: 800; letter-spacing: .5px; padding: 10px; color: var(--accent-ink); }
+  .ctx { padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border-subtle); }
+  .ctx .vaga { font-weight: 700; }
+  .ctx .count { color: var(--text-muted); font-size: 14px; margin-top: 2px; }
+  .body { padding: 16px; }
+  .desktop .inner { max-width: 720px; margin: 0 auto; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border-subtle); border-radius: var(--r-md);
+    padding: 16px; margin-bottom: 16px;
+  }
+  .row { display: flex; gap: 12px; align-items: flex-start; }
+  .avatar {
+    width: 44px; height: 44px; border-radius: var(--r-full); flex: 0 0 44px; display: grid;
+    place-items: center; color: #fff; font-weight: 800; font-size: 15px;
+  }
+  .grow { flex: 1; min-width: 0; }
+  .name { font-size: 17px; font-weight: 800; }
+  .sub { color: var(--text-muted); font-size: 14px; margin-top: 2px; }
+  .scorechip {
+    display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: var(--r-full);
+    background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    color: var(--accent-ink); font-weight: 800; font-size: 17px;
+  }
+  .scorebar { height: 10px; background: var(--track); border-radius: var(--r-full); margin: 12px 0 6px;
+    position: relative; overflow: hidden; }
+  .scorebar > span { position: absolute; inset: 0; right: auto; background: var(--accent); border-radius: var(--r-full); }
+  .scoreline { display: flex; justify-content: space-between; align-items: center; }
+  .scoreline .num { font-weight: 800; }
+  .data { color: var(--text-muted); font-size: 13px; margin-top: 8px; }
+  .nivel {
+    display: inline-block; padding: 2px 9px; border-radius: var(--r-full); background: #F0EEE6;
+    border: 1px solid var(--border-subtle); font-size: 12px; font-weight: 700; color: var(--text-strong);
+    margin-left: 6px;
+  }
+  .habit {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 5px 10px;
+    background: var(--warn-soft); border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+    color: var(--warn-ink); border-radius: var(--r-full); font-size: 13px; font-weight: 600;
+  }
+  .toggle {
+    margin-top: 12px; background: none; border: none; color: var(--accent-ink); font-weight: 700;
+    cursor: pointer; padding: 8px 0; font-size: 14px;
+  }
+  .breakdown { margin-top: 8px; }
+  .bd-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px; }
+  .bd-ic { width: 22px; height: 22px; border-radius: var(--r-full); display: grid; place-items: center;
+    color: #fff; font-size: 12px; flex: 0 0 22px; margin-top: 1px; }
+  .bd-ic.ok { background: var(--success); } .bd-ic.partial { background: var(--warn); } .bd-ic.miss { background: var(--muted); }
+  .bd-main { flex: 1; }
+  .bd-top { display: flex; align-items: center; gap: 10px; }
+  .bd-label { width: 96px; font-weight: 700; font-size: 14px; }
+  .bd-bar { flex: 1; height: 8px; background: var(--track); border-radius: var(--r-full); position: relative; overflow: hidden; }
+  .bd-bar > span { position: absolute; inset: 0; right: auto; border-radius: var(--r-full); }
+  .bd-bar.ok > span { background: var(--success); } .bd-bar.partial > span { background: var(--warn); } .bd-bar.miss > span { background: var(--muted); }
+  .bd-pts { font-weight: 700; font-size: 13px; }
+  .bd-desc { color: var(--text-muted); font-size: 13px; margin-top: 3px; }
+  .divider { border-top: 1px solid var(--border-subtle); margin: 14px 0; }
+  .actions { display: flex; flex-direction: column; gap: 8px; }
+  .desktop .actions { flex-direction: row; align-items: center; gap: 16px; }
+  .btn-primary[disabled] {
+    background: #E6E2D6; color: #9A9486; border: none; border-radius: var(--r-full); padding: 12px;
+    font-weight: 700; font-size: 15px; cursor: not-allowed; text-align: center;
+  }
+  .desktop .btn-primary[disabled] { padding: 12px 22px; }
+  .btn-text[disabled] { background: none; color: #9A9486; border: none; cursor: not-allowed; font-weight: 600;
+    padding: 8px; text-align: center; font-size: 14px; }
+  .tip { position: relative; }
+  .tip:hover::after {
+    content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    background: #2E2410; color: #F3ECD9; padding: 6px 10px; border-radius: var(--r-sm); font-size: 12px;
+    white-space: nowrap; margin-bottom: 6px; z-index: 5;
+  }
+
+  .empty, .center {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    padding: 48px 28px; gap: 8px;
+  }
+  .empty .ic, .center .ic { font-size: 44px; }
+  .empty h2, .center h2 { margin: 6px 0 0; font-size: 18px; }
+  .empty p, .center p { color: var(--text-muted); margin: 0; max-width: 280px; }
+  .center .cta, .retry {
+    margin-top: 16px; background: var(--accent); color: var(--on-accent); border: none;
+    border-radius: var(--r-full); padding: 12px 22px; font-weight: 700; cursor: pointer;
+  }
+  .retry { background: none; color: var(--accent-ink); border: 1px solid var(--accent); }
+
+  .sk { background: var(--track); border-radius: 6px; }
+  .sk-card { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: var(--r-md);
+    padding: 16px; margin-bottom: 16px; }
+  .hide { display: none; }
+</style>
+</head>
+<body>
+  <nav class="proto-bar">
+    <strong>SCREEN-051</strong> · Painel de candidatos
+    <span style="opacity:.6">viewport:</span>
+    <a href="#" id="v-mobile" class="on" onclick="setView('mobile');return false">mobile</a>
+    <a href="#" id="v-desktop" onclick="setView('desktop');return false">desktop</a>
+    <span style="opacity:.6;margin-left:8px">estado:</span>
+    <a href="#" data-st="lista" class="on" onclick="setState('lista');return false">lista</a>
+    <a href="#" data-st="lista-habitualidade" onclick="setState('lista-habitualidade');return false">habitualidade</a>
+    <a href="#" data-st="loading" onclick="setState('loading');return false">loading</a>
+    <a href="#" data-st="vazio" onclick="setState('vazio');return false">vazio</a>
+    <a href="#" data-st="erro" onclick="setState('erro');return false">erro</a>
+    <a href="#" data-st="sem-permissao" onclick="setState('sem-permissao');return false">sem permissão</a>
+    <a href="#" data-st="nao-encontrada" onclick="setState('nao-encontrada');return false">404</a>
+  </nav>
+
+  <div class="stage">
+    <div class="device" id="device">
+      <div class="brand hide" id="brand">TURNI.</div>
+      <div class="appbar">
+        <div class="back" title="Voltar">←</div>
+        <h1>Candidatos</h1>
+      </div>
+      <div id="screen"></div>
+    </div>
+  </div>
+
+<script>
+  // ── Mock de dados (inline, sem rede) ─────────────────────────────────────────
+  const COMP = [
+    {slug:'funcao', label:'Função'},
+    {slug:'distancia', label:'Distância'},
+    {slug:'historico', label:'Histórico'},
+    {slug:'nivel', label:'Nível na trilha'},
+  ];
+  function bd(funcao, dist, hist, niv){ return {funcao, distancia:dist, historico:hist, nivel:niv}; }
+  const CANDIDATOS = [
+    { id: 9001, nome:'Júlia Santos', iniciais:'JS', cor:'#2D5F3F', funcao:'Garçom', nivel:'Elite',
+      score:92, data:'Sex, 12/06 · 14:20', habit:false,
+      breakdown: bd(
+        {pontos:40,max:40,estado:'ok',desc:'Função primária bate'},
+        {pontos:20,max:20,estado:'ok',desc:'A 2 km do estabelecimento'},
+        {pontos:22,max:30,estado:'partial',desc:'Média 4,9★ em 127 turnos'},
+        {pontos:10,max:10,estado:'ok',desc:'Elite na trilha'},
+      )},
+    { id: 9002, nome:'Bruno Costa', iniciais:'BC', cor:'#6E4E12', funcao:'Cozinheiro', nivel:'Destaque',
+      score:88, data:'Sex, 12/06 · 15:02', habit:false,
+      breakdown: bd(
+        {pontos:40,max:40,estado:'ok',desc:'Função primária bate'},
+        {pontos:14,max:20,estado:'partial',desc:'A 6 km do estabelecimento'},
+        {pontos:26,max:30,estado:'partial',desc:'Média 4,7★ em 64 turnos'},
+        {pontos:6,max:10,estado:'partial',desc:'Destaque na trilha'},
+      )},
+    { id: 9003, nome:'Carlos Lima', iniciais:'CL', cor:'#9A6E25', funcao:'Garçom', nivel:'Confiável',
+      score:71, data:'Sex, 12/06 · 16:48', habit:false,
+      breakdown: bd(
+        {pontos:25,max:40,estado:'partial',desc:'Função secundária bate'},
+        {pontos:20,max:20,estado:'ok',desc:'A 1 km do estabelecimento'},
+        {pontos:23,max:30,estado:'partial',desc:'Média 4,8★ em 31 turnos'},
+        {pontos:3,max:10,estado:'partial',desc:'Confiável na trilha'},
+      )},
+  ];
+  const expanded = { 9002: true }; // 2º card começa aberto no estado "lista"
+
+  function scorebar(score){ return `<div class="scorebar" data-testid="bar"><span style="width:${score}%"></span></div>`; }
+  function bdRow(c, comp){
+    const it = c.breakdown[comp.slug];
+    const frac = it.max ? Math.round(it.pontos/it.max*100) : 0;
+    return `<div class="bd-row" data-testid="candidato-card-${c.id}-breakdown-${comp.slug}">
+      <div class="bd-ic ${it.estado}">${it.estado==='ok'?'✓':it.estado==='partial'?'◐':'✕'}</div>
+      <div class="bd-main">
+        <div class="bd-top">
+          <div class="bd-label">${comp.label}</div>
+          <div class="bd-bar ${it.estado}"><span style="width:${frac}%"></span></div>
+          <div class="bd-pts">${it.pontos}/${it.max}</div>
+        </div>
+        <div class="bd-desc">${it.desc}</div>
+      </div>
+    </div>`;
+  }
+  function card(c){
+    const isOpen = !!expanded[c.id];
+    return `<div class="card" data-testid="candidato-card-${c.id}">
+      <div class="row">
+        <div class="avatar" data-testid="candidato-card-${c.id}-avatar" style="background:${c.cor}">${c.iniciais}</div>
+        <div class="grow">
+          <div class="scoreline">
+            <div class="name" data-testid="candidato-card-${c.id}-nome">${c.nome}</div>
+            <div class="scorechip" data-testid="candidato-card-${c.id}-score-chip">⬢ ${c.score}</div>
+          </div>
+          <div class="sub" data-testid="candidato-card-${c.id}-funcao-nivel">${c.funcao}
+            <span class="nivel" data-testid="candidato-card-${c.id}-nivel">${c.nivel}</span></div>
+        </div>
+      </div>
+      ${scorebar(c.score)}
+      <div class="scoreline"><span class="data" data-testid="candidato-card-${c.id}-data">Candidatou ${c.data}</span>
+        <span class="num">${c.score}/100</span></div>
+      ${c.habit ? `<div class="habit" data-testid="candidato-card-${c.id}-habitualidade">⚠ Habitualidade — 3ª alocação na semana</div>` : ''}
+      <button class="toggle" data-testid="candidato-card-${c.id}-breakdown-toggle"
+        onclick="toggle(${c.id})">${isOpen ? '▾ Ocultar breakdown' : '▸ Ver breakdown'}</button>
+      ${isOpen ? `<div class="breakdown" data-testid="candidato-card-${c.id}-breakdown">${COMP.map(k=>bdRow(c,k)).join('')}</div>` : ''}
+      <div class="divider"></div>
+      <div class="actions">
+        <div class="tip" data-tip="Disponível no EPIC-003 — Aceite, PIN e Pix">
+          <div class="btn-primary" disabled data-testid="candidato-card-${c.id}-aceitar-btn">Aceitar candidatura</div>
+        </div>
+        <div class="tip" data-tip="Disponível no EPIC-003">
+          <div class="btn-text" disabled data-testid="candidato-card-${c.id}-remover-btn">Remover candidato</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function ctx(n){
+    const count = n===0 ? 'Nenhum candidato ainda' : n===1 ? '1 candidato' : `${n} candidatos`;
+    return `<div class="ctx" data-testid="painel-candidatos-contexto">
+      <div class="vaga">Garçom · Sex, 12/06 · 18:00–23:00</div>
+      <div class="count">${count}</div></div>`;
+  }
+
+  function render(state){
+    const list = CANDIDATOS.map(c => {
+      if (state==='lista-habitualidade' && c.id===9002) return card({...c, habit:true});
+      return card(c);
+    }).join('');
+
+    const screens = {
+      'lista': ctx(3) + `<div class="body"><div class="inner" data-testid="painel-candidatos-lista">${list}</div></div>`,
+      'lista-habitualidade': ctx(3) + `<div class="body"><div class="inner" data-testid="painel-candidatos-lista">${list}</div></div>`,
+      'loading': ctx('') .replace(/<div class="vaga">.*?<\/div>/,'<div class="sk" style="height:16px;width:60%"></div>')
+        .replace(/<div class="count">.*?<\/div>/,'') +
+        `<div class="body" data-testid="painel-candidatos-skeleton"><div class="inner">` +
+        `<div class="sk-card"><div class="row"><div class="sk" style="width:44px;height:44px;border-radius:999px"></div>
+          <div class="grow"><div class="sk" style="height:14px;width:50%"></div>
+          <div class="sk" style="height:12px;width:35%;margin-top:8px"></div></div></div>
+          <div class="sk" style="height:10px;margin:14px 0"></div></div>`.repeat(3) +
+        `</div></div>`,
+      'vazio': ctx(0) + `<div class="empty" data-testid="painel-candidatos-vazio">
+        <div class="ic">👥</div><h2>Ainda sem candidatos</h2>
+        <p>Vamos avisar assim que chegar o primeiro. Member Start: em até 2h.</p></div>`,
+      'erro': `<div class="center" data-testid="painel-candidatos-erro"><div class="ic">⚠</div>
+        <h2>Não foi possível carregar os candidatos.</h2><p>Verifique sua conexão.</p>
+        <button class="retry" data-testid="painel-candidatos-retry-btn">Tentar de novo</button></div>`,
+      'sem-permissao': `<div class="center" data-testid="painel-candidatos-sem-permissao"><div class="ic">🔒</div>
+        <h2>Esta área é do contratante dono</h2><p>Só quem publicou a vaga vê seus candidatos.</p>
+        <button class="cta">Voltar ao início</button></div>`,
+      'nao-encontrada': `<div class="center" data-testid="painel-candidatos-nao-encontrada"><div class="ic">⃠</div>
+        <h2>Vaga não encontrada</h2><p>Ela pode ter sido removida. Veja suas vagas.</p>
+        <button class="cta">Voltar às minhas vagas</button></div>`,
+    };
+    return screens[state] || screens['lista'];
+  }
+
+  let curState = 'lista';
+  function toggle(id){ expanded[id] = !expanded[id]; draw(); }
+  function setState(s){ curState = s;
+    document.querySelectorAll('.proto-bar a[data-st]').forEach(a=>a.classList.toggle('on', a.dataset.st===s));
+    draw(); }
+  function setView(v){
+    const d = document.getElementById('device');
+    d.classList.toggle('desktop', v==='desktop');
+    document.getElementById('brand').classList.toggle('hide', v!=='desktop');
+    document.getElementById('v-mobile').classList.toggle('on', v==='mobile');
+    document.getElementById('v-desktop').classList.toggle('on', v==='desktop');
+  }
+  function draw(){ document.getElementById('screen').innerHTML = render(curState); }
+  draw();
+</script>
+</body>
+</html>

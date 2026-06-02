@@ -240,6 +240,9 @@ class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
                                   onCancelar: () => _confirmarCancelamento(v),
                                   onVerCandidatos: () => context.go(
                                     '/contratante/vagas/${v.id}/candidatos',
+                                    // Passa o contexto da vaga (função/horário) para a faixa do
+                                    // painel (STORY-051); no deep-link a tela degrada p/ a contagem.
+                                    extra: v,
                                   ),
                                 ),
                               ),

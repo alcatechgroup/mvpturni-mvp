@@ -21,6 +21,7 @@ class Candidatura extends Model
 
     protected $fillable = [
         'vaga_id', 'profissional_id', 'estado', 'vaga_versao_id', 'score_no_momento',
+        'score_breakdown', 'alerta_habitualidade',
         'revisao_prazo_em', 'aprovada_em', 'retirada_em',
     ];
 
@@ -29,6 +30,10 @@ class Candidatura extends Model
         return [
             'estado' => CandidaturaEstado::class,
             'score_no_momento' => 'integer',
+            // Snapshot do breakdown explicável no instante da candidatura (STORY-051 CA-4):
+            // shape de MatchScore::toArray(); o painel do contratante lê sem recalcular.
+            'score_breakdown' => 'array',
+            'alerta_habitualidade' => 'boolean',
             'revisao_prazo_em' => 'datetime',
             'aprovada_em' => 'datetime',
             'retirada_em' => 'datetime',

@@ -15,6 +15,7 @@ use App\Http\Controllers\Candidatura\CandidaturaController;
 use App\Http\Controllers\Feed\FeedController;
 use App\Http\Controllers\Feed\VagaDetalheController;
 use App\Http\Controllers\Usuario\WelcomeController;
+use App\Http\Controllers\Vaga\CandidatosController;
 use App\Http\Controllers\Vaga\VagaController;
 use App\Http\Middleware\FunnelGuard;
 use App\Http\Middleware\WebAppOnly;
@@ -105,4 +106,9 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     // `pendente` (CA-1..CA-7). DELETE retira a própria candidatura `pendente` (CA-8).
     Route::post('/vagas/{vaga}/candidaturas', [CandidaturaController::class, 'store']);
     Route::delete('/candidaturas/{candidatura}', [CandidaturaController::class, 'destroy']);
+
+    // Painel de candidatos do contratante (STORY-051). RBAC contratante dono (403 p/ não-dono e
+    // profissional) no controller; vaga inexistente → 404 (model binding). Lista os candidatos
+    // `pendentes` ranqueados por score (snapshot persistido — não recalcula) com breakdown (CA-1..CA-9).
+    Route::get('/vagas/{vaga}/candidatos', [CandidatosController::class, 'index']);
 });

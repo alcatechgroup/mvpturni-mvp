@@ -439,3 +439,49 @@ test('contratante não retira candidatura → 403 (CA-8 / RBAC)', function () {
 
     $this->actingAs($contratante)->deleteJson("/api/candidaturas/{$candidatura->id}")->assertStatus(403);
 });
+
+// ───────────────────────── STORY-051 — snapshot do breakdown persistido ─────────────────────────
+
+test('candidatura persiste o score_breakdown (snapshot completo) e alerta_habitualidade false (STORY-051 CA-4)', function () {
+    $funcao = Funcao::factory()->create();
+    $prof = profCand(['funcao_id' => $funcao->id]);
+    $vaga = vagaCand($funcao->id);
+
+    $this->actingAs($prof)->postJson("/api/vagas/{$vaga->id}/candidaturas")->assertStatus(201);
+
+    $candidatura = Candidatura::query()->where('vaga_id', $vaga->id)->where('profissional_id', $prof->id)->firstOrFail();
+    expect($candidatura->score_breakdown)->toBeArray()
+        ->and($candidatura->score_breakdown['total'])->toBe($candidatura->score_no_momento)
+        ->and($candidatura->score_breakdown['breakdown'])->toHaveKeys(['funcao', 'distancia', 'historico', 'nivel'])
+        ->and($candidatura->score_breakdown['breakdown']['funcao'])->toHaveKeys(['pontos', 'pontos_max', 'estado', 'descricao'])
+        ->and($candidatura->alerta_habitualidade)->toBeFalse();
+});
+
+test('candidatura de MEI na 3ª alocação persiste alerta_habitualidade true sem bloquear (STORY-051 CA-5)', function () {
+    $funcao = Funcao::factory()->create();
+    $prof = profCand(['funcao_id' => $funcao->id, 'tipo_pessoa' => 'MEI']);
+    $contratante = contratanteCand();
+
+    // Duas alocações vivas na mesma semana/estabelecimento, em horários que NÃO conflitam com a
+    // vaga-alvo (senão o gate de conflito barraria antes da habitualidade) → a 3ª dispara o
+    // alerta (MEI não bloqueia).
+    foreach ([[2, 5], [6, 9]] as [$ini, $fim]) {
+        $outra = vagaCand($funcao->id, [
+            'contratante_id' => $contratante->id,
+            'data_inicio' => now()->addDays(3)->setTime($ini, 0),
+            'data_fim' => now()->addDays(3)->setTime($fim, 0),
+        ]);
+        Candidatura::factory()->create([
+            'vaga_id' => $outra->id, 'profissional_id' => $prof->id,
+            'estado' => CandidaturaEstado::Pendente,
+        ]);
+    }
+    $alvo = vagaCand($funcao->id, ['contratante_id' => $contratante->id]);
+
+    $this->actingAs($prof)->postJson("/api/vagas/{$alvo->id}/candidaturas")
+        ->assertStatus(201)
+        ->assertJsonPath('alerta', true);
+
+    $candidatura = Candidatura::query()->where('vaga_id', $alvo->id)->where('profissional_id', $prof->id)->firstOrFail();
+    expect($candidatura->alerta_habitualidade)->toBeTrue();
+});
