@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-047-minhas-vagas
-status: in_review
+status: done
 owner_agent: claude-opus-4-8
 created_at: 2026-06-01
 updated_at: 2026-06-02
@@ -112,3 +112,6 @@ Decide: paginação se necessário (sugestão: cursor-based 20 por página, fica
 - PR: commit direto na `main` (workflow do projeto).
 - Pipeline: verificar pós-push (GitHub Actions).
 - Deploy: homolog após pipeline verde.
+
+### Aprovação
+- 2026-06-02 — **PO aprovou em chat** após teste manual local (build recompilado, login `contratante.seed`). Story → `done`; SCREEN-047 → `shipped`.

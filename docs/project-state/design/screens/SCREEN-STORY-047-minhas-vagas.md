@@ -2,7 +2,7 @@
 id: SCREEN-STORY-047-minhas-vagas
 story: STORY-047-lista-minhas-vagas-contratante-cancelar
 epic: EPIC-002-vaga-feed-e-candidatura
-status: in_implementation    # draft | ready | in_implementation | shipped | superseded
+status: shipped              # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-02
 updated_at: 2026-06-02
 owner_designer: claude-opus-4-8
@@ -492,3 +492,4 @@ Nenhuma exceção viola token de cor/contraste — todas usam tokens auditados A
 |---|---|---|---|
 | 2026-06-02 | criação (spec completo + protótipo v1) | claude-opus-4-8 (designer) | story bem especificada; spec + protótipo entregues juntos para validação humana |
 | 2026-06-02 | validação humana — aprovado | Alexandro | protótipo/spec aprovados em chat (Aprovado — implementar); `status: ready` |
+| 2026-06-02 | implementado + PO aprovou | claude-opus-4-8 / Alexandro | STORY-047 entregue (api 97%/384, webapp 205, E2E verde) e aprovada em chat após teste local; `status: shipped` |

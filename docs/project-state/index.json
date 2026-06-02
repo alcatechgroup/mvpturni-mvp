@@ -1459,7 +1459,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-047-minhas-vagas",
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-opus-4-8",
       "sprint_id": "SPRINT-2026-W27",
       "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-047-lista-minhas-vagas-contratante-cancelar.md",
@@ -2805,7 +2805,7 @@
         "id": "SCREEN-STORY-047-minhas-vagas",
         "story": "STORY-047",
         "epic": "EPIC-002",
-        "status": "in_implementation",
+        "status": "shipped",
         "path": "design/screens/SCREEN-STORY-047-minhas-vagas.md",
         "viewports": [
           "mobile",
