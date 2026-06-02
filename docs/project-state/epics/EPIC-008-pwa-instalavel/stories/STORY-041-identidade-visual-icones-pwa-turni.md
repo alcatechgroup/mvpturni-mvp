@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: false  # designer só revisa a SVG-fonte; não há SCREEN dedicada
 design_screen_id: null
-status: ready  # impl local concluída 2026-06-01; vira `done` após CA-13/14/15 + sign-off do PO em homolog
+status: done  # 2026-06-02 — CA-15 ✓ (iOS), CA-13 ✓ (auto-update), CA-14 dispensado pelo PO; validado em homolog rc.45
 owner_agent: programador
 created_at: 2026-05-31
-updated_at: 2026-06-01  # impl local dos ícones (assets+pipeline+index.html+manifest+README)
+updated_at: 2026-06-02  # fechada: PO validou CA-13/CA-15 ao vivo em iPhone (rc.44→rc.45)
 estimated_session_size: S
 produces_idr: null  # IDR-020 (proposta pela STORY-042) cobre formato/tamanhos
 renamed_from: STORY-038  # 2026-06-01 — colisão com EPIC-007 STORY-038 (integration_test)
@@ -173,7 +173,7 @@ Você NÃO decide:
 
 ## Notas do agente (preenchido durante/após execução)
 
-> **Status:** implementação local concluída em 2026-06-01 (assets + pipeline + index.html + manifest + README). Story permanece `ready` (não `done`) porque CA-13 (não-regressão STORY-037 em homolog), CA-14/CA-15 (smoke visual Android/iOS) e o sign-off do PO só fecham após deploy `rc.M+1` em homolog — ver "Pendências para fechar".
+> **Status:** `done` (2026-06-02). Implementação local em 2026-06-01; validação em homolog concluída em 2026-06-02 com o PO ao vivo em iPhone real: CA-15 ✓ (ícone Turni na home, após corrigir o apple-touch-icon opaco na rc.44), CA-13 ✓ (banner "Nova versão disponível" apareceu na sessão rc.44 e "Atualizar agora" carregou rc.45 sem hard-reload), CA-14 dispensado pelo PO (sem device Android). Versão final em homolog: `rc.45`.
 
 ### Decisões tomadas
 - **Ferramenta SVG→PNG: `sharp`** (libvips). O toolchain do host não tinha `rsvg-convert`/`cairosvg`/ImageMagick/Inkscape; só `node`/`npm`. `sharp` é a opção mais acessível num toolchain Node (o webapp já usa Playwright via npm) — adicionada como `devDependency` e exposta em `npm run icons`. Render com `density: 384` antes do `resize` para bordas limpas no favicon de 32 px.
@@ -207,8 +207,8 @@ Você NÃO decide:
 - **CA-12:** `firebase.json` **não** aparece no diff. Confirmado.
 - **`flutter analyze`:** 2 `info` pré-existentes (`curly_braces_in_flow_control_structures` em `pre_cadastro_*_screen.dart`) — não tocados por esta story.
 
-### Pendências para fechar (homolog + PO)
-- [ ] CA-13 — após deploy `rc.M+1`, smoke de não-regressão da STORY-037 (banner "Nova versão disponível" ≤ 5 min, "Atualizar agora" sem hard-reload). PO atesta em chat.
-- [~] **CA-14 — Android Chrome: DISPENSADO pelo PO em 2026-06-02 (sem device Android disponível para testar). Risco baixo: o mesmo `manifest.json`/PNGs servem Android e iOS; a identidade já foi validada no iOS (CA-15) e os ícones maskable/192/512 estão 200 em homolog (CA-8). Reabrir se surgir device Android.**
+### Fechamento (homolog + PO) — 2026-06-02
+- [x] **CA-13 — smoke de não-regressão da STORY-037: banner "Nova versão disponível" apareceu na sessão `rc.44` em ≤ 5 min; "Atualizar agora" carregou `rc.45` sem hard-reload. CONFIRMADO pelo PO ao vivo (deploy rc.45 publicado para o teste).**
+- [~] **CA-14 — Android Chrome: DISPENSADO pelo PO em 2026-06-02 (sem device Android disponível). Risco baixo: o mesmo `manifest.json`/PNGs servem Android e iOS; identidade validada no iOS (CA-15) e os ícones maskable/192/512 estão 200 em homolog (CA-8). Reabrir se surgir device Android.**
 - [x] **CA-15 — iOS Safari: ícone Turni (T branco sobre verde) na home. CONFIRMADO pelo PO em 2026-06-02, em iPhone real, após reinstalar com a `rc.44` (apple-touch-icon opaco). A 1ª tentativa (rc.43) saiu com fundo escuro por transparência; ver Descobertas.**
-- [ ] Flip `index.json` `STORY-041 status: done` após CA-13 + CA-14 + sign-off final.
+- [x] **`index.json` `STORY-041 status: done` — feito em 2026-06-02.**
