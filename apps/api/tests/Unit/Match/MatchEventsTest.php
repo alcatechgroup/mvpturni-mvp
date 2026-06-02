@@ -6,11 +6,12 @@
 
 use App\Domain\Match\MatchCalculator;
 use App\Domain\Match\MatchInput;
+use App\Domain\Match\MatchScore;
 use App\Support\Telemetry\MatchEvents;
 use App\Support\Telemetry\MotivoFiltro;
 use Illuminate\Support\Facades\Log;
 
-function scoreExemplo(): \App\Domain\Match\MatchScore
+function scoreExemplo(): MatchScore
 {
     return (new MatchCalculator)->calcular(new MatchInput(
         funcaoVagaId: 7, funcaoPrimariaProfId: 7, funcoesSecundariasProfIds: [],
