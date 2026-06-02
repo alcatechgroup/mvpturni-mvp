@@ -11,6 +11,8 @@ import 'features/cadastro/completar_cadastro_screen.dart';
 import 'features/cadastro/pre_cadastro_contratante_screen.dart';
 import 'features/cadastro/pre_cadastro_profissional_screen.dart';
 import 'features/funnel/welcome_screen.dart' as funnel;
+import 'features/vagas/minhas_vagas_placeholder_screen.dart';
+import 'features/vagas/publicar_vaga_screen.dart';
 import 'features/welcome/welcome_screen.dart';
 
 // ──────────────────────────────────────────────────────────────
@@ -120,6 +122,21 @@ final router = GoRouter(
       builder: (context, state) => AuthService().session?.role == 'contratante'
           ? const CompletarCadastroContratanteScreen()
           : const CompletarCadastroScreen(),
+    ),
+
+    // Publicar vaga do contratante (STORY-046). RBAC (CA-1) tratado dentro da tela:
+    // profissional ativo cai no estado "sem permissão". Status=ativo garantido pelo
+    // funnel guard (rota não-pública).
+    GoRoute(
+      path: '/contratante/vagas/nova',
+      builder: (context, state) => const PublicarVagaScreen(),
+    ),
+    // "Minhas vagas" — placeholder até STORY-047 (CA-7). Recebe o toast de sucesso
+    // por `extra` na navegação pós-publicação.
+    GoRoute(
+      path: '/contratante/vagas',
+      builder: (context, state) =>
+          MinhasVagasPlaceholderScreen(successMessage: state.extra as String?),
     ),
 
     // Health (dev local)

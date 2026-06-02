@@ -50,14 +50,34 @@ class AppShellScreen extends StatelessWidget {
               ),
               const SizedBox(height: TurniSpacing.lg),
               Text(
-                'Bem-vindo, ${session?.role ?? 'usuário'}.',
+                session?.role == 'contratante'
+                    ? 'Olá! Pronto para cobrir um turno?'
+                    : 'Bem-vindo, ${session?.role ?? 'usuário'}.',
                 style: TextStyle(fontSize: 18, color: textMuted),
               ),
-              Text(
-                'O aplicativo completo chega nas próximas estórias.',
-                style: TextStyle(fontSize: 14, color: textMuted),
-              ),
+              if (session?.role != 'contratante')
+                Text(
+                  'O aplicativo completo chega nas próximas estórias.',
+                  style: TextStyle(fontSize: 14, color: textMuted),
+                ),
               const SizedBox(height: TurniSpacing.xl),
+              // STORY-046 — porta de entrada para publicar vaga (só contratante).
+              if (session?.role == 'contratante')
+                Padding(
+                  padding: const EdgeInsets.only(bottom: TurniSpacing.md),
+                  child: FilledButton.icon(
+                    key: const Key('contratante-home-publicar-vaga-btn'),
+                    onPressed: () => context.go('/contratante/vagas/nova'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Publicar vaga'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: TurniColors.contratanteAccentLight,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(220, 48),
+                      shape: const StadiumBorder(),
+                    ),
+                  ),
+                ),
               OutlinedButton(
                 onPressed: () => _logout(context),
                 style: OutlinedButton.styleFrom(
