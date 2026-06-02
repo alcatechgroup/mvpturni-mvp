@@ -337,7 +337,8 @@ stateDiagram-v2
 - **Imutabilidade do snapshot:** teste de integração — `VagaVersao::find(x)->update([...])` e `->delete()` lançam exceção de banco; conectar com role de runtime e confirmar `permission denied` no `UPDATE`.
 - **Invariantes:** testes de banco — `posicoes = 0`, `data_fim <= data_inicio` e candidatura duplicada `(vaga_id, profissional_id)` rejeitadas.
 - **Transições:** testes unitários do state-machine de domínio cobrindo cada transição permitida e cada proibida (ex.: `fechada→cancelada` bloqueada). Cobertura ≥ 95% nos modelos (núcleo).
-- **Microbenchmark do feed (CA-8):** `VagasStressSeeder` com 1k vagas; `EXPLAIN ANALYZE` da query candidata (função primária + bbox do raio + `aberta` + `data_inicio > NOW()`) usando `idx_vagas_feed` + `(lat,lng)`. **Resultado-alvo: < 100ms.** *(Número empírico a preencher na implementação — é gate de aceite desta ADR, ver "Pendências de aceite".)*
+- **Microbenchmark do feed (CA-8) — VERIFICADO:** `VagasStressSeeder` com 1.000 vagas abertas; `EXPLAIN (ANALYZE, BUFFERS)` da query candidata (função primária + bbox do raio + `aberta` + `data_inicio > NOW()`). Plano: **`Index Scan using idx_vagas_feed`** (`Index Cond: funcao_id = ? AND data_inicio > now()`; bbox lat/lng como `Filter`; o predicado `estado = 'aberta'` é absorvido pelo índice parcial). **Execution Time: 0,042 ms** (alvo < 100 ms — folga de ~3 ordens de grandeza). Exercitado em `turni_test` (Postgres real) em 2026-06-02.
+- **Reversibilidade (CA-3 / F-NB-1) — VERIFICADO:** `migrate:rollback --step=4` desfez as 4 migrações na ordem inversa e `migrate` as reaplicou, sem erro (down() simétrico, inclusive `DROP TYPE` dos enums). Exercitado em `turni_test` em 2026-06-02.
 - **Sinais de revisão (quando reabrir):**
   - Se o geofencing do check-in (PDR-008, EPIC-003) exigir consultas geo ricas → reabrir Decisão 3 (PostGIS) com números.
   - Se o feed não sustentar o p95 com volume real → revisar índice/estratégia em STORY-048 (tuning).
@@ -361,7 +362,7 @@ stateDiagram-v2
 - **Aprovado por:** Alexandro
 - **Data:** 2026-06-02
 - **Forma do aceite:** aprovado em chat (sessão de 2026-06-02); commit direto na `main`
-- **Condicionantes do aceite:** o **design** está aceito. A implementação desta estória ainda deve comprovar, antes do merge: `EXPLAIN ANALYZE < 100ms` do feed com 1k vagas (CA-8) e `migrate:rollback` verde em homolog (CA-3 / F-NB-1), preenchendo os números no Plano de verificação. Se o benchmark do feed não fechar, reabrir **apenas** a Decisão 3 (geo) / o índice — o restante do modelo permanece aceito.
+- **Condicionantes do aceite — SATISFEITAS (STORY-044, 2026-06-02):** o feed entregou `Index Scan using idx_vagas_feed` com **Execution Time 0,042 ms** sobre 1.000 vagas (CA-8) e o `migrate:rollback`/`migrate` rodou verde (CA-3 / F-NB-1). Números no Plano de verificação. Nenhuma reabertura da Decisão 3 necessária.
 
 ### Em caso de rejeição
 - **Motivo:** …

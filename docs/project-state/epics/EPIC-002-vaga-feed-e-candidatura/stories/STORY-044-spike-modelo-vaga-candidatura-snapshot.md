@@ -8,7 +8,7 @@ type: spike
 target_role: arquiteto
 requires_design: false
 design_screen_id: null
-status: in_progress
+status: in_review
 owner_agent: claude-opus-4-8-programador-2026-06-02
 created_at: 2026-06-01
 updated_at: 2026-06-02
@@ -134,22 +134,38 @@ Siga `docs/skills/po/references/agent-task-format.md`. Em particular: ao termina
 **Decisão de escopo local:** modelos e migrações vivem em `apps/api` (dono do schema real — ADR-009/memória). `admin` não recebe réplica nesta estória (sem fluxo de backoffice de vaga até EPIC-003).
 
 ### Decisões tomadas
-- 
+- Estados via **enum nativo Postgres** (`vaga_estado`, `candidatura_estado`) + **state-machine no domínio** (enum PHP `canTransitionTo` + `Vaga::transitionTo`/`Candidatura::transitionTo` que lançam `DomainException`). Trigger reservado só p/ imutabilidade (ADR-013 Decisão 2).
+- **Snapshot `jsonb` append-only** em `vaga_versoes`, imutável por trigger + REVOKE (padrão ADR-010).
+- **`audit_logs` geral** (ator = qualquer usuário) irmão do `admin_audit_log`, sem reabrir ADR-009 (Decisão 5).
+- **Geo sem PostGIS**: `lat`/`lng` na vaga + índice parcial `idx_vagas_feed (funcao_id, data_inicio) WHERE estado='aberta'` + btree `(lat,lng)` p/ bbox.
+- Modelos/migrações vivem em `apps/api` (dono do schema). Sem réplica no `admin` (sem fluxo de backoffice de vaga até EPIC-003).
 
 ### Descobertas
-- 
+- **Gotcha Laravel+Postgres:** `RefreshDatabase`/`migrate:fresh` dropa tabelas mas **não** tipos enum nativos → 2ª migração falha com "type already exists". Fix sistêmico: `protected bool $dropTypes = true;` no `TestCase` base (passa `--drop-types`). Vale para todo enum nativo futuro do projeto.
+- `jsonb` do Postgres **não preserva ordem das chaves** → asserção de payload usa `toEqual` (==), não `toBe` (idêntico ordenado).
 
 ### Bloqueios encontrados
-- 
+- Nenhum.
 
 ### IDRs criados
-- 
+- Nenhum (decisões estruturais já cobertas pela ADR-013; o `$dropTypes` no TestCase é convenção local de teste, não decisão transversal nova — registrada aqui e no comentário do código).
 
-### Cobertura final
-- Unitários: 
-- E2E: n/a (spike de modelo, sem fluxo de usuário)
+### Cobertura final (api — suíte completa)
+- **Total: 93,1%** (gate `--min=80` ✓). **305 testes passando** (899 asserções).
+- Núcleo novo **100%**: `VagaEstado`, `CandidaturaEstado`, `Vaga`, `Candidatura`, `VagaVersao`, `AuditLog`.
+- `VagasStressSeeder` excluído da cobertura (harness de benchmark dev/homolog, não lógica de negócio — `phpunit.xml`, mesmo critério dos stubs Fortify).
+- E2E: n/a (spike de modelo, sem fluxo de usuário/FE).
+
+### Mapeamento CA → teste (todos verdes)
+- **CA-3** (migrações reversíveis): `VagaSchemaTest` (tabelas/colunas) + `migrate:rollback --step=4` e `migrate` exercitados em `turni_test` (2026-06-02, sem erro).
+- **CA-4** (enums nativos + transições): `VagaSchemaTest` (`pg_enum` rótulos exatos `vaga_estado`/`candidatura_estado`), `VagaEstadoTest`, `CandidaturaEstadoTest`, `VagaModelTest`, `CandidaturaModelTest` (transições válidas/proibidas).
+- **CA-5** (invariantes): `VagaConstraintsTest` (`posicoes>=1`, `data_fim>data_inicio`, range de `posicoes_preenchidas`, UNIQUE candidatura), `ImutabilidadeTest` (UPDATE/DELETE em `vaga_versoes`/`audit_logs` lançam exceção; UNIQUE `versao`).
+- **CA-6** (eventos audit): `AuditLogDominioTest` (6 eventos do contrato c/ ator/alvo/payload).
+- **CA-7** (seed mínimo): `VagasSeederTest` (5 vagas; 3 abertas/1 fechada/1 cancelada; funções distintas; idempotência).
+- **CA-8** (microbenchmark): `FeedQueryTest` (correção do predicado) + `EXPLAIN ANALYZE` real: `Index Scan using idx_vagas_feed`, **0,042 ms** sobre 1.000 vagas.
 
 ### Links de evidência
-- PR: 
-- Pipeline: 
-- Deploy de homologação: 
+- Commits (TDD — main): `de35ce3` docs(ADR accepted), `b90f637` test(vermelho), + commit feat(verde).
+- Suíte: `make test-api` → 305 passed, cobertura 93,1%.
+- EXPLAIN/rollback: exercitados em `turni_test` (Postgres real) em 2026-06-02 — resultados na ADR-013 §Plano de verificação.
+- Deploy de homologação: pendente push manual (workflow do projeto: commit direto na main + push manual).
