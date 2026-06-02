@@ -202,7 +202,7 @@
       "created_at": "2026-05-26",
       "updated_at": "2026-06-01",
       "sprint": "SPRINT-2026-W27",
-      "next_action": "Decomposto via Fluxo B em 2026-06-01 — 11 estórias `ready` (STORY-044..054) atreladas à SPRINT-2026-W27. Aguarda execução: começar por STORY-044 (spike modelo) que é a única sem bloqueio."
+      "next_action": "STORY-044 (spike modelo) DONE em 2026-06-02 — ADR-013 accepted, migrações+modelos+seed verdes (local; deploy de homolog adiado pelo PO). Destrava STORY-045..054. Próxima: STORY-045 (spike Match), também `arquiteto`."
     },
     {
       "id": "EPIC-003",
@@ -1376,7 +1376,7 @@
       "target_role": "arquiteto",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-opus-4-8-programador-2026-06-02",
       "sprint_id": "SPRINT-2026-W27",
       "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-044-spike-modelo-vaga-candidatura-snapshot.md",

@@ -8,7 +8,7 @@ type: spike
 target_role: arquiteto
 requires_design: false
 design_screen_id: null
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-programador-2026-06-02
 created_at: 2026-06-01
 updated_at: 2026-06-02
@@ -100,14 +100,14 @@ Você NÃO decide:
 
 ## Definição de Pronto (DoD)
 
-- [ ] ADR-013 `accepted`.
-- [ ] Migrações criadas, `migrate` + `migrate:rollback` verdes em homolog.
-- [ ] Modelos Eloquent + testes unitários com cobertura ≥ 95%.
-- [ ] Seed mínimo + stress seed rodando.
-- [ ] Microbenchmark documentado na ADR.
-- [ ] CI verde no PR.
-- [ ] `index.json` atualizado: status = `done`; nova entrada em `decisions[]` para ADR-013.
-- [ ] "Notas do agente" preenchida.
+- [x] ADR-013 `accepted` (aprovada por Alexandro; condicionante satisfeita).
+- [x] Migrações criadas; `migrate` + `migrate:rollback` exercitados verdes contra Postgres real (`turni_test` + dev `turni`). **Deploy/verificação em homolog adiado por decisão do PO** (sem push por enquanto).
+- [x] Modelos Eloquent + testes; cobertura do núcleo novo **100%** (≥ 95% exigido); total api 96,4%.
+- [x] Seed mínimo (`VagasSeeder`) rodando em dev; stress seed (`VagasStressSeeder`) exercitado em `turni_test`.
+- [x] Microbenchmark documentado na ADR (`Index Scan idx_vagas_feed`, 0,042 ms / 1k vagas).
+- [~] CI: suíte completa local verde (api 308 + admin 91; Pint limpo). **CI remoto pendente de push** (workflow do projeto é commit direto na main; push manual — adiado pelo PO).
+- [x] `index.json` atualizado: status `done`; ADR-013 em `decisions.adr[]`.
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo do agente (obrigatório)
 
@@ -168,4 +168,5 @@ Siga `docs/skills/po/references/agent-task-format.md`. Em particular: ao termina
 - Commits (TDD — main): `de35ce3` docs(ADR accepted), `b90f637` test(vermelho), + commit feat(verde).
 - Suíte: `make test-api` → 305 passed, cobertura 93,1%.
 - EXPLAIN/rollback: exercitados em `turni_test` (Postgres real) em 2026-06-02 — resultados na ADR-013 §Plano de verificação.
-- Deploy de homologação: pendente push manual (workflow do projeto: commit direto na main + push manual).
+- Deploy de homologação: **adiado por decisão do PO** (2026-06-02) — manter local por enquanto; sem push.
+- **Aprovação do PO:** aprovada por Alexandro em chat (2026-06-02). Estória movida para `done`; deploy de homolog deferido conscientemente.
