@@ -2,7 +2,7 @@
 id: SCREEN-STORY-047-minhas-vagas
 story: STORY-047-lista-minhas-vagas-contratante-cancelar
 epic: EPIC-002-vaga-feed-e-candidatura
-status: ready                # draft | ready | in_implementation | shipped | superseded
+status: in_implementation    # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-02
 updated_at: 2026-06-02
 owner_designer: claude-opus-4-8
