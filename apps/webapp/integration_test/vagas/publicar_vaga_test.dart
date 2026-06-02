@@ -25,77 +25,75 @@ import '../helpers/route_helper.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets(
-    'contratante publica vaga ponta a ponta → Minhas vagas + toast (CA-9)',
-    (tester) async {
-      await pumpApp(tester);
-      assertOnRoute(tester, '/login');
+  testWidgets('contratante publica vaga ponta a ponta → Minhas vagas + toast (CA-9)', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    assertOnRoute(tester, '/login');
 
-      // Login do contratante ativo do seed → funnel guard → home `/`.
-      await loginAsContratante(tester);
-      await awaitRouteChange(tester, '/');
-      await tester.pumpAndSettle(); // assenta a home antes de procurar o CTA
+    // Login do contratante ativo do seed → funnel guard → home `/`.
+    await loginAsContratante(tester);
+    await awaitRouteChange(tester, '/');
+    await tester.pumpAndSettle(); // assenta a home antes de procurar o CTA
 
-      // Porta de entrada: CTA "Publicar vaga" na home do contratante (CA-1).
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('contratante-home-publicar-vaga-btn')),
-      );
-      await tester.tap(
-        find.byKey(const Key('contratante-home-publicar-vaga-btn')),
-      );
-      await awaitRouteChange(tester, '/contratante/vagas/nova');
+    // Porta de entrada: CTA "Publicar vaga" na home do contratante, que agora é a
+    // tela "Minhas vagas" (STORY-047 — FAB quando há vagas, CTA central quando vazia).
+    await pumpUntilFound(
+      tester,
+      find.byKey(const Key('minhas-vagas-publicar-btn')),
+    );
+    await tester.tap(find.byKey(const Key('minhas-vagas-publicar-btn')));
+    await awaitRouteChange(tester, '/contratante/vagas/nova');
 
-      // Gate stub (pending:0) → o formulário renderiza. Espera o dropdown montar.
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('publicar-vaga-funcao-dropdown')),
-      );
+    // Gate stub (pending:0) → o formulário renderiza. Espera o dropdown montar.
+    await pumpUntilFound(
+      tester,
+      find.byKey(const Key('publicar-vaga-funcao-dropdown')),
+    );
 
-      // Seleciona a função (lista canônica real de GET /api/funcoes).
-      await tester.tap(find.byKey(const Key('publicar-vaga-funcao-dropdown')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Bartender').last);
-      await tester.pumpAndSettle();
+    // Seleciona a função (lista canônica real de GET /api/funcoes).
+    await tester.tap(find.byKey(const Key('publicar-vaga-funcao-dropdown')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Bartender').last);
+    await tester.pumpAndSettle();
 
-      // Datas/horas (campos de texto deterministas) + valor (máscara R$) + posições=1.
-      await tester.enterText(
-        find.byKey(const Key('publicar-vaga-data-inicio')),
-        '31/12/2026',
-      );
-      await tester.enterText(
-        find.byKey(const Key('publicar-vaga-hora-inicio')),
-        '18:00',
-      );
-      await tester.enterText(
-        find.byKey(const Key('publicar-vaga-data-fim')),
-        '31/12/2026',
-      );
-      await tester.enterText(
-        find.byKey(const Key('publicar-vaga-hora-fim')),
-        '23:00',
-      );
-      await tester.enterText(
-        find.byKey(const Key('publicar-vaga-valor')),
-        '18000', // máscara → R$ 180,00
-      );
-      await tester.pumpAndSettle();
+    // Datas/horas (campos de texto deterministas) + valor (máscara R$) + posições=1.
+    await tester.enterText(
+      find.byKey(const Key('publicar-vaga-data-inicio')),
+      '31/12/2026',
+    );
+    await tester.enterText(
+      find.byKey(const Key('publicar-vaga-hora-inicio')),
+      '18:00',
+    );
+    await tester.enterText(
+      find.byKey(const Key('publicar-vaga-data-fim')),
+      '31/12/2026',
+    );
+    await tester.enterText(
+      find.byKey(const Key('publicar-vaga-hora-fim')),
+      '23:00',
+    );
+    await tester.enterText(
+      find.byKey(const Key('publicar-vaga-valor')),
+      '18000', // máscara → R$ 180,00
+    );
+    await tester.pumpAndSettle();
 
-      // Submete (POST autenticado real).
-      final submit = find.byKey(const Key('publicar-vaga-submit-btn'));
-      await tester.ensureVisible(submit);
-      await tester.pumpAndSettle();
-      await tester.tap(submit);
+    // Submete (POST autenticado real).
+    final submit = find.byKey(const Key('publicar-vaga-submit-btn'));
+    await tester.ensureVisible(submit);
+    await tester.pumpAndSettle();
+    await tester.tap(submit);
 
-      // Sucesso → navega para Minhas vagas (placeholder STORY-047) com toast (CA-7).
-      await awaitRouteChange(tester, '/contratante/vagas');
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('publicar-vaga-sucesso-toast')),
-      );
-      expect(find.text('Vaga publicada'), findsWidgets);
-    },
-  );
+    // Sucesso → navega para Minhas vagas (STORY-047) com o toast de sucesso (CA-7).
+    await awaitRouteChange(tester, '/contratante/vagas');
+    await pumpUntilFound(
+      tester,
+      find.byKey(const Key('publicar-vaga-sucesso-toast')),
+    );
+    expect(find.textContaining('Vaga publicada'), findsWidgets);
+  });
 
   // Regressão do bug de reload (IDR-025): URL digitada / reload / bookmark numa rota
   // protegida não pode cair em /login se há sessão persistida. Simula o boot frio
