@@ -8,7 +8,7 @@ type: spike
 target_role: arquiteto
 requires_design: false
 design_screen_id: null
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-programador-2026-06-02
 created_at: 2026-06-01
 updated_at: 2026-06-02
@@ -148,3 +148,4 @@ Você NÃO decide:
 - Commits (main): `d359562` ADR-014 accepted · `<test>` testes vermelhos · `<feat>` implementação verde.
 - Suíte: `make test-api` → 345 passed (1048 asserções), cobertura 96,7%; `make lint` (pint) limpo.
 - Deploy de homologação: sem push de imagem (spike de domínio, sem endpoint/UI) — feed/painel que consomem isto chegam em STORY-048/049/051.
+- **Aprovação do PO:** aprovada por Alexandro em chat (2026-06-02). Estória movida para `done`.
