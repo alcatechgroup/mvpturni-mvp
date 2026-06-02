@@ -11,7 +11,7 @@ import 'features/cadastro/completar_cadastro_screen.dart';
 import 'features/cadastro/pre_cadastro_contratante_screen.dart';
 import 'features/cadastro/pre_cadastro_profissional_screen.dart';
 import 'features/funnel/welcome_screen.dart' as funnel;
-import 'features/vagas/minhas_vagas_placeholder_screen.dart';
+import 'features/vagas/minhas_vagas_screen.dart';
 import 'features/vagas/publicar_vaga_screen.dart';
 import 'features/welcome/welcome_screen.dart';
 
@@ -77,7 +77,14 @@ final router = GoRouter(
   redirect: _funnelGuard,
   routes: [
     // Home pós-login (status=ativo). Não logado → o guard manda para /login.
-    GoRoute(path: '/', builder: (context, state) => const AppShellScreen()),
+    // Contratante: a home é "Minhas vagas" (STORY-047 — substitui o shell mínimo de
+    // STORY-046). Demais papéis seguem no shell até terem tela própria.
+    GoRoute(
+      path: '/',
+      builder: (context, state) => AuthService().session?.role == 'contratante'
+          ? const MinhasVagasScreen()
+          : const AppShellScreen(),
+    ),
 
     // Tela informativa pública (antigo root)
     GoRoute(path: '/info', builder: (context, state) => const WelcomeScreen()),
@@ -131,12 +138,31 @@ final router = GoRouter(
       path: '/contratante/vagas/nova',
       builder: (context, state) => const PublicarVagaScreen(),
     ),
-    // "Minhas vagas" — placeholder até STORY-047 (CA-7). Recebe o toast de sucesso
-    // por `extra` na navegação pós-publicação.
+    // "Minhas vagas" do contratante (STORY-047). Filtro via `?filtro=` (deep-link);
+    // recebe o toast de sucesso da publicação por `extra` (STORY-046 CA-7).
     GoRoute(
       path: '/contratante/vagas',
-      builder: (context, state) =>
-          MinhasVagasPlaceholderScreen(successMessage: state.extra as String?),
+      builder: (context, state) => MinhasVagasScreen(
+        filtroInicial: state.uri.queryParameters['filtro'],
+        successMessage: state.extra as String?,
+      ),
+    ),
+    // Painel de candidatos da vaga (STORY-051). Placeholder até aquela estória entrar;
+    // o link "Ver candidatos" de Minhas vagas (CA-6) aponta para cá.
+    GoRoute(
+      path: '/contratante/vagas/:id/candidatos',
+      builder: (context, state) => Scaffold(
+        appBar: AppBar(title: const Text('Candidatos')),
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'O painel de candidatos chega na próxima estória.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
     ),
 
     // Health (dev local)

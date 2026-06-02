@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:turni_webapp/ds/theme.dart';
 import 'package:turni_webapp/features/auth/auth_service.dart';
-import 'package:turni_webapp/features/vagas/minhas_vagas_placeholder_screen.dart';
 import 'package:turni_webapp/features/vagas/publicar_vaga_screen.dart';
 import 'package:turni_webapp/features/vagas/vaga_service.dart';
 
@@ -81,10 +80,11 @@ Widget _comRouter(_FakeVagaService svc) {
         path: '/',
         builder: (_, _) => PublicarVagaScreen(service: svc),
       ),
+      // Destino pós-publicação (STORY-047). Stub local que só exibe o toast de sucesso,
+      // para este teste de PublicarVagaScreen não depender da tela de Minhas vagas real.
       GoRoute(
         path: '/contratante/vagas',
-        builder: (_, s) =>
-            MinhasVagasPlaceholderScreen(successMessage: s.extra as String?),
+        builder: (_, s) => _ToastStub(message: s.extra as String?),
       ),
     ],
   );
@@ -406,4 +406,38 @@ void main() {
     expect(find.text('Garçom'), findsNothing);
     expect(find.text('Cozinheiro'), findsNothing);
   });
+}
+
+/// Destino stub pós-publicação: mostra o texto da confirmação e dispara o toast com a
+/// Key esperada (CA-7), sem acoplar este teste à tela real de Minhas vagas (STORY-047).
+class _ToastStub extends StatefulWidget {
+  const _ToastStub({this.message});
+  final String? message;
+
+  @override
+  State<_ToastStub> createState() => _ToastStubState();
+}
+
+class _ToastStubState extends State<_ToastStub> {
+  @override
+  void initState() {
+    super.initState();
+    final msg = widget.message;
+    if (msg != null && msg.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            key: const Key('publicar-vaga-sucesso-toast'),
+            content: Text(msg),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: Text('Vaga publicada')));
 }

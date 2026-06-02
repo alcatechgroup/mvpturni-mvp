@@ -41,6 +41,87 @@ class PublicarForbidden extends PublicarResult {}
 /// Rede/5xx — erro recuperável; o rascunho é preservado e o usuário pode tentar de novo.
 class PublicarServerError extends PublicarResult {}
 
+/// Estado da vaga na lista "Minhas vagas" (STORY-047). `desconhecido` é fail-soft para
+/// rótulos novos vindos do back sem quebrar o parse (a UI ignora o card desconhecido).
+enum VagaEstadoResumo {
+  aberta,
+  fechada,
+  cancelada,
+  desconhecido;
+
+  static VagaEstadoResumo fromApi(String? value) => switch (value) {
+    'aberta' => VagaEstadoResumo.aberta,
+    'fechada' => VagaEstadoResumo.fechada,
+    'cancelada' => VagaEstadoResumo.cancelada,
+    _ => VagaEstadoResumo.desconhecido,
+  };
+}
+
+/// Item da lista "Minhas vagas" (STORY-047 CA-2) — o que o card precisa.
+class VagaResumo {
+  final int id;
+  final String funcao;
+  final DateTime dataInicio;
+  final DateTime dataFim;
+  final double valor;
+  final int posicoes;
+  final int posicoesPreenchidas;
+  final VagaEstadoResumo estado;
+  final int candidatosPendentes;
+
+  const VagaResumo({
+    required this.id,
+    required this.funcao,
+    required this.dataInicio,
+    required this.dataFim,
+    required this.valor,
+    required this.posicoes,
+    required this.posicoesPreenchidas,
+    required this.estado,
+    required this.candidatosPendentes,
+  });
+
+  factory VagaResumo.fromJson(Map<String, dynamic> json) => VagaResumo(
+    id: (json['id'] as num).toInt(),
+    funcao: json['funcao'] as String? ?? '',
+    dataInicio: DateTime.parse(json['data_inicio'] as String),
+    dataFim: DateTime.parse(json['data_fim'] as String),
+    valor: (json['valor'] as num?)?.toDouble() ?? 0,
+    posicoes: (json['posicoes'] as num?)?.toInt() ?? 0,
+    posicoesPreenchidas: (json['posicoes_preenchidas'] as num?)?.toInt() ?? 0,
+    estado: VagaEstadoResumo.fromApi(json['estado'] as String?),
+    candidatosPendentes: (json['candidatos_pendentes'] as num?)?.toInt() ?? 0,
+  );
+}
+
+/// Resultado do GET /api/vagas/minhas.
+sealed class MinhasVagasResult {}
+
+class MinhasVagasSuccess extends MinhasVagasResult {
+  final List<VagaResumo> vagas;
+  MinhasVagasSuccess(this.vagas);
+}
+
+/// 403 — papel sem permissão (profissional). RBAC herdado de STORY-016 (CA-1).
+class MinhasVagasForbidden extends MinhasVagasResult {}
+
+/// Rede/5xx — erro recuperável; a tela mostra retry sem liberar lista às cegas.
+class MinhasVagasError extends MinhasVagasResult {}
+
+/// Resultado do DELETE /api/vagas/{id}.
+sealed class CancelarResult {}
+
+class CancelarSuccess extends CancelarResult {}
+
+/// 409 — transição inválida (vaga não está mais `aberta`, ex.: fechou entre o load e o clique).
+class CancelarConflict extends CancelarResult {}
+
+/// 403 — não é o dono / não é contratante.
+class CancelarForbidden extends CancelarResult {}
+
+/// Rede/5xx — falha recuperável; o card não muda de estado.
+class CancelarServerError extends CancelarResult {}
+
 /// Serviço da publicação de vaga (STORY-046). Sessão Sanctum same-origin: o cookie
 /// trafega sozinho (não refazemos /sanctum/csrf-cookie no meio da sessão — IDR-019).
 class VagaService {
@@ -131,6 +212,58 @@ class VagaService {
         return PublicarForbidden();
       default:
         return PublicarServerError();
+    }
+  }
+
+  /// GET /api/vagas/minhas — vagas do contratante (STORY-047 CA-1/CA-2). 403 → profissional;
+  /// rede/5xx → erro (a tela oferece retry, não libera lista vazia às cegas).
+  Future<MinhasVagasResult> fetchMinhas() async {
+    http.Response res;
+    try {
+      res = await _client.get(
+        Uri.parse('$_base/vagas/minhas'),
+        headers: {'Accept': 'application/json'},
+      );
+    } catch (_) {
+      return MinhasVagasError();
+    }
+
+    switch (res.statusCode) {
+      case 200:
+        final data = (_json(res.body)['data'] as List? ?? []);
+        final vagas = data
+            .map((e) => VagaResumo.fromJson(e as Map<String, dynamic>))
+            .toList(growable: false);
+        return MinhasVagasSuccess(vagas);
+      case 403:
+        return MinhasVagasForbidden();
+      default:
+        return MinhasVagasError();
+    }
+  }
+
+  /// DELETE /api/vagas/{id} — cancela a vaga (STORY-047 CA-4/CA-5). 200 → ok; 409 →
+  /// transição inválida (vaga não está mais aberta); 403 → não-dono; rede/5xx → erro.
+  Future<CancelarResult> cancelar(int vagaId) async {
+    http.Response res;
+    try {
+      res = await _client.delete(
+        Uri.parse('$_base/vagas/$vagaId'),
+        headers: {'Accept': 'application/json'},
+      );
+    } catch (_) {
+      return CancelarServerError();
+    }
+
+    switch (res.statusCode) {
+      case 200:
+        return CancelarSuccess();
+      case 409:
+        return CancelarConflict();
+      case 403:
+        return CancelarForbidden();
+      default:
+        return CancelarServerError();
     }
   }
 
