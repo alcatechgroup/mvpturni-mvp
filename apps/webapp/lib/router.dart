@@ -14,6 +14,7 @@ import 'features/feed/feed_screen.dart';
 import 'features/funnel/welcome_screen.dart' as funnel;
 import 'features/vagas/minhas_vagas_screen.dart';
 import 'features/vagas/publicar_vaga_screen.dart';
+import 'features/vagas/vaga_detalhe_screen.dart';
 import 'features/welcome/welcome_screen.dart';
 
 // ──────────────────────────────────────────────────────────────
@@ -143,22 +144,15 @@ final router = GoRouter(
       builder: (context, state) =>
           FeedScreen(filtroInicial: state.uri.queryParameters['filtro']),
     ),
-    // Detalhe da vaga (STORY-049). Placeholder até aquela estória entrar; o card do feed
+    // Detalhe da vaga + breakdown explicável (STORY-049). RBAC (CA-7) tratado dentro da tela:
+    // contratante (403) cai em "sem permissão"; 404 cai em "vaga indisponível". O card do feed
     // e o botão "Candidatar-se" (STORY-050) apontam para cá.
     GoRoute(
       path: '/vaga/:id',
-      builder: (context, state) => Scaffold(
-        appBar: AppBar(title: const Text('Detalhe da vaga')),
-        body: const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'O detalhe da vaga chega na próxima estória.',
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ),
+      builder: (context, state) {
+        final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        return VagaDetalheScreen(vagaId: id);
+      },
     ),
 
     // Publicar vaga do contratante (STORY-046). RBAC (CA-1) tratado dentro da tela:

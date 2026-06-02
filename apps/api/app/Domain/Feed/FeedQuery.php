@@ -9,6 +9,7 @@ use App\Models\Candidatura;
 use App\Models\ProfissionalProfile;
 use App\Models\User;
 use App\Models\Vaga;
+use App\Support\Geo\Haversine;
 use App\Support\Telemetry\MatchEvents;
 use App\Support\Telemetry\MotivoFiltro;
 use Illuminate\Support\Collection;
@@ -183,25 +184,17 @@ final class FeedQuery
 
     /**
      * Distância Haversine em km entre profissional e vaga; null se faltar geo de qualquer
-     * lado (componente de distância então zera no match — ADR-014).
+     * lado (componente de distância então zera no match — ADR-014). A fórmula vive em
+     * App\Support\Geo\Haversine (STORY-049): o detalhe da vaga reusa a mesma distância.
      */
     private function distanciaKm(ProfissionalProfile $perfil, Vaga $vaga): ?float
     {
-        if ($perfil->lat === null || $perfil->lng === null || $vaga->lat === null || $vaga->lng === null) {
-            return null;
-        }
-
-        $lat1 = deg2rad((float) $perfil->lat);
-        $lng1 = deg2rad((float) $perfil->lng);
-        $lat2 = deg2rad((float) $vaga->lat);
-        $lng2 = deg2rad((float) $vaga->lng);
-
-        $dLat = $lat2 - $lat1;
-        $dLng = $lng2 - $lng1;
-
-        $a = sin($dLat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dLng / 2) ** 2;
-
-        return 6371.0 * 2 * asin(min(1.0, sqrt($a)));
+        return Haversine::km(
+            $perfil->lat !== null ? (float) $perfil->lat : null,
+            $perfil->lng !== null ? (float) $perfil->lng : null,
+            $vaga->lat !== null ? (float) $vaga->lat : null,
+            $vaga->lng !== null ? (float) $vaga->lng : null,
+        );
     }
 
     private function foraDoRaio(ProfissionalProfile $perfil, ?float $distancia): bool

@@ -12,6 +12,7 @@ use App\Http\Controllers\Cadastro\ContratanteCadastroController;
 use App\Http\Controllers\Cadastro\FuncaoController;
 use App\Http\Controllers\Cadastro\ProfissionalCadastroController;
 use App\Http\Controllers\Feed\FeedController;
+use App\Http\Controllers\Feed\VagaDetalheController;
 use App\Http\Controllers\Usuario\WelcomeController;
 use App\Http\Controllers\Vaga\VagaController;
 use App\Http\Middleware\FunnelGuard;
@@ -91,4 +92,10 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     // controller. ?filtro=todas|minha_funcao|alto_match|candidatadas&page=N. Visibilidade +
     // distância + match + ranqueamento + telemetria ficam no FeedQuery (ADR-013/ADR-014).
     Route::get('/feed', [FeedController::class, 'index']);
+
+    // Detalhe da vaga + breakdown explicável (STORY-049). RBAC profissional (403 p/
+    // contratante) no controller; 404 p/ vaga inexistente/encerrada/no passado. Reusa o
+    // match do feed (ADR-014). Depois de `/vagas/minhas` e `/vagas/{vaga}` (DELETE) — GET
+    // com sufixo /detalhe não conflita.
+    Route::get('/vagas/{vaga}/detalhe', [VagaDetalheController::class, 'show']);
 });

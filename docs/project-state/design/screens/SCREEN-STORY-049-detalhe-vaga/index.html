@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<!--
+  PROTÓTIPO DE VALIDAÇÃO — NÃO É CÓDIGO DE PRODUÇÃO.
+  SCREEN-STORY-049 — Detalhe da vaga + breakdown explicável do match.
+  HTML/CSS/JS vanilla, sem rede, sem build. Abra clicando no arquivo.
+  Tokens reais do tema profissional (verde-sage) + semânticos (DDR-001). Locale pt-BR / 24h (DDR-002).
+  Microcopy = §5 do spec, palavra por palavra. data-testid = §7.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCREEN-STORY-049 — Detalhe da vaga</title>
+<style>
+  :root {
+    --page: #F7F4EC; --surface: #FFFFFF;
+    --border-subtle: #E0DDD3; --border-strong: #C8C5BB;
+    --text-strong: #0F1B2D; --text-muted: #42504A;
+    --brand: #00A868;
+    /* Profissional (verde-sage) — DDR-001 §2.2 */
+    --accent: #2D5F3F; --accent-soft: #E5F0E8; --accent-hover: #3A7050; --on-accent: #FFFFFF;
+    --track: #E8E5DB;
+    --success: #2D7A4F; --success-soft: #E2F0E5;
+    --warn: #9A6E25; --warn-soft: #FBEED1; --warn-ink: #6E4E12;
+    --error: #B83A3A; --error-soft: #FBE2E2;
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-full: 999px;
+    --s-xs: 4px; --s-sm: 8px; --s-md: 16px; --s-lg: 24px; --s-xl: 32px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #EAE6DA; color: var(--text-strong);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .proto-bar {
+    position: sticky; top: 0; z-index: 50; background: #1B2E1F; color: #ECEDE5;
+    padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 13px;
+  }
+  .proto-bar strong { color: #fff; }
+  .proto-bar .chip {
+    border: 1px solid #355040; background: #243528; color: #d8ded6;
+    border-radius: var(--r-full); padding: 4px 12px; cursor: pointer; font-size: 12px;
+  }
+  .proto-bar .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .proto-bar .group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .proto-bar .sep { width: 1px; height: 20px; background: #355040; }
+
+  .stage { display: flex; justify-content: center; padding: 28px 16px 60px; }
+  .frame {
+    background: var(--page); width: 100%; max-width: 412px; min-height: 780px;
+    border-radius: var(--r-lg); box-shadow: 0 8px 30px rgba(0,0,0,.18); overflow: hidden;
+    position: relative; display: flex; flex-direction: column;
+  }
+  body.desktop .frame { max-width: 760px; }
+
+  .appbar {
+    display: flex; align-items: center; gap: var(--s-md);
+    padding: 14px var(--s-md); background: var(--surface); border-bottom: 1px solid var(--border-subtle);
+  }
+  .appbar .back { font-size: 22px; line-height: 1; cursor: pointer; color: var(--text-strong); background: none; border: none; padding: 4px; }
+  .appbar .title { font-size: 18px; font-weight: 700; }
+  .brand {
+    font-family: "Bebas Neue", Impact, "Arial Narrow Bold", sans-serif; color: var(--brand);
+    font-size: 30px; letter-spacing: 1px; text-align: center; padding: 10px 0 4px; display: none;
+  }
+  body.desktop .brand { display: block; }
+
+  .scroll { flex: 1; overflow-y: auto; padding: var(--s-md); position: relative; }
+  body.desktop .scroll { padding: var(--s-md) var(--s-xl) 40px; }
+
+  /* Cabeçalho da vaga (surface.card) */
+  .card {
+    background: var(--surface); border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md); padding: var(--s-md);
+  }
+  .head-top { display: flex; align-items: flex-start; gap: var(--s-sm); }
+  .head-top .funcao { font-size: 22px; font-weight: 800; flex: 1; }
+  .meta { color: var(--text-muted); font-size: 14px; margin-top: 2px; }
+  .valor { font-size: 15px; margin-top: var(--s-sm); }
+
+  /* match.scorechip — número de match no canto (⬢ + número) */
+  .scorechip {
+    display: inline-flex; align-items: center; gap: 5px; flex: 0 0 auto;
+    background: var(--accent-soft); border: 1px solid rgba(45,95,63,.4);
+    border-radius: var(--r-full); padding: 4px 11px; color: var(--accent);
+  }
+  .scorechip .hex { font-size: 13px; }
+  .scorechip .num { font-size: 18px; font-weight: 800; line-height: 1; }
+
+  /* badge.status — selo "Alto match" */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px; flex: 0 0 auto;
+    border-radius: var(--r-full); padding: 3px 9px; font-size: 12px; font-weight: 700;
+  }
+  .badge.alto { background: var(--success-soft); color: #1D5235; border: 1px solid #9CC7AD; }
+  .badge.cand { background: var(--success-soft); color: #1D5235; border: 1px solid #9CC7AD; }
+
+  /* Bloco do breakdown */
+  .breakdown-title { font-size: 16px; font-weight: 700; margin: var(--s-lg) 0 var(--s-md); }
+  .brow { display: grid; grid-template-columns: 22px 1fr; gap: var(--s-sm); margin-bottom: var(--s-md); }
+  .brow .icone { width: 22px; height: 22px; border-radius: var(--r-full); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #fff; margin-top: 2px; }
+  .brow.ok .icone { background: var(--success); }
+  .brow.partial .icone { background: var(--warn); }
+  .brow.miss .icone { background: #8a938b; }
+  .brow .body { min-width: 0; }
+  .brow .line1 { display: flex; align-items: center; gap: var(--s-sm); }
+  .brow .label { font-size: 14px; font-weight: 700; flex: 0 0 auto; min-width: 92px; }
+  .brow .bar { flex: 1; height: 8px; background: var(--track); border-radius: var(--r-full); overflow: hidden; }
+  .brow .bar > i { display: block; height: 100%; border-radius: var(--r-full); }
+  .brow.ok .bar > i { background: var(--success); }
+  .brow.partial .bar > i { background: var(--warn); }
+  .brow.miss .bar > i { background: #8a938b; }
+  .brow .pts { font-size: 13px; font-weight: 700; flex: 0 0 auto; }
+  .brow .desc { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+
+  hr.div { border: none; border-top: 1px solid var(--border-subtle); margin: var(--s-md) 0; }
+
+  /* match.scoretotal */
+  .total { display: flex; align-items: center; gap: var(--s-sm); margin-top: var(--s-xs); }
+  .total .label { font-size: 15px; font-weight: 800; min-width: 92px; }
+  .total .bar { flex: 1; height: 12px; background: var(--track); border-radius: var(--r-full); overflow: hidden; }
+  .total .bar > i { display: block; height: 100%; background: var(--accent); border-radius: var(--r-full); }
+  .total .num { font-size: 18px; font-weight: 800; }
+
+  /* CTA */
+  .footer { padding: var(--s-md); background: var(--surface); border-top: 1px solid var(--border-subtle); }
+  body.desktop .footer { background: transparent; border-top: none; padding: var(--s-lg) var(--s-xl); }
+  .btn-primary {
+    width: 100%; border: none; border-radius: var(--r-full); padding: 14px; font-size: 16px; font-weight: 700;
+    background: var(--accent); color: var(--on-accent); cursor: pointer;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:disabled { background: #b9c4bc; color: #fff; cursor: not-allowed; }
+
+  .gate {
+    display: flex; gap: var(--s-sm); align-items: flex-start;
+    background: var(--warn-soft); border: 1px solid rgba(154,110,37,.4); color: var(--warn-ink);
+    border-radius: var(--r-md); padding: var(--s-md); margin-bottom: var(--s-sm); font-size: 14px;
+  }
+
+  .cand-box { text-align: center; }
+  .cand-box .when { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+  .cand-box .retirar { display: inline-block; margin-top: 8px; color: var(--accent); font-size: 14px; text-decoration: underline; cursor: pointer; }
+
+  /* Estados centrados */
+  .center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: var(--s-xl); gap: var(--s-sm); }
+  .center .emoji { font-size: 42px; }
+  .center h2 { font-size: 18px; margin: 6px 0 0; }
+  .center p { color: var(--text-muted); margin: 0; max-width: 320px; }
+  .center .btn-out {
+    margin-top: var(--s-md); background: none; border: 1px solid var(--accent); color: var(--accent);
+    border-radius: var(--r-full); padding: 10px 20px; font-weight: 700; cursor: pointer;
+  }
+  .center.erro .btn-out { color: var(--error); border-color: var(--error); }
+
+  /* Skeleton */
+  .sk { background: var(--track); border-radius: 6px; }
+  .sk-line { height: 12px; margin-bottom: 10px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body class="mobile">
+
+<div class="proto-bar">
+  <strong>SCREEN-049</strong>
+  <div class="group">
+    <span>viewport:</span>
+    <span class="chip active" data-vp="mobile" onclick="setVp('mobile')">mobile</span>
+    <span class="chip" data-vp="desktop" onclick="setVp('desktop')">desktop</span>
+  </div>
+  <span class="sep"></span>
+  <div class="group">
+    <span>estado:</span>
+    <span class="chip active" data-st="completo" onclick="setState('completo')">completo</span>
+    <span class="chip" data-st="parcial-baixo" onclick="setState('parcial-baixo')">parcial-baixo</span>
+    <span class="chip" data-st="loading" onclick="setState('loading')">loading</span>
+    <span class="chip" data-st="ja-candidatou" onclick="setState('ja-candidatou')">já candidatou</span>
+    <span class="chip" data-st="gate" onclick="setState('gate')">gate</span>
+    <span class="chip" data-st="erro" onclick="setState('erro')">erro</span>
+    <span class="chip" data-st="sem-permissao" onclick="setState('sem-permissao')">sem permissão</span>
+    <span class="chip" data-st="indisponivel" onclick="setState('indisponivel')">indisponível</span>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="frame" data-testid="vaga-detalhe-screen">
+    <div class="brand">TURNI.</div>
+    <div class="appbar">
+      <button class="back" aria-label="Voltar">←</button>
+      <span class="title">Detalhe da vaga</span>
+    </div>
+    <div class="scroll" id="scroll"></div>
+    <div class="footer" id="footer"></div>
+  </div>
+</div>
+
+<script>
+  // Dados mock dos dois cenários de breakdown.
+  const COMPLETO = {
+    funcao: 'Garçom', estabelecimento: 'Bar do Zé', cidade: 'São Paulo',
+    quando: 'Sex, 12/06 · 18:00–23:00', valor: 'R$ 150,00 · turno', distancia: 'a 3 km',
+    total: 97,
+    rows: [
+      { c:'funcao',    label:'Função',          estado:'ok',      pts:40, max:40, desc:'Sua função primária bate' },
+      { c:'distancia', label:'Distância',       estado:'ok',      pts:20, max:20, desc:'Dentro do seu raio de 8km' },
+      { c:'historico', label:'Histórico',       estado:'partial', pts:27, max:30, desc:'Sua média 4.9★ em 127 turnos' },
+      { c:'nivel',     label:'Nível na trilha', estado:'ok',      pts:10, max:10, desc:'Elite na trilha' },
+    ],
+  };
+  const PARCIAL = {
+    funcao: 'Cozinheira', estabelecimento: 'Hotel Aurora', cidade: 'São Paulo',
+    quando: 'Qua, 17/06 · 08:00–16:00', valor: 'R$ 180,00 · turno', distancia: null,
+    total: 28,
+    rows: [
+      { c:'funcao',    label:'Função',          estado:'partial', pts:25, max:40, desc:'Uma função secundária bate' },
+      { c:'distancia', label:'Distância',       estado:'miss',    pts:0,  max:20, desc:'Localização indisponível' },
+      { c:'historico', label:'Histórico',       estado:'miss',    pts:0,  max:30, desc:'Sem histórico de turnos' },
+      { c:'nivel',     label:'Nível na trilha', estado:'partial', pts:3,  max:10, desc:'Confiável na trilha' },
+    ],
+  };
+  const ICONE = { ok:'✓', partial:'◐', miss:'✕' };
+  const ICONE_SR = { ok:'atende', partial:'atende parcialmente', miss:'não atende' };
+
+  let vp = 'mobile', state = 'completo';
+
+  function setVp(v){ vp=v; document.body.className=v; document.querySelectorAll('[data-vp]').forEach(c=>c.classList.toggle('active',c.dataset.vp===v)); render(); }
+  function setState(s){ state=s; document.querySelectorAll('[data-st]').forEach(c=>c.classList.toggle('active',c.dataset.st===s)); render(); }
+
+  function cabecalho(d, extraBadge){
+    const dist = d.distancia ? ' · ' + d.distancia : '';
+    const estab = d.estabelecimento ? d.estabelecimento + ' · ' + d.cidade : d.cidade;
+    const distLine = d.distancia
+      ? `<div class="valor" data-testid="vaga-detalhe-distancia">${d.valor}${dist}</div>`
+      : `<div class="valor">${d.valor}</div>`;
+    return `
+      <div class="card" data-testid="vaga-detalhe-cabecalho">
+        <div class="head-top">
+          <div class="funcao" data-testid="vaga-detalhe-funcao">${d.funcao}</div>
+          <span class="scorechip" data-testid="vaga-detalhe-score-chip"><span class="hex">⬢</span><span class="num">${d.total}</span></span>
+          ${extraBadge || ''}
+        </div>
+        <div class="meta">${estab}</div>
+        <div class="meta">${d.quando}</div>
+        ${distLine}
+      </div>`;
+  }
+
+  function breakdown(d){
+    const rows = d.rows.map(r => {
+      const w = Math.round(r.pts / r.max * 100);
+      return `
+        <div class="brow ${r.estado}" data-testid="vaga-detalhe-breakdown-${r.c}">
+          <div class="icone" data-testid="vaga-detalhe-breakdown-${r.c}-icone" aria-label="${ICONE_SR[r.estado]}">${ICONE[r.estado]}</div>
+          <div class="body">
+            <div class="line1">
+              <span class="label">${r.label}</span>
+              <span class="bar" data-testid="vaga-detalhe-breakdown-${r.c}-bar"
+                    role="img" aria-label="${r.label}: ${r.pts} de ${r.max} pontos · ${r.desc}"><i style="width:${w}%"></i></span>
+              <span class="pts">${r.pts}/${r.max}</span>
+            </div>
+            <div class="desc">${r.desc}</div>
+          </div>
+        </div>`;
+    }).join('');
+    return `
+      <h2 class="breakdown-title">Por que estou vendo esta vaga</h2>
+      <div data-testid="vaga-detalhe-breakdown">${rows}</div>
+      <hr class="div" />
+      <div class="total" data-testid="vaga-detalhe-total" role="img" aria-label="Match total ${d.total} de 100">
+        <span class="label">Match total</span>
+        <span class="bar" data-testid="vaga-detalhe-total-bar"><i style="width:${d.total}%"></i></span>
+        <span class="num">${d.total}/100</span>
+      </div>`;
+  }
+
+  function ctaPrimario(disabled){
+    return `<button class="btn-primary" data-testid="vaga-detalhe-candidatar-btn" ${disabled?'disabled title="Avalie seu último turno para se candidatar"':''}>Candidatar-se</button>`;
+  }
+
+  function render(){
+    const scroll = document.getElementById('scroll');
+    const footer = document.getElementById('footer');
+    footer.innerHTML = ''; footer.classList.remove('hidden'); scroll.style.justifyContent='';
+
+    if (state === 'loading') {
+      scroll.innerHTML = `
+        <div data-testid="vaga-detalhe-skeleton">
+          <div class="card">
+            <div class="sk sk-line" style="width:55%;height:22px"></div>
+            <div class="sk sk-line" style="width:70%"></div>
+            <div class="sk sk-line" style="width:50%"></div>
+          </div>
+          <h2 class="breakdown-title"><span class="sk sk-line" style="width:60%;display:inline-block"></span></h2>
+          ${[0,1,2,3].map(()=>`<div class="sk sk-line" style="width:100%;height:30px;margin-bottom:14px"></div>`).join('')}
+        </div>`;
+      footer.innerHTML = `<button class="btn-primary" disabled>Candidatar-se</button>`;
+      return;
+    }
+    if (state === 'erro') {
+      scroll.innerHTML = `<div class="center erro" data-testid="vaga-detalhe-erro">
+        <div class="emoji">⚠</div><h2>Não foi possível carregar a vaga.</h2>
+        <p>Verifique sua conexão.</p>
+        <button class="btn-out" data-testid="vaga-detalhe-retry-btn">Tentar de novo</button></div>`;
+      footer.classList.add('hidden'); return;
+    }
+    if (state === 'sem-permissao') {
+      scroll.innerHTML = `<div class="center" data-testid="vaga-detalhe-sem-permissao">
+        <div class="emoji">🔒</div><h2>Esta área é do profissional</h2>
+        <p>O detalhe de vagas é de quem pega turnos. Sua conta é de contratante.</p>
+        <button class="btn-out">Voltar ao início</button></div>`;
+      footer.classList.add('hidden'); return;
+    }
+    if (state === 'indisponivel') {
+      scroll.innerHTML = `<div class="center" data-testid="vaga-detalhe-indisponivel">
+        <div class="emoji">⃠</div><h2>Esta vaga não está mais disponível</h2>
+        <p>Ela pode ter sido preenchida ou encerrada. Veja outras no seu feed.</p>
+        <button class="btn-out">Voltar ao feed</button></div>`;
+      footer.classList.add('hidden'); return;
+    }
+
+    // Estados com conteúdo (completo / parcial-baixo / ja-candidatou / gate)
+    const d = state === 'parcial-baixo' ? PARCIAL : COMPLETO;
+    const altoBadge = d.total >= 80 ? `<span class="badge alto" data-testid="vaga-detalhe-alto-match">✓ Alto match</span>` : '';
+    scroll.innerHTML = cabecalho(d, altoBadge) + breakdown(d);
+
+    if (state === 'ja-candidatou') {
+      footer.innerHTML = `<div class="cand-box" data-testid="vaga-detalhe-ja-candidatou">
+        <span class="badge cand">✓ Você já se candidatou</span>
+        <div class="when">em 02/06 às 14:20</div>
+        <span class="retirar" data-testid="vaga-detalhe-retirar-btn">Retirar candidatura</span>
+      </div>`;
+      return;
+    }
+    if (state === 'gate') {
+      footer.innerHTML = `<div class="gate" data-testid="vaga-detalhe-gate-banner">
+        <span>⚠</span><span>Avalie seu último turno para se candidatar.</span></div>` + ctaPrimario(true);
+      return;
+    }
+    footer.innerHTML = ctaPrimario(false);
+  }
+
+  render();
+</script>
+</body>
+</html>
