@@ -77,6 +77,38 @@ void main() {
       expect(dismiss, 1);
     });
 
+    testWidgets('em tela estreita (iPhone) o texto não é espremido', (
+      tester,
+    ) async {
+      // Regressão: num Row [texto + 2 botões] numa largura de iPhone, o Expanded
+      // do texto encolhia e quebrava 1 caractere por linha. O texto deve ocupar
+      // largura útil (layout empilhado).
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 360,
+                child: InstallActionCard(
+                  isIOS: true,
+                  onInstall: () {},
+                  onDismiss: () {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      final textSize = tester.getSize(
+        find.text('Instalar app na tela inicial'),
+      );
+      expect(
+        textSize.width,
+        greaterThan(150),
+        reason: 'texto espremido (char-por-linha) indica layout quebrado',
+      );
+    });
+
     testWidgets('expõe Semantics(button:true) no CTA (CA-12)', (tester) async {
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(

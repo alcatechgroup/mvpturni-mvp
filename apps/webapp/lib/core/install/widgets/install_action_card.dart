@@ -57,44 +57,60 @@ class InstallActionCard extends StatelessWidget {
             borderRadius: const BorderRadius.all(TurniRadius.md),
             border: Border.all(color: border),
           ),
-          child: Row(
+          // Empilhado: o texto ocupa a largura toda (não fica espremido entre os
+          // botões em telas estreitas de celular); os botões vêm abaixo, à direita.
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.add_to_home_screen, size: 22, color: accent),
-              const SizedBox(width: TurniSpacing.sm),
-              Expanded(
-                child: Semantics(
-                  button: true,
-                  container: true,
-                  label: 'Instalar app na tela inicial',
-                  child: ExcludeSemantics(
-                    child: Text(
-                      'Instalar app na tela inicial',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: textStrong,
+              Row(
+                children: [
+                  Icon(Icons.add_to_home_screen, size: 22, color: accent),
+                  const SizedBox(width: TurniSpacing.sm),
+                  Expanded(
+                    child: Semantics(
+                      button: true,
+                      container: true,
+                      label: 'Instalar app na tela inicial',
+                      child: ExcludeSemantics(
+                        child: Text(
+                          'Instalar app na tela inicial',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: textStrong,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(width: TurniSpacing.xs),
-              TextButton(
-                key: const Key('btn-install-dismiss'),
-                onPressed: onDismiss,
-                style: TextButton.styleFrom(foregroundColor: textMuted),
-                child: const Text('Agora não'),
-              ),
-              const SizedBox(width: TurniSpacing.xs),
-              FilledButton(
-                key: const Key('btn-install-cta'),
-                onPressed: onInstall,
-                style: FilledButton.styleFrom(
-                  backgroundColor: accent,
-                  foregroundColor: onAccent,
-                  shape: const StadiumBorder(),
-                ),
-                child: Text(ctaLabel),
+              const SizedBox(height: TurniSpacing.sm),
+              // Wrap (não Row) para os botões quebrarem para a linha de baixo em
+              // telas muito estreitas, sem overflow.
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: TurniSpacing.xs,
+                runSpacing: TurniSpacing.xs,
+                children: [
+                  TextButton(
+                    key: const Key('btn-install-dismiss'),
+                    onPressed: onDismiss,
+                    style: TextButton.styleFrom(foregroundColor: textMuted),
+                    child: const Text('Agora não'),
+                  ),
+                  FilledButton(
+                    key: const Key('btn-install-cta'),
+                    onPressed: onInstall,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: accent,
+                      foregroundColor: onAccent,
+                      shape: const StadiumBorder(),
+                    ),
+                    child: Text(ctaLabel),
+                  ),
+                ],
               ),
             ],
           ),
