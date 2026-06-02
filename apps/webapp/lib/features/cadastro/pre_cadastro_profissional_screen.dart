@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/install/install.dart';
+import '../../core/install/widgets/install_action_slot.dart';
 import '../../ds/components/app_version_label.dart';
 import '../../ds/tokens.dart';
 import 'cadastro_service.dart';
@@ -448,8 +450,15 @@ class _PreCadastroProfissionalScreenState
             ),
           ],
 
-          // Versão rodando no dispositivo — rodapé discreto (STORY-037 CA-9).
+          // Ação "Instalar app" — acima da versão (STORY-042 / IDR-020).
           const SizedBox(height: TurniSpacing.lg),
+          InstallActionSlot(
+            key: const Key('install-action-cadastro-profissional'),
+            controller: installController,
+          ),
+
+          // Versão rodando no dispositivo — rodapé discreto (STORY-037 CA-9).
+          const SizedBox(height: TurniSpacing.sm),
           const Center(
             child: AppVersionLabel(
               key: Key('app-version-label-cadastro-profissional'),

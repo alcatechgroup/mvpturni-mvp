@@ -92,6 +92,18 @@ void main() {
       expect(find.text('Turni · dev'), findsOneWidget);
     });
 
+    testWidgets('tem o ponto de plugagem "Instalar app" (STORY-042 CA-10)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_loginApp());
+      await tester.pumpAndSettle();
+
+      // O slot fica sempre montado (mostra card ou nada). Em VM o bridge stub
+      // reporta não-instalável, então o card não aparece — mas o ponto existe.
+      expect(find.byKey(const Key('install-action-login')), findsOneWidget);
+      expect(find.text('Instalar app na tela inicial'), findsNothing);
+    });
+
     testWidgets('tem link "Esqueci minha senha" com key correta', (
       tester,
     ) async {

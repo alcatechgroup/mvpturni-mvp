@@ -3,6 +3,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 
 import 'core/app_update/app_update.dart';
 import 'core/app_update/widgets/update_banner.dart';
+import 'core/install/install.dart';
 import 'ds/theme.dart';
 import 'router.dart';
 
@@ -15,6 +16,9 @@ void main() {
   // Auto-atualização do WebApp (STORY-037 / IDR-017): inicia polling + triggers.
   // No-op em dev (sem --dart-define=APP_VERSION).
   appUpdate.start();
+  // Ação "Instalar app" (STORY-042 / IDR-020): escuta beforeinstallprompt/standalone
+  // do script pré-Flutter. Funciona em qualquer build (independe de versão).
+  installController.start();
   runApp(const TurniApp());
 }
 

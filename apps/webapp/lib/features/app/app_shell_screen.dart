@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/install/install.dart';
+import '../../core/install/widgets/install_action_slot.dart';
 import '../../ds/components/app_version_label.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
@@ -65,10 +67,17 @@ class AppShellScreen extends StatelessWidget {
                 ),
                 child: const Text('Sair'),
               ),
+              // Ação "Instalar app" — acima da versão (STORY-042 / IDR-020).
+              const SizedBox(height: TurniSpacing.lg),
+              InstallActionSlot(
+                key: const Key('install-action-app-shell'),
+                controller: installController,
+              ),
+
               // Versão rodando no dispositivo — rodapé do shell. Quando o menu real
               // chegar (EPIC-002+), mover esta instância para o rodapé do menu
               // (STORY-037 CA-11).
-              const SizedBox(height: TurniSpacing.lg),
+              const SizedBox(height: TurniSpacing.sm),
               const AppVersionLabel(key: Key('app-version-label-app-shell')),
             ],
           ),

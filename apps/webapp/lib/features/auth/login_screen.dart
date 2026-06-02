@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/app_update/app_update.dart';
+import '../../core/install/install.dart';
+import '../../core/install/widgets/install_action_slot.dart';
 import '../../ds/components/app_version_label.dart';
 import '../../ds/tokens.dart';
 import 'auth_service.dart';
@@ -338,8 +340,15 @@ class _LoginForm extends StatelessWidget {
             ),
           ),
 
-          // Versão rodando no dispositivo — rodapé discreto (STORY-037 CA-8).
+          // Ação "Instalar app" — acima da versão (STORY-042 / IDR-020).
           const SizedBox(height: TurniSpacing.lg),
+          InstallActionSlot(
+            key: const Key('install-action-login'),
+            controller: installController,
+          ),
+
+          // Versão rodando no dispositivo — rodapé discreto (STORY-037 CA-8).
+          const SizedBox(height: TurniSpacing.sm),
           const Center(
             child: AppVersionLabel(key: Key('app-version-label-login')),
           ),
