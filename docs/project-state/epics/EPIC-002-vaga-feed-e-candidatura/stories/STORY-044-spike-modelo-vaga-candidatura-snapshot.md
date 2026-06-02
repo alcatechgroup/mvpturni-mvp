@@ -8,10 +8,10 @@ type: spike
 target_role: arquiteto
 requires_design: false
 design_screen_id: null
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8-programador-2026-06-02
 created_at: 2026-06-01
-updated_at: 2026-06-01
+updated_at: 2026-06-02
 estimated_session_size: M
 produces_idr: null  # produz ADR (não IDR) — decisão de modelo é arquitetural
 ---
@@ -114,6 +114,24 @@ Você NÃO decide:
 Siga `docs/skills/po/references/agent-task-format.md`. Em particular: ao terminar, marque `status: in_review` e abra PR; PO revisa a ADR antes de mover para `done`.
 
 ## Notas do agente (preenchido durante/após execução)
+
+### Plano (registrado antes de codar — 2026-06-02)
+
+**Documentos lidos:** ADR-013 (accepted, modelo desta estória), ADR-009 (padrão de modelagem), ADR-010 (imutabilidade por trigger+REVOKE), PDR-009, PDR-005, `domain/vaga.md`, `domain/candidatura.md`, `non-functional.md` (p95 feed), database-discipline + testing-discipline da skill. Código existente: `admin_audit_log`/templates (padrão de migração + trigger), `AceiteEletronico`/`User`/`Funcao` (padrão de model), `AuditLogTest`/`UserModelTest` (padrão de teste), `UserFactory`, seeders.
+
+**Entendimento (minhas palavras):** materializar a ADR-013 em 4 migrações reversíveis (`vagas`, `vaga_versoes`, `candidaturas`, `audit_logs`) com enums Postgres nativos (`vaga_estado`, `candidatura_estado`), invariantes duras no banco (CHECKs + UNIQUE + trigger append-only), modelos Eloquent com máquina de estados no domínio (transições válidas/proibidas), seed mínimo (5 vagas em estados variados) e stress seed (1k vagas) para o `EXPLAIN ANALYZE < 100ms` do feed. Sem UI, sem endpoints, sem score de match (STORY-045).
+
+**Mapeamento CA → testes (TDD — vermelho antes do código):**
+- CA-3 (migrações reversíveis): `MigrationVagaSchemaTest` — `migrate` cria tabelas/colunas/enums; `migrate:rollback` exercido em homolog (manual, registrado em evidência).
+- CA-4 (enums + transições): `VagaModelTest` (feliz: aberta→fechada/cancelada; proibido: fechada→cancelada; borda: fechar ao preencher última posição), `CandidaturaModelTest` (pendente→aprovada/retirada/revisão; revisão→pendente/retirada_por_edicao; proibido: aprovada→pendente). Enum nativo barra valor inválido (`*SchemaTest`).
+- CA-5 (constraints): `VagaConstraintsTest` — `posicoes>=1`, `data_fim>data_inicio`, `posicoes_preenchidas BETWEEN 0 AND posicoes`, `UNIQUE(vaga_id,profissional_id)` em candidaturas; `VagaVersaoImutabilidadeTest` + `AuditLogImutabilidadeTest` (UPDATE/DELETE lançam exceção — trigger).
+- CA-6 (eventos audit): `AuditLogModelTest` registra os 6 eventos de domínio (action/target/payload); lista canônica na ADR-013 §Decisão 5.
+- CA-7 (seed mínimo): `VagasSeederTest` — 5 vagas (3 aberta, 1 fechada, 1 cancelada) com funções distintas + 1 contratante seed.
+- CA-8 (microbenchmark): `VagasStressSeeder` 1k vagas; `EXPLAIN ANALYZE` da query do feed usando `idx_vagas_feed` < 100ms — número registrado na ADR-013 §Plano de verificação.
+
+**Dúvidas:** nenhuma — ADR-013 fixou o modelo; liberdade do agente é só estrutura local (nomes de método da state-machine, factories, organização de testes).
+
+**Decisão de escopo local:** modelos e migrações vivem em `apps/api` (dono do schema real — ADR-009/memória). `admin` não recebe réplica nesta estória (sem fluxo de backoffice de vaga até EPIC-003).
 
 ### Decisões tomadas
 - 
