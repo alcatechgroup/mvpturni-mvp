@@ -202,7 +202,7 @@
       "created_at": "2026-05-26",
       "updated_at": "2026-06-01",
       "sprint": "SPRINT-2026-W27",
-      "next_action": "STORY-045 (spike Match) in_progress — ADR-014 proposed (cálculo on-demand sem cache + função pura `calcular_match` + 4 eventos por log estruturado + benchmark). Aguardando aprovação do PO para virar accepted e materializar o módulo `app/Domain/Match`. Destrava STORY-048/049/050/051."
+      "next_action": "STORY-045 (spike Match) in_review — ADR-014 accepted; módulo `app/Domain/Match` (núcleo puro + adapter) + `MatchEvents` materializados em TDD (cobertura 100% no núcleo; api 96,7%; 345 testes; benchmark 1k em 0,01s; pint limpo). Aguardando revisão do PO para `done`. Destrava STORY-048 (feed) / 049 (UI breakdown) / 050 (score_no_momento) / 051 (painel contratante)."
     },
     {
       "id": "EPIC-003",
@@ -1406,8 +1406,8 @@
       "target_role": "arquiteto",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_progress",
-      "owner_agent": "claude-opus-4-8-arquiteto-2026-06-02",
+      "status": "in_review",
+      "owner_agent": "claude-opus-4-8-programador-2026-06-02",
       "sprint_id": "SPRINT-2026-W27",
       "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-045-spike-algoritmo-match-cache-eventos.md",
       "blocked_by": [
