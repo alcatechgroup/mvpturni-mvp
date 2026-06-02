@@ -186,6 +186,7 @@ Você NÃO decide:
 - Os PNGs antigos (datados 31 mai 12:29) já não eram o "F" azul do Flutter literal, mas placeholders — substituídos de qualquer forma; hashes mudaram (ver Evidência).
 - `flutter build web` copia `web/icons/source/*.svg` para `build/web/icons/source/` — os SVGs-fonte ficam servidos publicamente (poucos KB, inofensivo). Não vetado pela story; deixei como está.
 - O pre-push hook só roda `dart format` em `apps/webapp/lib/` (não em `test/`). `test/login_screen_test.dart` está desformatado **no HEAD** (pré-existente, fora desta story) — não bloqueia o push e não foi tocado.
+- **apple-touch-icon precisa ser OPACO (sem transparência).** Na 1ª entrega (rc.43) o `apple-touch-icon.png` saiu do `icon.svg` (squircle sobre canvas transparente → cantos `rgba 0,0,0,0`). No iOS o ícone do web-clip apareceu com **fundo escuro** na home (o iOS compõe transparência sobre preto), embora o preview de instalação mostrasse verde. Corrigido em rc.44 com uma fonte dedicada `source/apple-touch-icon.svg` (full-bleed, fundo `#00A868` cobrindo 100%, **sem** cantos arredondados — o iOS aplica a própria máscara) + `.flatten('#00A868')` no pipeline garantindo `hasAlpha=false`. Pego só na verificação em iPhone real (não nos testes).
 
 ### Bloqueios encontrados
 - Nenhum bloqueio técnico. CA-13/14/15 dependem de deploy em homolog + dispositivos reais (Android/iOS) — fora do alcance de uma sessão local; ficam para o ciclo de release + validação do PO.

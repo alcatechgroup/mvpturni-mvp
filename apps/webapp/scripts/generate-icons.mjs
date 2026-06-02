@@ -22,11 +22,15 @@ const targets = [
   { svg: 'icon.svg', outputs: [
     { out: 'icons/Icon-192.png', size: 192 },
     { out: 'icons/Icon-512.png', size: 512 },
-    { out: 'icons/apple-touch-icon.png', size: 180 },
   ] },
   { svg: 'icon-maskable.svg', outputs: [
     { out: 'icons/Icon-maskable-192.png', size: 192 },
     { out: 'icons/Icon-maskable-512.png', size: 512 },
+  ] },
+  // apple-touch-icon: o iOS aplica a própria máscara e compõe transparência sobre PRETO.
+  // Por isso sai de uma fonte full-bleed e é ACHATADO sobre brandGreen → zero alpha.
+  { svg: 'apple-touch-icon.svg', flatten: '#00A868', outputs: [
+    { out: 'icons/apple-touch-icon.png', size: 180 },
   ] },
   { svg: 'favicon.svg', outputs: [
     { out: 'favicon.png', size: 32 },
@@ -34,16 +38,15 @@ const targets = [
 ];
 
 let count = 0;
-for (const { svg, outputs } of targets) {
+for (const { svg, outputs, flatten } of targets) {
   const svgPath = join(srcDir, svg);
   for (const { out, size } of outputs) {
     const outPath = join(webDir, out);
     // density alta antes do resize → bordas limpas mesmo em tamanhos pequenos.
-    await sharp(svgPath, { density: 384 })
-      .resize(size, size, { fit: 'cover' })
-      .png({ compressionLevel: 9 })
-      .toFile(outPath);
-    console.log(`  ${svg} → ${out} (${size}×${size})`);
+    let pipe = sharp(svgPath, { density: 384 }).resize(size, size, { fit: 'cover' });
+    if (flatten) pipe = pipe.flatten({ background: flatten });
+    await pipe.png({ compressionLevel: 9 }).toFile(outPath);
+    console.log(`  ${svg} → ${out} (${size}×${size})${flatten ? ' [opaco]' : ''}`);
     count++;
   }
 }
