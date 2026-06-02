@@ -76,6 +76,12 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     // Publicar vaga (STORY-046). RBAC contratante no StoreVagaRequest::authorize() (403).
     Route::post('/vagas', [VagaController::class, 'store']);
 
+    // Minhas vagas + cancelar (STORY-047). RBAC (papel contratante + dono) no controller.
+    // GET lista as próprias (CA-1/CA-2); DELETE cancela via soft-transition (CA-4/CA-5).
+    // `/vagas/minhas` antes de `/vagas/{vaga}` para não ser capturado como parâmetro.
+    Route::get('/vagas/minhas', [VagaController::class, 'minhas']);
+    Route::delete('/vagas/{vaga}', [VagaController::class, 'destroy']);
+
     // Gate PDR-005 (STORY-046 CA-5): turnos finalizados pendentes de avaliação do
     // contratante. Contrato { pending, turnos }; stub-honesto até o EPIC-003.
     Route::get('/avaliacoes/pendentes-do-contratante', [AvaliacoesPendentesController::class, 'index']);
