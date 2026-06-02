@@ -297,5 +297,14 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 
 ### Links de evidência
 - Commits `test/feat(STORY-042)` na `main` (TDD: red → green por CA).
-- E2E: `make e2e-webapp-install` (1 passed), `make e2e-webapp-smoke` (4 passed/1 skip), `make e2e-webapp-integration` (All tests passed — não-regressão dos fluxos logados/cadastro).
-- Pendente: capturas dos smokes CA-19 (Android Chrome) e CA-20 (iOS Safari) em chat após release em homolog.
+- E2E local: `make e2e-webapp-install` (1 passed), `make e2e-webapp-smoke` (4 passed/1 skip), `make e2e-webapp-integration` (All tests passed — não-regressão dos fluxos logados/cadastro).
+- **Release `v0.1.0-rc.46` em homolog** (workflow Release ✓, smoke pós-deploy ✓: /health 3 interfaces, /version.json bate, upload >1MB). `https://app.homolog.turni.com.br/version.json` → `v0.1.0-rc.46`; `index.html` serve o script `turniInstall`.
+- **Smokes Playwright contra homolog (rc.46, EPIC-008 no ar):**
+  - `install-action.spec.ts` ✓ — card "Instalar app na tela inicial" aparece no login quando `beforeinstallprompt` é capturado (CA-17; caminho automatizável do CA-19).
+  - `app-update.spec.ts` ✓ (3/3) — versão visível no rodapé, banner "Nova versão disponível" + "Atualizar agora" recarrega, "Depois" fecha → **auto-update intacto com a feature no ar** (CA-15; núcleo automatizável do CA-18).
+  - `webapp-hello-world.spec.ts` ✓ (4/4, 1 skip) — boot sem erros de console críticos: o script pré-Flutter não quebra a inicialização (CA-15).
+- **Pendente (requer aparelho físico + assinatura do PO em chat):**
+  - **CA-19** — Android Chrome real: card → "Instalar" → prompt nativo → aceitar → ícone Turni na home → abre standalone.
+  - **CA-20** — iOS Safari real: card "Como instalar" → modal 2 passos → Compartilhar → Adicionar à Tela de Início → ícone na home → standalone.
+  - **CA-18 (completo)** — abrir aba em rc.45, observar banner em ≤ 5 min após rc.46 (validação temporal em aba real).
+  - Com CA-19/CA-20 verdes: IDR-020 → `accepted` e STORY-042 → `done`.
