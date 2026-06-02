@@ -78,7 +78,10 @@ void main() {
       await tester.pumpWidget(_loginApp());
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const ValueKey('login:toggle-password')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('login:toggle-password')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('tem rótulo de versão discreto no rodapé (STORY-037 CA-8)', (
@@ -110,7 +113,10 @@ void main() {
       await tester.pumpWidget(_loginApp());
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const ValueKey('login:forgot-password')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('login:forgot-password')),
+        findsOneWidget,
+      );
     });
 
     testWidgets(
@@ -167,7 +173,10 @@ void main() {
         find.byKey(const ValueKey('login:email')),
         'nao-e-email',
       );
-      await tester.enterText(find.byKey(const ValueKey('login:password')), 'senha');
+      await tester.enterText(
+        find.byKey(const ValueKey('login:password')),
+        'senha',
+      );
       await tester.tap(find.byKey(const ValueKey('login:submit')));
       await tester.pumpAndSettle();
 
