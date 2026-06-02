@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-06-02T17:48:55Z",
+  "generated_at": "2026-06-02T17:56:51Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
-    "current_sprint": "SPRINT-2026-W25",
-    "last_closed_sprint": "SPRINT-2026-W24",
-    "phase": "wave-2026-01-sprint-w25-active-3-of-6-done-after-rollback-023-024",
-    "next_action": "SPRINT-2026-W25 ATIVA (aberta 2026-05-30). 3/6 estórias done: STORY-021 (e-mails transacionais — Resend ACL + lembrete + reset Fortify; CA-13 fechada em homolog; alerta de falha terminal validado na rc.28), STORY-034 (worker Cloud Run Job + Scheduler — substitui GCE worker-vm; validado via rc.24) e STORY-037 (auto-update WebApp Flutter + label de versão; rc.32, PO confirmou no celular; IDR-017 accepted). 3/6 ready: STORY-023 (completar cadastro PF, L — VOLTOU a `ready` em 2026-05-31 após PO reverter byte-a-byte commit `3b61364` no commit `690a252`; refazer do zero), STORY-024 (completar cadastro PJ, M — descartada do working tree no mesmo revert; refazer do zero), STORY-025 (validação EPIC-001, aguarda 023/024). Próximo passo: PO decide se retoma STORY-023 mantendo o L ou quebra em sub-estórias (coleta vs. preview+aceite); STORY-024 entra em paralelo no mesmo critério; Designer pode reutilizar SCREEN-STORY-023 (preservada pelo revert). STORY-025 só inicia quando 021+023+024+034 estiverem done e checklist do EPIC-001 estiver íntegro (lição STORY-011). Soft-cap 2026-06-19 — folga absorve ~1 dia de retrabalho do rollback. Saneamento pré-W26 (2026-06-01): IDR-010/011 accepted, IDR-006 §b parcialmente superseded, decisions.idr reindexado (IDR-001/010/011/013/015/016/019/020 adicionados), EPIC-007/008 indexados em epics[], STORY-038-042 indexadas, colisão EPIC-007/EPIC-008 STORY-038/039 resolvida via rename para STORY-041/042. SPRINT-2026-W26 entrou em status:planned no índice.",
-    "notes": "SPRINT-2026-W25 aberta em 2026-05-30 com escopo inicial de 4 estórias (021/023/024/025) e duas adições no mesmo dia: STORY-034 (worker Cloud Run Job + Scheduler — caminho único após queda da escada Fase A com 5 gaps confirmados no GCE worker-vm) e STORY-037 (auto-update WebApp Flutter — destrava validação mobile do EPIC-001). Sizing total: 1L + 5M. Progresso até D+2 (2026-05-31): **3/6 done** (021, 034, 037), **3/6 ready** (023, 024, 025). STORY-021/034/037 fechadas em rc.24→rc.32. STORY-023 chegou a entrar em `done` no commit `3b61364` (multi-step PF + preview de contrato MarkdownLite + AceiteEletronico no clique), e STORY-024 estava em progresso no working tree (untracked), mas em 2026-05-31 o PO reverteu byte-a-byte (commit `690a252`) para refazer do zero, descartando: `Domain/Aceites/*`, controllers, modelos `Template/TemplateVersao/AceiteEletronico`, migration `2026_05_30_completar_cadastro_profissional_e_aceites.php`, `completar_cadastro_screen.dart`, `MarkdownLite`, `input_formatters`, E2E `completar-cadastro.spec.ts`. **Preservado** no revert: STORY-021/034/037 inteiras, fixes `SESSION_COOKIE`/`SESSION_DRIVER` (IDR-019 — arquivo apenas), ACL e-mail em packages/domain (IDR-015), trabalho de processo (wishlist + bugs + EPIC-008 PWA + endurecimento de skills) do commit `4cb0b38`, `infra/` e `.github/` intactos. STORY-023/024 voltam a `ready` no mesmo escopo da W25; STORY-025 segue `ready` aguardando 023/024/034. 3 commits locais ainda não pushados para `origin/main` (`4cb0b38`, `690a252`, `fd30cc2`) — somar a este o commit de saneamento pré-W26 (2026-06-01). Pendência de housekeeping RESOLVIDA em 2026-06-01: decisions.idr reindexado com IDR-001/010/011/013/015/016/019/020. NOTA: IDR-018 não existe no disco (numeração saltou — IDR-020 documenta isso); a `next_action` antiga listava IDR-018 por engano. SPRINT-2026-W24 permanece fechada por goal-atingido (10/10; goal_outcome=achieved)."
+    "current_sprint": "SPRINT-2026-W27",
+    "last_closed_sprint": "SPRINT-2026-W26",
+    "phase": "wave-2026-01-sprint-w27-active-7-of-13-done-d-plus-1-epic-008-fechado",
+    "next_action": "SPRINT-2026-W27 ATIVA (aberta 2026-06-01, snapshot atualizado em 2026-06-02 D+1). 7/13 estórias done em 1 dia: STORY-041, STORY-042 (EPIC-008 100% fechado — PWA instalável com marca Turni); STORY-044 (modelo Vaga/Candidatura/snapshot — ADR-013 + F-NB-1 do EPIC-000 quitado); STORY-045 (algoritmo Match + 4 eventos — ADR-014); STORY-046 (publicar vaga + gate PDR-005; emergiram DDR-002 locale pt-BR/24h e IDR-025 sessão no boot); STORY-047 (Minhas vagas + cancelar); STORY-048 (feed do profissional com match, filtros, p95 — única L da sprint fechou em 1 sessão sem acionar gatilho de quebra). 6/13 ready (caminho crítico EPIC-002): STORY-049 (detalhe + breakdown — próxima a iniciar), STORY-050 (candidatura 1 toque + 3 gates), STORY-051 (painel candidatos), STORY-052 (edição material PDR-009 — pode rodar em paralelo a STORY-049/050), STORY-053 (notificações in-app + e-mail — bloqueada por STORY-050+052; PO entrega 5 texto-seed até 2026-06-05), STORY-054 (validador independente — última). Mid-sprint check formal antecipado para 2026-06-04 (D+3) se STORY-049+050 fecharem até lá; soft-cap 2026-06-22 mantido como teto. Decisões durávveis aceitas no D+1: ADR-013, ADR-014, IDR-020 (instalação PWA), IDR-025 (sessão no boot), DDR-002 (locale pt-BR + 24h transversal). Nenhuma mudança de escopo registrada.",
+    "notes": "Snapshot W27 D+1 (2026-06-02): 7/13 done (54%) — 1 S + 5 M + 1 L. EPIC-008 fechado integralmente; EPIC-002 com spikes (044+045), lado contratante (046+047) e feed do profissional (048) entregues. Restam 6 estórias do EPIC-002 (049/050/051/052/053 + validação 054). Riscos do plano de abertura em melhor estado que o esperado: STORY-048 (L) coube em 1 sessão, EPIC-008 não regrediu auto-update da STORY-037, 3 SCREEN specs de UI já consumidos sem atrito. Pendências ativas do PO: texto-seed dos 5 templates da STORY-053 (compromisso até 2026-06-05). Detalhe completo em sprints/SPRINT-2026-W27.md, seção \"Atualização de progresso — 2026-06-02 (D+1)\"."
   },
   "product": {
     "vision": "product/vision.md",
@@ -2041,7 +2041,27 @@
         "EPIC-002",
         "EPIC-008"
       ],
-      "scope_changes": []
+      "scope_changes": [],
+      "delivered_story_ids": [
+        "STORY-041",
+        "STORY-042",
+        "STORY-044",
+        "STORY-045",
+        "STORY-046",
+        "STORY-047",
+        "STORY-048"
+      ],
+      "in_progress_story_ids": [],
+      "pending_story_ids": [
+        "STORY-049",
+        "STORY-050",
+        "STORY-051",
+        "STORY-052",
+        "STORY-053",
+        "STORY-054"
+      ],
+      "last_progress_update": "2026-06-02",
+      "progress_summary": "7/13 done em D+1"
     }
   ],
   "decisions": {

@@ -189,11 +189,72 @@ Agente programador, arquiteto e designer carregam suas próprias skills + as dec
 |---|---|---|---|
 | — | — | — | — |
 
+## Atualização de progresso — 2026-06-02 (D+1)
+
+> Snapshot do estado da sprint registrado pelo PO no dia seguinte à abertura.
+> Próxima atualização programada para o mid-sprint check em **2026-06-10 (D+9)** — antecipável se passarmos de 80% antes.
+
+### Placar das 13 estórias
+
+| ID        | Status   | Épico    | Observação                                                                                            |
+| --------- | -------- | -------- | ----------------------------------------------------------------------------------------------------- |
+| STORY-041 | **done** | EPIC-008 | Ícones da marca Turni publicados (rc.44/45). PO validou CA-13/CA-15 ao vivo em iOS; CA-14 dispensado. |
+| STORY-042 | **done** | EPIC-008 | Ação "Instalar app" + IDR-020 aceita; bug do layout iOS corrigido em rc.46→rc.47. **EPIC-008 fechado.** |
+| STORY-044 | **done** | EPIC-002 | ADR-013 aceita; modelo Vaga/Candidatura/VagaVersao verde. **F-NB-1 do EPIC-000 (migrate:rollback) quitado.** |
+| STORY-045 | **done** | EPIC-002 | ADR-014 aceita; módulo Match puro + 4 eventos de telemetria verde.                                    |
+| STORY-046 | **done** | EPIC-002 | Publicar vaga + gate PDR-005 verde. Emergiram IDR-025 (restaurar sessão no boot) e **DDR-002 (locale pt-BR + horário 24h transversal)**. |
+| STORY-047 | **done** | EPIC-002 | "Minhas vagas" + cancelar verde (S, rápida como previsto).                                            |
+| STORY-048 | **done** | EPIC-002 | **A única L da sprint fechou em 1 sessão** — feed do profissional com match, filtros e visibilidade entregue sem precisar acionar o gatilho de quebra. |
+| STORY-049 | ready    | EPIC-002 | Próxima a iniciar (caminho crítico).                                                                  |
+| STORY-050 | ready    | EPIC-002 | Aguarda STORY-049.                                                                                    |
+| STORY-051 | ready    | EPIC-002 | Aguarda STORY-049 + STORY-050.                                                                        |
+| STORY-052 | ready    | EPIC-002 | Independente do feed (consome STORY-044 + STORY-047).                                                 |
+| STORY-053 | ready    | EPIC-002 | Aguarda STORY-050 + STORY-052; PO precisa entregar texto-seed dos 5 templates.                        |
+| STORY-054 | ready    | EPIC-002 | Validador independente — última estória.                                                              |
+
+**Entregue:** 7/13 estórias (54%) em **1 dia** — 1 S + 5 M + 1 L. **EPIC-008 100% fechado**, EPIC-002 com spikes + 3 telas + feed fechados.
+
+### O que ficou registrado de durável neste primeiro dia
+
+- **ADR-013** — modelo Vaga + Candidatura + VagaVersao (snapshot PDR-009) **accepted**.
+- **ADR-014** — algoritmo Match on-demand + `MatchBreakdown` + 4 eventos de telemetria **accepted**.
+- **IDR-020** — estratégia de instalação PWA (ação, dispensa, microcopy, modal iOS) **accepted**.
+- **IDR-025** — restauração de sessão no boot (deep-link/reload não desloga) **accepted** (emergente da STORY-046).
+- **DDR-002** — locale pt-BR + horário 24h transversal em todo o app **accepted** (emergente da STORY-046).
+- **F-NB-1 do EPIC-000** (migrate:rollback em homolog) **quitado** pela STORY-044 conforme planejado.
+
+### Riscos da abertura — releitura em D+1
+
+| Risco                                                       | Estado                                                                                                                                                                            |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sprint pesada demais (13 estórias)                          | **Mitigado.** Em D+1 já temos 54% entregue; ritmo W24/W26 confirmado, soft-cap 2026-06-22 deve folgar.                                                                            |
+| STORY-048 (L) estoura sessão única                          | **Não materializou.** Fechou em 1 sessão; gatilho de quebra não foi acionado.                                                                                                     |
+| Performance p95 ≤ 800ms do feed                             | Mantido. Validador (STORY-054) repete em homolog ao fim.                                                                                                                          |
+| 8 SCREEN specs do Designer viram gargalo                    | **Reduzido.** SCREENs de 046, 047, 048 entregues e consumidos sem atrito; restam 049, 050, 051, 052, 053. Designer está dentro do plano de priorizar D1-D3.                       |
+| 3 gates da STORY-050 interagem mal                          | Ainda em aberto — será exercitado quando STORY-050 iniciar.                                                                                                                       |
+| Snapshot PDR-009 viola imutabilidade                        | Trigger Postgres verde em STORY-044 CA-5; validador repete em STORY-054 CA-8.                                                                                                     |
+| Cron de auto-retirada atrasa                                | Ainda em aberto — reusa worker da W25.                                                                                                                                            |
+| Notificações spammam contratante                            | Ainda em aberto — será exercitado em STORY-053.                                                                                                                                   |
+| EPIC-008 quebra auto-atualização (STORY-037)                | **Mitigado.** EPIC-008 fechou sem regredir auto-update; smoke verde em rc.47.                                                                                                     |
+| Custo GCP em homolog                                        | Monitoramento mantido; reavaliação na 2ª semana segue planejada.                                                                                                                  |
+| 5 texto-seed dos templates da STORY-053                     | **Pendência ativa do PO.** Janela aberta — STORY-053 está bloqueada por STORY-050 + STORY-052, então PO tem ~5 dias úteis para entregar antes de virar gargalo.                   |
+| Alexandro nos 5 papéis — fadiga                             | Ritmo agressivo no D1; PO precisa atentar para não confundir velocidade de execução com sustentabilidade da sprint maior do projeto.                                              |
+
+### Decisões do PO neste mid-sprint antecipado
+
+- **Manter** o escopo cheio (13 estórias). Nenhum motivo para deferir EPIC-008 ou STORY-052 — EPIC-008 já fechou e o caminho crítico do EPIC-002 destravou.
+- **Antecipar o mid-sprint check formal** para 2026-06-04 (D+3) se STORY-049 + STORY-050 fecharem até lá — soft-cap 2026-06-22 segue como teto, mas o cenário realista virou "fechar EPIC-002 antes de 2026-06-10".
+- **Próxima estória a iniciar:** STORY-049 (detalhe da vaga + breakdown). Em paralelo, agente pode começar **STORY-052** (edição material) — já tem STORY-044 e STORY-047 prontas, e o overlap de UI com STORY-047 é aceitável agora que STORY-047 fechou.
+- **Texto-seed dos 5 templates da STORY-053:** PO compromete entregar até 2026-06-05 (D+4), antes da STORY-053 destravar.
+
 ## Aprendizados em curso (mid-sprint)
 
 > Registrar conforme acontecem; consolidar na seção "Fechamento do sprint" no fim.
 
-- 
+- **STORY-048 (L) cabe em 1 sessão quando o spike de algoritmo (045) precede de verdade.** O gatilho de quebra documentado virou seguro morto, não plano A. Manter a disciplina spike-antes-de-implementação.
+- **Decisões transversais emergem em estórias-âncora.** STORY-046 produziu DDR-002 (locale pt-BR + 24h) e IDR-025 (sessão no boot) — ambos não previstos na abertura, ambos com efeito em todas as telas futuras. Sinal de que a primeira estória de cada tipo de fluxo merece slot extra de revisão.
+- **EPIC-008 ortogonal foi o certo.** Rodou em paralelo, fechou rápido, zero conflito de merge com EPIC-002. Padrão a repetir quando houver épico pequeno com superfície disjunta.
+- **PO como pendência de planejamento ativo.** Texto-seed dos 5 templates da STORY-053 é entrega do PO, não do agente. Risco real se o ritmo de implementação ultrapassar o ritmo de produção de conteúdo.
 
 ## Fechamento do sprint (preencher no encerramento)
 
