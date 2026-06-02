@@ -33,7 +33,9 @@ test('cada evento de domínio do CA-6 é gravável com ator, alvo e payload', fu
     $log->refresh();
     expect($log->action)->toBe($action)
         ->and($log->target_type)->toBe($targetType)
-        ->and($log->payload)->toBe($payload)
+        // toEqual (==): jsonb não preserva a ordem das chaves do objeto; comparar por
+        // par chave/valor, não por identidade ordenada.
+        ->and($log->payload)->toEqual($payload)
         ->and($log->actor->id)->toBe($ator->id);
 })->with('eventos_de_dominio');
 

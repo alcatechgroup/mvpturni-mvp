@@ -22,6 +22,9 @@
             <directory>app/Actions</directory>
             <!-- FortifyServiceProvider publica routes de Fortify — não testado isoladamente -->
             <file>app/Providers/FortifyServiceProvider.php</file>
+            <!-- STORY-044 — harness de benchmark do feed (1k vagas, EXPLAIN da CA-8);
+                 dev/homolog apenas, não é lógica de negócio. Rodado manualmente. -->
+            <file>database/seeders/VagasStressSeeder.php</file>
         </exclude>
     </source>
     <coverage>

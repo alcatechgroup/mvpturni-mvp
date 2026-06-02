@@ -23,5 +23,8 @@ class DatabaseSeeder extends Seeder
 
         // STORY-020 — catálogo de templates contratuais + versão 1 ativa (dev/homolog/prod).
         $this->call(TemplatesContratuaisSeeder::class);
+
+        // STORY-044 — seed mínimo de vagas do EPIC-002 (3 abertas, 1 fechada, 1 cancelada).
+        $this->call(VagasSeeder::class);
     }
 }
