@@ -40,6 +40,7 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
   int? _funcaoId;
   int _posicoes = 1;
   int _gatePending = 0;
+  String? _funcaoErro; // erro do seletor de função (não é FormField)
   String? _quandoErro; // erro do bloco "Quando" (datas)
   bool _submitting = false;
   bool _erroServidor = false;
@@ -117,6 +118,9 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
     setState(() => _erroServidor = false);
     final formOk = _formKey.currentState?.validate() ?? false;
 
+    // Função: DropdownMenu não é FormField, então valida-se à parte (como as datas).
+    final funcaoErro = _funcaoId == null ? 'Escolha a função do turno.' : null;
+
     final inicio = _parseDataHora(_dataInicioCtrl.text, _horaInicioCtrl.text);
     final fim = _parseDataHora(_dataFimCtrl.text, _horaFimCtrl.text);
 
@@ -128,9 +132,18 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
     } else if (!fim.isAfter(inicio)) {
       quandoErro = 'O fim precisa ser depois do início.'; // CA-3
     }
-    setState(() => _quandoErro = quandoErro);
+    setState(() {
+      _funcaoErro = funcaoErro;
+      _quandoErro = quandoErro;
+    });
 
-    if (!formOk || quandoErro != null || inicio == null || fim == null) return;
+    if (!formOk ||
+        funcaoErro != null ||
+        quandoErro != null ||
+        inicio == null ||
+        fim == null) {
+      return;
+    }
 
     setState(() => _submitting = true);
     final result = await _service.publicar(
@@ -161,11 +174,14 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
   }
 
   void _aplicarErrosServidor(Map<String, String> errors) {
-    // Espelha no bloco "Quando" os erros de data; o resto vai pro banner genérico.
+    // Espelha os erros nos campos certos (função/datas); o resto vai pro banner.
+    final funcao = errors['funcao_id'];
     final quando = errors['data_inicio'] ?? errors['data_fim'];
+    final tratados = (funcao != null ? 1 : 0) + (quando != null ? 1 : 0);
     setState(() {
+      _funcaoErro = funcao;
       _quandoErro = quando;
-      _erroServidor = quando == null && errors.isNotEmpty;
+      _erroServidor = errors.length > tratados;
     });
   }
 
@@ -266,19 +282,33 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
                 ),
 
               const CadastroSection('Função'),
-              CadastroDropdownField<int>(
-                fieldKey: 'publicar-vaga-funcao-dropdown',
-                label: 'Função',
-                hint: 'Selecione a função',
-                value: _funcaoId,
-                items: _funcoes
-                    .map(
-                      (f) => DropdownMenuItem(value: f.id, child: Text(f.nome)),
-                    )
-                    .toList(),
-                onChanged: (v) => setState(() => _funcaoId = v),
-                validator: (v) =>
-                    v == null ? 'Escolha a função do turno.' : null,
+              Padding(
+                padding: const EdgeInsets.only(top: TurniSpacing.md),
+                // DropdownMenu (Material 3): campo com busca embutida — o usuário
+                // digita um termo e a lista filtra (enableFilter). Melhor que um
+                // select simples para a lista canônica de funções (~14 itens).
+                child: DropdownMenu<int>(
+                  key: const Key('publicar-vaga-funcao-dropdown'),
+                  initialSelection: _funcaoId,
+                  requestFocusOnTap: true,
+                  enableFilter: true,
+                  expandedInsets: EdgeInsets.zero,
+                  menuHeight: 320,
+                  leadingIcon: const Icon(Icons.search),
+                  label: const Text('Função'),
+                  hintText: 'Selecione ou busque a função',
+                  errorText: _funcaoErro,
+                  dropdownMenuEntries: _funcoes
+                      .map(
+                        (f) =>
+                            DropdownMenuEntry<int>(value: f.id, label: f.nome),
+                      )
+                      .toList(),
+                  onSelected: (v) => setState(() {
+                    _funcaoId = v;
+                    _funcaoErro = null;
+                  }),
+                ),
               ),
 
               const CadastroSection('Quando'),

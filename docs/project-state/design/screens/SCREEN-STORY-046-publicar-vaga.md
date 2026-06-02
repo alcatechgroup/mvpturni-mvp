@@ -403,6 +403,7 @@ sinalização leve nos estados).
 | `field.datetime` — par data+hora abrindo `showDatePicker`/`showTimePicker` do Material | DS ainda não tem campo de data/hora; é o primeiro form com data. Reusar widgets nativos do Material (acessíveis, localizáveis pt-BR) antes de inventar custom (princípio #4). | Sim, se STORY-052 (edição) reusar — então promove a `field.datetime` no DS. |
 | `field.currency` — `TextFormField` com máscara R$ (centavos) | DS não tem campo monetário. Máscara local com formatação pt-BR (vírgula decimal). | Sim, se reaparecer (edição de vaga / repasses). |
 | `field.stepper` — número de posições com − / + e campo central | Mais usável que digitar para "quantas pessoas" (1–N pequeno) na persona não-técnica; reduz erro de digitação. | Sim, se reaparecer. |
+| `dropdown.select` da Função → **seletor com busca** (`DropdownMenu` Material 3, `enableFilter`) | Lista canônica do Core FHP tem ~14 funções; digitar um termo para filtrar é bem mais rápido que rolar um select. Pedido do usuário (2026-06-02). Widget nativo M3, sem dependência. | Sim — forte candidato a virar padrão `field.searchable-select` (reaparece em STORY-052 edição e nos filtros do feed STORY-048). |
 
 Nenhuma exceção viola token de cor/contraste — todas usam os tokens auditados do tema contratante.
 

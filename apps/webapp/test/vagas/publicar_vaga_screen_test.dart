@@ -311,4 +311,43 @@ void main() {
 
     expect(find.byKey(const Key('publicar-vaga-retry-btn')), findsOneWidget);
   });
+
+  testWidgets('CA-4 — digitar um termo filtra as funções no seletor', (
+    tester,
+  ) async {
+    _entrarContratante();
+    await tester.pumpWidget(
+      _comRouter(
+        _FakeVagaService(
+          gate: const GatePublicacao(pending: 0),
+          funcoes: const [
+            Funcao(id: 1, nome: 'Bartender'),
+            Funcao(id: 2, nome: 'Garçom'),
+            Funcao(id: 3, nome: 'Barista'),
+            Funcao(id: 4, nome: 'Cozinheiro'),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Abre o menu — todas as funções aparecem.
+    await tester.tap(find.byKey(const Key('publicar-vaga-funcao-dropdown')));
+    await tester.pumpAndSettle();
+    expect(find.text('Garçom'), findsWidgets);
+    expect(find.text('Cozinheiro'), findsWidgets);
+
+    // Digita "bar" no campo do seletor → filtra para Bartender e Barista.
+    final campoBusca = find.descendant(
+      of: find.byKey(const Key('publicar-vaga-funcao-dropdown')),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(campoBusca, 'bar');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bartender'), findsWidgets);
+    expect(find.text('Barista'), findsWidgets);
+    expect(find.text('Garçom'), findsNothing);
+    expect(find.text('Cozinheiro'), findsNothing);
+  });
 }
