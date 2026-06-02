@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true  # tela nova — designer entrega SCREEN spec antes
 design_screen_id: SCREEN-STORY-046-publicar-vaga
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8-programador-2026-06-02
 created_at: 2026-06-01
-updated_at: 2026-06-01
+updated_at: 2026-06-02
 estimated_session_size: M
 produces_idr: null
 ---
@@ -96,12 +96,42 @@ Você decide: estrutura de pastas no WebApp (`lib/features/contratante/vagas/`),
 
 ## Notas do agente
 
+### Documentos lidos
+- Estória inteira; `domain/vaga.md`; ADR-013 (modelo Vaga + evento `vaga.criada` + snapshot v1 na publicação); PDR-005 (gate); DDR-001/tokens; SCREEN-STORY-046 (spec validado pelo humano 2026-06-02).
+- Código: `Vaga`/`VagaVersao`/`AuditLog` models + `VagaEstado` enum + `VagasSeeder` (cria vaga + versão 1); `FuncaoController` (`GET /api/funcoes` já existe); padrão RBAC = `FormRequest::authorize()` + `abort_unless(...,403)` (sem Policy class); `CompletarCadastroContratante*` (controller/request/service/teste) como idioma; front: `cadastro_types.dart` (`cadastroApiBase`, result types), `completar_cadastro_contratante_service.dart`, `router.dart` (funnel guard go_router), `auth_service.dart` (sessão + role).
+
+### Entendimento consolidado
+- Tela de **escrita** do contratante: form de 6 campos → `POST /api/vagas` → vaga `aberta` + snapshot v1 + audit `vaga.criada` + telemetria `vaga.publicada`. Localização (`lat/lng/cidade/uf`) **derivada do contratante** (ADR-013), não coletada.
+- Gate PDR-005 (CA-5): `GET /api/avaliacoes/pendentes-do-contratante` → `{pending,turnos}`. **Decisão do PO (Alexandro, chat 2026-06-02): stub-honesto** — turnos/avaliações são do EPIC-003; o endpoint retorna `pending:0` por um service isolado que o EPIC-003 preenche; UI do gate testada no front com `pending>0` mockado.
+- RBAC (CA-1): profissional → 403 no back (authorize/abort) e estado "sem permissão" + guard no front.
+
+### Plano
+1. **Back (TDD):** `StoreVagaRequest` (CA-2/3) + `VagaController@store` + `PublicarVagaService` (cria vaga + versão 1 + audit + telemetria) ; `AvaliacoesPendentesController` + `AvaliacoesPendentesContratante` service (gate, CA-5) ; rotas protegidas (auth:web + WebAppOnly + FunnelGuard + StartSession).
+2. **Front (TDD):** `VagaService` (POST + gate) ; `PublicarVagaScreen` + home contratante com CTA ; rotas `/contratante/vagas/nova` + sucesso ; guard RBAC ; widget tests.
+3. **E2E** (CA-9) em `integration_test` same-origin (IDR-010/011/021).
+4. Suíte completa verde + Pint + flutter analyze/format ; Notas finais + index.json.
+
+### Mapeamento CA → testes (planejado)
+- CA-1 RBAC: `back: profissional recebe 403 no POST e no GET do gate`; `front/e2e: guard mostra sem-permissão`.
+- CA-2 campos obrigatórios + espelho server: `back: 422 por campo faltando (funcao/data_inicio/data_fim/valor/posicoes)`; `front: validação client`.
+- CA-3 data_fim>data_inicio: `back: 422`; `front: errorText`.
+- CA-4 dropdown funções: reusa `GET /api/funcoes` (já testado, STORY-017); `front: dropdown popula`.
+- CA-5 gate: `back: GET retorna {pending:0,turnos:[]} p/ contratante; 403 p/ profissional`; `front: pending>0 → gate, pending=0 → form`.
+- CA-6 201 + estado aberta + audit: `back: cria vaga aberta + versão 1 + audit_logs vaga.criada`.
+- CA-7 navegação + toast: `front/e2e: após sucesso vai p/ /contratante/vagas + toast`.
+- CA-8 cobertura: ≥95% controller/request, ≥80% widgets.
+- CA-9 E2E: `integration_test: login contratante → form → submit → vaga no banco`.
+- CA-10 telemetria: `back: Log vaga.publicada com vaga_id/contratante_id/funcao/posicoes/valor`.
+
 ### Decisões tomadas
-- 
+- Gate PDR-005 = stub-honesto (acima). A localização da vaga vem do `contratanteProfile` (cidade/uf); `lat/lng` ficam null até o EPIC-003 (schema permite null).
+
 ### Descobertas
-- 
+- `GET /api/funcoes` e a tabela/seed de funções já existem (STORY-017) → CA-4 satisfeito sem novo seeder.
+
 ### Bloqueios
-- 
+- (nenhum)
+
 ### IDRs
 - 
 ### Cobertura final

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<!--
+  PROTÓTIPO DE VALIDAÇÃO — NÃO É CÓDIGO DE PRODUÇÃO.
+  SCREEN-STORY-046 — Publicar vaga (contratante). Fidelidade visual aos tokens DDR-001
+  (tema contratante, claro). HTML/CSS/JS vanilla, sem rede, sem build. Abra clicando.
+  Estados via chips no topo (ou ?state=...). Viewport via toggle Mobile/Desktop.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCREEN-STORY-046 — Publicar vaga</title>
+<style>
+  :root {
+    --page: #F7F4EC; --surface: #FFFFFF;
+    --border-subtle: #E0DDD3; --border-strong: #C8C5BB;
+    --text-strong: #0F1B2D; --text-muted: #42504A;
+    --brand: #00A868;
+    --accent: #9A6E25; --accent-ink: #6E4E12; --on-accent: #FFFFFF;
+    --error: #B83A3A; --error-soft: #FBE2E2;
+    --warn: #9A6E25; --warn-soft: #FBEED1;
+    --success: #2D7A4F; --success-soft: #E2F0E5;
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-full: 999px;
+    --s-xs: 4px; --s-sm: 8px; --s-md: 16px; --s-lg: 24px; --s-xl: 32px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #EAE6DA; color: var(--text-strong);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Barra de controle do protótipo (não faz parte da tela) */
+  .proto-bar {
+    position: sticky; top: 0; z-index: 50; background: #1A2018; color: #ECEDE5;
+    padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    font-size: 13px;
+  }
+  .proto-bar strong { color: #fff; }
+  .proto-bar .chip {
+    border: 1px solid #3a4a3f; background: #232b25; color: #d8ded6;
+    border-radius: var(--r-full); padding: 4px 12px; cursor: pointer; font-size: 12px;
+  }
+  .proto-bar .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .proto-bar .group { display: flex; gap: 6px; align-items: center; }
+  .proto-bar .sep { width: 1px; height: 20px; background: #3a4a3f; }
+
+  .stage { display: flex; justify-content: center; padding: 28px 16px 60px; }
+  .frame {
+    background: var(--page); width: 100%; max-width: 412px;
+    min-height: 720px; border-radius: var(--r-lg);
+    box-shadow: 0 8px 30px rgba(0,0,0,.18); overflow: hidden; position: relative;
+    display: flex; flex-direction: column;
+  }
+  body.desktop .frame { max-width: 720px; }
+
+  /* AppBar */
+  .appbar {
+    display: flex; align-items: center; gap: var(--s-md);
+    padding: 14px var(--s-md); background: var(--surface);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .appbar .back { font-size: 22px; color: var(--text-strong); cursor: pointer; line-height: 1;
+    width: 40px; height: 40px; display: grid; place-items: center; border-radius: var(--r-full); }
+  .appbar .title { font-size: 18px; font-weight: 700; }
+
+  .scroll { flex: 1; overflow-y: auto; padding: var(--s-md); }
+  body.desktop .scroll { padding: var(--s-lg) var(--s-xl); }
+
+  .brand {
+    font-family: "Bebas Neue", Impact, "Arial Narrow Bold", sans-serif;
+    color: var(--brand); font-size: 40px; letter-spacing: 1px; text-align: center;
+    margin: 8px 0 2px;
+  }
+  .page-title-lg { text-align: center; font-size: 22px; font-weight: 700; margin: 0 0 var(--s-lg); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md); padding: var(--s-md);
+  }
+  body.desktop .card { padding: var(--s-lg); }
+
+  .section-label {
+    font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--text-muted);
+    margin: var(--s-lg) 0 var(--s-sm); text-transform: uppercase;
+  }
+  .section-label:first-child { margin-top: 0; }
+  .field-label { font-size: 13px; color: var(--text-muted); margin: var(--s-sm) 0 4px; }
+
+  .input, .select, .textarea {
+    width: 100%; background: var(--surface); color: var(--text-strong);
+    border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+    padding: 12px 14px; font-size: 15px; font-family: inherit; min-height: 48px;
+  }
+  .input::placeholder, .textarea::placeholder { color: #9a9a90; }
+  .input:focus, .select:focus, .textarea:focus {
+    outline: 2px solid var(--accent-ink); outline-offset: 1px; border-color: var(--accent-ink);
+  }
+  .select { appearance: none; background-image: linear-gradient(45deg,transparent 50%,var(--text-muted) 50%),linear-gradient(135deg,var(--text-muted) 50%,transparent 50%);
+    background-position: calc(100% - 18px) 21px, calc(100% - 13px) 21px; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
+  .textarea { min-height: 84px; resize: vertical; }
+  .input.placeholder-empty { color: #9a9a90; }
+
+  .row { display: flex; gap: var(--s-sm); }
+  .row > * { flex: 1; }
+  body.desktop .two-col { display: flex; gap: var(--s-lg); }
+  body.desktop .two-col > * { flex: 1; }
+
+  .hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .error-text { font-size: 12px; color: var(--error); margin-top: 4px; }
+  .input.invalid, .select.invalid { border-color: var(--error); }
+
+  /* stepper */
+  .stepper { display: flex; align-items: center; gap: var(--s-sm); }
+  .stepper button {
+    width: 48px; height: 48px; border-radius: var(--r-sm); border: 1px solid var(--border-strong);
+    background: var(--surface); font-size: 22px; cursor: pointer; color: var(--text-strong);
+  }
+  .stepper .val { min-width: 48px; text-align: center; font-size: 18px; font-weight: 600; }
+
+  /* CTA */
+  .cta-bar { padding: var(--s-md); background: var(--surface); border-top: 1px solid var(--border-subtle); }
+  .btn-primary {
+    width: 100%; background: var(--accent); color: var(--on-accent); border: none;
+    border-radius: var(--r-full); padding: 15px; font-size: 16px; font-weight: 700;
+    cursor: pointer; min-height: 48px;
+  }
+  .btn-primary[disabled] { background: #d9d2c2; color: #fff; cursor: not-allowed; }
+  .btn-primary.loading { background: var(--accent); opacity: .85; }
+  .btn-outline {
+    background: transparent; color: var(--accent-ink); border: 1px solid var(--accent-ink);
+    border-radius: var(--r-full); padding: 15px 28px; font-size: 16px; font-weight: 700; cursor: pointer;
+  }
+  body.desktop .cta-bar { display: flex; justify-content: flex-end; gap: var(--s-md); background: transparent; border: none; padding-top: var(--s-lg); }
+  body.desktop .btn-primary { width: auto; padding: 14px 32px; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.5);
+    border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* banner */
+  .banner { border-radius: var(--r-sm); padding: 12px 14px; font-size: 14px; margin-bottom: var(--s-md); display: flex; gap: 10px; }
+  .banner.error { background: var(--error-soft); color: #7a1f1f; border: 1px solid #e9b8b8; }
+
+  /* gate / sem-permissao */
+  .centered { text-align: center; padding: var(--s-xl) var(--s-md); }
+  .centered .emoji { font-size: 44px; }
+  .centered h2 { font-size: 20px; margin: var(--s-md) 0 var(--s-sm); }
+  .centered p { color: var(--text-muted); font-size: 15px; line-height: 1.5; margin: 0 auto var(--s-lg); max-width: 320px; }
+  .gate-card { background: var(--warn-soft); border: 1px solid #ead9ab; border-radius: var(--r-md); padding: var(--s-lg); }
+
+  /* skeleton */
+  .sk { background: linear-gradient(90deg,#eee 25%,#f5f5f0 50%,#eee 75%); background-size: 200% 100%;
+    animation: sh 1.3s infinite; border-radius: var(--r-sm); height: 16px; margin: 10px 0; }
+  .sk.lg { height: 48px; } .sk.w60 { width: 60%; } .sk.w40 { width: 40%; }
+  @keyframes sh { to { background-position: -200% 0; } }
+
+  /* toast */
+  .toast {
+    position: absolute; left: 50%; transform: translateX(-50%); bottom: 24px;
+    background: var(--success); color: #fff; padding: 12px 18px; border-radius: var(--r-sm);
+    font-size: 14px; max-width: 90%; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,.25);
+  }
+  .success-screen { text-align: center; padding: var(--s-xl) var(--s-md); }
+  .success-screen .emoji { font-size: 48px; color: var(--success); }
+
+  /* home */
+  .home { text-align: center; padding: var(--s-xl) var(--s-md); }
+  .home .greet { font-size: 18px; color: var(--text-muted); margin-bottom: var(--s-xl); }
+
+  .hide { display: none !important; }
+</style>
+</head>
+<body class="mobile">
+
+<div class="proto-bar">
+  <strong>SCREEN-046 · Publicar vaga</strong>
+  <div class="sep"></div>
+  <div class="group">
+    <span>viewport:</span>
+    <span class="chip vp active" data-vp="mobile">Mobile</span>
+    <span class="chip vp" data-vp="desktop">Desktop</span>
+  </div>
+  <div class="sep"></div>
+  <div class="group" id="states">
+    <span>estado:</span>
+    <span class="chip st active" data-st="home">home</span>
+    <span class="chip st" data-st="form">form</span>
+    <span class="chip st" data-st="preenchido">preenchido</span>
+    <span class="chip st" data-st="erro-campo">erro-campo</span>
+    <span class="chip st" data-st="loading">loading</span>
+    <span class="chip st" data-st="submit">submit</span>
+    <span class="chip st" data-st="erro-servidor">erro-servidor</span>
+    <span class="chip st" data-st="gate">gate</span>
+    <span class="chip st" data-st="sem-permissao">sem-permissão</span>
+    <span class="chip st" data-st="sucesso">sucesso</span>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="frame" id="frame"><!-- conteúdo injetado --></div>
+</div>
+
+<script>
+const F = {
+  funcaoOptions: `
+    <option value="" disabled selected>Selecione a função</option>
+    <option>Garçom / Garçonete</option>
+    <option>Bartender</option>
+    <option>Cozinheiro(a)</option>
+    <option>Recepcionista</option>
+    <option>Hostess / Recepção de Salão</option>`,
+};
+
+function appbar(title='Publicar vaga'){
+  return `<div class="appbar"><div class="back" data-testid="back" title="Voltar">←</div><div class="title">${title}</div></div>`;
+}
+
+function formBody({filled=false, error=false}={}){
+  const fSel = `<select class="select ${error?'':''}" data-testid="publicar-vaga-funcao-dropdown">${F.funcaoOptions.replace(filled?'disabled selected':'__x__','')}</select>`;
+  const valFunc = filled
+    ? `<select class="select" data-testid="publicar-vaga-funcao-dropdown"><option selected>Bartender</option></select>`
+    : `<select class="select" data-testid="publicar-vaga-funcao-dropdown">${F.funcaoOptions}</select>`;
+  const di = filled ? '12/06/2026' : ''; const hi = filled ? '18:00' : '';
+  const df = filled ? '12/06/2026' : ''; const hf = filled || error ? (error?'12/06/2026':'12/06/2026') : '';
+  const hfTime = error ? '17:00' : (filled ? '23:00' : '');
+  return `
+  <div class="card" data-testid="publicar-vaga-screen">
+    <div class="section-label">Função</div>
+    ${valFunc}
+
+    <div class="section-label">Quando</div>
+    <div class="two-col">
+      <div>
+        <div class="field-label">Início</div>
+        <div class="row">
+          <input class="input" data-testid="publicar-vaga-data-inicio" placeholder="dd/mm/aaaa" value="${di}">
+          <input class="input" data-testid="publicar-vaga-hora-inicio" placeholder="--:--" value="${hi}">
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Fim</div>
+        <div class="row">
+          <input class="input ${error?'invalid':''}" data-testid="publicar-vaga-data-fim" placeholder="dd/mm/aaaa" value="${error?'12/06/2026':df}">
+          <input class="input ${error?'invalid':''}" data-testid="publicar-vaga-hora-fim" placeholder="--:--" value="${hfTime}">
+        </div>
+        ${error ? `<div class="error-text">O fim precisa ser depois do início.</div>` : ``}
+      </div>
+    </div>
+    ${(filled||error) ? `<div class="hint">ⓘ A vaga dura ~5h.</div>` : ``}
+
+    <div class="section-label">Pagamento e posições</div>
+    <div class="two-col">
+      <div>
+        <div class="field-label">Valor por turno</div>
+        <input class="input" data-testid="publicar-vaga-valor" placeholder="R$ 0,00" value="${filled||error?'R$ 150,00':''}">
+        <div class="hint">O quanto o profissional recebe por este turno.</div>
+      </div>
+      <div>
+        <div class="field-label">Quantas pessoas?</div>
+        <div class="stepper" data-testid="publicar-vaga-posicoes">
+          <button aria-label="Diminuir posições">−</button>
+          <span class="val">${filled||error?'2':'1'}</span>
+          <button aria-label="Aumentar posições">+</button>
+        </div>
+        <div class="hint">Quantos profissionais você precisa para este turno.</div>
+      </div>
+    </div>
+
+    <div class="section-label">Observações (opcional)</div>
+    <textarea class="textarea" data-testid="publicar-vaga-observacoes" placeholder="Dress code, instruções, ponto de encontro…">${filled?'Camisa preta. Entrar pela portaria de serviço.':''}</textarea>
+  </div>`;
+}
+
+function ctaBar({loading=false, disabled=false}={}){
+  const isDesktop = document.body.classList.contains('desktop');
+  const cancel = isDesktop ? `<button class="btn-outline" data-testid="publicar-vaga-cancelar-btn">Cancelar</button>` : '';
+  const label = loading ? `<span class="spinner"></span>Publicando…` : 'Publicar vaga';
+  return `<div class="cta-bar">${cancel}<button class="btn-primary ${loading?'loading':''}" data-testid="publicar-vaga-submit-btn" ${disabled?'disabled':''}>${label}</button></div>`;
+}
+
+function render(state){
+  const frame = document.getElementById('frame');
+  let html = '';
+  switch(state){
+    case 'home':
+      html = appbar('Turni') +
+        `<div class="scroll"><div class="home">
+           <div class="brand">TURNI.</div>
+           <div class="greet">Olá! Pronto para cobrir um turno?</div>
+           <button class="btn-primary" data-testid="contratante-home-publicar-vaga-btn" style="max-width:320px;margin:0 auto;display:block">Publicar vaga</button>
+         </div></div>`;
+      break;
+    case 'form':
+      html = appbar() + `<div class="scroll">${formBody()}</div>` + ctaBar({disabled:true});
+      break;
+    case 'preenchido':
+      html = appbar() + `<div class="scroll">${formBody({filled:true})}</div>` + ctaBar({disabled:false});
+      break;
+    case 'erro-campo':
+      html = appbar() + `<div class="scroll">${formBody({filled:true, error:true})}</div>` + ctaBar({disabled:true});
+      break;
+    case 'loading':
+      html = appbar() + `<div class="scroll"><div class="card">
+        <div class="sk w40"></div><div class="sk lg"></div>
+        <div class="sk w40"></div><div class="sk lg"></div>
+        <div class="sk w60"></div><div class="sk lg"></div>
+      </div></div>`;
+      break;
+    case 'submit':
+      html = appbar() + `<div class="scroll" style="opacity:.6;pointer-events:none">${formBody({filled:true})}</div>` + ctaBar({loading:true});
+      break;
+    case 'erro-servidor':
+      html = appbar() + `<div class="scroll">
+        <div class="banner error" data-testid="publicar-vaga-erro-banner">⚠ Não foi possível publicar agora. Verifique sua conexão e tente de novo.</div>
+        ${formBody({filled:true})}</div>` + ctaBar({disabled:false});
+      break;
+    case 'gate':
+      html = appbar() + `<div class="scroll"><div class="centered" data-testid="publicar-vaga-gate">
+        <div class="emoji">📋</div>
+        <h2>Avalie seus turnos pendentes para publicar uma nova vaga</h2>
+        <div class="gate-card">
+          <p>Você tem 2 turnos finalizados aguardando sua avaliação. Avaliar mantém o histórico de todos justo.</p>
+          <button class="btn-primary" data-testid="publicar-vaga-gate-avaliar-btn">Avaliar turnos pendentes</button>
+        </div>
+      </div></div>`;
+      break;
+    case 'sem-permissao':
+      html = appbar() + `<div class="scroll"><div class="centered" data-testid="publicar-vaga-sem-permissao">
+        <div class="emoji">🔒</div>
+        <h2>Esta área é do contratante</h2>
+        <p>Publicar vagas é uma ação de quem contrata. Sua conta é de profissional.</p>
+        <button class="btn-outline">Voltar ao início</button>
+      </div></div>`;
+      break;
+    case 'sucesso':
+      html = appbar('Minhas vagas') + `<div class="scroll"><div class="success-screen">
+        <div class="emoji">✓</div>
+        <h2 style="margin-top:12px">Vaga publicada</h2>
+        <p style="color:var(--text-muted)">Você foi levado para "Minhas vagas" (STORY-047).</p>
+      </div></div>
+      <div class="toast" data-testid="publicar-vaga-sucesso-toast">Vaga publicada — começou a aparecer para profissionais.</div>`;
+      break;
+  }
+  frame.innerHTML = html;
+}
+
+// wiring controls
+document.querySelectorAll('.chip.vp').forEach(c => c.addEventListener('click', () => {
+  document.querySelectorAll('.chip.vp').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');
+  document.body.className = c.dataset.vp;
+  render(currentState());
+}));
+document.querySelectorAll('.chip.st').forEach(c => c.addEventListener('click', () => {
+  document.querySelectorAll('.chip.st').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');
+  history.replaceState(null,'','?state='+c.dataset.st);
+  render(c.dataset.st);
+}));
+function currentState(){ return document.querySelector('.chip.st.active')?.dataset.st || 'home'; }
+
+// init from ?state=
+const initial = new URLSearchParams(location.search).get('state') || 'home';
+const initChip = document.querySelector(`.chip.st[data-st="${initial}"]`);
+if (initChip){ document.querySelectorAll('.chip.st').forEach(x=>x.classList.remove('active')); initChip.classList.add('active'); }
+render(initial);
+</script>
+</body>
+</html>
