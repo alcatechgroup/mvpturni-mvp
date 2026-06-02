@@ -209,6 +209,6 @@ Você NÃO decide:
 
 ### Pendências para fechar (homolog + PO)
 - [ ] CA-13 — após deploy `rc.M+1`, smoke de não-regressão da STORY-037 (banner "Nova versão disponível" ≤ 5 min, "Atualizar agora" sem hard-reload). PO atesta em chat.
-- [ ] CA-14 — Android Chrome: instalar PWA mostra o ícone Turni na home/drawer. Captura anexada.
+- [~] **CA-14 — Android Chrome: DISPENSADO pelo PO em 2026-06-02 (sem device Android disponível para testar). Risco baixo: o mesmo `manifest.json`/PNGs servem Android e iOS; a identidade já foi validada no iOS (CA-15) e os ícones maskable/192/512 estão 200 em homolog (CA-8). Reabrir se surgir device Android.**
 - [x] **CA-15 — iOS Safari: ícone Turni (T branco sobre verde) na home. CONFIRMADO pelo PO em 2026-06-02, em iPhone real, após reinstalar com a `rc.44` (apple-touch-icon opaco). A 1ª tentativa (rc.43) saiu com fundo escuro por transparência; ver Descobertas.**
 - [ ] Flip `index.json` `STORY-041 status: done` após CA-13 + CA-14 + sign-off final.
