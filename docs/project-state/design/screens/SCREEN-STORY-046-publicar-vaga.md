@@ -2,7 +2,7 @@
 id: SCREEN-STORY-046-publicar-vaga
 story: STORY-046-publicar-vaga-webapp-contratante
 epic: EPIC-002-vaga-feed-e-candidatura
-status: ready                # draft | ready | in_implementation | shipped | superseded
+status: shipped              # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-02
 updated_at: 2026-06-02
 owner_designer: claude-opus-4-8

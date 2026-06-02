@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true  # tela nova — designer entrega SCREEN spec antes
 design_screen_id: SCREEN-STORY-046-publicar-vaga
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-programador-2026-06-02
 created_at: 2026-06-01
 updated_at: 2026-06-02
@@ -93,6 +93,11 @@ Você decide: estrutura de pastas no WebApp (`lib/features/contratante/vagas/`),
 - [ ] Deploy de homolog mostra a tela funcional para um contratante seed. **(pendente — push é manual; aguarda Alexandro)**
 - [x] `index.json` atualizado.
 - [x] "Notas do agente" preenchida.
+
+> **Aprovada pelo PO (Alexandro) em chat — 2026-06-02.** Story `done`. Deploy de homolog
+> acontece no próximo `git push` (push é manual). Melhorias feitas durante a validação
+> manual: seletor de função com busca, restauração de sessão no boot (IDR-025), hint de
+> duração precisa do turno, e locale pt-BR + horário 24h app-wide (DDR-002).
 
 ## Notas do agente
 
