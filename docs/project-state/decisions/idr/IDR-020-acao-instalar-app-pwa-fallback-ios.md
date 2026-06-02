@@ -2,18 +2,18 @@
 idr_id: IDR-020
 slug: acao-instalar-app-pwa-fallback-ios
 title: Ação "Instalar app" no WebApp Flutter — beforeinstallprompt + fallback iOS + identidade visual
-status: proposed  # proposed | accepted | superseded
+status: accepted  # proposed | accepted | superseded
 decided_at: 2026-05-31
 decided_by: programador
-approved_by: null  # PO assina após smokes CA-19/CA-20 verdes em homolog
-owner_agent: null
+approved_by: PO  # 2026-06-02 — aprovada em chat após smokes CA-19 (desktop/Android prompt nativo) + CA-20 (iOS) verdes em homolog rc.47
+owner_agent: programador
 related_story: STORY-042  # renomeada de STORY-039 em 2026-06-01 (colisão com EPIC-007)
 related_adrs: [ADR-001]
 related_idrs: [IDR-002, IDR-017]
 supersedes: null
 superseded_by: null
 created_at: 2026-05-31
-updated_at: 2026-06-01
+updated_at: 2026-06-02
 ---
 
 # IDR-020 — Ação "Instalar app": prompt nativo Android/Chromium + instruções no iOS + identidade visual
@@ -119,3 +119,4 @@ As 9 decisões operacionais:
 ## Histórico
 
 - 2026-05-31 — criada como `proposed` pelo PO (sessão Cowork) como parte do rascunho do EPIC-008 / STORY-042 a partir do pedido de Alexandro: "ação para o webapp se instalar na tela inicial, fallback iOS, ícone simples, não quebrar update automático". A numeração saltou de IDR-017 → IDR-020 porque IDR-018 (`render-aceite-adesao-secao1-e-documento-hash`) e IDR-019 (`session-driver-cookie-na-api-cloud-run`) já estavam ocupadas.
+- 2026-06-02 — `accepted` pelo PO em chat. STORY-042 implementada e validada em homolog (rc.46 → rc.47): card aparece no desktop/Android via prompt nativo e no iOS via "Como instalar"; smoke iOS (rc.46) revelou layout do card quebrado em tela estreita (texto char-por-linha) — corrigido em rc.47 (card empilhado, botões em `Wrap`) e revalidado no iPhone. Auto-update (IDR-017) sem regressão com o épico no ar. Decisões operacionais do IDR mantidas como entregues; nenhuma alteração de escopo no aceite.

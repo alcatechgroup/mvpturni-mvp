@@ -290,7 +290,7 @@
       "slug": "pwa-instalavel",
       "title": "WebApp instalável na tela inicial (PWA) — ação de instalar + fallback iOS + identidade visual",
       "wave": "WAVE-2026-01",
-      "status": "ready",
+      "status": "done",
       "path": "epics/EPIC-008-pwa-instalavel/epic.md",
       "story_ids": [
         "STORY-041",
@@ -298,8 +298,8 @@
       ],
       "sprint": "SPRINT-2026-W27",
       "created_at": "2026-05-31",
-      "updated_at": "2026-06-01",
-      "next_action": "Aprovado pelo PO em 2026-06-01 e atrelado à SPRINT-2026-W27 — STORY-041 + STORY-042 em `ready`. Sem ordem obrigatória face a EPIC-002; recomendado começar cedo (estórias pequenas, fecha rápido).",
+      "updated_at": "2026-06-02",
+      "next_action": "DONE 2026-06-02 — ambas as estórias fechadas (STORY-041 ícones Turni; STORY-042 ação 'Instalar app' + fallback iOS). PWA instalável validada em homolog: Android/desktop via prompt nativo, iOS via instruções 'Como instalar'. IDR-020 accepted. Próximo passo natural (fora deste épico): push notifications (WAVE-2026-02+), que tem a instalação como pré-requisito.",
       "renamed_stories": {
         "STORY-041": "STORY-038",
         "STORY-042": "STORY-039"
@@ -1355,7 +1355,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": null,
-      "status": "in_progress",
+      "status": "done",
       "owner_agent": "programador",
       "sprint_id": "SPRINT-2026-W27",
       "path": "epics/EPIC-008-pwa-instalavel/stories/STORY-042-acao-instalar-app-fallback-ios.md",
@@ -1365,8 +1365,8 @@
       "produces_idr": "IDR-020",
       "renamed_from": "STORY-039 (EPIC-008 original; renomeada em 2026-06-01 por colisão com EPIC-007 STORY-039)",
       "created_at": "2026-05-31",
-      "updated_at": "2026-06-01",
-      "notes": "2026-06-01: código completo + suíte verde (152 testes WebApp; cobertura install controller 97,6% / widgets 100%). Módulo lib/core/install (bridge+stub+web+controller+singleton) espelha app_update; card+modal iOS plugados nas 4 telas (Keys install-action-*); script pré-Flutter no index.html (não toca SW/caches/fetch — IDR-017 preservado); E2E install-action.spec.ts verde + smoke/integration não-regressão verdes. Falta p/ `done`: release em homolog, smokes CA-19 (Android) / CA-20 (iOS) + CA-18 (não-regressão auto-update com épico no ar) assinados pelo PO, e IDR-020 → accepted."
+      "updated_at": "2026-06-02",
+      "notes": "2026-06-02 DONE — PO aprovou em chat após smokes em homolog. Módulo lib/core/install (bridge+stub+web+controller+singleton) espelha app_update; card 'Instalar app na tela inicial' + modal iOS (2 passos) plugados nas 4 telas (Keys install-action-*); script pré-Flutter no index.html captura beforeinstallprompt sem tocar SW/caches/fetch (IDR-017 preservado). Suíte: 154 testes WebApp verdes, cobertura install controller 97,6% / widgets 100%. E2E install-action + app-update (não-regressão) + smoke boot verdes em homolog rc.47. Smoke iOS (rc.46) pegou layout do card quebrado em tela estreita (texto char-por-linha) — corrigido em rc.47 (card empilhado Column + botões em Wrap) e revalidado no iPhone real. Desktop/Android via prompt nativo; iOS via 'Como instalar'. IDR-020 accepted. Releases: rc.46 (entrega) + rc.47 (fix layout iOS)."
     },
     {
       "id": "STORY-044",
@@ -2477,12 +2477,14 @@
       {
         "id": "IDR-020",
         "title": "Ação \"Instalar app\" no WebApp Flutter — beforeinstallprompt + fallback iOS + identidade visual",
-        "status": "proposed",
+        "status": "accepted",
         "path": "decisions/idr/IDR-020-acao-instalar-app-pwa-fallback-ios.md",
         "decided_at": "2026-05-31",
         "decided_by": "programador",
+        "approved_by": "PO",
+        "approved_at": "2026-06-02",
         "source_story": "STORY-042",
-        "note": "PO assina após smokes CA-19/CA-20 verdes em homolog. STORY-042 era STORY-039 (EPIC-008) até 2026-06-01 — renomeada para resolver colisão com STORY-039 do EPIC-007 (Patrol)."
+        "note": "Accepted 2026-06-02 após smokes em homolog (rc.47): card no desktop/Android via prompt nativo + iOS via 'Como instalar'; auto-update (IDR-017) sem regressão. STORY-042 era STORY-039 (EPIC-008) até 2026-06-01 — renomeada para resolver colisão com STORY-039 do EPIC-007 (Patrol)."
       },
       {
         "id": "IDR-021",

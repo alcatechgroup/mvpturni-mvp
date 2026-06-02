@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true  # designer revisa o card "Instalar app" e o modal iOS contra DDR-001
 design_screen_id: null
-status: in_progress  # 2026-06-01 — código completo + suíte verde; aguarda release + smokes CA-18/19/20 do PO p/ done
+status: done  # 2026-06-02 — PO aprovou em chat após smokes em homolog (rc.47); IDR-020 accepted
 owner_agent: programador
 created_at: 2026-05-31
-updated_at: 2026-06-01  # implementação concluída; smokes mobile pendentes
+updated_at: 2026-06-02  # done — card validado no iPhone (rc.47) + Android/desktop via prompt nativo
 estimated_session_size: M
 produces_idr: IDR-020
 renamed_from: STORY-039  # 2026-06-01 — colisão com EPIC-007 STORY-039 (Patrol)

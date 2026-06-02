@@ -34,19 +34,19 @@ Por que os dois épicos juntos? Decisão do PO em chat de 2026-06-01: time de ex
 
 ### EPIC-002 — Vaga, feed e candidatura
 
-| ID | Título | Papel | Tipo | Tamanho | Bloqueada por |
-|---|---|---|---|---|---|
-| STORY-044 | Spike modelo Vaga + Candidatura + snapshot PDR-009 | arquiteto | spike | M | — |
-| STORY-045 | Spike algoritmo Match (40/20/30/10) + eventos | arquiteto | spike | M | 044 |
-| STORY-046 | Publicar vaga no WebApp + gate PDR-005 | programador | implementation | M | 044 |
-| STORY-047 | Lista "Minhas vagas" do contratante + cancelar | programador | implementation | S | 044, 046 |
-| STORY-048 | Feed do profissional com match + filtros (p95 ≤ 800ms) | programador | implementation | **L** | 044, 045 |
-| STORY-049 | Detalhe da vaga + breakdown explicável | programador | implementation | M | 044, 045, 048 |
-| STORY-050 | Candidatura em 1 toque + 3 gates | programador | implementation | M | 044, 045, 049 |
-| STORY-051 | Painel de candidatos do contratante (ranqueado) | programador | implementation | M | 044, 045, 049, 050 |
-| STORY-052 | Edição material PDR-009 + snapshot + cron 24h | programador | implementation | M | 044, 034, 047 |
-| STORY-053 | Notificações in-app + e-mail (3 eventos, 5 templates) | programador | implementation | M | 020, 021, 034, 047, 050, 052 |
-| STORY-054 | Validação final EPIC-002 | validador | validation | M | tudo acima |
+| ID        | Título                                                 | Papel       | Tipo           | Tamanho | Bloqueada por                |
+| --------- | ------------------------------------------------------ | ----------- | -------------- | ------- | ---------------------------- |
+| STORY-044 | Spike modelo Vaga + Candidatura + snapshot PDR-009     | arquiteto   | spike          | M       | —                            |
+| STORY-045 | Spike algoritmo Match (40/20/30/10) + eventos          | arquiteto   | spike          | M       | 044                          |
+| STORY-046 | Publicar vaga no WebApp + gate PDR-005                 | programador | implementation | M       | 044                          |
+| STORY-047 | Lista "Minhas vagas" do contratante + cancelar         | programador | implementation | S       | 044, 046                     |
+| STORY-048 | Feed do profissional com match + filtros (p95 ≤ 800ms) | programador | implementation | **L**   | 044, 045                     |
+| STORY-049 | Detalhe da vaga + breakdown explicável                 | programador | implementation | M       | 044, 045, 048                |
+| STORY-050 | Candidatura em 1 toque + 3 gates                       | programador | implementation | M       | 044, 045, 049                |
+| STORY-051 | Painel de candidatos do contratante (ranqueado)        | programador | implementation | M       | 044, 045, 049, 050           |
+| STORY-052 | Edição material PDR-009 + snapshot + cron 24h          | programador | implementation | M       | 044, 034, 047                |
+| STORY-053 | Notificações in-app + e-mail (3 eventos, 5 templates)  | programador | implementation | M       | 020, 021, 034, 047, 050, 052 |
+| STORY-054 | Validação final EPIC-002                               | validador   | validation     | M       | tudo acima                   |
 
 ### EPIC-008 — PWA instalável
 
