@@ -2551,6 +2551,16 @@
         "decided_by": "programador",
         "source_story": "STORY-024",
         "note": "ViaCEP via Http nativo (sem lib nova), timeout 4s, fail-soft: CepLookup nunca lança, retorna null e loga cadastro.cep_lookup_falhou. BrasilAPI fica como fallback (troca base_url). CA-4."
+      },
+      {
+        "id": "IDR-025",
+        "title": "Boot do WebApp restaura a sessão persistida antes do primeiro roteamento",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-025-restaura-sessao-no-boot.md",
+        "decided_at": "2026-06-02",
+        "decided_by": "programador",
+        "source_story": "STORY-046",
+        "note": "main() chama await AuthService.loadFromPrefs() antes do runApp. Sem isso, reload/URL digitada/bookmark em rota protegida caía em /login (gap app-wide de auth, EPIC-001) mesmo com cookie Sanctum válido. Coberto por unit + E2E de deep-link."
       }
     ],
     "ddr": [

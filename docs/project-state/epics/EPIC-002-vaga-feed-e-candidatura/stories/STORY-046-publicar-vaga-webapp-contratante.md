@@ -148,7 +148,12 @@ Você decide: estrutura de pastas no WebApp (`lib/features/contratante/vagas/`),
 - Campo de data/hora = `TextFormField` (dd/mm/aaaa + HH:mm) com botão de picker (`showDatePicker`/`showTimePicker`) que preenche o campo. Híbrido digitar-ou-escolher: usável p/ não-técnico e determinístico no E2E (vs. dirigir o diálogo nativo). Dentro da latitude do programador (como realizar o `field.datetime` do spec); não muda a UX. Sem DDR.
 
 ### IDRs
-- Nenhum novo. Reusa IDR-008 (funções como dado), IDR-019 (sem csrf-cookie em sessão ativa), IDR-010/011/021 (harness E2E same-origin).
+- **IDR-025 (novo):** boot do WebApp restaura a sessão persistida (`await AuthService.loadFromPrefs()` no `main()` antes do `runApp`). Bug pego por Alexandro testando o build servido: deep-link/reload/URL digitada numa rota protegida caía em `/login` mesmo logado — gap app-wide de auth (EPIC-001) que esta tela expôs e que o E2E in-app não pegava. Coberto por `test/auth/session_restore_test.dart` + E2E de deep-link a frio.
+- Reusa IDR-008 (funções como dado), IDR-019 (sem csrf-cookie em sessão ativa), IDR-010/011/021 (harness E2E same-origin).
+
+### Achados de teste manual (Alexandro, 2026-06-02)
+- **Build servido desatualizado:** o container `webapp` serve `apps/webapp/build/web` (bundle de 29/mai, anterior à STORY-046) — sem o botão e sem a rota → "sem botão" + redirect ao digitar a URL. Resolvido com `make webapp-build` (bundle não é versionado). Lição: rebuildar o webapp servido antes do teste manual local.
+- **Sessão não sobrevivia a reload:** corrigido (IDR-025).
 
 ### Cobertura final
 - **Backend** (Pest, turni_test): controller `VagaController` 100%, `AvaliacoesPendentesController` 100%, `StoreVagaRequest` 100%, `PublicarVagaService` 100%, `AvaliacoesPendentesContratante` 100%. Suíte API completa: **366 passed**. Pint limpo.
