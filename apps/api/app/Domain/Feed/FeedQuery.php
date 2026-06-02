@@ -1,0 +1,277 @@
+<?php
+
+namespace App\Domain\Feed;
+
+use App\Domain\Match\MatchScoring;
+use App\Enums\CandidaturaEstado;
+use App\Enums\VagaEstado;
+use App\Models\Candidatura;
+use App\Models\ProfissionalProfile;
+use App\Models\User;
+use App\Models\Vaga;
+use App\Support\Telemetry\MatchEvents;
+use App\Support\Telemetry\MotivoFiltro;
+use Illuminate\Support\Collection;
+
+/**
+ * STORY-048 (CA-1..CA-5, CA-7, CA-9) — feed do profissional. Junta a camada de query
+ * (ADR-013: índice idx_vagas_feed + prefiltro bbox do raio) com o cálculo de match
+ * on-demand (ADR-014: função pura, sem cache). Fluxo:
+ *
+ *   1. Visibilidade (SQL): estado `aberta`, função primária OU secundária do profissional,
+ *      data futura, e — quando há geo — bounding-box do raio. Cap de 100 candidatos.
+ *   2. Distância precisa (PHP): Haversine refina o bbox e descarta o que cai fora do raio.
+ *   3. Match (PHP): MatchScoring.paraEntidades — score total + componentes + breakdown.
+ *   4. Ranqueamento (PHP): score DESC, boost de plano DESC (stub null), data_inicio ASC.
+ *   5. Paginação page-based (page size 20) sobre o conjunto ranqueado.
+ *
+ * O score NÃO é calculado em SQL (ADR-014): por isso o ranqueamento e a paginação rodam em
+ * memória sobre o conjunto candidato já capado em 100 — barato no volume do MVP.
+ */
+final class FeedQuery
+{
+    /** Cap do conjunto candidato antes de pontuar (ADR-013/ADR-014). */
+    public const CAP = 100;
+
+    /** Tamanho de página (CA-10). */
+    public const PER_PAGE = 20;
+
+    /** 1 grau de latitude ≈ 111.32 km (aprox. esférica suficiente para bbox de raio). */
+    private const KM_POR_GRAU = 111.32;
+
+    public function __construct(
+        private readonly MatchScoring $scoring = new MatchScoring,
+    ) {}
+
+    public function paraProfissional(User $profissional, FeedFiltro $filtro, int $page): FeedResultado
+    {
+        $page = max(1, $page);
+        $perfil = $profissional->profissionalProfile;
+
+        // Sem perfil ou sem função primária não há critério de visibilidade — feed vazio.
+        if ($perfil === null || $perfil->funcao_id === null) {
+            return new FeedResultado([], $page, false);
+        }
+
+        $candidatos = $this->candidatos($profissional, $perfil, $filtro);
+        $jaCandidatou = $this->vagasJaCandidatadas($profissional, $candidatos->pluck('id')->all());
+
+        $feedVagas = [];
+        foreach ($candidatos as $vaga) {
+            $distancia = $this->distanciaKm($perfil, $vaga);
+
+            // Refino preciso do raio (o bbox é só aproximação grosseira): fora do raio sai
+            // da visibilidade e dispara telemetria (CA-7).
+            if ($this->foraDoRaio($perfil, $distancia)) {
+                MatchEvents::vagaFiltrada($vaga->id, $profissional->id, MotivoFiltro::ForaRaio);
+
+                continue;
+            }
+
+            $score = $this->scoring->paraEntidades($perfil, $vaga, $distancia);
+
+            // "Alto match" é filtro do usuário (pós-cálculo), não um descarte de
+            // visibilidade — por isso não dispara feed.vaga_filtrada.
+            if ($filtro === FeedFiltro::AltoMatch && $score->total < 80) {
+                continue;
+            }
+
+            $feedVagas[] = new FeedVaga(
+                vaga: $vaga,
+                distanciaKm: $distancia,
+                score: $score,
+                jaCandidatou: in_array($vaga->id, $jaCandidatou, true),
+            );
+        }
+
+        $feedVagas = $this->ranquear($feedVagas);
+
+        return $this->paginar($feedVagas, $page, $profissional->id);
+    }
+
+    /**
+     * Conjunto candidato pela camada de query (ADR-013). Visibilidade dura em SQL; o raio
+     * fino e o score ficam para o PHP. Cap de 100, ordenado por data (índice idx_vagas_feed).
+     *
+     * @return Collection<int, Vaga>
+     */
+    private function candidatos(User $profissional, ProfissionalProfile $perfil, FeedFiltro $filtro): Collection
+    {
+        $funcoes = $this->funcoesVisiveis($perfil, $filtro);
+        if ($funcoes === []) {
+            return collect();
+        }
+
+        $query = Vaga::query()
+            ->where('estado', VagaEstado::Aberta)
+            ->whereIn('funcao_id', $funcoes)
+            ->where('data_inicio', '>', now())
+            ->with('funcao:id,nome');
+
+        // Prefiltro bounding-box do raio (só quando o profissional tem geo declarada).
+        if ($this->temGeo($perfil)) {
+            [$latMin, $latMax, $lngMin, $lngMax] = $this->boundingBox($perfil);
+            $query->whereBetween('lat', [$latMin, $latMax])
+                ->whereBetween('lng', [$lngMin, $lngMax]);
+        }
+
+        // "Candidatadas": só vagas com candidatura ativa deste profissional (CA-4).
+        if ($filtro === FeedFiltro::Candidatadas) {
+            $query->whereHas('candidaturas', fn ($q) => $q
+                ->where('profissional_id', $profissional->id)
+                ->whereIn('estado', $this->estadosCandidaturaAtiva()));
+        }
+
+        return $query
+            ->orderBy('data_inicio')
+            ->limit(self::CAP)
+            ->get();
+    }
+
+    /**
+     * Funções que entram na visibilidade: "Minha função" usa só a primária; os demais
+     * filtros usam primária + secundárias (domain/vaga.md §Visibilidade).
+     *
+     * @return list<int>
+     */
+    private function funcoesVisiveis(ProfissionalProfile $perfil, FeedFiltro $filtro): array
+    {
+        $primaria = (int) $perfil->funcao_id;
+        if ($filtro === FeedFiltro::MinhaFuncao) {
+            return [$primaria];
+        }
+
+        $secundarias = array_map('intval', $perfil->funcoes_secundarias ?? []);
+
+        return array_values(array_unique([$primaria, ...$secundarias]));
+    }
+
+    /**
+     * Vagas (dentre as candidatas) em que o profissional já tem candidatura ativa — para
+     * marcar `ja_candidatou` no payload (CA-1).
+     *
+     * @param  list<int>  $vagaIds
+     * @return list<int>
+     */
+    private function vagasJaCandidatadas(User $profissional, array $vagaIds): array
+    {
+        if ($vagaIds === []) {
+            return [];
+        }
+
+        return Candidatura::query()
+            ->where('profissional_id', $profissional->id)
+            ->whereIn('vaga_id', $vagaIds)
+            ->whereIn('estado', $this->estadosCandidaturaAtiva())
+            ->pluck('vaga_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    /** @return list<CandidaturaEstado> */
+    private function estadosCandidaturaAtiva(): array
+    {
+        return [CandidaturaEstado::Pendente, CandidaturaEstado::PendenteRevisaoAposEdicao];
+    }
+
+    private function temGeo(ProfissionalProfile $perfil): bool
+    {
+        return $perfil->lat !== null
+            && $perfil->lng !== null
+            && (int) ($perfil->raio_max_km ?? 0) > 0;
+    }
+
+    /**
+     * Distância Haversine em km entre profissional e vaga; null se faltar geo de qualquer
+     * lado (componente de distância então zera no match — ADR-014).
+     */
+    private function distanciaKm(ProfissionalProfile $perfil, Vaga $vaga): ?float
+    {
+        if ($perfil->lat === null || $perfil->lng === null || $vaga->lat === null || $vaga->lng === null) {
+            return null;
+        }
+
+        $lat1 = deg2rad((float) $perfil->lat);
+        $lng1 = deg2rad((float) $perfil->lng);
+        $lat2 = deg2rad((float) $vaga->lat);
+        $lng2 = deg2rad((float) $vaga->lng);
+
+        $dLat = $lat2 - $lat1;
+        $dLng = $lng2 - $lng1;
+
+        $a = sin($dLat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dLng / 2) ** 2;
+
+        return 6371.0 * 2 * asin(min(1.0, sqrt($a)));
+    }
+
+    private function foraDoRaio(ProfissionalProfile $perfil, ?float $distancia): bool
+    {
+        // Sem geo do profissional não há filtro de raio — o feed não fica vazio por falta
+        // de coordenada (SCREEN-048 §4.9 / premissa de back).
+        if (! $this->temGeo($perfil) || $distancia === null) {
+            return false;
+        }
+
+        return $distancia > (float) $perfil->raio_max_km;
+    }
+
+    /** Caixa lat/lng que contém o círculo do raio (prefiltro grosseiro do bbox). */
+    private function boundingBox(ProfissionalProfile $perfil): array
+    {
+        $lat = (float) $perfil->lat;
+        $lng = (float) $perfil->lng;
+        $raio = (float) $perfil->raio_max_km;
+
+        $dLat = $raio / self::KM_POR_GRAU;
+        // O comprimento de 1 grau de longitude encolhe com o cosseno da latitude.
+        $cos = max(0.01, cos(deg2rad($lat)));
+        $dLng = $raio / (self::KM_POR_GRAU * $cos);
+
+        return [$lat - $dLat, $lat + $dLat, $lng - $dLng, $lng + $dLng];
+    }
+
+    /**
+     * Ranqueamento (CA-3): score DESC, boost de plano DESC, data_inicio ASC. O boost é
+     * stub null (ADR-014 Decisão 3) — sem plano modelado, todos empatam em 0 e a ordem cai
+     * para score e data. Mantemos o critério explícito para quando o plano existir.
+     *
+     * @param  list<FeedVaga>  $feedVagas
+     * @return list<FeedVaga>
+     */
+    private function ranquear(array $feedVagas): array
+    {
+        usort($feedVagas, function (FeedVaga $a, FeedVaga $b) {
+            return $b->score->total <=> $a->score->total
+                ?: $this->boostPlano($b->vaga) <=> $this->boostPlano($a->vaga)
+                ?: $a->vaga->data_inicio <=> $b->vaga->data_inicio;
+        });
+
+        return $feedVagas;
+    }
+
+    /** Boost de plano do contratante — stub (ADR-014 Decisão 3): sem plano modelado = 0. */
+    private function boostPlano(Vaga $vaga): int
+    {
+        return 0;
+    }
+
+    /**
+     * Recorta a página e dispara a telemetria de apresentação (CA-7) só para as vagas
+     * efetivamente retornadas no response.
+     *
+     * @param  list<FeedVaga>  $feedVagas
+     */
+    private function paginar(array $feedVagas, int $page, int $profissionalId): FeedResultado
+    {
+        $total = count($feedVagas);
+        $offset = ($page - 1) * self::PER_PAGE;
+        $pagina = array_slice($feedVagas, $offset, self::PER_PAGE);
+        $hasNext = $total > $offset + self::PER_PAGE;
+
+        foreach ($pagina as $fv) {
+            MatchEvents::vagaApresentada($fv->vaga->id, $profissionalId, $fv->score);
+        }
+
+        return new FeedResultado(array_values($pagina), $page, $hasNext);
+    }
+}

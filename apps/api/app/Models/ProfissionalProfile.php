@@ -16,6 +16,8 @@ class ProfissionalProfile extends Model
         'telefone',
         'cidade',
         'bairro',
+        'lat',
+        'lng',
         'funcao_id',
         'funcoes_secundarias',
         'termos_aceitos_at',
@@ -48,6 +50,8 @@ class ProfissionalProfile extends Model
             'score' => 'decimal:2',
             'preco_hora' => 'decimal:2',
             'raio_max_km' => 'integer',
+            'lat' => 'decimal:7',
+            'lng' => 'decimal:7',
             'termos_aceitos_at' => 'datetime',
         ];
     }

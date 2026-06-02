@@ -10,6 +10,7 @@ import 'features/cadastro/completar_cadastro_contratante_screen.dart';
 import 'features/cadastro/completar_cadastro_screen.dart';
 import 'features/cadastro/pre_cadastro_contratante_screen.dart';
 import 'features/cadastro/pre_cadastro_profissional_screen.dart';
+import 'features/feed/feed_screen.dart';
 import 'features/funnel/welcome_screen.dart' as funnel;
 import 'features/vagas/minhas_vagas_screen.dart';
 import 'features/vagas/publicar_vaga_screen.dart';
@@ -77,13 +78,17 @@ final router = GoRouter(
   redirect: _funnelGuard,
   routes: [
     // Home pós-login (status=ativo). Não logado → o guard manda para /login.
-    // Contratante: a home é "Minhas vagas" (STORY-047 — substitui o shell mínimo de
-    // STORY-046). Demais papéis seguem no shell até terem tela própria.
+    // Contratante: home = "Minhas vagas" (STORY-047). Profissional: home = feed de vagas
+    // (STORY-048 — substitui o shell mínimo). Demais papéis seguem no shell.
     GoRoute(
       path: '/',
-      builder: (context, state) => AuthService().session?.role == 'contratante'
-          ? const MinhasVagasScreen()
-          : const AppShellScreen(),
+      builder: (context, state) {
+        return switch (AuthService().session?.role) {
+          'contratante' => const MinhasVagasScreen(),
+          'profissional' => const FeedScreen(),
+          _ => const AppShellScreen(),
+        };
+      },
     ),
 
     // Tela informativa pública (antigo root)
@@ -129,6 +134,31 @@ final router = GoRouter(
       builder: (context, state) => AuthService().session?.role == 'contratante'
           ? const CompletarCadastroContratanteScreen()
           : const CompletarCadastroScreen(),
+    ),
+
+    // Feed do profissional (STORY-048). Rota explícita além da home `/`; deep-link `?filtro=`.
+    // RBAC (CA-1) tratado dentro da tela: contratante (403) cai em "sem permissão".
+    GoRoute(
+      path: '/feed',
+      builder: (context, state) =>
+          FeedScreen(filtroInicial: state.uri.queryParameters['filtro']),
+    ),
+    // Detalhe da vaga (STORY-049). Placeholder até aquela estória entrar; o card do feed
+    // e o botão "Candidatar-se" (STORY-050) apontam para cá.
+    GoRoute(
+      path: '/vaga/:id',
+      builder: (context, state) => Scaffold(
+        appBar: AppBar(title: const Text('Detalhe da vaga')),
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'O detalhe da vaga chega na próxima estória.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
     ),
 
     // Publicar vaga do contratante (STORY-046). RBAC (CA-1) tratado dentro da tela:

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<!--
+  PROTÓTIPO DE VALIDAÇÃO — NÃO É CÓDIGO DE PRODUÇÃO.
+  SCREEN-STORY-048 — Feed do profissional (match + filtros).
+  HTML/CSS/JS vanilla, sem rede, sem build. Abra clicando no arquivo.
+  Tokens reais do tema profissional (verde-sage) + semânticos (DDR-001). Locale pt-BR / 24h (DDR-002).
+  Microcopy = §5 do spec, palavra por palavra. data-testid = §7.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCREEN-STORY-048 — Feed do profissional</title>
+<style>
+  :root {
+    --page: #F7F4EC; --surface: #FFFFFF;
+    --border-subtle: #E0DDD3; --border-strong: #C8C5BB;
+    --text-strong: #0F1B2D; --text-muted: #42504A;
+    --brand: #00A868;
+    /* Profissional (verde-sage) — DDR-001 §2.2 */
+    --accent: #2D5F3F; --accent-soft: #E5F0E8; --accent-hover: #3A7050; --on-accent: #FFFFFF;
+    --track: #E8E5DB;
+    --success: #2D7A4F; --success-soft: #E2F0E5;
+    --warn: #9A6E25; --warn-soft: #FBEED1; --warn-ink: #6E4E12;
+    --error: #B83A3A; --error-soft: #FBE2E2;
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-full: 999px;
+    --s-xs: 4px; --s-sm: 8px; --s-md: 16px; --s-lg: 24px; --s-xl: 32px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #EAE6DA; color: var(--text-strong);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Barra de controle do protótipo (não faz parte da tela) */
+  .proto-bar {
+    position: sticky; top: 0; z-index: 50; background: #1B2E1F; color: #ECEDE5;
+    padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 13px;
+  }
+  .proto-bar strong { color: #fff; }
+  .proto-bar .chip {
+    border: 1px solid #355040; background: #243528; color: #d8ded6;
+    border-radius: var(--r-full); padding: 4px 12px; cursor: pointer; font-size: 12px;
+  }
+  .proto-bar .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .proto-bar .group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .proto-bar .sep { width: 1px; height: 20px; background: #355040; }
+
+  .stage { display: flex; justify-content: center; padding: 28px 16px 60px; }
+  .frame {
+    background: var(--page); width: 100%; max-width: 412px; min-height: 760px;
+    border-radius: var(--r-lg); box-shadow: 0 8px 30px rgba(0,0,0,.18); overflow: hidden;
+    position: relative; display: flex; flex-direction: column;
+  }
+  body.desktop .frame { max-width: 980px; }
+
+  .appbar {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s-md);
+    padding: 14px var(--s-md); background: var(--surface); border-bottom: 1px solid var(--border-subtle);
+  }
+  .appbar .title { font-size: 18px; font-weight: 700; }
+  .brand {
+    font-family: "Bebas Neue", Impact, "Arial Narrow Bold", sans-serif; color: var(--brand);
+    font-size: 30px; letter-spacing: 1px; text-align: center; padding: 10px 0 0; display: none;
+  }
+  body.desktop .brand { display: block; }
+
+  .scroll { flex: 1; overflow-y: auto; padding: var(--s-md); position: relative; }
+  body.desktop .scroll { padding: var(--s-lg) var(--s-xl) 60px; }
+
+  .header-row { display: none; }
+  body.desktop .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s-md); }
+  body.desktop .header-row .title { font-size: 22px; font-weight: 700; }
+  body.desktop .appbar { display: none; }
+
+  /* Filtros (ChoiceChip) — reuso de SCREEN-047 §8 */
+  .filters { display: flex; gap: var(--s-sm); overflow-x: auto; padding: 0 0 var(--s-md); -webkit-overflow-scrolling: touch; }
+  body.desktop .filters { flex-wrap: wrap; overflow: visible; }
+  .fchip {
+    flex: 0 0 auto; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-muted);
+    border-radius: var(--r-full); padding: 8px 16px; font-size: 14px; cursor: pointer; min-height: 40px;
+    white-space: nowrap; display: inline-flex; align-items: center; font-family: inherit;
+  }
+  .fchip.sel { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
+  .fchip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Grade de cards */
+  .cards { display: flex; flex-direction: column; gap: var(--s-md); }
+  body.desktop .cards { display: grid; grid-template-columns: repeat(2, 1fr); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border-subtle); border-radius: var(--r-md);
+    padding: var(--s-md); position: relative; cursor: pointer; text-align: left;
+    width: 100%; font-family: inherit; color: inherit; display: block;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .card .top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-sm); }
+  .card .funcao { font-size: 17px; font-weight: 700; }
+  .card .when { color: var(--text-muted); font-size: 14px; margin-top: 2px; }
+  .card .money { font-size: 15px; margin-top: var(--s-sm); }
+  .card .money .dist { color: var(--text-muted); }
+
+  /* match.scorechip — número de match no canto (⬢ + número) */
+  .scorechip {
+    display: inline-flex; align-items: center; gap: 5px; font-weight: 800; font-size: 18px;
+    color: var(--accent); background: var(--accent-soft); border: 1px solid #bcd6c6;
+    border-radius: var(--r-full); padding: 4px 11px; white-space: nowrap; line-height: 1;
+  }
+  .scorechip .hex { font-size: 13px; }
+
+  /* match.scorebar — barra de score 0–100 + número + selo "Alto match" */
+  .scorerow { display: flex; align-items: center; gap: var(--s-sm); margin-top: 12px; }
+  .scorerow .lbl { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: lowercase; }
+  .scorebar { flex: 1; height: 8px; border-radius: var(--r-full); background: var(--track); overflow: hidden; }
+  .scorebar .fill { height: 100%; border-radius: var(--r-full); background: var(--accent); }
+  .scorenum { font-size: 13px; font-weight: 700; color: var(--text-strong); white-space: nowrap; }
+  .alto {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700;
+    color: #1d5235; background: var(--success-soft); border: 1px solid #9cc7ad;
+    border-radius: var(--r-full); padding: 3px 9px; white-space: nowrap;
+  }
+
+  /* button.primary (verde) — Candidatar-se */
+  .btn-primary {
+    margin-top: var(--s-md); width: 100%; background: var(--accent); color: var(--on-accent); border: none;
+    cursor: pointer; border-radius: var(--r-full); padding: 12px 24px; font-size: 15px; font-weight: 700;
+    font-family: inherit; min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary[disabled] { background: var(--track); color: #8a8f86; cursor: not-allowed; }
+  .btn-ghost {
+    background: var(--surface); color: var(--accent); border: 1px solid var(--accent); cursor: pointer;
+    border-radius: var(--r-full); padding: 12px 24px; font-size: 15px; font-weight: 700; font-family: inherit;
+    min-height: 48px; display: inline-flex; align-items: center; gap: 8px;
+  }
+
+  /* gate.banner (warning) */
+  .gate-banner {
+    display: flex; align-items: center; gap: var(--s-sm); background: var(--warn-soft);
+    border: 1px solid #e6cf94; color: var(--warn-ink); border-radius: var(--r-md);
+    padding: 12px var(--s-md); font-size: 14px; margin-bottom: var(--s-md); line-height: 1.4;
+  }
+  .gate-banner::before { content: "⚠"; font-size: 16px; }
+
+  /* Skeleton */
+  .sk { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: var(--r-md); padding: var(--s-md); }
+  .sk .bar { height: 12px; border-radius: 6px; margin: 8px 0;
+    background: linear-gradient(90deg,#eceae2 25%,#f6f4ec 37%,#eceae2 63%); background-size: 400% 100%;
+    animation: shimmer 1.3s ease infinite; }
+  .sk .barbar { height: 8px; border-radius: var(--r-full); margin-top: 12px; width: 70%;
+    background: linear-gradient(90deg,#eceae2 25%,#f6f4ec 37%,#eceae2 63%); background-size: 400% 100%;
+    animation: shimmer 1.3s ease infinite; }
+  @keyframes shimmer { 0%{background-position:100% 0} 100%{background-position:0 0} }
+
+  /* Estados centrais */
+  .center-state { text-align: center; padding: var(--s-xl) var(--s-md); display: flex; flex-direction: column;
+    align-items: center; gap: var(--s-sm); }
+  .center-state .ico { font-size: 44px; }
+  .center-state h2 { font-size: 19px; margin: var(--s-sm) 0 0; }
+  .center-state p { color: var(--text-muted); font-size: 15px; margin: 0; max-width: 320px; line-height: 1.45; }
+  .center-state .btn-ghost { margin-top: var(--s-md); }
+
+  .banner {
+    display: flex; align-items: center; gap: var(--s-sm); justify-content: space-between;
+    background: var(--error-soft); border: 1px solid #e0a3a3; color: #8a2b2b; border-radius: var(--r-md);
+    padding: 12px var(--s-md); font-size: 14px; margin-bottom: var(--s-md);
+  }
+  .banner .retry { color: #8a2b2b; font-weight: 700; cursor: pointer; text-decoration: underline; white-space: nowrap; }
+
+  .empty-filter { text-align: center; color: var(--text-muted); padding: var(--s-xl) var(--s-md); font-size: 15px;
+    line-height: 1.5; display: flex; flex-direction: column; align-items: center; gap: var(--s-md); }
+  .empty-filter .btn-ghost { min-height: 44px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body class="mobile">
+
+  <div class="proto-bar">
+    <strong>SCREEN-048 · Feed do profissional</strong>
+    <div class="sep"></div>
+    <div class="group">
+      <span>Viewport:</span>
+      <span class="chip active" data-vp="mobile" onclick="setVp('mobile')">Mobile</span>
+      <span class="chip" data-vp="desktop" onclick="setVp('desktop')">Desktop</span>
+    </div>
+    <div class="sep"></div>
+    <div class="group">
+      <span>Estado:</span>
+      <span class="chip active" data-st="lista" onclick="setState('lista')">Lista</span>
+      <span class="chip" data-st="loading" onclick="setState('loading')">Loading</span>
+      <span class="chip" data-st="vazio" onclick="setState('vazio')">Vazio</span>
+      <span class="chip" data-st="vazio-filtro" onclick="setState('vazio-filtro')">Vazio por filtro</span>
+      <span class="chip" data-st="cold-start" onclick="setState('cold-start')">Cold start</span>
+      <span class="chip" data-st="erro" onclick="setState('erro')">Erro fetch</span>
+      <span class="chip" data-st="sem-permissao" onclick="setState('sem-permissao')">Sem permissão</span>
+      <span class="chip" data-st="gate" onclick="setState('gate')">Gate (PDR-005)</span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="frame" data-testid="feed-screen">
+      <div class="brand">TURN<span>I</span>.</div>
+
+      <div class="appbar"><span class="title">Vagas para você</span></div>
+
+      <div class="scroll">
+        <div class="header-row"><span class="title">Vagas para você</span></div>
+
+        <!-- Gate banner (estado: gate) -->
+        <div class="gate-banner hidden" id="gate-banner" data-testid="feed-gate-banner">
+          Avalie seu último turno para voltar a se candidatar.
+        </div>
+
+        <!-- Banner de erro -->
+        <div class="banner hidden" id="erro-banner" data-testid="feed-erro-banner">
+          <span>⚠ Não foi possível carregar as vagas. Verifique sua conexão.</span>
+          <span class="retry" data-testid="feed-retry-btn" onclick="setState('lista')">Tentar de novo</span>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters" id="filters">
+          <button class="fchip sel" data-slug="todas" data-testid="feed-filtro-todas" onclick="setFiltro('todas')">Todas</button>
+          <button class="fchip" data-slug="minha_funcao" data-testid="feed-filtro-minha_funcao" onclick="setFiltro('minha_funcao')">Minha função</button>
+          <button class="fchip" data-slug="alto_match" data-testid="feed-filtro-alto_match" onclick="setFiltro('alto_match')">Alto match</button>
+          <button class="fchip" data-slug="candidatadas" data-testid="feed-filtro-candidatadas" onclick="setFiltro('candidatadas')">Candidatadas</button>
+        </div>
+
+        <!-- Skeleton -->
+        <div id="skeleton" class="cards hidden" data-testid="feed-skeleton">
+          <div class="sk"><div class="bar" style="width:55%"></div><div class="bar" style="width:80%"></div><div class="barbar"></div></div>
+          <div class="sk"><div class="bar" style="width:50%"></div><div class="bar" style="width:75%"></div><div class="barbar"></div></div>
+          <div class="sk"><div class="bar" style="width:60%"></div><div class="bar" style="width:70%"></div><div class="barbar"></div></div>
+        </div>
+
+        <!-- Lista -->
+        <div id="lista" class="cards" data-testid="feed-lista"></div>
+
+        <!-- Vazio por filtro -->
+        <div id="vazio-filtro" class="empty-filter hidden" data-testid="feed-vazio-filtro">
+          <span id="vazio-filtro-msg">Nenhuma vaga com alto match agora.</span>
+          <button class="btn-ghost" data-testid="feed-vazio-filtro-todas-btn" onclick="setFiltro('todas')">Ver todas as vagas</button>
+        </div>
+
+        <!-- Vazio (sem vagas) -->
+        <div id="vazio" class="center-state hidden" data-testid="feed-vazio">
+          <div class="ico">🔎</div>
+          <h2>Nenhuma vaga por aqui ainda</h2>
+          <p>Assim que surgir uma vaga na sua função e na sua região, ela aparece aqui.</p>
+        </div>
+
+        <!-- Sem permissão -->
+        <div id="sem-permissao" class="center-state hidden" data-testid="feed-sem-permissao">
+          <div class="ico">🔒</div>
+          <h2>Esta área é do profissional</h2>
+          <p>O feed de vagas é de quem pega turnos. Sua conta é de contratante.</p>
+          <button class="btn-ghost">Voltar ao início</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  // ---- Mock de dados (inline, sem rede). Ordem = como o back devolve (score DESC). ----
+  // distancia_km null → omite a linha de distância. minhaFuncao = bate função primária.
+  const FEED = [
+    { id: 1, funcao: 'Garçom',       when: 'Sex, 12/06 · 18:00–23:00', valor: '150,00', dist: 3,    score: 97, minhaFuncao: true,  candidatada: false },
+    { id: 2, funcao: 'Bartender',    when: 'Sáb, 13/06 · 20:00–02:00', valor: '200,00', dist: 5,    score: 85, minhaFuncao: false, candidatada: true  },
+    { id: 3, funcao: 'Cozinheira',   when: 'Qua, 17/06 · 08:00–16:00', valor: '180,00', dist: 7,    score: 61, minhaFuncao: false, candidatada: false },
+    { id: 4, funcao: 'Recepcionista',when: 'Seg, 22/06 · 14:00–22:00', valor: '120,00', dist: null, score: 45, minhaFuncao: true,  candidatada: false },
+  ];
+  // Cold start: profissional Iniciante, 0 turnos → só Função + Distância pontuam.
+  const FEED_COLD = [
+    { id: 5, funcao: 'Garçom',     when: 'Sex, 12/06 · 18:00–23:00', valor: '150,00', dist: 3, score: 60, minhaFuncao: true,  candidatada: false },
+    { id: 6, funcao: 'Cozinheira', when: 'Qua, 17/06 · 08:00–16:00', valor: '180,00', dist: 7, score: 45, minhaFuncao: false, candidatada: false },
+  ];
+
+  let filtro = 'todas';
+  let gateOn = false;
+  let dataset = FEED;
+
+  function passaFiltro(v) {
+    switch (filtro) {
+      case 'todas':        return true;
+      case 'minha_funcao': return v.minhaFuncao;
+      case 'alto_match':   return v.score >= 80;
+      case 'candidatadas': return v.candidatada;
+    }
+  }
+
+  function vazioFiltroMsg() {
+    return {
+      minha_funcao: 'Nenhuma vaga na sua função primária agora.',
+      alto_match:   'Nenhuma vaga com alto match agora.',
+      candidatadas: 'Você ainda não se candidatou a nenhuma vaga.',
+    }[filtro] || '';
+  }
+
+  function distLinha(v) {
+    if (v.dist === null || v.dist === undefined) return '';
+    const txt = v.dist < 1 ? 'a menos de 1 km' : `a ${v.dist} km`;
+    return ` · <span class="dist" data-testid="feed-card-${v.id}-distancia" aria-label="${txt} de distância">${txt}</span>`;
+  }
+
+  function cardHtml(v) {
+    const alto = v.score >= 80
+      ? `<span class="alto" data-testid="feed-card-${v.id}-alto-match">✓ Alto match</span>` : '';
+    const candAttrs = gateOn
+      ? `disabled title="Avalie seu último turno para se candidatar" aria-label="Candidatar-se. Avalie seu último turno para se candidatar"`
+      : `aria-label="Candidatar-se à vaga de ${v.funcao}"`;
+    return `
+      <button class="card" data-testid="feed-card-${v.id}" onclick="void 0" aria-label="Ver vaga de ${v.funcao}, match ${v.score} de 100">
+        <div class="top">
+          <div>
+            <div class="funcao">${v.funcao}</div>
+            <div class="when">${v.when}</div>
+          </div>
+          <span class="scorechip" data-testid="feed-card-${v.id}-score"><span class="hex">⬢</span>${v.score}</span>
+        </div>
+        <div class="money">R$ ${v.valor} · turno${distLinha(v)}</div>
+        <div class="scorerow">
+          <span class="lbl">match</span>
+          <span class="scorebar" data-testid="feed-card-${v.id}-score-bar" role="progressbar"
+                aria-label="Match ${v.score} de 100" aria-valuenow="${v.score}" aria-valuemin="0" aria-valuemax="100">
+            <span class="fill" style="width:${v.score}%"></span>
+          </span>
+          <span class="scorenum">${v.score}/100</span>
+          ${alto}
+        </div>
+        <span class="btn-primary" data-testid="feed-card-${v.id}-candidatar-btn" ${candAttrs}>Candidatar-se</span>
+      </button>`;
+  }
+
+  function renderLista() {
+    const visiveis = dataset.filter(passaFiltro);
+    const lista = document.getElementById('lista');
+    const vazioFiltro = document.getElementById('vazio-filtro');
+    if (visiveis.length === 0) {
+      lista.classList.add('hidden');
+      vazioFiltro.classList.remove('hidden');
+      document.getElementById('vazio-filtro-msg').textContent = vazioFiltroMsg();
+    } else {
+      vazioFiltro.classList.add('hidden');
+      lista.classList.remove('hidden');
+      lista.innerHTML = visiveis.map(cardHtml).join('');
+    }
+  }
+
+  function setFiltro(slug) {
+    filtro = slug;
+    document.querySelectorAll('.fchip').forEach(c => c.classList.toggle('sel', c.dataset.slug === slug));
+    renderLista();
+  }
+
+  // ---- Controle do protótipo ----
+  function setVp(vp) {
+    document.body.className = vp;
+    document.querySelectorAll('[data-vp]').forEach(c => c.classList.toggle('active', c.dataset.vp === vp));
+  }
+
+  function hideAll() {
+    ['skeleton','lista','vazio','vazio-filtro','sem-permissao'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    document.getElementById('erro-banner').classList.add('hidden');
+    document.getElementById('gate-banner').classList.add('hidden');
+    document.getElementById('filters').classList.remove('hidden');
+  }
+
+  function setState(st) {
+    document.querySelectorAll('[data-st]').forEach(c => c.classList.toggle('active', c.dataset.st === st));
+    hideAll();
+    gateOn = false; dataset = FEED;
+    switch (st) {
+      case 'lista':
+        setFiltro('todas');
+        break;
+      case 'loading':
+        document.getElementById('skeleton').classList.remove('hidden');
+        break;
+      case 'vazio':
+        document.getElementById('vazio').classList.remove('hidden');
+        break;
+      case 'vazio-filtro':
+        // Filtro "Alto match" sem nenhum resultado: usa um dataset sem score≥80.
+        dataset = FEED.filter(v => v.score < 80);
+        setFiltro('alto_match');
+        break;
+      case 'cold-start':
+        dataset = FEED_COLD;
+        setFiltro('todas');
+        break;
+      case 'erro':
+        document.getElementById('erro-banner').classList.remove('hidden');
+        break;
+      case 'sem-permissao':
+        document.getElementById('filters').classList.add('hidden');
+        document.getElementById('sem-permissao').classList.remove('hidden');
+        break;
+      case 'gate':
+        gateOn = true;
+        document.getElementById('gate-banner').classList.remove('hidden');
+        setFiltro('todas');
+        break;
+    }
+  }
+
+  renderLista();
+</script>
+</body>
+</html>

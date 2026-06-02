@@ -13,10 +13,12 @@
 // Tudo roda SAME-ORIGIN sob o harness (proxy reverso + --web-launch-url) — ver Makefile.
 import 'auth_test.dart' as auth;
 import 'cadastro_test.dart' as cadastro;
+import 'feed_test.dart' as feed;
 import 'vagas_test.dart' as vagas;
 
 void main() {
   auth.main();
   cadastro.main();
   vagas.main();
+  feed.main();
 }

@@ -11,6 +11,7 @@ use App\Http\Controllers\Cadastro\CompletarCadastroProfissionalController;
 use App\Http\Controllers\Cadastro\ContratanteCadastroController;
 use App\Http\Controllers\Cadastro\FuncaoController;
 use App\Http\Controllers\Cadastro\ProfissionalCadastroController;
+use App\Http\Controllers\Feed\FeedController;
 use App\Http\Controllers\Usuario\WelcomeController;
 use App\Http\Controllers\Vaga\VagaController;
 use App\Http\Middleware\FunnelGuard;
@@ -85,4 +86,9 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     // Gate PDR-005 (STORY-046 CA-5): turnos finalizados pendentes de avaliação do
     // contratante. Contrato { pending, turnos }; stub-honesto até o EPIC-003.
     Route::get('/avaliacoes/pendentes-do-contratante', [AvaliacoesPendentesController::class, 'index']);
+
+    // Feed ranqueado do profissional (STORY-048). RBAC profissional (403 p/ contratante) no
+    // controller. ?filtro=todas|minha_funcao|alto_match|candidatadas&page=N. Visibilidade +
+    // distância + match + ranqueamento + telemetria ficam no FeedQuery (ADR-013/ADR-014).
+    Route::get('/feed', [FeedController::class, 'index']);
 });

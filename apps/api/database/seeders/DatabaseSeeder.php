@@ -26,5 +26,9 @@ class DatabaseSeeder extends Seeder
 
         // STORY-044 — seed mínimo de vagas do EPIC-002 (3 abertas, 1 fechada, 1 cancelada).
         $this->call(VagasSeeder::class);
+
+        // STORY-048 — prepara o profissional de seed para o feed (função + geo + match).
+        // Depende de FuncaoSeeder + VagasSeeder acima (alinha funções/geo às vagas abertas).
+        $this->call(FeedSeeder::class);
     }
 }

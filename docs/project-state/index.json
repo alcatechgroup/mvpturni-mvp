@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "generated_at": "2026-06-01T23:41:33Z",
+  "generated_at": "2026-06-02T17:48:55Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
@@ -202,7 +202,7 @@
       "created_at": "2026-05-26",
       "updated_at": "2026-06-01",
       "sprint": "SPRINT-2026-W27",
-      "next_action": "STORY-045 (spike Match) DONE em 2026-06-02 — ADR-014 accepted; módulo `app/Domain/Match` (núcleo puro + adapter `MatchScoring`) + `MatchEvents` materializados em TDD (cobertura 100% no núcleo; api 96,7%; 345 testes; benchmark 1k em 0,01s; pint limpo; pushed). Próxima: STORY-048 (feed) consome `MatchScoring` + injeta `distanciaKm` + persiste geo do profissional. Também destrava 049 (UI breakdown) / 050 (score_no_momento) / 051 (painel contratante)."
+      "next_action": "STORY-048 (feed do profissional) implementada em 2026-06-02 — status in_review. GET /api/feed (visibilidade ADR-013 + match on-demand ADR-014 + ranqueamento + telemetria), tela /feed (score número+barra, 4 filtros sem reload, gate PDR-005), geo do profissional persistida. api 402 testes verdes (FeedQuery 95,8%/controller 100%); perf p95 ≤ 800ms com 1k vagas; webapp 225 widget + E2E same-origin verdes. Próxima: STORY-049 (detalhe + breakdown) / STORY-050 (candidatar)."
     },
     {
       "id": "EPIC-003",
@@ -1486,8 +1486,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-048-feed-profissional",
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-4-8",
       "sprint_id": "SPRINT-2026-W27",
       "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-048-feed-profissional-com-match-e-filtros.md",
       "blocked_by": [
@@ -1502,7 +1502,7 @@
       "estimated_session_size": "L",
       "produces_idr": null,
       "created_at": "2026-06-01",
-      "updated_at": "2026-06-01"
+      "updated_at": "2026-06-02"
     },
     {
       "id": "STORY-049",
@@ -2822,6 +2822,33 @@
           "surface.card",
           "link.text",
           "banner"
+        ],
+        "owner_designer": "claude-opus-4-8",
+        "created_at": "2026-06-02",
+        "updated_at": "2026-06-02"
+      },
+      {
+        "id": "SCREEN-STORY-048-feed-profissional",
+        "story": "STORY-048",
+        "epic": "EPIC-002",
+        "status": "shipped",
+        "path": "design/screens/SCREEN-STORY-048-feed-profissional.md",
+        "viewports": [
+          "mobile",
+          "desktop"
+        ],
+        "related_ddrs": [
+          "DDR-001",
+          "DDR-002"
+        ],
+        "related_idrs": [],
+        "ds_components_used": [
+          "brand.logo",
+          "surface.card",
+          "link.text",
+          "banner",
+          "filter.choicechip",
+          "badge.status"
         ],
         "owner_designer": "claude-opus-4-8",
         "created_at": "2026-06-02",
