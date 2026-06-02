@@ -20,7 +20,7 @@ class Candidatura extends Model
     protected $table = 'candidaturas';
 
     protected $fillable = [
-        'vaga_id', 'profissional_id', 'estado', 'vaga_versao_id',
+        'vaga_id', 'profissional_id', 'estado', 'vaga_versao_id', 'score_no_momento',
         'revisao_prazo_em', 'aprovada_em', 'retirada_em',
     ];
 
@@ -28,6 +28,7 @@ class Candidatura extends Model
     {
         return [
             'estado' => CandidaturaEstado::class,
+            'score_no_momento' => 'integer',
             'revisao_prazo_em' => 'datetime',
             'aprovada_em' => 'datetime',
             'retirada_em' => 'datetime',

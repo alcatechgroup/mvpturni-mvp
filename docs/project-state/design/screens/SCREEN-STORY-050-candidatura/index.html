@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<!--
+  PROTÓTIPO DE VALIDAÇÃO — NÃO É CÓDIGO DE PRODUÇÃO.
+  SCREEN-STORY-050 — Candidatura em 1 toque + gates (modal de confirmação, bloqueios, retirada).
+  HTML/CSS/JS vanilla, sem rede, sem build. Abra clicando no arquivo.
+  Tokens reais do tema profissional (verde-sage) + semânticos (DDR-001). Locale pt-BR / 24h (DDR-002).
+  Microcopy = §5 do spec, palavra por palavra. data-testid = §7. O detalhe (049) aparece ao fundo.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCREEN-STORY-050 — Candidatura</title>
+<style>
+  :root {
+    --page: #F7F4EC; --surface: #FFFFFF;
+    --border-subtle: #E0DDD3; --border-strong: #C8C5BB;
+    --text-strong: #0F1B2D; --text-muted: #42504A;
+    --brand: #00A868;
+    --accent: #2D5F3F; --accent-soft: #E5F0E8; --accent-hover: #3A7050; --on-accent: #FFFFFF;
+    --track: #E8E5DB;
+    --success: #2D7A4F; --success-soft: #E2F0E5; --success-ink: #1D5235;
+    --warn: #9A6E25; --warn-soft: #FBEED1; --warn-ink: #6E4E12;
+    --error: #B83A3A; --error-soft: #FBE2E2;
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-full: 999px;
+    --s-xs: 4px; --s-sm: 8px; --s-md: 16px; --s-lg: 24px; --s-xl: 32px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #EAE6DA; color: var(--text-strong);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .proto-bar {
+    position: sticky; top: 0; z-index: 50; background: #1B2E1F; color: #ECEDE5;
+    padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 13px;
+  }
+  .proto-bar strong { color: #fff; }
+  .proto-bar .chip {
+    border: 1px solid #355040; background: #243528; color: #d8ded6;
+    border-radius: var(--r-full); padding: 4px 12px; cursor: pointer; font-size: 12px;
+  }
+  .proto-bar .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .proto-bar .group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .proto-bar .sep { width: 1px; height: 20px; background: #355040; }
+
+  .stage { display: flex; justify-content: center; padding: 28px 16px 60px; }
+  .frame {
+    background: var(--page); width: 100%; max-width: 412px; min-height: 780px;
+    border-radius: var(--r-lg); box-shadow: 0 8px 30px rgba(0,0,0,.18); overflow: hidden;
+    position: relative; display: flex; flex-direction: column;
+  }
+  body.desktop .frame { max-width: 760px; }
+
+  .appbar { display: flex; align-items: center; gap: var(--s-md);
+    padding: 14px var(--s-md); background: var(--surface); border-bottom: 1px solid var(--border-subtle); }
+  .appbar .back { font-size: 22px; line-height: 1; color: var(--text-strong); }
+  .appbar .title { font-size: 18px; font-weight: 700; }
+  .brand { font-family: "Bebas Neue", Impact, sans-serif; color: var(--brand);
+    font-size: 30px; letter-spacing: 1px; text-align: center; padding: 10px 0 4px; display: none; }
+  body.desktop .brand { display: block; }
+
+  .scroll { flex: 1; overflow-y: auto; padding: var(--s-md); position: relative; }
+  .card { background: var(--surface); border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md); padding: var(--s-md); }
+  .head-top { display: flex; align-items: flex-start; gap: var(--s-sm); }
+  .head-top .funcao { font-size: 22px; font-weight: 800; flex: 1; }
+  .chipscore { display: inline-flex; align-items: center; gap: 5px; border: 1px solid rgba(45,95,63,.4);
+    background: var(--accent-soft); color: var(--accent); border-radius: var(--r-full);
+    padding: 4px 11px; font-weight: 800; font-size: 18px; }
+  .meta { color: var(--text-muted); font-size: 14px; margin-top: 2px; }
+  .valor { font-size: 15px; margin-top: var(--s-sm); }
+  .section-title { font-size: 16px; font-weight: 700; margin: var(--s-lg) 0 var(--s-md); }
+  .brow { display: flex; gap: var(--s-sm); margin-bottom: var(--s-md); }
+  .brow .ic { width: 22px; height: 22px; border-radius: 50%; color: #fff; display: grid; place-items: center;
+    font-size: 13px; flex: none; margin-top: 1px; }
+  .brow.ok .ic { background: var(--success); } .brow.partial .ic { background: var(--warn); }
+  .brow .lbl { width: 96px; font-weight: 700; font-size: 14px; flex: none; }
+  .brow .bar { flex: 1; height: 8px; background: var(--track); border-radius: var(--r-full); overflow: hidden; }
+  .brow .bar > i { display: block; height: 100%; border-radius: var(--r-full); }
+  .brow.ok .bar > i { background: var(--success); } .brow.partial .bar > i { background: var(--warn); }
+  .brow .pts { font-weight: 700; font-size: 13px; width: 46px; text-align: right; }
+  .brow .desc { color: var(--text-muted); font-size: 13px; margin-top: 3px; }
+  .brow .body { flex: 1; }
+  .total { display: flex; align-items: center; gap: var(--s-sm); padding-top: var(--s-sm);
+    border-top: 1px solid var(--border-subtle); margin-top: var(--s-sm); }
+  .total .lbl { width: 126px; font-weight: 800; }
+  .total .bar { flex: 1; height: 12px; background: var(--track); border-radius: var(--r-full); overflow: hidden; }
+  .total .bar > i { display: block; height: 100%; background: var(--accent); border-radius: var(--r-full); }
+  .total .num { font-weight: 800; font-size: 18px; }
+
+  .actionbar { background: var(--surface); border-top: 1px solid var(--border-subtle); padding: var(--s-md); }
+  .btn { width: 100%; border: none; border-radius: var(--r-full); padding: 13px; font-size: 15px;
+    font-weight: 700; cursor: pointer; }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.text { background: none; color: var(--accent); font-weight: 700; }
+  .btn.text.danger { color: var(--error); }
+  .btn[disabled] { opacity: .6; cursor: default; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; background: var(--success-soft);
+    color: var(--success-ink); border: 1px solid #9CC7AD; border-radius: var(--r-full);
+    padding: 8px 16px; font-weight: 700; font-size: 14px; }
+  .when { color: var(--text-muted); font-size: 13px; text-align: center; margin-top: 6px; }
+
+  /* Camada modal */
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.5); display: none;
+    align-items: flex-end; justify-content: center; z-index: 30; }
+  body.desktop .scrim { align-items: center; }
+  .scrim.show { display: flex; }
+  .sheet { background: var(--surface); width: 100%; border-radius: var(--r-lg) var(--r-lg) 0 0;
+    padding: var(--s-md) var(--s-md) var(--s-lg); box-shadow: 0 -8px 30px rgba(0,0,0,.22);
+    animation: up .18s ease; }
+  body.desktop .sheet { max-width: 440px; border-radius: var(--r-lg); margin-bottom: 0; }
+  @keyframes up { from { transform: translateY(40px); opacity: .4; } to { transform: none; opacity: 1; } }
+  .grip { width: 40px; height: 4px; background: var(--border-strong); border-radius: var(--r-full);
+    margin: 0 auto var(--s-md); }
+  body.desktop .grip { display: none; }
+  .sheet h3 { margin: 0 0 var(--s-xs); font-size: 18px; }
+  .sheet .sub { color: var(--text-muted); font-size: 14px; margin: 0 0 var(--s-md); line-height: 1.4; }
+  .sheet .actions { display: flex; flex-direction: column; gap: var(--s-xs); margin-top: var(--s-md); }
+  .whead { display: flex; align-items: center; gap: var(--s-sm); margin-bottom: var(--s-sm); }
+  .whead .wic { width: 26px; height: 26px; border-radius: 50%; background: var(--warn-soft);
+    color: var(--warn-ink); display: grid; place-items: center; font-size: 15px; }
+  .whead h3 { margin: 0; }
+  .conflict { border: 1px solid var(--border-subtle); border-radius: var(--r-md);
+    padding: var(--s-sm) var(--s-md); margin: var(--s-sm) 0 var(--s-md); cursor: pointer; background: var(--page); }
+  .conflict .cf { font-weight: 700; } .conflict .ct { color: var(--text-muted); font-size: 13px; margin: 2px 0; }
+  .conflict .cgo { color: var(--accent); font-weight: 700; font-size: 13px; display: flex; justify-content: space-between; }
+  .inline-err { color: var(--error); background: var(--error-soft); border-radius: var(--r-sm);
+    padding: 8px 12px; font-size: 13px; margin-top: var(--s-sm); }
+  .spin { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.5); border-top-color: #fff;
+    border-radius: 50%; display: inline-block; vertical-align: -2px; margin-right: 8px; animation: r .7s linear infinite; }
+  @keyframes r { to { transform: rotate(360deg); } }
+  .toast { position: absolute; left: 50%; bottom: 90px; transform: translateX(-50%); z-index: 40;
+    background: #16231A; color: #EAF1EC; padding: 10px 18px; border-radius: var(--r-full); font-size: 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.3); display: none; }
+  .toast.show { display: block; }
+</style>
+</head>
+<body class="mobile">
+  <div class="proto-bar">
+    <strong>SCREEN-050</strong>
+    <span class="group">
+      <span>viewport:</span>
+      <span class="chip vp active" data-vp="mobile">mobile</span>
+      <span class="chip vp" data-vp="desktop">desktop</span>
+    </span>
+    <span class="sep"></span>
+    <span class="group">
+      <span>estado:</span>
+      <span class="chip st active" data-st="confirmar">confirmar</span>
+      <span class="chip st" data-st="enviando">enviando</span>
+      <span class="chip st" data-st="sucesso">sucesso</span>
+      <span class="chip st" data-st="gate-avaliacao">gate-avaliação</span>
+      <span class="chip st" data-st="conflito">conflito</span>
+      <span class="chip st" data-st="habitualidade">habitualidade</span>
+      <span class="chip st" data-st="vaga-fechada">vaga-fechada</span>
+      <span class="chip st" data-st="erro">erro</span>
+      <span class="chip st" data-st="retirar">retirar</span>
+    </span>
+  </div>
+
+  <div class="stage">
+    <div class="frame">
+      <div class="brand">TURNI.</div>
+      <div class="appbar"><span class="back">←</span><span class="title">Detalhe da vaga</span></div>
+
+      <!-- Detalhe da vaga (049) ao fundo -->
+      <div class="scroll">
+        <div class="card">
+          <div class="head-top">
+            <div class="funcao">Garçom</div>
+            <div class="chipscore">⬢ 97</div>
+          </div>
+          <div class="meta">Bar do Zé · São Paulo</div>
+          <div class="meta">Sex, 12/06 · 18:00–23:00</div>
+          <div class="valor">R$ 150,00 · turno · a 3 km</div>
+        </div>
+        <div class="section-title">Por que estou vendo esta vaga</div>
+        <div class="brow ok"><div class="ic">✓</div><div class="body">
+          <div style="display:flex;align-items:center;gap:8px"><span class="lbl">Função</span>
+          <span class="bar"><i style="width:100%"></i></span><span class="pts">40/40</span></div>
+          <div class="desc">Sua função primária bate</div></div></div>
+        <div class="brow ok"><div class="ic">✓</div><div class="body">
+          <div style="display:flex;align-items:center;gap:8px"><span class="lbl">Distância</span>
+          <span class="bar"><i style="width:100%"></i></span><span class="pts">20/20</span></div>
+          <div class="desc">Dentro do seu raio de 8km</div></div></div>
+        <div class="brow partial"><div class="ic">◐</div><div class="body">
+          <div style="display:flex;align-items:center;gap:8px"><span class="lbl">Histórico</span>
+          <span class="bar"><i style="width:90%"></i></span><span class="pts">27/30</span></div>
+          <div class="desc">Sua média 4.9★ em 127 turnos</div></div></div>
+        <div class="brow ok"><div class="ic">✓</div><div class="body">
+          <div style="display:flex;align-items:center;gap:8px"><span class="lbl">Nível na trilha</span>
+          <span class="bar"><i style="width:100%"></i></span><span class="pts">10/10</span></div>
+          <div class="desc">Elite na trilha</div></div></div>
+        <div class="total"><span class="lbl">Match total</span>
+          <span class="bar"><i style="width:97%"></i></span><span class="num">97/100</span></div>
+      </div>
+
+      <!-- Barra de ação (varia por estado) -->
+      <div class="actionbar" id="actionbar">
+        <button class="btn primary" data-testid="vaga-detalhe-candidatar-btn">Candidatar-se</button>
+      </div>
+
+      <!-- Toast -->
+      <div class="toast" id="toast"></div>
+
+      <!-- Scrim + modal -->
+      <div class="scrim" id="scrim"><div id="modalHost"></div></div>
+    </div>
+  </div>
+
+<script>
+  const body = document.body;
+  const scrim = document.getElementById('scrim');
+  const host = document.getElementById('modalHost');
+  const actionbar = document.getElementById('actionbar');
+  const toast = document.getElementById('toast');
+
+  const resumo = `<div class="sub" data-testid="candidatura-confirmar-resumo">Garçom · Bar do Zé<br>Sex, 12/06 · 18:00–23:00 · R$ 150,00</div>`;
+
+  function showToast(t) { toast.textContent = t; toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200); }
+
+  function ctaCandidatar() {
+    actionbar.innerHTML = `<button class="btn primary" data-testid="vaga-detalhe-candidatar-btn">Candidatar-se</button>`; }
+  function ctaJaCandidatou() {
+    actionbar.innerHTML =
+      `<div data-testid="vaga-detalhe-ja-candidatou" style="text-align:center">
+        <span class="badge">✓ Você já se candidatou</span>
+        <div class="when">em 02/06 às 14:20</div>
+        <button class="btn text" data-testid="vaga-detalhe-retirar-btn" style="margin-top:4px">Retirar candidatura</button>
+      </div>`; }
+
+  function modalConfirmar(extra = '') {
+    host.innerHTML =
+      `<div class="sheet" data-testid="candidatura-confirmar-sheet">
+        <div class="grip"></div>
+        <h3>Confirmar candidatura</h3>${resumo}
+        <div class="actions">
+          <button class="btn primary" data-testid="candidatura-confirmar-btn">Confirmar candidatura</button>
+          <button class="btn text" data-testid="candidatura-cancelar-btn">Cancelar</button>
+        </div>${extra}
+      </div>`;
+    scrim.classList.add('show');
+  }
+  function modalEnviando() {
+    modalConfirmar();
+    const b = host.querySelector('[data-testid="candidatura-confirmar-btn"]');
+    b.innerHTML = `<span class="spin"></span>Enviando candidatura`; b.disabled = true;
+    host.querySelector('[data-testid="candidatura-cancelar-btn"]').disabled = true;
+  }
+  function modalErro() {
+    modalConfirmar(
+      `<div class="inline-err" data-testid="candidatura-confirmar-erro">Não foi possível enviar. Verifique sua conexão.</div>
+       <button class="btn text" data-testid="candidatura-retry-btn" style="margin-top:8px">Tentar de novo</button>`);
+  }
+  function modalBloqueio(erro, titulo, mensagem, conflito) {
+    const card = conflito
+      ? `<div class="conflict" data-testid="candidatura-conflito-card">
+           <div class="cf">Garçom · Hotel Aurora</div>
+           <div class="ct">Sex, 12/06 · 17:00–22:00</div>
+           <div class="cgo"><span>Ver vaga em conflito</span><span>›</span></div>
+         </div>` : '';
+    const acaoLabel = erro === 'vaga_fechada' ? 'Voltar ao feed' : 'Entendi';
+    host.innerHTML =
+      `<div class="sheet" data-testid="candidatura-bloqueio-modal">
+        <div class="grip"></div>
+        <div data-testid="candidatura-bloqueio-${erro}">
+          <div class="whead"><span class="wic">⚠</span>
+            <h3 data-testid="candidatura-bloqueio-titulo">${titulo}</h3></div>
+          <div class="sub" data-testid="candidatura-bloqueio-mensagem">${mensagem}</div>
+          ${card}
+          <div class="actions">
+            <button class="btn text" data-testid="candidatura-bloqueio-acao-btn">${acaoLabel}</button>
+          </div>
+        </div>
+      </div>`;
+    scrim.classList.add('show');
+  }
+  function modalRetirar() {
+    host.innerHTML =
+      `<div class="sheet" data-testid="candidatura-retirar-sheet">
+        <div class="grip"></div>
+        <h3>Retirar candidatura?</h3>
+        <div class="sub">Você pode se candidatar de novo enquanto a vaga estiver aberta.</div>
+        <div class="actions">
+          <button class="btn text danger" data-testid="candidatura-retirar-confirmar-btn">Retirar</button>
+          <button class="btn text" data-testid="candidatura-retirar-cancelar-btn">Cancelar</button>
+        </div>
+      </div>`;
+    scrim.classList.add('show');
+  }
+
+  function render(state) {
+    scrim.classList.remove('show'); host.innerHTML = ''; toast.classList.remove('show');
+    ctaCandidatar();
+    switch (state) {
+      case 'confirmar': modalConfirmar(); break;
+      case 'enviando': modalEnviando(); break;
+      case 'sucesso': ctaJaCandidatou(); showToast('Candidatura enviada!'); break;
+      case 'gate-avaliacao':
+        modalBloqueio('gate_avaliacao', 'Avalie seu último turno',
+          'Avalie seu último turno para se candidatar.'); break;
+      case 'conflito':
+        modalBloqueio('conflito_horario', 'Conflito de horário',
+          'Você já tem um compromisso neste horário.', true); break;
+      case 'habitualidade':
+        modalBloqueio('habitualidade_bloqueio', 'Limite semanal neste local',
+          'Você já tem 2 turnos nesta semana neste estabelecimento.'); break;
+      case 'vaga-fechada':
+        modalBloqueio('vaga_fechada', 'Vaga indisponível',
+          'Esta vaga não está mais aberta para candidaturas.'); break;
+      case 'erro': modalErro(); break;
+      case 'retirar': ctaJaCandidatou(); modalRetirar(); break;
+    }
+  }
+
+  document.querySelectorAll('.vp').forEach(c => c.onclick = () => {
+    document.querySelectorAll('.vp').forEach(x => x.classList.remove('active'));
+    c.classList.add('active'); body.className = c.dataset.vp;
+  });
+  document.querySelectorAll('.st').forEach(c => c.onclick = () => {
+    document.querySelectorAll('.st').forEach(x => x.classList.remove('active'));
+    c.classList.add('active'); render(c.dataset.st);
+    history.replaceState(null, '', '?state=' + c.dataset.st);
+  });
+  scrim.onclick = e => { if (e.target === scrim) scrim.classList.remove('show'); };
+
+  const initial = new URLSearchParams(location.search).get('state') || 'confirmar';
+  const chip = document.querySelector(`.st[data-st="${initial}"]`) || document.querySelector('.st');
+  chip.click();
+</script>
+</body>
+</html>

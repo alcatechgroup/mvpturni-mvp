@@ -2,22 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../ds/tokens.dart';
+import 'candidatura_service.dart';
 import 'vaga_detalhe_service.dart';
 
 /// STORY-049 / SCREEN-STORY-049 — detalhe da vaga + breakdown explicável do match. Mostra o
 /// cabeçalho da vaga e o bloco "Por que estou vendo esta vaga" com os 4 componentes (ícone,
 /// barra, X/Y, prosa — CA-2/CA-3), o total agregado (CA-4) e o CTA "Candidatar-se" / estado
 /// "Você já se candidatou" (CA-5/CA-6). RBAC (CA-7): contratante (403) cai em "sem permissão";
-/// vaga indisponível (404) cai em estado próprio. A candidatura em si é STORY-050 (placeholder).
+/// vaga indisponível (404) cai em estado próprio. A ação de candidatar (modal de confirmação +
+/// 3 gates + retirada) é STORY-050 / SCREEN-STORY-050 — ver `candidatura_service.dart`.
 class VagaDetalheScreen extends StatefulWidget {
   const VagaDetalheScreen({
     super.key,
     required this.vagaId,
     VagaDetalheService? service,
-  }) : _service = service;
+    CandidaturaService? candidaturaService,
+  }) : _service = service,
+       _candidaturaService = candidaturaService;
 
   final int vagaId;
   final VagaDetalheService? _service;
+  final CandidaturaService? _candidaturaService;
 
   @override
   State<VagaDetalheScreen> createState() => _VagaDetalheScreenState();
@@ -28,9 +33,20 @@ enum _Phase { loading, semPermissao, indisponivel, erro, pronto }
 class _VagaDetalheScreenState extends State<VagaDetalheScreen> {
   late final VagaDetalheService _service =
       widget._service ?? VagaDetalheService();
+  late final CandidaturaService _candidatura =
+      widget._candidaturaService ?? CandidaturaService();
 
   _Phase _phase = _Phase.loading;
   VagaDetalhe? _vaga;
+
+  // Overrides otimistas (STORY-050): após candidatar/retirar atualizamos a barra de ação
+  // in-place, sem refazer o GET (SCREEN-050 §4.3/§4.9). null = usa o valor do servidor.
+  bool? _jaCandidatouOverride;
+  CandidaturaResumo? _candidaturaOverride;
+
+  bool get _jaCandidatou => _jaCandidatouOverride ?? _vaga!.jaCandidatou;
+  CandidaturaResumo? get _candidaturaVigente =>
+      _jaCandidatouOverride == null ? _vaga!.candidatura : _candidaturaOverride;
 
   @override
   void initState() {
@@ -38,8 +54,23 @@ class _VagaDetalheScreenState extends State<VagaDetalheScreen> {
     _load();
   }
 
+  @override
+  void didUpdateWidget(VagaDetalheScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Se o go_router reusar este State ao navegar entre /vaga/A e /vaga/B (mesma rota, param
+    // diferente — ex.: candidatar numa vaga e abrir outra, STORY-050), o widget chega com um
+    // vagaId novo mas o State antigo: recarrega o detalhe da vaga certa.
+    if (oldWidget.vagaId != widget.vagaId) {
+      _load();
+    }
+  }
+
   Future<void> _load() async {
-    setState(() => _phase = _Phase.loading);
+    setState(() {
+      _phase = _Phase.loading;
+      _jaCandidatouOverride = null;
+      _candidaturaOverride = null;
+    });
     final result = await _service.fetch(widget.vagaId);
     if (!mounted) return;
     setState(() {
@@ -65,11 +96,115 @@ class _VagaDetalheScreenState extends State<VagaDetalheScreen> {
     }
   }
 
-  /// Placeholder de candidatura (STORY-050): registra a intenção e avisa. O fluxo real
-  /// (1 toque + 3 gates) chega na próxima estória.
-  void _candidatar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Candidatura chega na próxima etapa.')),
+  /// Candidatura em 1 toque (STORY-050): abre o modal de confirmação; ao confirmar, o modal
+  /// chama o endpoint e devolve o desfecho terminal (201/409/422/403). Rede/5xx fica no
+  /// próprio modal (retry). 422 → modal de bloqueio do gate; 201/409 → badge + toast.
+  Future<void> _candidatar() async {
+    final accent = _accent(Theme.of(context).brightness == Brightness.dark);
+    final result = await _present<CandidaturaResult>(
+      _ConfirmarSheet(
+        vaga: _vaga!,
+        accent: accent,
+        candidatar: () => _candidatura.candidatar(widget.vagaId),
+      ),
+    );
+    if (!mounted || result == null) return;
+
+    switch (result) {
+      case CandidaturaCriada(:final id, :final candidatouEm):
+        setState(() {
+          _jaCandidatouOverride = true;
+          _candidaturaOverride = CandidaturaResumo(
+            id: id,
+            estado: 'pendente',
+            criadaEm: candidatouEm,
+          );
+        });
+        _toast('Candidatura enviada!');
+      case CandidaturaJaExiste():
+        // Corrida/idempotência (CA-6): já está candidatado — mostra o badge sem alarde.
+        setState(() {
+          _jaCandidatouOverride = true;
+          _candidaturaOverride = const CandidaturaResumo(
+            estado: 'pendente',
+            criadaEm: null,
+          );
+        });
+      case CandidaturaBloqueada(:final erro, :final mensagem, :final conflito):
+        await _present<void>(
+          _BloqueioSheet(
+            erro: erro,
+            mensagem: mensagem,
+            conflito: conflito,
+            accent: accent,
+            onConflito: (vagaId) {
+              Navigator.of(context).pop();
+              context.push('/vaga/$vagaId');
+            },
+            onVagaFechada: () {
+              Navigator.of(context).pop();
+              context.go('/feed');
+            },
+          ),
+        );
+      case CandidaturaForbidden():
+        _toast('Esta área é do profissional.');
+      case CandidaturaErroRede():
+        break; // tratado dentro do próprio modal (retry); nada a fazer aqui.
+    }
+  }
+
+  /// Retirada voluntária (CA-8): confirma e chama o DELETE. 200 → CTA volta a "Candidatar-se";
+  /// 409 → toast "não pode mais ser retirada".
+  Future<void> _retirar(CandidaturaResumo candidatura) async {
+    final accent = _accent(Theme.of(context).brightness == Brightness.dark);
+    final confirmou = await _present<bool>(_RetirarSheet(accent: accent));
+    if (!mounted || confirmou != true) return;
+
+    final result = await _candidatura.retirar(candidatura.id ?? 0);
+    if (!mounted) return;
+    switch (result) {
+      case RetirarSuccess():
+        setState(() {
+          _jaCandidatouOverride = false;
+          _candidaturaOverride = null;
+        });
+        _toast('Candidatura retirada.');
+      case RetirarConflict():
+        _toast('Esta candidatura não pode mais ser retirada.');
+      case RetirarErro():
+        _toast('Não foi possível retirar. Tente de novo.');
+    }
+  }
+
+  void _toast(String msg) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  /// Apresenta um modal: bottom-sheet no mobile, dialog centrado no desktop (SCREEN-050 §3).
+  Future<T?> _present<T>(Widget child) {
+    final wide = MediaQuery.of(context).size.width >= 760;
+    if (wide) {
+      return showDialog<T>(
+        context: context,
+        builder: (_) => Dialog(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(TurniRadius.lg),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: child,
+          ),
+        ),
+      );
+    }
+    return showModalBottomSheet<T>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => child,
     );
   }
 
@@ -100,9 +235,12 @@ class _VagaDetalheScreenState extends State<VagaDetalheScreen> {
       bottomNavigationBar: _phase == _Phase.pronto
           ? _AcaoBar(
               vaga: _vaga!,
+              jaCandidatou: _jaCandidatou,
+              candidatura: _candidaturaVigente,
               accent: accent,
               isDark: isDark,
               onCandidatar: _candidatar,
+              onRetirar: _retirar,
             )
           : null,
     );
@@ -615,15 +753,21 @@ class _TotalRow extends StatelessWidget {
 class _AcaoBar extends StatelessWidget {
   const _AcaoBar({
     required this.vaga,
+    required this.jaCandidatou,
+    required this.candidatura,
     required this.accent,
     required this.isDark,
     required this.onCandidatar,
+    required this.onRetirar,
   });
 
   final VagaDetalhe vaga;
+  final bool jaCandidatou;
+  final CandidaturaResumo? candidatura;
   final Color accent;
   final bool isDark;
   final VoidCallback onCandidatar;
+  final void Function(CandidaturaResumo) onRetirar;
 
   @override
   Widget build(BuildContext context) {
@@ -648,7 +792,9 @@ class _AcaoBar extends StatelessWidget {
   }
 
   Widget _conteudo(BuildContext context) {
-    if (vaga.jaCandidatou) return _JaCandidatou(candidatura: vaga.candidatura);
+    if (jaCandidatou) {
+      return _JaCandidatou(candidatura: candidatura, onRetirar: onRetirar);
+    }
 
     final habilitado = vaga.podeCandidatar;
     return Column(
@@ -692,9 +838,10 @@ class _AcaoBar extends StatelessWidget {
 }
 
 class _JaCandidatou extends StatelessWidget {
-  const _JaCandidatou({required this.candidatura});
+  const _JaCandidatou({required this.candidatura, required this.onRetirar});
 
   final CandidaturaResumo? candidatura;
+  final void Function(CandidaturaResumo) onRetirar;
 
   @override
   Widget build(BuildContext context) {
@@ -739,17 +886,11 @@ class _JaCandidatou extends StatelessWidget {
             ),
           ),
         ],
-        if (candidatura?.pendente ?? false) ...[
+        if ((candidatura?.pendente ?? false) && candidatura?.id != null) ...[
           const SizedBox(height: 4),
           TextButton(
             key: const Key('vaga-detalhe-retirar-btn'),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Retirar candidatura chega na próxima etapa.'),
-                ),
-              );
-            },
+            onPressed: () => onRetirar(candidatura!),
             child: const Text('Retirar candidatura'),
           ),
         ],
@@ -792,6 +933,436 @@ class _GateBanner extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ───────────────────────── Modais de candidatura (STORY-050) ─────────────────────────
+
+/// Mapeia o código de `erro` do gate para o título curto do modal de bloqueio (SCREEN-050 §5).
+/// A prosa (`mensagem`) vem do back e é exibida verbatim; o título dá o contexto acima dela.
+String _tituloBloqueio(String erro) => switch (erro) {
+  'gate_avaliacao' => 'Avalie seu último turno',
+  'conflito_horario' => 'Conflito de horário',
+  'habitualidade_bloqueio' => 'Limite semanal neste local',
+  'vaga_fechada' => 'Vaga indisponível',
+  _ => 'Não foi possível se candidatar',
+};
+
+/// sheet.confirm — confirmação deliberada antes de enviar (princípio #1). Dono do estado
+/// "enviando" + erro de rede inline (retry). Só fecha (pop com o resultado) num desfecho
+/// terminal (201/409/422/403); rede/5xx mantém o modal aberto (SCREEN-050 §4.2/§4.8).
+class _ConfirmarSheet extends StatefulWidget {
+  const _ConfirmarSheet({
+    required this.vaga,
+    required this.accent,
+    required this.candidatar,
+  });
+
+  final VagaDetalhe vaga;
+  final Color accent;
+  final Future<CandidaturaResult> Function() candidatar;
+
+  @override
+  State<_ConfirmarSheet> createState() => _ConfirmarSheetState();
+}
+
+class _ConfirmarSheetState extends State<_ConfirmarSheet> {
+  bool _enviando = false;
+  bool _erroRede = false;
+
+  Future<void> _confirmar() async {
+    setState(() {
+      _enviando = true;
+      _erroRede = false;
+    });
+    final result = await widget.candidatar();
+    if (!mounted) return;
+    if (result is CandidaturaErroRede) {
+      setState(() {
+        _enviando = false;
+        _erroRede = true;
+      });
+      return;
+    }
+    Navigator.of(context).pop(result);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final v = widget.vaga;
+    final estab = v.estabelecimento?.trim();
+    final resumo = [
+      if (estab != null && estab.isNotEmpty)
+        '${v.funcao} · $estab'
+      else
+        v.funcao,
+      '${_formatQuando(v.dataInicio, v.dataFim)} · ${_formatBRL(v.valor)}',
+    ].join('\n');
+
+    return _SheetShell(
+      testKey: 'candidatura-confirmar-sheet',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Confirmar candidatura',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: isDark
+                  ? TurniColors.textStrongDark
+                  : TurniColors.textStrongLight,
+            ),
+          ),
+          const SizedBox(height: TurniSpacing.sm),
+          Text(
+            resumo,
+            key: const Key('candidatura-confirmar-resumo'),
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.4,
+              color: isDark
+                  ? TurniColors.textMutedDark
+                  : TurniColors.textMutedLight,
+            ),
+          ),
+          const SizedBox(height: TurniSpacing.lg),
+          FilledButton(
+            key: const Key('candidatura-confirmar-btn'),
+            onPressed: _enviando ? null : _confirmar,
+            style: FilledButton.styleFrom(
+              backgroundColor: widget.accent,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(0, 48),
+              shape: const StadiumBorder(),
+            ),
+            child: _enviando
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Confirmar candidatura'),
+          ),
+          const SizedBox(height: TurniSpacing.xs),
+          TextButton(
+            key: const Key('candidatura-cancelar-btn'),
+            onPressed: _enviando ? null : () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          if (_erroRede) ...[
+            const SizedBox(height: TurniSpacing.xs),
+            Container(
+              key: const Key('candidatura-confirmar-erro'),
+              padding: const EdgeInsets.all(TurniSpacing.sm),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? TurniColors.errorSoftDark
+                    : TurniColors.errorSoftLight,
+                borderRadius: const BorderRadius.all(TurniRadius.sm),
+              ),
+              child: Text(
+                'Não foi possível enviar. Verifique sua conexão.',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark
+                      ? TurniColors.errorDark
+                      : TurniColors.errorLight,
+                ),
+              ),
+            ),
+            TextButton(
+              key: const Key('candidatura-retry-btn'),
+              onPressed: _confirmar,
+              child: const Text('Tentar de novo'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// block.modal — bloqueio por gate: cabeçalho warning + prosa do back + (em conflito) card
+/// clicável da vaga em conflito. Nunca vermelho (gate ≠ erro — SCREEN-050 §Tema).
+class _BloqueioSheet extends StatelessWidget {
+  const _BloqueioSheet({
+    required this.erro,
+    required this.mensagem,
+    required this.conflito,
+    required this.accent,
+    required this.onConflito,
+    required this.onVagaFechada,
+  });
+
+  final String erro;
+  final String mensagem;
+  final ConflitoInfo? conflito;
+  final Color accent;
+  final void Function(int vagaId) onConflito;
+  final VoidCallback onVagaFechada;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final warnInk = isDark
+        ? TurniColors.warnDark
+        : TurniColors.contratanteAccentInkLight;
+    final acaoFechada = erro == 'vaga_fechada';
+
+    return _SheetShell(
+      testKey: 'candidatura-bloqueio-modal',
+      child: Semantics(
+        liveRegion: true,
+        child: Column(
+          key: Key('candidatura-bloqueio-$erro'),
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? TurniColors.warnSoftDark
+                        : TurniColors.warnSoftLight,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.warning_amber_rounded,
+                    size: 17,
+                    color: warnInk,
+                  ),
+                ),
+                const SizedBox(width: TurniSpacing.sm),
+                Expanded(
+                  child: Text(
+                    _tituloBloqueio(erro),
+                    key: const Key('candidatura-bloqueio-titulo'),
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: isDark
+                          ? TurniColors.textStrongDark
+                          : TurniColors.textStrongLight,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: TurniSpacing.sm),
+            Text(
+              mensagem,
+              key: const Key('candidatura-bloqueio-mensagem'),
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.4,
+                color: isDark
+                    ? TurniColors.textMutedDark
+                    : TurniColors.textMutedLight,
+              ),
+            ),
+            if (conflito != null) ...[
+              const SizedBox(height: TurniSpacing.md),
+              _ConflitoCard(
+                conflito: conflito!,
+                accent: accent,
+                isDark: isDark,
+                onTap: () => onConflito(conflito!.vagaId),
+              ),
+            ],
+            const SizedBox(height: TurniSpacing.md),
+            TextButton(
+              key: const Key('candidatura-bloqueio-acao-btn'),
+              onPressed: acaoFechada
+                  ? onVagaFechada
+                  : () => Navigator.of(context).pop(),
+              child: Text(acaoFechada ? 'Voltar ao feed' : 'Entendi'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Card clicável da vaga em conflito (SCREEN-050 §4.5). Fail-soft: sem função/estab. mostra só
+/// o CTA "Ver vaga em conflito" — o link ainda navega via vagaId.
+class _ConflitoCard extends StatelessWidget {
+  const _ConflitoCard({
+    required this.conflito,
+    required this.accent,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  final ConflitoInfo conflito;
+  final Color accent;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final textStrong = isDark
+        ? TurniColors.textStrongDark
+        : TurniColors.textStrongLight;
+    final textMuted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+    final titulo = [
+      conflito.funcao,
+      conflito.estabelecimento,
+    ].whereType<String>().where((s) => s.trim().isNotEmpty).join(' · ');
+    final quando = conflito.dataInicio != null && conflito.dataFim != null
+        ? _formatQuando(conflito.dataInicio!, conflito.dataFim!)
+        : null;
+
+    return Semantics(
+      button: true,
+      label: titulo.isEmpty
+          ? 'Ver vaga em conflito'
+          : '$titulo${quando != null ? ', $quando' : ''}. Ver vaga em conflito.',
+      child: InkWell(
+        key: const Key('candidatura-conflito-card'),
+        onTap: onTap,
+        borderRadius: const BorderRadius.all(TurniRadius.md),
+        child: Container(
+          padding: const EdgeInsets.all(TurniSpacing.sm),
+          decoration: BoxDecoration(
+            color: isDark
+                ? TurniColors.surfacePageDark
+                : TurniColors.surfacePageLight,
+            border: Border.all(
+              color: isDark
+                  ? TurniColors.borderSubtleDark
+                  : TurniColors.borderSubtleLight,
+            ),
+            borderRadius: const BorderRadius.all(TurniRadius.md),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (titulo.isNotEmpty)
+                Text(
+                  titulo,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: textStrong,
+                  ),
+                ),
+              if (quando != null) ...[
+                const SizedBox(height: 2),
+                Text(quando, style: TextStyle(fontSize: 13, color: textMuted)),
+              ],
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Ver vaga em conflito',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: accent,
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, size: 18, color: accent),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// sheet.confirm de retirada (CA-8 / §4.9). Pop `true` = retirar, `false`/dismiss = cancela.
+class _RetirarSheet extends StatelessWidget {
+  const _RetirarSheet({required this.accent});
+
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return _SheetShell(
+      testKey: 'candidatura-retirar-sheet',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Retirar candidatura?',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: isDark
+                  ? TurniColors.textStrongDark
+                  : TurniColors.textStrongLight,
+            ),
+          ),
+          const SizedBox(height: TurniSpacing.sm),
+          Text(
+            'Você pode se candidatar de novo enquanto a vaga estiver aberta.',
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.4,
+              color: isDark
+                  ? TurniColors.textMutedDark
+                  : TurniColors.textMutedLight,
+            ),
+          ),
+          const SizedBox(height: TurniSpacing.lg),
+          TextButton(
+            key: const Key('candidatura-retirar-confirmar-btn'),
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: isDark
+                  ? TurniColors.errorDark
+                  : TurniColors.errorLight,
+            ),
+            child: const Text('Retirar'),
+          ),
+          TextButton(
+            key: const Key('candidatura-retirar-cancelar-btn'),
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Casca comum dos modais: padding + SafeArea + acomoda o teclado (mobile). O drag handle do
+/// bottom-sheet é do `showDragHandle`; no dialog (desktop) a casca é só padding.
+class _SheetShell extends StatelessWidget {
+  const _SheetShell({required this.testKey, required this.child});
+
+  final String testKey;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      key: Key(testKey),
+      padding: EdgeInsets.fromLTRB(
+        TurniSpacing.lg,
+        TurniSpacing.sm,
+        TurniSpacing.lg,
+        TurniSpacing.lg + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SafeArea(top: false, child: child),
     );
   }
 }

@@ -124,6 +124,25 @@ void main() {
     },
   );
 
+  testWidgets(
+    'vaga já candidatada mostra selo "Você já se candidatou" no lugar do botão (STORY-050)',
+    (tester) async {
+      final svc = _FakeFeedService(
+        handler: (_, _) => FeedSuccess([_vaga(jaCandidatou: true)], 1, false),
+      );
+      await tester.pumpWidget(_comRouter(svc));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('feed-card-1-ja-candidatou')),
+        findsOneWidget,
+      );
+      expect(find.text('Você já se candidatou'), findsOneWidget);
+      // O botão "Candidatar-se" não aparece quando já candidatou.
+      expect(find.byKey(const Key('feed-card-1-candidatar-btn')), findsNothing);
+    },
+  );
+
   testWidgets('score < 80 não mostra selo Alto match', (tester) async {
     final svc = _FakeFeedService(
       handler: (_, _) => FeedSuccess([_vaga(score: 61)], 1, false),

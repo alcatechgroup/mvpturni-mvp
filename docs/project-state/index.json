@@ -7,7 +7,7 @@
     "current_sprint": "SPRINT-2026-W27",
     "last_closed_sprint": "SPRINT-2026-W26",
     "phase": "wave-2026-01-sprint-w27-active-7-of-13-done-d-plus-1-epic-008-fechado",
-    "next_action": "SPRINT-2026-W27 ATIVA (aberta 2026-06-01, snapshot atualizado em 2026-06-02 D+1). 7/13 estórias done em 1 dia: STORY-041, STORY-042 (EPIC-008 100% fechado — PWA instalável com marca Turni); STORY-044 (modelo Vaga/Candidatura/snapshot — ADR-013 + F-NB-1 do EPIC-000 quitado); STORY-045 (algoritmo Match + 4 eventos — ADR-014); STORY-046 (publicar vaga + gate PDR-005; emergiram DDR-002 locale pt-BR/24h e IDR-025 sessão no boot); STORY-047 (Minhas vagas + cancelar); STORY-048 (feed do profissional com match, filtros, p95 — única L da sprint fechou em 1 sessão sem acionar gatilho de quebra). 6/13 ready (caminho crítico EPIC-002): STORY-049 (detalhe + breakdown — próxima a iniciar), STORY-050 (candidatura 1 toque + 3 gates), STORY-051 (painel candidatos), STORY-052 (edição material PDR-009 — pode rodar em paralelo a STORY-049/050), STORY-053 (notificações in-app + e-mail — bloqueada por STORY-050+052; PO entrega 5 texto-seed até 2026-06-05), STORY-054 (validador independente — última). Mid-sprint check formal antecipado para 2026-06-04 (D+3) se STORY-049+050 fecharem até lá; soft-cap 2026-06-22 mantido como teto. Decisões durávveis aceitas no D+1: ADR-013, ADR-014, IDR-020 (instalação PWA), IDR-025 (sessão no boot), DDR-002 (locale pt-BR + 24h transversal). Nenhuma mudança de escopo registrada.",
+    "next_action": "SPRINT-2026-W27 ATIVA (aberta 2026-06-01, snapshot atualizado em 2026-06-02 D+1). 7/13 estórias done em 1 dia: STORY-041, STORY-042 (EPIC-008 100% fechado — PWA instalável com marca Turni); STORY-044 (modelo Vaga/Candidatura/snapshot — ADR-013 + F-NB-1 do EPIC-000 quitado); STORY-045 (algoritmo Match + 4 eventos — ADR-014); STORY-046 (publicar vaga + gate PDR-005; emergiram DDR-002 locale pt-BR/24h e IDR-025 sessão no boot); STORY-047 (Minhas vagas + cancelar); STORY-048 (feed do profissional com match, filtros, p95 — única L da sprint fechou em 1 sessão sem acionar gatilho de quebra). STORY-049 done (detalhe + breakdown explicável). STORY-050 done — PO aprovou em chat (candidatura 1 toque + 3 gates: POST/DELETE com GateConflitoHorario/GateHabitualidade/GateAvaliacao, score_no_momento, evento CandidaturaEnviada p/ STORY-053, SCREEN-050 modal de confirmação + bloqueios; api 444 testes/97.4% — núcleo 100%; webapp modais ligados; E2E 0 flake em 3 runs; descoberta: navegação entre vagas no Web reusa State — correção aplicada, link de conflito a validar em homolog). Ready: STORY-051 (painel candidatos — destravado por 050), STORY-052 (edição material PDR-009), STORY-053 (notificações in-app + e-mail — bloqueada por STORY-050+052; PO entrega 5 texto-seed até 2026-06-05), STORY-054 (validador independente — última). Mid-sprint check formal antecipado para 2026-06-04 (D+3) se STORY-049+050 fecharem até lá; soft-cap 2026-06-22 mantido como teto. Decisões durávveis aceitas no D+1: ADR-013, ADR-014, IDR-020 (instalação PWA), IDR-025 (sessão no boot), DDR-002 (locale pt-BR + 24h transversal). Nenhuma mudança de escopo registrada.",
     "notes": "Snapshot W27 D+1 (2026-06-02): 7/13 done (54%) — 1 S + 5 M + 1 L. EPIC-008 fechado integralmente; EPIC-002 com spikes (044+045), lado contratante (046+047) e feed do profissional (048) entregues. Restam 6 estórias do EPIC-002 (049/050/051/052/053 + validação 054). Riscos do plano de abertura em melhor estado que o esperado: STORY-048 (L) coube em 1 sessão, EPIC-008 não regrediu auto-update da STORY-037, 3 SCREEN specs de UI já consumidos sem atrito. Pendências ativas do PO: texto-seed dos 5 templates da STORY-053 (compromisso até 2026-06-05). Detalhe completo em sprints/SPRINT-2026-W27.md, seção \"Atualização de progresso — 2026-06-02 (D+1)\"."
   },
   "product": {
@@ -1539,8 +1539,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-050-candidatura",
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-4-8-2026-06-02",
       "sprint_id": "SPRINT-2026-W27",
       "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-050-candidatura-um-toque-com-gates.md",
       "blocked_by": [
@@ -1556,7 +1556,7 @@
       "estimated_session_size": "M",
       "produces_idr": null,
       "created_at": "2026-06-01",
-      "updated_at": "2026-06-01"
+      "updated_at": "2026-06-02"
     },
     {
       "id": "STORY-051",

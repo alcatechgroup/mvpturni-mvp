@@ -149,9 +149,16 @@ final router = GoRouter(
     // e o botão "Candidatar-se" (STORY-050) apontam para cá.
     GoRoute(
       path: '/vaga/:id',
-      builder: (context, state) {
+      // pageKey por URL completa: sem isto o go_router reusa a MESMA Page (e o State) ao
+      // navegar entre /vaga/A e /vaga/B (mesma rota, param diferente — ex.: candidatar numa
+      // vaga e abrir outra, STORY-050), e a tela continua mostrando a vaga anterior. A key na
+      // MaterialPage força uma Page nova → State novo → recarrega o detalhe da vaga certa.
+      pageBuilder: (context, state) {
         final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return VagaDetalheScreen(vagaId: id);
+        return MaterialPage(
+          key: ValueKey('vaga-$id'),
+          child: VagaDetalheScreen(vagaId: id),
+        );
       },
     ),
 

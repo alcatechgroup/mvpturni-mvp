@@ -58,6 +58,8 @@ class VagaDetalheController extends Controller
             'pode_candidatar' => $podeCandidatar,
             'ja_candidatou' => $d->jaCandidatou(),
             'candidatura' => $candidatura === null ? null : [
+                // `id` (STORY-050): o client precisa dele para a retirada (DELETE /candidaturas/{id}).
+                'id' => $candidatura->id,
                 'estado' => $candidatura->estado->value,
                 'criada_em' => $candidatura->created_at?->toIso8601String(),
             ],

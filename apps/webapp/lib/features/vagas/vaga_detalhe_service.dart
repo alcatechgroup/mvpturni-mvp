@@ -87,17 +87,24 @@ class ScoreBreakdown {
   }
 }
 
-/// Candidatura vigente do profissional nesta vaga (CA-6).
+/// Candidatura vigente do profissional nesta vaga (CA-6). `id` (STORY-050) é necessário para a
+/// retirada (DELETE /candidaturas/{id}); é nulo só no estado otimista pós-corrida (CA-6).
 class CandidaturaResumo {
+  final int? id;
   final String estado;
   final DateTime? criadaEm;
 
-  const CandidaturaResumo({required this.estado, required this.criadaEm});
+  const CandidaturaResumo({
+    this.id,
+    required this.estado,
+    required this.criadaEm,
+  });
 
   bool get pendente => estado == 'pendente';
 
   factory CandidaturaResumo.fromJson(Map<String, dynamic> json) =>
       CandidaturaResumo(
+        id: (json['id'] as num?)?.toInt(),
         estado: json['estado'] as String? ?? '',
         criadaEm: json['criada_em'] != null
             ? DateTime.tryParse(json['criada_em'] as String)

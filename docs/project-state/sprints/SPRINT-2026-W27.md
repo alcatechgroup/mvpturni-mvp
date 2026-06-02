@@ -205,8 +205,8 @@ Agente programador, arquiteto e designer carregam suas próprias skills + as dec
 | STORY-046 | **done** | EPIC-002 | Publicar vaga + gate PDR-005 verde. Emergiram IDR-025 (restaurar sessão no boot) e **DDR-002 (locale pt-BR + horário 24h transversal)**. |
 | STORY-047 | **done** | EPIC-002 | "Minhas vagas" + cancelar verde (S, rápida como previsto).                                            |
 | STORY-048 | **done** | EPIC-002 | **A única L da sprint fechou em 1 sessão** — feed do profissional com match, filtros e visibilidade entregue sem precisar acionar o gatilho de quebra. |
-| STORY-049 | ready    | EPIC-002 | Próxima a iniciar (caminho crítico).                                                                  |
-| STORY-050 | ready    | EPIC-002 | Aguarda STORY-049.                                                                                    |
+| STORY-049 | **done** | EPIC-002 | Detalhe da vaga + breakdown explicável do match entregue.                                             |
+| STORY-050 | **done** | EPIC-002 | Candidatura em 1 toque + 3 gates (conflito/habitualidade/avaliação), SCREEN-050, retirada. api 444 testes/97.4% (núcleo 100%); E2E 0 flake em 3 runs; PO aprovou em chat. Extra: selo "já candidatou" no card do feed. |
 | STORY-051 | ready    | EPIC-002 | Aguarda STORY-049 + STORY-050.                                                                        |
 | STORY-052 | ready    | EPIC-002 | Independente do feed (consome STORY-044 + STORY-047).                                                 |
 | STORY-053 | ready    | EPIC-002 | Aguarda STORY-050 + STORY-052; PO precisa entregar texto-seed dos 5 templates.                        |

@@ -278,9 +278,14 @@ void main() {
     expect(btn, findsOneWidget);
     expect(tester.widget<FilledButton>(btn).onPressed, isNotNull);
 
+    // STORY-050: tocar no CTA abre o modal de confirmação (não candidata direto).
     await tester.tap(btn);
-    await tester.pump();
-    expect(find.text('Candidatura chega na próxima etapa.'), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('candidatura-confirmar-sheet')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('candidatura-confirmar-btn')), findsOneWidget);
   });
 
   testWidgets('gate: banner + botão desabilitado com motivo (CA-5)', (
@@ -316,6 +321,7 @@ void main() {
         _detalhe(
           jaCandidatou: true,
           candidatura: CandidaturaResumo(
+            id: 1,
             estado: 'pendente',
             criadaEm: DateTime(2026, 6, 2, 14, 20),
           ),

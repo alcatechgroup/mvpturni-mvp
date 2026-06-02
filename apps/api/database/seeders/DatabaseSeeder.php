@@ -30,5 +30,9 @@ class DatabaseSeeder extends Seeder
         // STORY-048 — prepara o profissional de seed para o feed (função + geo + match).
         // Depende de FuncaoSeeder + VagasSeeder acima (alinha funções/geo às vagas abertas).
         $this->call(FeedSeeder::class);
+
+        // STORY-050 — par de vagas sobrepostas para o E2E de conflito de horário.
+        // Depende de FeedSeeder (profissional.teste + função primária).
+        $this->call(CandidaturaConflitoSeeder::class);
     }
 }

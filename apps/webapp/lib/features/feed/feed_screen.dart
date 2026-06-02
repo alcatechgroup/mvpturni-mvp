@@ -543,6 +543,33 @@ class _CandidatarButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Já candidatou (STORY-050): o card mostra um selo no lugar do botão; tocar abre o
+    // detalhe (onde dá para ver o status e retirar). Espelha o badge da tela de detalhe.
+    if (vaga.jaCandidatou) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final bg = isDark
+          ? const Color(0x265FA37C)
+          : TurniColors.successSoftLight;
+      final fg = isDark ? const Color(0xFF7FBF9A) : const Color(0xFF1D5235);
+      return SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          key: Key('feed-card-${vaga.id}-ja-candidatou'),
+          onPressed: onAbrir,
+          icon: Icon(Icons.check_circle, size: 18, color: fg),
+          label: const Text('Você já se candidatou'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: fg,
+            backgroundColor: bg,
+            side: BorderSide(color: fg.withValues(alpha: 0.4)),
+            minimumSize: const Size(0, 48),
+            shape: const StadiumBorder(),
+            textStyle: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ),
+      );
+    }
+
     final habilitado = vaga.podeCandidatar;
     final botao = SizedBox(
       width: double.infinity,

@@ -11,6 +11,7 @@ use App\Http\Controllers\Cadastro\CompletarCadastroProfissionalController;
 use App\Http\Controllers\Cadastro\ContratanteCadastroController;
 use App\Http\Controllers\Cadastro\FuncaoController;
 use App\Http\Controllers\Cadastro\ProfissionalCadastroController;
+use App\Http\Controllers\Candidatura\CandidaturaController;
 use App\Http\Controllers\Feed\FeedController;
 use App\Http\Controllers\Feed\VagaDetalheController;
 use App\Http\Controllers\Usuario\WelcomeController;
@@ -98,4 +99,10 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     // match do feed (ADR-014). Depois de `/vagas/minhas` e `/vagas/{vaga}` (DELETE) — GET
     // com sufixo /detalhe não conflita.
     Route::get('/vagas/{vaga}/detalhe', [VagaDetalheController::class, 'show']);
+
+    // Candidatura em 1 toque + 3 gates (STORY-050). RBAC profissional (403 p/ contratante) no
+    // controller; vaga inexistente → 404 (model binding). POST aplica gates server-side e cria
+    // `pendente` (CA-1..CA-7). DELETE retira a própria candidatura `pendente` (CA-8).
+    Route::post('/vagas/{vaga}/candidaturas', [CandidaturaController::class, 'store']);
+    Route::delete('/candidaturas/{candidatura}', [CandidaturaController::class, 'destroy']);
 });
