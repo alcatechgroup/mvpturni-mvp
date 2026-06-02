@@ -20,6 +20,75 @@
   <link rel="manifest" href="manifest.json">
 
   <title>Turni</title>
+
+  <!--
+    Ação "Instalar app" (STORY-042 / IDR-020). Roda ANTES do flutter_bootstrap.js
+    porque `beforeinstallprompt` dispara cedo e precisa de preventDefault() para
+    guardar a referência do prompt nativo. O Dart (lib/core/install) lê este objeto.
+    INVARIANTE (IDR-017): NÃO toca navigator.serviceWorker, NÃO toca caches, NÃO
+    intercepta fetch — para não brigar com o SW do Flutter nem com o auto-update.
+  -->
+  <script>
+    (function () {
+      try {
+        var deferredPrompt = null;
+        var ua = navigator.userAgent || '';
+        var isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+        var isStandalone =
+          (window.matchMedia &&
+            window.matchMedia('(display-mode: standalone)').matches) ||
+          window.navigator.standalone === true;
+
+        var api = {
+          isInstallable: false,
+          isStandalone: isStandalone,
+          isIOS: isIOS,
+          deferredPrompt: null,
+          // Dispara o prompt nativo guardado; resolve com a escolha do usuário.
+          // Single-use: zera o deferredPrompt depois (o navegador não reoferece).
+          promptNative: function () {
+            if (!deferredPrompt) return Promise.resolve('unavailable');
+            var dp = deferredPrompt;
+            try {
+              dp.prompt();
+            } catch (e) {
+              return Promise.resolve('unavailable');
+            }
+            return dp.userChoice
+              .then(function (choice) {
+                deferredPrompt = null;
+                api.deferredPrompt = null;
+                api.isInstallable = false;
+                return (choice && choice.outcome) || 'dismissed';
+              })
+              .catch(function () {
+                return 'unavailable';
+              });
+          },
+        };
+        window.turniInstall = api;
+
+        window.addEventListener('beforeinstallprompt', function (e) {
+          // Impede o mini-infobar do Chrome e guarda o evento para uso no clique.
+          e.preventDefault();
+          deferredPrompt = e;
+          api.deferredPrompt = e;
+          api.isInstallable = true;
+          window.dispatchEvent(new CustomEvent('turni:installable'));
+        });
+
+        window.addEventListener('appinstalled', function () {
+          deferredPrompt = null;
+          api.deferredPrompt = null;
+          api.isInstallable = false;
+          api.isStandalone = true;
+          window.dispatchEvent(new CustomEvent('turni:appinstalled'));
+        });
+      } catch (e) {
+        // Defensivo: navegador sem as APIs não deve quebrar o boot do Flutter.
+      }
+    })();
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
