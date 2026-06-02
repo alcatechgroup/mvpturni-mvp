@@ -15,6 +15,9 @@ const seedPassword = String.fromEnvironment(
 /// E-mail do profissional ativo do seed (CA-13b).
 const profissionalSeedEmail = 'profissional.teste@turni.local';
 
+/// E-mail do contratante ativo do seed (STORY-046 — publicar vaga).
+const contratanteSeedEmail = 'contratante.teste@turni.local';
+
 /// E-mail do admin do seed (CA-13c). Sobrescrevível por `--dart-define`.
 const adminSeedEmail = String.fromEnvironment(
   'ADMIN_SEED_EMAIL',
@@ -63,3 +66,7 @@ Future<void> loginAsProfissional(WidgetTester tester) =>
 /// Atalho: loga como o admin do seed — rejeitado no WebApp (CA-13c).
 Future<void> loginAsAdmin(WidgetTester tester) =>
     loginAs(tester, email: adminSeedEmail, password: seedPassword);
+
+/// Atalho: loga como o contratante ativo do seed (STORY-046).
+Future<void> loginAsContratante(WidgetTester tester) =>
+    loginAs(tester, email: contratanteSeedEmail, password: seedPassword);
