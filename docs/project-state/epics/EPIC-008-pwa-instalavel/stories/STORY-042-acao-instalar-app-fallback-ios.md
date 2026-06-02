@@ -270,6 +270,11 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 ### Bloqueios encontrados
 - Nenhum bloqueio técnico. Pendência operacional: smokes mobile reais (CA-19 Android / CA-20 iOS) e não-regressão auto-update com o épico no ar (CA-18) dependem de release em homolog + assinatura do PO em chat — fora do alcance do agente.
 
+### Bug encontrado no smoke iOS (rc.46 → rc.47)
+- No iPhone real (rc.46), o card **apareceu** com `isIOS=true` e CTA "Como instalar" (detecção OK), mas o **layout quebrou**: o texto "Instalar app na tela inicial" ficou espremido 1 caractere por linha. Causa: o `Row` original colocava `[Icon, Expanded(texto), TextButton, FilledButton]` lado a lado; numa largura de iPhone os dois botões consumiam o espaço e o `Expanded` do texto virava uma faixa de ~24px. No desktop (largo) não aparecia.
+- **Fix (rc.47):** card reestruturado para `Column` — `Row[Icon, texto]` full-width em cima; botões num `Wrap(alignment: end)` embaixo (quebram para a linha de baixo em telas muito estreitas, sem overflow). Teste de regressão `em tela estreita (iPhone) o texto não é espremido` (largura útil do texto > 150px em viewport de 360px).
+- **Validado em homolog (rc.47, UA iPhone):** `isIOS=true`, `isStandalone=false`; o texto renderiza em **246×20px (uma linha)** — captura confirma "Instalar app na tela inicial" + "Agora não" + "Como instalar" empilhados corretamente.
+
 ### Mapa CA → teste (gate de teste #2)
 - **CA-1 / CA-14** — leitura do diff `web/index.html`: script em `try/catch`, sem `serviceWorker`/`caches`/`fetch` (grep confirmou só o comentário menciona).
 - **CA-2** — manual (Chromium): cobertura via E2E `install-action.spec.ts` (beforeinstallprompt sintético → `turniInstall.isInstallable===true`).
