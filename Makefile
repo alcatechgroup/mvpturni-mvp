@@ -35,7 +35,7 @@ E2E_HEADLESS_FLAG := $(if $(filter 0,$(E2E_HEADLESS)),--no-headless,--headless)
 .PHONY: help setup up down clean logs ps env build install key migrate seed \
         webapp-build hooks test test-api test-admin test-webapp lint fresh \
         e2e e2e-webapp e2e-webapp-integration e2e-webapp-smoke \
-        e2e-webapp-app-update e2e-admin
+        e2e-webapp-app-update e2e-webapp-install e2e-admin
 
 help: ## Mostra os comandos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -204,6 +204,16 @@ e2e-webapp-app-update: ## smoke web-platform de auto-update (Playwright, NÃO-ga
 	cd apps/webapp && (test -d node_modules || npm ci) \
 	  && (test -d node_modules/playwright-core/.local-browsers || npx playwright install chromium --with-deps) \
 	  && npx playwright test app-update.spec.ts
+
+# install-action: comportamento WEB-PLATFORM (window.turniInstall, beforeinstallprompt
+# sintético, semantics do card). NÃO-gating, igual ao app-update — mas roda em dev
+# (instalabilidade independe da versão). STORY-042 CA-17.
+e2e-webapp-install: ## smoke web-platform da ação "Instalar app" (Playwright, NÃO-gating) — STORY-042
+	@command -v npx >/dev/null 2>&1 || { echo "ERRO: npx ausente no PATH (instale Node 22)"; exit 1; }
+	@curl -fsS -o /dev/null http://localhost:$${WEBAPP_PORT:-8003} || { echo "ERRO: WebApp não responde em :$${WEBAPP_PORT:-8003}. Rode 'make up' antes."; exit 1; }
+	cd apps/webapp && (test -d node_modules || npm ci) \
+	  && (test -d node_modules/playwright-core/.local-browsers || npx playwright install chromium --with-deps) \
+	  && npx playwright test install-action.spec.ts
 
 e2e-admin: ## E2E Playwright do Backoffice contra localhost:8002 (exige `make up`)
 	@command -v npx >/dev/null 2>&1 || { echo "ERRO: npx ausente no PATH (instale Node 22)"; exit 1; }
