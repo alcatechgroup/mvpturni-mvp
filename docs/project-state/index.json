@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-06-02T17:56:51Z",
+  "generated_at": "2026-06-02T20:18:45Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W27",
     "last_closed_sprint": "SPRINT-2026-W26",
-    "phase": "wave-2026-01-sprint-w27-active-7-of-13-done-d-plus-1-epic-008-fechado",
-    "next_action": "SPRINT-2026-W27 ATIVA (aberta 2026-06-01, snapshot atualizado em 2026-06-02 D+1). 7/13 estórias done em 1 dia: STORY-041, STORY-042 (EPIC-008 100% fechado — PWA instalável com marca Turni); STORY-044 (modelo Vaga/Candidatura/snapshot — ADR-013 + F-NB-1 do EPIC-000 quitado); STORY-045 (algoritmo Match + 4 eventos — ADR-014); STORY-046 (publicar vaga + gate PDR-005; emergiram DDR-002 locale pt-BR/24h e IDR-025 sessão no boot); STORY-047 (Minhas vagas + cancelar); STORY-048 (feed do profissional com match, filtros, p95 — única L da sprint fechou em 1 sessão sem acionar gatilho de quebra). STORY-049 done (detalhe + breakdown explicável). STORY-050 done — PO aprovou em chat (candidatura 1 toque + 3 gates: POST/DELETE com GateConflitoHorario/GateHabitualidade/GateAvaliacao, score_no_momento, evento CandidaturaEnviada p/ STORY-053, SCREEN-050 modal de confirmação + bloqueios; api 444 testes/97.4% — núcleo 100%; webapp modais ligados; E2E 0 flake em 3 runs; descoberta: navegação entre vagas no Web reusa State — correção aplicada, link de conflito a validar em homolog). Ready: STORY-051 (painel candidatos — destravado por 050), STORY-052 (edição material PDR-009), STORY-053 (notificações in-app + e-mail — bloqueada por STORY-050+052; PO entrega 5 texto-seed até 2026-06-05), STORY-054 (validador independente — última). Mid-sprint check formal antecipado para 2026-06-04 (D+3) se STORY-049+050 fecharem até lá; soft-cap 2026-06-22 mantido como teto. Decisões durávveis aceitas no D+1: ADR-013, ADR-014, IDR-020 (instalação PWA), IDR-025 (sessão no boot), DDR-002 (locale pt-BR + 24h transversal). Nenhuma mudança de escopo registrada.",
-    "notes": "Snapshot W27 D+1 (2026-06-02): 7/13 done (54%) — 1 S + 5 M + 1 L. EPIC-008 fechado integralmente; EPIC-002 com spikes (044+045), lado contratante (046+047) e feed do profissional (048) entregues. Restam 6 estórias do EPIC-002 (049/050/051/052/053 + validação 054). Riscos do plano de abertura em melhor estado que o esperado: STORY-048 (L) coube em 1 sessão, EPIC-008 não regrediu auto-update da STORY-037, 3 SCREEN specs de UI já consumidos sem atrito. Pendências ativas do PO: texto-seed dos 5 templates da STORY-053 (compromisso até 2026-06-05). Detalhe completo em sprints/SPRINT-2026-W27.md, seção \"Atualização de progresso — 2026-06-02 (D+1)\"."
+    "phase": "wave-2026-01-sprint-w27-active-9-of-13-done-d-plus-1-eod-epic-002-com-4-restantes",
+    "next_action": "SPRINT-2026-W27 ATIVA — snapshot fim do D+1 (2026-06-02): 9/13 estórias done (69%). Adicionado ao acumulado da manhã: STORY-049 (detalhe da vaga + breakdown explicável; BreakdownRow público para reuso pela STORY-051; refatoração Haversine→Support\\Geo) e STORY-050 (candidatura em 1 toque + 3 gates conflito/habitualidade/avaliação; SCREEN-050 com modais de bloqueio + retirada; 444 testes API/97,4% núcleo 100%; E2E 0 flake; audit candidatura.criada + telemetria match.candidatura_enviada + evento de domínio CandidaturaEnviada consumido por 053; extra aprovado PO: selo \"já se candidatou\" no card do feed). Restam 4: STORY-051 (painel candidatos — destravada, próxima a iniciar), STORY-052 (edição material PDR-009 — pode rodar em paralelo, ortogonal a 051), STORY-053 (notificações — bloqueada por STORY-052 e pelo texto-seed do PO, antecipado para 2026-06-03), STORY-054 (validador, último). Follow-up registrado: \"conflito de horário no card do feed\" da STORY-050 vai para wishlist (fora de escopo MVP do EPIC-002). Mid-sprint check formal antecipado para 2026-06-03 (D+2) se 051 fechar. Soft-cap 2026-06-22 mantido só como teto — cenário realista é fechar EPIC-002 até 2026-06-04/05.",
+    "notes": "Snapshot W27 D+1 fim do dia (2026-06-02 EOD): 9/13 done (69%) em 1 dia. EPIC-008 fechado integral; EPIC-002 com spikes + lado contratante (046/047) + feed (048) + detalhe (049) + candidatura (050) entregues. Restam STORY-051 + STORY-052 + STORY-053 + STORY-054. Sem mudanças de escopo formais. PO antecipou compromisso do texto-seed de STORY-053 para 2026-06-03. Vigilância de fadiga: ritmo acima do projetado, sprint pode fechar metade do soft-cap — planejar pausa entre EPIC-002 e EPIC-003. Detalhe completo em sprints/SPRINT-2026-W27.md, seção \"Atualização de progresso — 2026-06-02 (D+1, fim do dia)\"."
   },
   "product": {
     "vision": "product/vision.md",
@@ -2049,19 +2049,19 @@
         "STORY-045",
         "STORY-046",
         "STORY-047",
-        "STORY-048"
+        "STORY-048",
+        "STORY-049",
+        "STORY-050"
       ],
       "in_progress_story_ids": [],
       "pending_story_ids": [
-        "STORY-049",
-        "STORY-050",
         "STORY-051",
         "STORY-052",
         "STORY-053",
         "STORY-054"
       ],
       "last_progress_update": "2026-06-02",
-      "progress_summary": "7/13 done em D+1"
+      "progress_summary": "9/13 done em D+1 (fim do dia)"
     }
   ],
   "decisions": {

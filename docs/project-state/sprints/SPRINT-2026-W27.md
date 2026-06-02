@@ -247,6 +247,47 @@ Agente programador, arquiteto e designer carregam suas próprias skills + as dec
 - **Próxima estória a iniciar:** STORY-049 (detalhe da vaga + breakdown). Em paralelo, agente pode começar **STORY-052** (edição material) — já tem STORY-044 e STORY-047 prontas, e o overlap de UI com STORY-047 é aceitável agora que STORY-047 fechou.
 - **Texto-seed dos 5 templates da STORY-053:** PO compromete entregar até 2026-06-05 (D+4), antes da STORY-053 destravar.
 
+## Atualização de progresso — 2026-06-02 (D+1, fim do dia)
+
+> Segundo snapshot do mesmo dia: STORY-049 (15:34) e STORY-050 (17:14) fecharam em sequência.
+> Próxima atualização: mid-sprint check formal antecipado para **2026-06-03 (D+2)** se STORY-051 fechar até lá.
+
+### Estado atual: 9/13 done (69%) em D+1
+
+| ID        | Status   | Observação                                                                                                                                                                                                          |
+| --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| STORY-049 | **done** | Detalhe da vaga + breakdown explicável entregue. Contrato unificado (vaga + 4 componentes + flags de candidatura). API 423 testes (novos 100%), WebApp 250 widget (tela 97,9%), E2E 3/3 sem flake. `BreakdownRow` público (reuso pela STORY-051). |
+| STORY-050 | **done** | Candidatura em 1 toque + 3 gates (conflito horário, habitualidade PDR-002, avaliação PDR-005). SCREEN-050 (modal confirmação + 3 modais de bloqueio + retirada). API 444 testes / 97,4% (núcleo 100%). E2E 0 flake em 3 runs. Telemetria `match.candidatura_enviada` + audit `candidatura.criada` + evento de domínio `CandidaturaEnviada` (consumido por STORY-053). **Extra aprovado pelo PO**: selo "Você já se candidatou" no card do feed. Follow-up explícito: conflito de horário no card do feed ficou fora de escopo (custo no p95). PO aprovou em chat. |
+
+**Acumulado da sprint:** 9/13 estórias done (1 S + 7 M + 1 L). Restam **4 estórias** — todas do EPIC-002.
+
+### Caminho restante (4 estórias)
+
+| ID        | Status | Bloqueada por                                          | Pendência                                                                            |
+| --------- | ------ | ------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| STORY-051 | ready  | 044, 045, 049, 050 — **todas done**, pode iniciar já   | Próxima a iniciar. Reusa `BreakdownRow` da STORY-049.                                |
+| STORY-052 | ready  | 044, 034, 047 — **todas done**, pode iniciar em paralelo | Independente de 051; ortogonal (toca admin + WebApp do contratante).                |
+| STORY-053 | ready  | 020, 021, 034, 047, 050, 052 — restam **052** + texto-seed do PO | Depende de STORY-052 fechar **e** texto-seed dos 5 templates do PO.       |
+| STORY-054 | ready  | tudo acima                                             | Validador independente; última estória.                                              |
+
+### Riscos da abertura — releitura no fim do D+1
+
+| Risco                                                       | Estado                                                                                                                                                       |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Sprint pesada demais                                        | **Praticamente mitigado.** 69% em D+1 — cenário realista é fechar EPIC-002 até 2026-06-04/05.                                                                |
+| 3 gates da STORY-050 interagem mal                          | **Não materializou.** 444 testes verdes, núcleo 100%, E2E 0 flake. Cobertos os 3 caminhos de bloqueio e a reativação idempotente.                            |
+| Cron de auto-retirada (STORY-052)                           | Ainda em aberto — próxima janela.                                                                                                                            |
+| Notificações spammam contratante                            | Ainda em aberto — STORY-053.                                                                                                                                 |
+| Texto-seed dos 5 templates (PO)                             | **Vira gargalo nas próximas ~24-36h.** STORY-052 ortogonal pode iniciar já; quando 052 fechar, STORY-053 só destrava com o texto-seed entregue.              |
+| Alexandro nos 5 papéis                                      | Ritmo muito acima do previsto. Vigiar fadiga — sprint pode fechar metade do soft-cap, e isso é bom motivo para pausa antes de EPIC-003, não para encavalar.  |
+
+### Decisões do PO (fim do D+1)
+
+- **Antecipar a entrega do texto-seed para 2026-06-03 (D+2)** — passou de "antes da 053 destravar" para "antes do mid-sprint check" porque o ritmo de implementação está acima do projetado.
+- **Próximas estórias a iniciar:** STORY-051 (caminho crítico de UI do contratante) **e** STORY-052 (edição material) **em paralelo**. Ortogonais e sem conflito de merge esperado (051 toca painel novo; 052 toca admin + fluxo de edição da vaga).
+- **Reavaliar a inclusão de STORY-053 no escopo da W27** no mid-sprint check de 2026-06-03 — se STORY-051+052+054 fecharem antes do PO entregar o texto-seed, é razoável fechar o sprint com 12/13 e mover STORY-053 para W28 dedicada a notificações + acabamento.
+- **Follow-up registrado da STORY-050:** "conflito de horário no card do feed" como item de wishlist (pré-backlog) — não MVP do EPIC-002.
+
 ## Aprendizados em curso (mid-sprint)
 
 > Registrar conforme acontecem; consolidar na seção "Fechamento do sprint" no fim.
@@ -254,7 +295,10 @@ Agente programador, arquiteto e designer carregam suas próprias skills + as dec
 - **STORY-048 (L) cabe em 1 sessão quando o spike de algoritmo (045) precede de verdade.** O gatilho de quebra documentado virou seguro morto, não plano A. Manter a disciplina spike-antes-de-implementação.
 - **Decisões transversais emergem em estórias-âncora.** STORY-046 produziu DDR-002 (locale pt-BR + 24h) e IDR-025 (sessão no boot) — ambos não previstos na abertura, ambos com efeito em todas as telas futuras. Sinal de que a primeira estória de cada tipo de fluxo merece slot extra de revisão.
 - **EPIC-008 ortogonal foi o certo.** Rodou em paralelo, fechou rápido, zero conflito de merge com EPIC-002. Padrão a repetir quando houver épico pequeno com superfície disjunta.
-- **PO como pendência de planejamento ativo.** Texto-seed dos 5 templates da STORY-053 é entrega do PO, não do agente. Risco real se o ritmo de implementação ultrapassar o ritmo de produção de conteúdo.
+- **PO como pendência de planejamento ativo.** Texto-seed dos 5 templates da STORY-053 é entrega do PO, não do agente. Risco real se o ritmo de implementação ultrapassar o ritmo de produção de conteúdo — **e está ultrapassando** (status fim de D+1).
+- **Estória "Designer + Programador na mesma sessão" entrega bem.** STORY-049 e STORY-050 fecharam SCREEN + back + front em uma sessão cada. Padrão útil quando a tela é pequena e a regra de negócio cabe num spike pré-existente — não tentar quando uma das duas dimensões está grande.
+- **Reuso de componente nasce na estória anterior.** `BreakdownRow` saiu como público na STORY-049 antecipando o consumo pela STORY-051. Custo de planejar reuso na hora certa é baixo; custo de não planejar é refatoração tardia.
+- **Componente compartilhado backend (Haversine→Support\Geo).** Refatoração de oportunidade na STORY-049 evitou duplicação feed↔detalhe. Sinal saudável; não inflar estória só pra refatorar, mas aceitar quando o overhead é nulo.
 
 ## Fechamento do sprint (preencher no encerramento)
 
