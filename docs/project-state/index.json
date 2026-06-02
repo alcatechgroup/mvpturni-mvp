@@ -2800,6 +2800,32 @@
         "owner_designer": "claude-opus-4-8",
         "created_at": "2026-06-02",
         "updated_at": "2026-06-02"
+      },
+      {
+        "id": "SCREEN-STORY-047-minhas-vagas",
+        "story": "STORY-047",
+        "epic": "EPIC-002",
+        "status": "ready",
+        "path": "design/screens/SCREEN-STORY-047-minhas-vagas.md",
+        "viewports": [
+          "mobile",
+          "desktop"
+        ],
+        "related_ddrs": [
+          "DDR-001",
+          "DDR-002"
+        ],
+        "related_idrs": [],
+        "ds_components_used": [
+          "brand.logo",
+          "button.primary",
+          "surface.card",
+          "link.text",
+          "banner"
+        ],
+        "owner_designer": "claude-opus-4-8",
+        "created_at": "2026-06-02",
+        "updated_at": "2026-06-02"
       }
     ],
     "system": {

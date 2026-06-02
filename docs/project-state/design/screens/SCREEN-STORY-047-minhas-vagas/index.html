@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<!--
+  PROTÓTIPO DE VALIDAÇÃO — NÃO É CÓDIGO DE PRODUÇÃO.
+  SCREEN-STORY-047 — Minhas vagas (contratante) + cancelar vaga.
+  HTML/CSS/JS vanilla, sem rede, sem build. Abra clicando no arquivo.
+  Tokens reais do tema contratante (mostarda) + semânticos (DDR-001). Locale pt-BR / 24h (DDR-002).
+  Microcopy = §5 do spec, palavra por palavra. data-testid = §7.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCREEN-STORY-047 — Minhas vagas</title>
+<style>
+  :root {
+    --page: #F7F4EC; --surface: #FFFFFF;
+    --border-subtle: #E0DDD3; --border-strong: #C8C5BB;
+    --text-strong: #0F1B2D; --text-muted: #42504A;
+    --brand: #00A868;
+    --accent: #9A6E25; --accent-ink: #6E4E12; --on-accent: #FFFFFF;
+    --error: #B83A3A; --error-soft: #FBE2E2;
+    --warn: #9A6E25; --warn-soft: #FBEED1;
+    --success: #2D7A4F; --success-soft: #E2F0E5;
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-full: 999px;
+    --s-xs: 4px; --s-sm: 8px; --s-md: 16px; --s-lg: 24px; --s-xl: 32px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #EAE6DA; color: var(--text-strong);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Barra de controle do protótipo (não faz parte da tela) */
+  .proto-bar {
+    position: sticky; top: 0; z-index: 50; background: #1A2018; color: #ECEDE5;
+    padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    font-size: 13px;
+  }
+  .proto-bar strong { color: #fff; }
+  .proto-bar .chip {
+    border: 1px solid #3a4a3f; background: #232b25; color: #d8ded6;
+    border-radius: var(--r-full); padding: 4px 12px; cursor: pointer; font-size: 12px;
+  }
+  .proto-bar .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .proto-bar .group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .proto-bar .sep { width: 1px; height: 20px; background: #3a4a3f; }
+
+  .stage { display: flex; justify-content: center; padding: 28px 16px 60px; }
+  .frame {
+    background: var(--page); width: 100%; max-width: 412px;
+    min-height: 760px; border-radius: var(--r-lg);
+    box-shadow: 0 8px 30px rgba(0,0,0,.18); overflow: hidden; position: relative;
+    display: flex; flex-direction: column;
+  }
+  body.desktop .frame { max-width: 980px; }
+
+  /* AppBar / header */
+  .appbar {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s-md);
+    padding: 14px var(--s-md); background: var(--surface);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .appbar .title { font-size: 18px; font-weight: 700; }
+  body.desktop .appbar .title { font-size: 22px; }
+  .brand {
+    font-family: "Bebas Neue", Impact, "Arial Narrow Bold", sans-serif;
+    color: var(--brand); font-size: 30px; letter-spacing: 1px; text-align: center;
+    padding: 10px 0 0; display: none;
+  }
+  body.desktop .brand { display: block; }
+
+  .scroll { flex: 1; overflow-y: auto; padding: var(--s-md); position: relative; }
+  body.desktop .scroll { padding: var(--s-lg) var(--s-xl) 60px; }
+
+  /* Header com CTA no desktop */
+  .header-row { display: none; }
+  body.desktop .header-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: var(--s-md);
+  }
+  body.desktop .header-row .title { font-size: 22px; font-weight: 700; }
+  body.desktop .appbar { display: none; }
+
+  /* Filtros (ChoiceChip) */
+  .filters {
+    display: flex; gap: var(--s-sm); overflow-x: auto; padding: 0 0 var(--s-md);
+    -webkit-overflow-scrolling: touch;
+  }
+  body.desktop .filters { flex-wrap: wrap; overflow: visible; }
+  .fchip {
+    flex: 0 0 auto; border: 1px solid var(--border-strong); background: var(--surface);
+    color: var(--text-muted); border-radius: var(--r-full); padding: 8px 16px;
+    font-size: 14px; cursor: pointer; min-height: 40px; white-space: nowrap;
+    display: inline-flex; align-items: center;
+  }
+  .fchip.sel {
+    background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600;
+  }
+  .fchip:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+
+  /* Grade de cards */
+  .cards { display: flex; flex-direction: column; gap: var(--s-md); padding-bottom: 90px; }
+  body.desktop .cards { display: grid; grid-template-columns: repeat(2, 1fr); padding-bottom: 0; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md); padding: var(--s-md); position: relative;
+  }
+  .card .top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-sm); }
+  .card .funcao { font-size: 17px; font-weight: 700; }
+  .card .when { color: var(--text-muted); font-size: 14px; margin-top: 2px; }
+  .card .money-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: var(--s-sm); font-size: 15px;
+  }
+  .card .pendentes { color: var(--text-muted); font-size: 14px; margin-top: var(--s-sm);
+    display: flex; align-items: center; gap: 6px; }
+  .card .pendentes::before { content: "👥"; font-size: 13px; }
+  .card .actions {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s-md);
+    margin-top: var(--s-md); padding-top: var(--s-sm); border-top: 1px solid var(--border-subtle);
+  }
+  .card .actions.only-link { justify-content: flex-start; }
+
+  /* badge.status — selo de estado (cor semântica + rótulo + ícone + borda) */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700;
+    padding: 4px 10px; border-radius: var(--r-full); border: 1px solid; white-space: nowrap;
+  }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .badge.aberta   { background: var(--success-soft); color: #1d5235; border-color: #9cc7ad; }
+  .badge.aberta .dot { background: var(--success); }
+  .badge.fechada  { background: #ECEAE2; color: var(--text-muted); border-color: var(--border-strong); }
+  .badge.fechada .dot { background: var(--text-muted); }
+  .badge.cancelada{ background: var(--error-soft); color: #8a2b2b; border-color: #e0a3a3; }
+  .badge.cancelada .dot { background: var(--error); }
+
+  /* selo posições preenchidas/total */
+  .pill-pos {
+    display: inline-flex; align-items: center; font-size: 13px; font-weight: 700;
+    padding: 3px 10px; border-radius: var(--r-full);
+    background: #F0EEE6; color: var(--text-strong); border: 1px solid var(--border-subtle);
+  }
+
+  /* links e botões */
+  .link {
+    color: var(--accent-ink); font-size: 14px; font-weight: 600; cursor: pointer;
+    text-decoration: none; min-height: 44px; display: inline-flex; align-items: center;
+  }
+  .link:hover { text-decoration: underline; }
+  .btn-danger-text {
+    color: var(--error); font-size: 14px; font-weight: 700; cursor: pointer; background: none;
+    border: none; min-height: 44px; padding: 0; font-family: inherit;
+  }
+  .btn-danger-text:hover { text-decoration: underline; }
+
+  .btn-primary {
+    background: var(--accent); color: var(--on-accent); border: none; cursor: pointer;
+    border-radius: var(--r-full); padding: 14px 24px; font-size: 16px; font-weight: 700;
+    font-family: inherit; min-height: 48px; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary:hover { filter: brightness(.95); }
+
+  /* FAB (mobile) */
+  .fab {
+    position: absolute; right: var(--s-md); bottom: var(--s-md); z-index: 20;
+    background: var(--accent); color: var(--on-accent); border: none; cursor: pointer;
+    border-radius: var(--r-full); padding: 14px 20px; font-size: 15px; font-weight: 700;
+    font-family: inherit; min-height: 52px; box-shadow: 0 6px 18px rgba(0,0,0,.22);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  body.desktop .fab { display: none; }
+  .header-cta { display: none; }
+  body.desktop .header-cta { display: inline-flex; }
+
+  /* Skeleton */
+  .sk { background: var(--surface); border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md); padding: var(--s-md); }
+  .sk .bar { height: 12px; border-radius: 6px; margin: 8px 0;
+    background: linear-gradient(90deg,#eceae2 25%,#f6f4ec 37%,#eceae2 63%);
+    background-size: 400% 100%; animation: shimmer 1.3s ease infinite; }
+  @keyframes shimmer { 0%{background-position:100% 0} 100%{background-position:0 0} }
+
+  /* Estados centrais (vazio / erro / sem permissão) */
+  .center-state { text-align: center; padding: var(--s-xl) var(--s-md); display: flex;
+    flex-direction: column; align-items: center; gap: var(--s-sm); }
+  .center-state .ico { font-size: 44px; }
+  .center-state h2 { font-size: 19px; margin: var(--s-sm) 0 0; }
+  .center-state p { color: var(--text-muted); font-size: 15px; margin: 0; max-width: 320px; line-height: 1.45; }
+  .center-state .btn-primary { margin-top: var(--s-md); }
+
+  .banner {
+    display: flex; align-items: center; gap: var(--s-sm); justify-content: space-between;
+    background: var(--error-soft); border: 1px solid #e0a3a3; color: #8a2b2b;
+    border-radius: var(--r-md); padding: 12px var(--s-md); font-size: 14px; margin-bottom: var(--s-md);
+  }
+  .banner .retry { color: #8a2b2b; font-weight: 700; cursor: pointer; text-decoration: underline; white-space: nowrap; }
+
+  .empty-filter { text-align: center; color: var(--text-muted); padding: var(--s-xl) var(--s-md);
+    font-size: 15px; line-height: 1.5; }
+
+  /* Toast */
+  .toast {
+    position: absolute; left: 50%; transform: translateX(-50%); bottom: 84px; z-index: 30;
+    background: #1A2018; color: #fff; border-radius: var(--r-md); padding: 12px 18px;
+    font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.3); white-space: nowrap;
+  }
+
+  /* Diálogo de confirmação */
+  .scrim { position: absolute; inset: 0; background: rgba(15,27,45,.45); z-index: 40;
+    display: flex; align-items: center; justify-content: center; padding: var(--s-md); }
+  .dialog {
+    background: var(--surface); border-radius: var(--r-lg); padding: var(--s-lg);
+    max-width: 360px; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,.3);
+  }
+  .dialog h3 { margin: 0 0 var(--s-sm); font-size: 18px; }
+  .dialog .vaga-resumo { color: var(--text-muted); font-size: 14px; margin: 0 0 var(--s-sm); }
+  .dialog .aviso { font-size: 15px; line-height: 1.45; margin: 0 0 var(--s-lg); }
+  .dialog .actions { display: flex; justify-content: flex-end; gap: var(--s-sm); }
+  .btn-text {
+    background: none; border: none; color: var(--accent-ink); font-weight: 700; font-size: 15px;
+    cursor: pointer; padding: 12px 16px; border-radius: var(--r-full); font-family: inherit; min-height: 48px;
+  }
+  .btn-danger {
+    background: var(--error); color: #fff; border: none; cursor: pointer; border-radius: var(--r-full);
+    padding: 12px 20px; font-size: 15px; font-weight: 700; font-family: inherit; min-height: 48px;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-danger:hover { filter: brightness(.95); }
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.5); border-top-color:#fff;
+    border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body class="mobile">
+
+  <div class="proto-bar">
+    <strong>SCREEN-047 · Minhas vagas</strong>
+    <div class="sep"></div>
+    <div class="group">
+      <span>Viewport:</span>
+      <span class="chip active" data-vp="mobile" onclick="setVp('mobile')">Mobile</span>
+      <span class="chip" data-vp="desktop" onclick="setVp('desktop')">Desktop</span>
+    </div>
+    <div class="sep"></div>
+    <div class="group">
+      <span>Estado:</span>
+      <span class="chip active" data-st="lista" onclick="setState('lista')">Lista</span>
+      <span class="chip" data-st="loading" onclick="setState('loading')">Loading</span>
+      <span class="chip" data-st="vazio" onclick="setState('vazio')">Vazio 1ª vez</span>
+      <span class="chip" data-st="vazio-filtro" onclick="setState('vazio-filtro')">Vazio por filtro</span>
+      <span class="chip" data-st="erro" onclick="setState('erro')">Erro fetch</span>
+      <span class="chip" data-st="sem-permissao" onclick="setState('sem-permissao')">Sem permissão</span>
+      <span class="chip" data-st="dialog" onclick="setState('dialog')">Diálogo</span>
+      <span class="chip" data-st="cancelando" onclick="setState('cancelando')">Cancelando</span>
+      <span class="chip" data-st="cancelado" onclick="setState('cancelado')">Cancelado</span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="frame" data-testid="minhas-vagas-screen">
+      <div class="brand">TURN<span>I</span>.</div>
+
+      <!-- AppBar (mobile) -->
+      <div class="appbar">
+        <span class="title">Minhas vagas</span>
+      </div>
+
+      <div class="scroll">
+        <!-- Header desktop -->
+        <div class="header-row">
+          <span class="title">Minhas vagas</span>
+          <button class="btn-primary header-cta" data-testid="minhas-vagas-publicar-btn">+ Publicar vaga</button>
+        </div>
+
+        <!-- Banner de erro (estado: erro) -->
+        <div class="banner hidden" id="erro-banner" data-testid="minhas-vagas-erro-banner">
+          <span>⚠ Não foi possível carregar suas vagas. Verifique sua conexão.</span>
+          <span class="retry" data-testid="minhas-vagas-retry-btn" onclick="setState('lista')">Tentar de novo</span>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters" id="filters">
+          <button class="fchip sel" data-slug="ativas" data-testid="minhas-vagas-filtro-ativas" onclick="setFiltro('ativas')">Ativas</button>
+          <button class="fchip" data-slug="abertas" data-testid="minhas-vagas-filtro-abertas" onclick="setFiltro('abertas')">Abertas</button>
+          <button class="fchip" data-slug="fechadas" data-testid="minhas-vagas-filtro-fechadas" onclick="setFiltro('fechadas')">Fechadas</button>
+          <button class="fchip" data-slug="canceladas" data-testid="minhas-vagas-filtro-canceladas" onclick="setFiltro('canceladas')">Canceladas</button>
+          <button class="fchip" data-slug="todas" data-testid="minhas-vagas-filtro-todas" onclick="setFiltro('todas')">Todas</button>
+        </div>
+
+        <!-- Skeleton (loading) -->
+        <div id="skeleton" class="cards hidden" data-testid="minhas-vagas-skeleton">
+          <div class="sk"><div class="bar" style="width:55%"></div><div class="bar" style="width:80%"></div><div class="bar" style="width:40%"></div></div>
+          <div class="sk"><div class="bar" style="width:50%"></div><div class="bar" style="width:75%"></div><div class="bar" style="width:35%"></div></div>
+          <div class="sk"><div class="bar" style="width:60%"></div><div class="bar" style="width:70%"></div></div>
+        </div>
+
+        <!-- Lista de cards -->
+        <div id="lista" class="cards" data-testid="minhas-vagas-lista"></div>
+
+        <!-- Vazio por filtro -->
+        <div id="vazio-filtro" class="empty-filter hidden" data-testid="minhas-vagas-vazio-filtro">
+          <span id="vazio-filtro-msg">Nenhuma vaga cancelada. Troque o filtro para ver outras.</span>
+        </div>
+
+        <!-- Vazio 1ª vez -->
+        <div id="vazio" class="center-state hidden" data-testid="minhas-vagas-vazio">
+          <div class="ico">📋</div>
+          <h2>Você ainda não publicou vagas</h2>
+          <p>Publique uma vaga para começar a receber candidaturas de profissionais.</p>
+          <button class="btn-primary" data-testid="minhas-vagas-publicar-btn">+ Publicar vaga</button>
+        </div>
+
+        <!-- Sem permissão -->
+        <div id="sem-permissao" class="center-state hidden" data-testid="minhas-vagas-sem-permissao">
+          <div class="ico">🔒</div>
+          <h2>Esta área é do contratante</h2>
+          <p>Gerir vagas é uma ação de quem contrata. Sua conta é de profissional.</p>
+          <button class="btn-primary">Voltar ao início</button>
+        </div>
+      </div>
+
+      <!-- FAB (mobile) -->
+      <button class="fab" id="fab" data-testid="minhas-vagas-publicar-btn">+ Publicar vaga</button>
+
+      <!-- Toast -->
+      <div class="toast hidden" id="toast" data-testid="vaga-cancelada-toast">Vaga cancelada.</div>
+
+      <!-- Diálogo de cancelamento -->
+      <div class="scrim hidden" id="dialog-scrim">
+        <div class="dialog" data-testid="vaga-cancelar-dialog">
+          <h3>Cancelar esta vaga?</h3>
+          <p class="vaga-resumo" id="dialog-resumo">Garçom · Sex, 12/06 · 18:00</p>
+          <p class="aviso" id="dialog-aviso">2 candidatos serão notificados do cancelamento. Esta ação não pode ser desfeita.</p>
+          <div class="actions">
+            <button class="btn-text" data-testid="vaga-cancelar-manter-btn" onclick="closeDialog()">Manter vaga</button>
+            <button class="btn-danger" id="dialog-confirmar" data-testid="vaga-cancelar-confirmar-btn" onclick="confirmCancel()">
+              <span id="dialog-confirmar-label">Cancelar vaga</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  // ---- Mock de dados (inline, sem rede) ----
+  // candidatos_pendentes só aparece quando > 0. data/hora pt-BR 24h (DDR-002).
+  const VAGAS = [
+    { id: 1, funcao: 'Garçom',     when: 'Sex, 12/06 · 18:00–23:00', resumoDia: 'Sex, 12/06 · 18:00',
+      valor: '150,00', preenchidas: 1, total: 3, estado: 'aberta',  pendentes: 2, recente: true },
+    { id: 2, funcao: 'Cozinheira', when: 'Qua, 10/06 · 08:00–16:00', resumoDia: 'Qua, 10/06 · 08:00',
+      valor: '180,00', preenchidas: 2, total: 2, estado: 'fechada', pendentes: 0, recente: true },
+    { id: 3, funcao: 'Recepcionista', when: 'Seg, 08/06 · 14:00–22:00', resumoDia: 'Seg, 08/06 · 14:00',
+      valor: '120,00', preenchidas: 0, total: 1, estado: 'aberta',  pendentes: 0, recente: true },
+    { id: 4, funcao: 'Bartender',  when: 'Sáb, 24/05 · 20:00–02:00', resumoDia: 'Sáb, 24/05 · 20:00',
+      valor: '200,00', preenchidas: 0, total: 2, estado: 'cancelada', pendentes: 0, recente: false },
+  ];
+
+  const ESTADO_LABEL = { aberta: 'Aberta', fechada: 'Fechada', cancelada: 'Cancelada' };
+  const ESTADO_ICON  = { aberta: '●', fechada: '✓', cancelada: '⊘' };
+  let filtro = 'ativas';
+  let dialogVagaId = null;
+
+  function passaFiltro(v) {
+    switch (filtro) {
+      case 'ativas':     return (v.estado === 'aberta') || (v.estado === 'fechada' && v.recente);
+      case 'abertas':    return v.estado === 'aberta';
+      case 'fechadas':   return v.estado === 'fechada';
+      case 'canceladas': return v.estado === 'cancelada';
+      case 'todas':      return true;
+    }
+  }
+
+  function vazioFiltroMsg() {
+    const map = {
+      ativas: 'Nenhuma vaga ativa. Troque o filtro para ver outras.',
+      abertas: 'Nenhuma vaga aberta. Troque o filtro para ver outras.',
+      fechadas: 'Nenhuma vaga fechada. Troque o filtro para ver outras.',
+      canceladas: 'Nenhuma vaga cancelada. Troque o filtro para ver outras.',
+      todas: 'Nenhuma vaga ativa. Troque o filtro para ver outras.',
+    };
+    return map[filtro];
+  }
+
+  function cardHtml(v) {
+    const podeCancelar = v.estado === 'aberta';
+    const podeVer = (v.estado === 'aberta' && v.pendentes > 0) || v.estado === 'fechada';
+    const pendentesLinha = v.pendentes > 0
+      ? `<div class="pendentes" data-testid="vaga-card-${v.id}-pendentes">${v.pendentes === 1 ? '1 candidato aguardando' : v.pendentes + ' candidatos aguardando'}</div>`
+      : '';
+    let actions = '';
+    if (podeVer || podeCancelar) {
+      const ver = podeVer ? `<a class="link" data-testid="vaga-card-${v.id}-ver-candidatos" href="javascript:void(0)">Ver candidatos</a>` : '';
+      const cancelar = podeCancelar ? `<button class="btn-danger-text" data-testid="vaga-card-${v.id}-cancelar-btn" onclick="openDialog(${v.id})">Cancelar vaga</button>` : '';
+      const cls = (podeVer && !podeCancelar) ? 'actions only-link' : 'actions';
+      actions = `<div class="${cls}">${ver}${cancelar}</div>`;
+    }
+    return `
+      <div class="card" data-testid="vaga-card-${v.id}">
+        <div class="top">
+          <div>
+            <div class="funcao">${v.funcao}</div>
+            <div class="when">${v.when}</div>
+          </div>
+          <span class="badge ${v.estado}" data-testid="vaga-card-${v.id}-estado"><span class="dot"></span>${ESTADO_LABEL[v.estado]}</span>
+        </div>
+        <div class="money-row">
+          <span>R$ ${v.valor} · turno</span>
+          <span class="pill-pos" data-testid="vaga-card-${v.id}-posicoes" aria-label="${v.preenchidas} de ${v.total} posições preenchidas">${v.preenchidas}/${v.total}</span>
+        </div>
+        ${pendentesLinha}
+        ${actions}
+      </div>`;
+  }
+
+  function renderLista() {
+    const visiveis = VAGAS.filter(passaFiltro);
+    const lista = document.getElementById('lista');
+    const vazioFiltro = document.getElementById('vazio-filtro');
+    if (visiveis.length === 0) {
+      lista.classList.add('hidden');
+      vazioFiltro.classList.remove('hidden');
+      document.getElementById('vazio-filtro-msg').textContent = vazioFiltroMsg();
+    } else {
+      vazioFiltro.classList.add('hidden');
+      lista.classList.remove('hidden');
+      lista.innerHTML = visiveis.map(cardHtml).join('');
+    }
+  }
+
+  function setFiltro(slug) {
+    filtro = slug;
+    document.querySelectorAll('.fchip').forEach(c => c.classList.toggle('sel', c.dataset.slug === slug));
+    renderLista();
+  }
+
+  // ---- Diálogo de cancelamento ----
+  function openDialog(id) {
+    dialogVagaId = id;
+    const v = VAGAS.find(x => x.id === id);
+    document.getElementById('dialog-resumo').textContent = `${v.funcao} · ${v.resumoDia}`;
+    document.getElementById('dialog-aviso').textContent =
+      v.pendentes === 0 ? 'Nenhum candidato será notificado. Esta ação não pode ser desfeita.'
+      : v.pendentes === 1 ? '1 candidato será notificado do cancelamento. Esta ação não pode ser desfeita.'
+      : `${v.pendentes} candidatos serão notificados do cancelamento. Esta ação não pode ser desfeita.`;
+    resetDialogBtn();
+    document.getElementById('dialog-scrim').classList.remove('hidden');
+  }
+  function closeDialog() {
+    document.getElementById('dialog-scrim').classList.add('hidden');
+    resetDialogBtn();
+  }
+  function resetDialogBtn() {
+    document.getElementById('dialog-confirmar-label').innerHTML = 'Cancelar vaga';
+    document.getElementById('dialog-confirmar').disabled = false;
+  }
+  function confirmCancel() {
+    // loading no botão (4.7b) → sucesso (4.7c)
+    document.getElementById('dialog-confirmar').disabled = true;
+    document.getElementById('dialog-confirmar-label').innerHTML = '<span class="spinner"></span>';
+    setTimeout(() => {
+      const v = VAGAS.find(x => x.id === dialogVagaId);
+      if (v) { v.estado = 'cancelada'; v.pendentes = 0; }
+      closeDialog();
+      renderLista();
+      showToast();
+    }, 900);
+  }
+  function showToast() {
+    const t = document.getElementById('toast');
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 2600);
+  }
+
+  // ---- Controle do protótipo ----
+  function setVp(vp) {
+    document.body.className = vp;
+    document.querySelectorAll('[data-vp]').forEach(c => c.classList.toggle('active', c.dataset.vp === vp));
+  }
+
+  function hideAll() {
+    ['skeleton','lista','vazio','vazio-filtro','sem-permissao'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    document.getElementById('erro-banner').classList.add('hidden');
+    document.getElementById('dialog-scrim').classList.add('hidden');
+    document.getElementById('toast').classList.add('hidden');
+    document.getElementById('filters').classList.remove('hidden');
+    document.getElementById('fab').classList.remove('hidden');
+  }
+
+  function setState(st) {
+    document.querySelectorAll('[data-st]').forEach(c => c.classList.toggle('active', c.dataset.st === st));
+    hideAll();
+    switch (st) {
+      case 'lista':
+        setFiltro('ativas');
+        break;
+      case 'loading':
+        document.getElementById('skeleton').classList.remove('hidden');
+        break;
+      case 'vazio':
+        document.getElementById('filters').classList.add('hidden');
+        document.getElementById('fab').classList.add('hidden');
+        document.getElementById('vazio').classList.remove('hidden');
+        break;
+      case 'vazio-filtro':
+        setFiltro('canceladas');
+        // força vazio: esconde a cancelada do mock temporariamente
+        document.getElementById('lista').classList.add('hidden');
+        document.getElementById('vazio-filtro').classList.remove('hidden');
+        document.getElementById('vazio-filtro-msg').textContent = 'Nenhuma vaga cancelada. Troque o filtro para ver outras.';
+        break;
+      case 'erro':
+        document.getElementById('erro-banner').classList.remove('hidden');
+        break;
+      case 'sem-permissao':
+        document.getElementById('filters').classList.add('hidden');
+        document.getElementById('fab').classList.add('hidden');
+        document.getElementById('sem-permissao').classList.remove('hidden');
+        break;
+      case 'dialog':
+        setFiltro('ativas');
+        openDialog(1);
+        break;
+      case 'cancelando':
+        setFiltro('ativas');
+        openDialog(1);
+        document.getElementById('dialog-confirmar').disabled = true;
+        document.getElementById('dialog-confirmar-label').innerHTML = '<span class="spinner"></span>';
+        break;
+      case 'cancelado':
+        setFiltro('ativas');
+        const v = VAGAS.find(x => x.id === 1);
+        if (v) { v.estado = 'cancelada'; v.pendentes = 0; }
+        renderLista();
+        showToast();
+        break;
+    }
+  }
+
+  // init
+  renderLista();
+</script>
+</body>
+</html>
