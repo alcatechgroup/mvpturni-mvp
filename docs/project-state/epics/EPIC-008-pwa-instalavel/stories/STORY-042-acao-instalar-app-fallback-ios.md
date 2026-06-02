@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true  # designer revisa o card "Instalar app" e o modal iOS contra DDR-001
 design_screen_id: null
-status: ready
-owner_agent: null
+status: in_progress  # 2026-06-01 — código completo + suíte verde; aguarda release + smokes CA-18/19/20 do PO p/ done
+owner_agent: programador
 created_at: 2026-05-31
-updated_at: 2026-06-01  # promovida draft → ready na abertura da SPRINT-2026-W27
+updated_at: 2026-06-01  # implementação concluída; smokes mobile pendentes
 estimated_session_size: M
 produces_idr: IDR-020
 renamed_from: STORY-039  # 2026-06-01 — colisão com EPIC-007 STORY-039 (Patrol)
@@ -250,22 +250,52 @@ Siga `docs/skills/po/references/agent-task-format.md`. Carregue `docs/skills/pro
 ## Notas do agente (preenchido durante/após execução)
 
 ### Entrada inicial
-- _A preencher pelo agente executor._
+- **Documentos lidos:** STORY-042 inteira; IDR-020 (já `proposed`, completo — fixa microcopy, 4 pontos, política de dispensa, standalone detection, identidade visual STORY-041); IDR-017 (invariante a preservar); módulo vivo `lib/core/app_update/` (interface+factory+stub+web+controller+widget) como padrão a replicar; `app_update_controller_test.dart` / `update_banner_test.dart` / `platform_stub_test.dart` como estilo de teste; `index.html`; `tokens.dart` (DDR-001); 4 telas de plugagem (login, pré-cadastro prof/contratante, app_shell — `AppVersionLabel` como vizinho); E2E `app-update.spec.ts` (Playwright + `activateSemantics`).
+- **Entendimento consolidado:** adicionar feature "Instalar app" sem regredir IDR-017. Peça JS pré-Flutter no `index.html` captura `beforeinstallprompt` (preventDefault + guarda), detecta iOS/standalone, expõe `window.turniInstall` + `CustomEvent`s; **não toca** SW/caches/fetch. Módulo Dart `lib/core/install/` espelha `app_update/`: interface+factory (conditional import), stub VM, impl web (`package:web`), controller `ChangeNotifier`, singleton. Card discreto + modal iOS nas 4 telas com Keys `install-action-*`.
+- **Decisão de design da dispensa (resolve tensão CA-5 × CA-6):** `_dismissed` mora no controller (entra em `showAction`, satisfaz CA-5 cenário f). A reabertura "ao trocar de rota" é feita por um wrapper `InstallActionSlot` (StatefulWidget) plugado em cada tela: no `initState` chama `controller.resetDismiss()`. O slot fica **sempre** montado (renderiza card-ou-shrink via `ListenableBuilder`), evitando o deadlock de "card some → initState não roda mais". Dispensar na mesma tela mantém escondido (sem remount); navegar e voltar remonta o slot → reabre. CA-6 testado no controller via `dismiss()` + `resetDismiss()`.
+- **Plano (TDD):** (1) testes RED controller+stub; (2) módulo Dart; (3) widgets card/modal/slot + widget tests; (4) script `index.html`; (5) plugar 4 telas + `main.dart`; (6) E2E Playwright (`addInitScript`) + suíte completa + notas.
+- **Testes que pretendo escrever:** controller — showAction 6 cenários (CA-5), dispensa não persiste (CA-6), iOS abre/fecha modal (CA-7), Chromium chama bridge 1× e marca dispensado em accepted/dismissed (CA-8), promptNative unavailable não dispensa (borda); stub no-op (CA-9); widgets — card mostra microcopy/Semantics/aparece-some por showAction (CA-10/CA-12/CA-13), modal 2 passos + Entendi fecha (CA-11); E2E — card visível no login com `turniInstall.isInstallable=true` injetado (CA-17).
 
 ### Decisões tomadas
-- _A preencher pelo agente executor._
+- Dispensa no controller + `resetDismiss()` no `initState` do `InstallActionSlot` (ver entrada inicial) — reconcilia CA-5 e CA-6 sem `localStorage` (veta IDR-017).
+- E2E do card vai para Playwright (web-platform: depende de `window.turniInstall` + semantics), não para `integration_test` — mesma natureza do `app-update.spec.ts`. Roda em build dev (instalabilidade independe de versão `dev`, diferente do auto-update).
 
 ### Descobertas
-- _A preencher pelo agente executor._
+- IDR-020 já estava **completo e `proposed`** (escrito pelo PO na abertura do épico) — fixou microcopy, 4 pontos, política de dispensa, standalone detection, identidade visual. Não precisei redigir do zero (protocolo passo 1 já entregue).
+- A `AppVersionLabel` já existia nos 4 pontos exatos de plugagem — bastou inserir o `InstallActionSlot` logo acima de cada uma e reduzir o espaçamento entre eles (de `lg` para `sm`).
+- **Tensão CA-5 × CA-6** (dispensa no controller que entra em `showAction` vs. reabrir ao trocar de rota): resolvida com o `InstallActionSlot` sempre montado chamando `resetDismiss()` no `initState`. O slot renderiza card-ou-shrink, então nunca desmonta por estar escondido (evita o deadlock de "card some → initState não roda mais"). Ver "Decisões tomadas".
+- O E2E do card **roda em build dev** (instalabilidade independe da versão, ao contrário do auto-update que é inerte em `dev`). Para disparar instalabilidade no Chromium headless (que não emite `beforeinstallprompt` sozinho) injeto um evento sintético via `page.evaluate` que exercita o listener real do `index.html` + o bridge Dart.
+- `find.bySemanticsLabel` exige `Semantics(container: true)` + `ExcludeSemantics` no filho `Text` para formar um nó único com o label (senão o label do Semantics e o do Text não casam → 0 nós).
 
 ### Bloqueios encontrados
-- _A preencher pelo agente executor._
+- Nenhum bloqueio técnico. Pendência operacional: smokes mobile reais (CA-19 Android / CA-20 iOS) e não-regressão auto-update com o épico no ar (CA-18) dependem de release em homolog + assinatura do PO em chat — fora do alcance do agente.
+
+### Mapa CA → teste (gate de teste #2)
+- **CA-1 / CA-14** — leitura do diff `web/index.html`: script em `try/catch`, sem `serviceWorker`/`caches`/`fetch` (grep confirmou só o comentário menciona).
+- **CA-2** — manual (Chromium): cobertura via E2E `install-action.spec.ts` (beforeinstallprompt sintético → `turniInstall.isInstallable===true`).
+- **CA-3 / CA-4** — estrutura espelha `app_update/`; `flutter analyze lib/core/install` limpo; sem import de `package:web`/`dart:js_interop` fora de `*_web.dart`.
+- **CA-5** — `install_controller_test.dart` grupo "showAction (CA-5)": 6 cenários (a–f).
+- **CA-6** — grupo "dispensa não persiste": `dismiss`+`resetDismiss` reabre; não reabre se instalabilidade sumiu; novo evento `installable` reabre; idempotência de `dismiss`.
+- **CA-7** — grupo "iOS abre/fecha modal": `requestInstall` liga `showIosInstructions`, `dismissIosInstructions` desliga, iOS não chama prompt.
+- **CA-8** — grupo "Chromium chama bridge": prompt 1×, `accepted`/`dismissed` dispensa, `unavailable` não dispensa (borda), não abre modal.
+- **CA-9** — `install_platform_stub_test.dart` (stub no-op) + cobertura: controller 41/42 (97,6%), stub 8/8 (100%), card/slot/dialog 100%.
+- **CA-10** — `install_widgets_test.dart` (slot aparece/some) + `login_screen_test.dart` (ponto `install-action-login` presente).
+- **CA-11** — `install_widgets_test.dart`: clique no card iOS abre `ios-install-dialog`, "Entendi" fecha.
+- **CA-12** — `install_widgets_test.dart`: `find.bySemanticsLabel('Instalar app na tela inicial')` com `ensureSemantics`.
+- **CA-13** — card e modal usam só tokens `TurniColors/Spacing/Radius` (sem cores/spacings crus — leitura do diff).
+- **CA-15 / CA-18** — não-regressão auto-update: `app_update/` intocado; smoke gating Playwright verde (console limpo); CA-18 (release + banner) pendente de PO.
+- **CA-16** — `flutter test` completo: 152 verdes.
+- **CA-17** — `install-action.spec.ts` verde (`make e2e-webapp-install`).
+- **CA-21** — `install_widgets_test.dart`: standalone instalável → card some.
 
 ### IDRs criados
-- IDR-020 (proposed nesta story; accepted após smokes).
+- IDR-020 — já `proposed` na abertura do épico (não alterado nesta entrega; sobe para `accepted` após smokes CA-19/CA-20 + OK do PO).
 
 ### Cobertura final
-- _A preencher pelo agente executor._
+- `lib/core/install/`: controller 97,6% (41/42), stub 100%, `install_action_card` 100%, `install_action_slot` 100%, `ios_install_instructions_dialog` 100%. Peças puras ≥ 95% (CA-9 ✅). Suíte total do WebApp: 152 testes verdes.
+- `flutter analyze lib/core/install test/install`: 0 issues. `dart format`: limpo. (Os 2 `info` de `curly_braces` nas telas de cadastro são pré-existentes, em linhas de validação não tocadas.)
 
 ### Links de evidência
-- _A preencher pelo agente executor._
+- Commits `test/feat(STORY-042)` na `main` (TDD: red → green por CA).
+- E2E: `make e2e-webapp-install` (1 passed), `make e2e-webapp-smoke` (4 passed/1 skip), `make e2e-webapp-integration` (All tests passed — não-regressão dos fluxos logados/cadastro).
+- Pendente: capturas dos smokes CA-19 (Android Chrome) e CA-20 (iOS Safari) em chat após release em homolog.

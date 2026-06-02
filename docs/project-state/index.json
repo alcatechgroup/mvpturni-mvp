@@ -1355,8 +1355,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_progress",
+      "owner_agent": "programador",
       "sprint_id": "SPRINT-2026-W27",
       "path": "epics/EPIC-008-pwa-instalavel/stories/STORY-042-acao-instalar-app-fallback-ios.md",
       "blocked_by": [],
@@ -1365,7 +1365,8 @@
       "produces_idr": "IDR-020",
       "renamed_from": "STORY-039 (EPIC-008 original; renomeada em 2026-06-01 por colisão com EPIC-007 STORY-039)",
       "created_at": "2026-05-31",
-      "updated_at": "2026-06-01"
+      "updated_at": "2026-06-01",
+      "notes": "2026-06-01: código completo + suíte verde (152 testes WebApp; cobertura install controller 97,6% / widgets 100%). Módulo lib/core/install (bridge+stub+web+controller+singleton) espelha app_update; card+modal iOS plugados nas 4 telas (Keys install-action-*); script pré-Flutter no index.html (não toca SW/caches/fetch — IDR-017 preservado); E2E install-action.spec.ts verde + smoke/integration não-regressão verdes. Falta p/ `done`: release em homolog, smokes CA-19 (Android) / CA-20 (iOS) + CA-18 (não-regressão auto-update com épico no ar) assinados pelo PO, e IDR-020 → accepted."
     },
     {
       "id": "STORY-044",
