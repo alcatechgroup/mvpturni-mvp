@@ -1434,8 +1434,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-046-publicar-vaga",
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_review",
+      "owner_agent": "claude-opus-4-8-programador-2026-06-02",
       "sprint_id": "SPRINT-2026-W27",
       "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-046-publicar-vaga-webapp-contratante.md",
       "blocked_by": [
@@ -1449,7 +1449,7 @@
       "estimated_session_size": "M",
       "produces_idr": null,
       "created_at": "2026-06-01",
-      "updated_at": "2026-06-01"
+      "updated_at": "2026-06-02"
     },
     {
       "id": "STORY-047",
@@ -2747,7 +2747,7 @@
         "id": "SCREEN-STORY-046-publicar-vaga",
         "story": "STORY-046",
         "epic": "EPIC-002",
-        "status": "ready",
+        "status": "in_implementation",
         "path": "design/screens/SCREEN-STORY-046-publicar-vaga.md",
         "viewports": [
           "mobile",
