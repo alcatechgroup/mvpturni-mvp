@@ -288,6 +288,36 @@ Agente programador, arquiteto e designer carregam suas próprias skills + as dec
 - **Reavaliar a inclusão de STORY-053 no escopo da W27** no mid-sprint check de 2026-06-03 — se STORY-051+052+054 fecharem antes do PO entregar o texto-seed, é razoável fechar o sprint com 12/13 e mover STORY-053 para W28 dedicada a notificações + acabamento.
 - **Follow-up registrado da STORY-050:** "conflito de horário no card do feed" como item de wishlist (pré-backlog) — não MVP do EPIC-002.
 
+## Atualização de progresso — 2026-06-02 (D+1, noite) — STORY-051 fechada
+
+> Terceiro snapshot do mesmo dia: STORY-051 (painel de candidatos do contratante) entregue e
+> validada no app real local por Alexandro.
+
+### Estado atual: 10/13 done (77%) em D+1
+
+| ID        | Status   | Observação                                                                                                                                                                                                  |
+| --------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| STORY-051 | **done** | Painel de candidatos do contratante (ranqueado por score snapshot + breakdown reusando `BreakdownRow` da 049). Nova coluna `candidaturas.score_breakdown jsonb` + `alerta_habitualidade` persistidas no envio (STORY-050 service). SCREEN-051 `shipped` (validado no app). Cobertura: controller 95% / service 100% / tela 98,6% / service Dart 100%; CA-8 perf (50 candidatos p95≤500ms); E2E 3/3 sem flake. SCREEN-051 + protótipo. |
+
+**Acumulado da sprint:** 10/13 done (1 S + 8 M + 1 L). Restam **3 estórias** — STORY-052 (edição
+material, ortogonal — pode iniciar já), STORY-053 (notificações — bloqueada por 052 + texto-seed
+do PO), STORY-054 (validador, última).
+
+### Decisões / aprendizados do fechamento da 051
+
+- **Snapshot do breakdown nasceu como dívida da 050, paga na 051.** A 050 só persistia o total
+  (`score_no_momento`); a 051 precisava do breakdown do instante da candidatura (CA-4), então a
+  migração `score_breakdown jsonb` + `alerta_habitualidade` foi adicionada e carimbada no
+  `CriarCandidaturaService`. Aprendizado: snapshot de payload explicável deve ser previsto já na
+  estória que cria o dado, não na que o consome.
+- **Reuso do `BreakdownRow` (049) confirmou a aposta.** A 049 publicou o widget antecipando a 051;
+  o consumo foi direto, sem refatoração. Família `match.*` (barra/chip/breakdownrow) agora no 3º
+  uso → candidata firme a promoção formal ao DS.
+- **Determinismo de E2E exige ordenar leitura antes de mutação.** O E2E da 047 cancela uma vaga
+  arbitrária (`Cancelar vaga`.first) e mexe no filtro; a 051 (que só lê) passou a rodar **antes**
+  dela no aggregator, e o seeder reabre a vaga seed a cada `db:seed`. Padrão para próximos E2E que
+  compartilham o mesmo usuário seed: testes read-only antes dos que mutam estado.
+
 ## Aprendizados em curso (mid-sprint)
 
 > Registrar conforme acontecem; consolidar na seção "Fechamento do sprint" no fim.

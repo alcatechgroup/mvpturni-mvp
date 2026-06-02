@@ -152,7 +152,9 @@ de `minhas_vagas` (que cancela). Robusto e determinístico (3/3 limpo).
 - CA-10 → `integration_test` `painel_candidatos_test` (3/3 sem flake).
 
 ### Links
-- Commit na `main` (git workflow Turni — sem PR). Homolog: deploy via CI pós-push; **smoke de homolog
-  fica como verificação pós-deploy** (o gate `integration_test` é local por IDR-004 — homolog só roda
-  smoke HTTP). O DoD "navega da vaga até o painel e vê 3 candidatos" foi exercido **localmente contra o
-  backend real** (3/3).
+- Commit `8f26a1b` na `main` (git workflow Turni — sem PR). Homolog: deploy via CI pós-push; **smoke de
+  homolog fica como verificação pós-deploy** (o gate `integration_test` é local por IDR-004 — homolog só
+  roda smoke HTTP). O DoD "navega da vaga até o painel e vê 3 candidatos" foi exercido **localmente contra
+  o backend real** (3/3).
+- **Validação humana:** Alexandro aprovou no app real local em 2026-06-02 (após `flutter build web` +
+  reseed) — 3 candidatos ranqueados + breakdown + badge de habitualidade conferidos. SCREEN-051 → `shipped`.

@@ -2907,7 +2907,7 @@
         "id": "SCREEN-STORY-051-painel-candidatos",
         "story": "STORY-051",
         "epic": "EPIC-002",
-        "status": "ready",
+        "status": "shipped",
         "path": "design/screens/SCREEN-STORY-051-painel-candidatos.md",
         "viewports": [
           "mobile",

@@ -2,7 +2,7 @@
 id: SCREEN-STORY-051-painel-candidatos
 story: STORY-051-painel-candidatos-contratante
 epic: EPIC-002-vaga-feed-e-candidatura
-status: ready                # draft | ready | in_implementation | shipped | superseded
+status: shipped              # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-02
 updated_at: 2026-06-02
 owner_designer: claude-opus-4-8
@@ -11,7 +11,7 @@ ds_components_used: [brand.logo, surface.card, avatar, badge.status, badge.nivel
 exceptions_to_ds: [avatar (foto circular do profissional com fallback de iniciais — §8; 1º uso no app), badge.nivel (selo do nível na trilha Iniciante/Confiável/Destaque/Elite — §8), habitualidade.badge (selo laranja de alerta de habitualidade no card — reusa banner.warning em formato pill — §8)]
 viewports: [mobile, desktop]
 prototype_path: SCREEN-STORY-051-painel-candidatos/index.html
-prototype_last_validated_at: null   # a validar no app real + chat (humano)
+prototype_last_validated_at: 2026-06-02   # validado no app real local + aprovado por Alexandro em chat
 ---
 
 # Spec de tela — SCREEN-STORY-051 — Painel de candidatos do contratante
@@ -467,8 +467,8 @@ espelha a decisão `miss = cinza-mudo` de 049 e `gate = warning` de 050.
 - [x] Microcopy §5 completo (rótulos da UI + corpo/descrições marcados como "vem do back").
 - [x] Identificadores §7 cobrem card, breakdown, badges, ações + os estados.
 - [x] Exceções §8 justificadas (avatar, badge.nivel, habitualidade.badge, promoção match.*).
-- [ ] Protótipo HTML criado e todos os estados acessíveis (a validar no app + chat).
-- [ ] Protótipo apresentado ao humano e sinal de validação capturado.
+- [x] Protótipo HTML criado e todos os estados acessíveis.
+- [x] Implementação validada no app real local e aprovada por Alexandro em chat (2026-06-02).
 
 ---
 
@@ -508,3 +508,4 @@ espelha a decisão `miss = cinza-mudo` de 049 e `gate = warning` de 050.
 | Data | Mudança | Quem | Motivo |
 |---|---|---|---|
 | 2026-06-02 | criação (spec completo: lista ranqueada + breakdown reusado + habitualidade + ações EPIC-003 desabilitadas) | claude-opus-4-8 (designer) | story bem especificada; spec entregue para guiar a implementação do painel de candidatos, espelho de 049 |
+| 2026-06-02 | validação humana no app real local — aprovado; `status: shipped` | Alexandro | painel renderizado após `flutter build web` + reseed; 3 candidatos ranqueados + breakdown + badge de habitualidade conferidos; aprovado em chat |
