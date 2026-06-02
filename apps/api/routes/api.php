@@ -5,12 +5,14 @@
 // auth.protected: requer sessão ativa + role check + funnel guard.
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Avaliacao\AvaliacoesPendentesController;
 use App\Http\Controllers\Cadastro\CompletarCadastroContratanteController;
 use App\Http\Controllers\Cadastro\CompletarCadastroProfissionalController;
 use App\Http\Controllers\Cadastro\ContratanteCadastroController;
 use App\Http\Controllers\Cadastro\FuncaoController;
 use App\Http\Controllers\Cadastro\ProfissionalCadastroController;
 use App\Http\Controllers\Usuario\WelcomeController;
+use App\Http\Controllers\Vaga\VagaController;
 use App\Http\Middleware\FunnelGuard;
 use App\Http\Middleware\WebAppOnly;
 use Illuminate\Session\Middleware\StartSession;
@@ -70,4 +72,11 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
             'cadastro_completo' => $user->cadastro_completed_at !== null,
         ]);
     });
+
+    // Publicar vaga (STORY-046). RBAC contratante no StoreVagaRequest::authorize() (403).
+    Route::post('/vagas', [VagaController::class, 'store']);
+
+    // Gate PDR-005 (STORY-046 CA-5): turnos finalizados pendentes de avaliação do
+    // contratante. Contrato { pending, turnos }; stub-honesto até o EPIC-003.
+    Route::get('/avaliacoes/pendentes-do-contratante', [AvaliacoesPendentesController::class, 'index']);
 });
