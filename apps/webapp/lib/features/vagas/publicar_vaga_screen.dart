@@ -114,6 +114,23 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
     return dt;
   }
 
+  /// Duração do turno (início → fim) em texto, ou null se as datas ainda não são
+  /// válidas. Precisa, em horas e minutos: "5h", "5h30", "45min".
+  String? _duracaoTexto() {
+    final inicio = _parseDataHora(_dataInicioCtrl.text, _horaInicioCtrl.text);
+    final fim = _parseDataHora(_dataFimCtrl.text, _horaFimCtrl.text);
+    if (inicio == null || fim == null || !fim.isAfter(inicio)) return null;
+    final d = fim.difference(inicio);
+    final h = d.inHours;
+    final m = d.inMinutes % 60;
+    final corpo = h == 0
+        ? '${m}min'
+        : m == 0
+        ? '${h}h'
+        : '${h}h${m.toString().padLeft(2, '0')}';
+    return 'A vaga dura $corpo.';
+  }
+
   Future<void> _submit() async {
     setState(() => _erroServidor = false);
     final formOk = _formKey.currentState?.validate() ?? false;
@@ -195,9 +212,11 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
       helpText: 'Escolha a data',
     );
     if (escolhida != null) {
-      ctrl.text =
-          '${escolhida.day.toString().padLeft(2, '0')}/'
-          '${escolhida.month.toString().padLeft(2, '0')}/${escolhida.year}';
+      setState(() {
+        ctrl.text =
+            '${escolhida.day.toString().padLeft(2, '0')}/'
+            '${escolhida.month.toString().padLeft(2, '0')}/${escolhida.year}';
+      });
     }
   }
 
@@ -208,9 +227,11 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
       helpText: 'Escolha a hora',
     );
     if (escolhida != null) {
-      ctrl.text =
-          '${escolhida.hour.toString().padLeft(2, '0')}:'
-          '${escolhida.minute.toString().padLeft(2, '0')}';
+      setState(() {
+        ctrl.text =
+            '${escolhida.hour.toString().padLeft(2, '0')}:'
+            '${escolhida.minute.toString().padLeft(2, '0')}';
+      });
     }
   }
 
@@ -332,6 +353,25 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
                   _quandoErro!,
                   key: const Key('publicar-vaga-quando-erro'),
                 ),
+              if (_duracaoTexto() case final dur?)
+                Padding(
+                  padding: const EdgeInsets.only(top: TurniSpacing.xs),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.schedule_outlined,
+                        size: 16,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
+                      const SizedBox(width: TurniSpacing.xs),
+                      Text(
+                        dur,
+                        key: const Key('publicar-vaga-duracao'),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
 
               const CadastroSection('Pagamento e posições'),
               CadastroTextField(
@@ -447,6 +487,8 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
                   key: Key(dataKey),
                   controller: dataCtrl,
                   keyboardType: TextInputType.datetime,
+                  // Recalcula a duração ao digitar (atualiza o hint em tempo real).
+                  onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     hintText: 'dd/mm/aaaa',
                     suffixIcon: IconButton(
@@ -464,6 +506,7 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
                   key: Key(horaKey),
                   controller: horaCtrl,
                   keyboardType: TextInputType.datetime,
+                  onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     hintText: '--:--',
                     suffixIcon: IconButton(

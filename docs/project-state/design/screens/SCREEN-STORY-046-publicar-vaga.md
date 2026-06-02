@@ -310,7 +310,7 @@ renderiza**. No lugar, um `banner`/card de aviso + CTA para avaliar. Não há "p
 | Label fim | Fim |
 | Placeholder data | dd/mm/aaaa |
 | Placeholder hora | --:-- |
-| Hint duração | A vaga dura ~{N}h. |
+| Hint duração (preciso, aparece quando início+fim válidos) | A vaga dura {N}h / {N}h{MM} / {M}min. (ex.: "A vaga dura 5h.", "A vaga dura 2h30.") |
 | Erro início (obrigatório) | Informe quando o turno começa. |
 | Erro fim (obrigatório) | Informe quando o turno termina. |
 | Erro fim ≤ início (CA-3) | O fim precisa ser depois do início. |

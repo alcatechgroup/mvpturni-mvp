@@ -312,6 +312,62 @@ void main() {
     expect(find.byKey(const Key('publicar-vaga-retry-btn')), findsOneWidget);
   });
 
+  testWidgets(
+    'exibe a duração precisa do turno quando início e fim são válidos',
+    (tester) async {
+      _entrarContratante();
+      await tester.pumpWidget(
+        _comRouter(
+          _FakeVagaService(
+            gate: const GatePublicacao(pending: 0),
+            funcoes: _funcoes,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Sem datas: nenhum hint de duração.
+      expect(find.byKey(const Key('publicar-vaga-duracao')), findsNothing);
+
+      // 18:00 → 23:00 = 5h.
+      await tester.enterText(
+        find.byKey(const Key('publicar-vaga-data-inicio')),
+        '12/06/2026',
+      );
+      await tester.enterText(
+        find.byKey(const Key('publicar-vaga-hora-inicio')),
+        '18:00',
+      );
+      await tester.enterText(
+        find.byKey(const Key('publicar-vaga-data-fim')),
+        '12/06/2026',
+      );
+      await tester.enterText(
+        find.byKey(const Key('publicar-vaga-hora-fim')),
+        '23:00',
+      );
+      await tester.pump();
+      expect(find.byKey(const Key('publicar-vaga-duracao')), findsOneWidget);
+      expect(find.text('A vaga dura 5h.'), findsOneWidget);
+
+      // Ajusta o fim para 20:30 → 2h30 (atualiza em tempo real).
+      await tester.enterText(
+        find.byKey(const Key('publicar-vaga-hora-fim')),
+        '20:30',
+      );
+      await tester.pump();
+      expect(find.text('A vaga dura 2h30.'), findsOneWidget);
+
+      // Fim ≤ início → sem duração (e o erro do CA-3 cuida disso no submit).
+      await tester.enterText(
+        find.byKey(const Key('publicar-vaga-hora-fim')),
+        '17:00',
+      );
+      await tester.pump();
+      expect(find.byKey(const Key('publicar-vaga-duracao')), findsNothing);
+    },
+  );
+
   testWidgets('CA-4 — digitar um termo filtra as funções no seletor', (
     tester,
   ) async {
