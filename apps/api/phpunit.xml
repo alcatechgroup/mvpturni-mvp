@@ -11,6 +11,12 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <!-- STORY-045 / ADR-014 CA-7 — benchmark do cálculo de Match. Roda na suíte de
+             pré-push (gate automatizado do projeto, IDR-004); grupo `performance` para
+             poder isolá-lo por grupo quando preciso. -->
+        <testsuite name="Performance">
+            <directory>tests/Performance</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
