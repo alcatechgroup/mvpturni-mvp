@@ -6,7 +6,7 @@ status: ready                # draft | ready | in_implementation | shipped | sup
 created_at: 2026-06-02
 updated_at: 2026-06-02
 owner_designer: claude-opus-4-8
-related_ddrs: [DDR-001]
+related_ddrs: [DDR-001, DDR-002]
 ds_components_used: [brand.logo, button.primary, button.outline, link.text, surface.card, field.text, field.textarea, field.section, dropdown.select, field.datetime, field.currency, field.stepper, banner]
 exceptions_to_ds: [field.datetime (par data+hora via showDatePicker/showTimePicker do Material) e field.currency (TextFormField com máscara de moeda) e field.stepper (número de posições com − / +) são padrões compostos locais — descritos na seção 8; viram DDR se reaparecerem em STORY-052 (edição de vaga)]
 viewports: [mobile, desktop]

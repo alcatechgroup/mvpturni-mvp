@@ -30,6 +30,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Localização pt-BR + horário 24h em todo o app (DDR-002). GlobalMaterialLocalizations
+  # alimenta os pickers de data/hora (showDatePicker/showTimePicker) no padrão brasileiro.
+  flutter_localizations:
+    sdk: flutter
   # URL strategy do Flutter Web — usePathUrlStrategy() em main.dart para deep links
   # por path (/login, /welcome) em vez de hash (/#/login). STORY-016.
   flutter_web_plugins:

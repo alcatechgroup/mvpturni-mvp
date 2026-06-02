@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 
 import 'core/app_update/app_update.dart';
@@ -38,16 +39,30 @@ class TurniApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Turni',
       debugShowCheckedModeBanner: false,
+      // Localização pt-BR (DDR-002): datas, meses e horários no padrão brasileiro.
+      locale: const Locale('pt', 'BR'),
+      supportedLocales: const [Locale('pt', 'BR')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       // Dual-theme: claro padrão + escuro via prefers-color-scheme (DDR-001 D2, PDR-013).
       theme: buildLightTheme(),
       darkTheme: buildDarkTheme(),
       themeMode: ThemeMode.system,
       routerConfig: router,
-      // Banner "Nova versão disponível" no topo de qualquer rota (STORY-037 CA-4).
-      builder: (context, child) => UpdateBannerHost(
-        controller: appUpdate,
-        child: child ?? const SizedBox.shrink(),
-      ),
+      builder: (context, child) {
+        // 24h SEMPRE (DDR-002): o Brasil não usa AM/PM. Forçar aqui garante o formato
+        // nos pickers (showTimePicker) e em qualquer formatação sensível ao MediaQuery,
+        // independentemente do locale reportado pelo dispositivo/navegador.
+        final pt24h = MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child ?? const SizedBox.shrink(),
+        );
+        // Banner "Nova versão disponível" no topo de qualquer rota (STORY-037 CA-4).
+        return UpdateBannerHost(controller: appUpdate, child: pt24h);
+      },
     );
   }
 }

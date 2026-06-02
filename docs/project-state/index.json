@@ -2577,6 +2577,20 @@
           "SCREEN-STORY-008-hello-world-webapp"
         ],
         "source_story": "STORY-010"
+      },
+      {
+        "id": "DDR-002",
+        "title": "Locale pt-BR e horário sempre em 24h (sem AM/PM) em todo o app",
+        "status": "accepted",
+        "path": "decisions/ddr/DDR-002-pt-br-e-horario-24h.md",
+        "decided_at": "2026-06-02",
+        "decided_by": "designer",
+        "approved_by": "Alexandro",
+        "scope": "transversal",
+        "affects_screens": [
+          "SCREEN-STORY-046-publicar-vaga"
+        ],
+        "source_story": "STORY-046"
       }
     ]
   },
@@ -2764,7 +2778,8 @@
           "desktop"
         ],
         "related_ddrs": [
-          "DDR-001"
+          "DDR-001",
+          "DDR-002"
         ],
         "related_idrs": [],
         "ds_components_used": [
