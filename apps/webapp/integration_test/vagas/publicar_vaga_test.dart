@@ -15,6 +15,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:turni_webapp/features/auth/auth_service.dart';
+import 'package:turni_webapp/router.dart';
 
 import '../helpers/login_helper.dart';
 import '../helpers/pump_app.dart';
@@ -92,6 +94,35 @@ void main() {
         find.byKey(const Key('publicar-vaga-sucesso-toast')),
       );
       expect(find.text('Vaga publicada'), findsWidgets);
+    },
+  );
+
+  // Regressão do bug de reload (IDR-025): URL digitada / reload / bookmark numa rota
+  // protegida não pode cair em /login se há sessão persistida. Simula o boot frio
+  // (sessão em memória perdida → restaurada do storage, como o main() faz) e então
+  // navega direto para a rota profunda.
+  testWidgets(
+    'deep-link em /contratante/vagas/nova com sessão restaurada mostra o form (não /login)',
+    (tester) async {
+      await pumpApp(tester);
+      await loginAsContratante(tester);
+      await awaitRouteChange(tester, '/');
+      await tester.pumpAndSettle();
+
+      // Boot frio: perde a sessão em memória e a restaura do storage (como o main()).
+      AuthService().debugSetSession(null);
+      await AuthService().loadFromPrefs();
+
+      // URL digitada direto na rota protegida.
+      router.go('/contratante/vagas/nova');
+      await tester.pumpAndSettle();
+
+      // Não foi redirecionado ao /login; o gate (pending:0) libera o form.
+      await pumpUntilFound(
+        tester,
+        find.byKey(const Key('publicar-vaga-funcao-dropdown')),
+      );
+      expect(currentRoute(), '/contratante/vagas/nova');
     },
   );
 }
