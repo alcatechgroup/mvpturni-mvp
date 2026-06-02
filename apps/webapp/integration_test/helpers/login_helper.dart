@@ -56,7 +56,8 @@ Future<void> loginAs(
     password,
   );
   await tester.tap(find.byKey(const ValueKey('login:submit')));
-  await tester.pump(); // dispara a requisição; o desfecho é aguardado por quem chama
+  await tester
+      .pump(); // dispara a requisição; o desfecho é aguardado por quem chama
 }
 
 /// Atalho: loga como o profissional ativo do seed (CA-13b).

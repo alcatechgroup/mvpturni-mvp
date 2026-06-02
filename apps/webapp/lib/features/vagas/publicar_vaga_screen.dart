@@ -362,7 +362,9 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
       style: FilledButton.styleFrom(
         backgroundColor: accent,
         foregroundColor: Colors.white,
-        minimumSize: const Size.fromHeight(48),
+        // Altura mínima 48 (toque); largura 0 para não exigir largura infinita dentro
+        // do Row do layout largo — no mobile o Column `stretch` já estica full-width.
+        minimumSize: const Size(0, 48),
         shape: const StadiumBorder(),
       ),
       child: _submitting
