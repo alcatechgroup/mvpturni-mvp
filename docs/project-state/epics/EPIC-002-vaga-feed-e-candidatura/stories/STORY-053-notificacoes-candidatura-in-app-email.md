@@ -223,13 +223,19 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
   diálogo do editor); `TemplateRenderer::htmlEmail` faz chips; catálogo/detalhe rotulam a categoria.
 - **CA-5 (feito, verde):** `EmailTemplateRenderer` (parse front-matter + interpola `{snake_case}`
   com o payload → array do layout de STORY-021; falta de variável = exceção, não envia incompleto),
-  `NotificacaoMail` (reusa `emails.transacional*`), command `notificacoes:enviar-emails` (Schedule
-  `everyMinute` em `routes/console.php`; sucesso→`enviada_email_em`, falha→`tentativas_envio++`,
-  3ª→`falha_envio_em` + log ERROR `notificacao.email.falhou`). Assunto canônico de
-  `NotificacaoTipo::assuntoEmail()` com `{prazo_em}` interpolado no envio.
-- **Verificação manual (Mailpit local):** notificação `candidatura_recebida` pendente → worker →
-  e-mail no Mailpit (de `no-reply@mail.turni.com.br`, assunto + corpo interpolados, "Olá, {nome}.")
-  + `enviada_email_em` setado. ✓
+  `NotificacaoMail` (reusa `emails.transacional*`), `EnvioEmailNotificacao` (render+envio+marca, ponto
+  único). Assunto canônico de `NotificacaoTipo::assuntoEmail()` com `{prazo_em}` interpolado no envio.
+- **CA-5 entrega via FILA (corrigido — ver "homolog só roda queue:work" abaixo):** o e-mail de cada
+  notificação é enviado por `EnviarEmailDaNotificacaoJob` (`ShouldQueue`, fila `database`, `tries=3`),
+  despachado por `CriarNotificacaoService` na criação e processado pelo `queue:work` que roda em
+  homolog (STORY-034). Sucesso→`enviada_email_em`; 3ª falha (`failed()`)→`falha_envio_em` + log ERROR
+  `notificacao.email.falhou`. O command `notificacoes:enviar-emails` virou **sweeper/backfill manual**
+  (não é o caminho primário; `Schedule` segue registrado só como rede de segurança p/ quando houver
+  `schedule:run`).
+- **Verificação ponta-a-ponta (fila + Mailpit local):** `CriarNotificacaoService::criar` → job na fila
+  `database` → `queue:work --stop-when-empty` processa → e-mail no Mailpit
+  (de `no-reply@mail.turni.com.br`, assunto + corpo interpolados, "Olá, {nome}.") + `enviada_email_em`
+  setado, `tentativas=1`. ✓ (mesmo mecanismo que roda em homolog).
 - **Templates 4/5 (wiring — feito, verde):** `NotificarRevisaoAposEdicao` cria as notificações ao
   contratante nos hooks de `RevisarCandidaturaService::manter()` (template 4 `candidatura_mantida`)
   e `::retirar()` + `AutoRetirarAposEdicaoCommand` (template 5 `candidatura_retirada`, motivo
@@ -255,6 +261,17 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
   batido localmente porque o `turni` do Docker é superuser (ignora grants); no Cloud SQL não. Fix:
   migração original passa a revogar só DELETE + migração forward `2026_06_03_140000` faz `GRANT UPDATE`
   (conserta homolog). Append-only do UPDATE segue pelo trigger. Provado com role não-superuser local.
+- **DESCOBERTA "homolog só roda fila, não scheduler" (corrigido):** o worker de homolog/prod roda só
+  `queue:work database` (Cloud Run Job + Scheduler, STORY-034); **não existe `schedule:run`** em lugar
+  nenhum. Logo, o desenho inicial da CA-5 (command `Schedule::everyMinute`) **não enviava e-mail em
+  homolog** — a notificação era criada mas nada drenava a fila implícita. Corrigido movendo a entrega
+  para `EnviarEmailDaNotificacaoJob` (fila `database`, processada pelo `queue:work` existente). Regra
+  registrada no workflow: `docs/skills/programador/references/error-handling.md` §"trabalho recorrente
+  tem que ser Job de fila". (Os agendados `candidaturas:auto-retirar` da 052 e `lembretes:cadastro` da
+  021 seguem como gap pré-existente até um fix de infra de `schedule:run`.)
+- **Provedor de e-mail em homolog = Resend (não Mailpit):** `MAIL_MAILER=resend` no worker/api de
+  homolog. A pré-condição "Mailpit em homolog" da story está desatualizada; a validação de CA-12 será
+  por Resend + Cloud Logging (`notificacao.email.sent` com `message_id`), não por inbox Mailpit.
 
 ### Pendente (próxima sessão — só o que exige homolog)
 - **CA-12 / CA-9:** E2E 3 cenários (Mailpit homolog, 0 flake em 3 runs) + SLA ≤60s p95 via log-based
