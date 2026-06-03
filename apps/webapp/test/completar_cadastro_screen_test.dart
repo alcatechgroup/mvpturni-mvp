@@ -14,10 +14,10 @@ import 'package:turni_webapp/features/cadastro/completar_cadastro_service.dart';
 class _FakeCatalogo extends CadastroService {
   @override
   Future<List<Funcao>> fetchFuncoes() async => const [
-    Funcao(id: 1, nome: 'Garçom / Garçonete'), // primária (excluída)
-    Funcao(id: 2, nome: 'Bartender'),
-    Funcao(id: 3, nome: 'Cozinheiro / Cozinheira'),
-    Funcao(id: 4, nome: 'Copeiro / Copeira'),
+    Funcao(id: '1', nome: 'Garçom / Garçonete'), // primária (excluída)
+    Funcao(id: '2', nome: 'Bartender'),
+    Funcao(id: '3', nome: 'Cozinheiro / Cozinheira'),
+    Funcao(id: '4', nome: 'Copeiro / Copeira'),
   ];
 }
 
@@ -33,7 +33,7 @@ class _FakeService extends CompletarCadastroService {
     nome: 'Maria Silva',
     tipoPessoa: 'PF',
     documentoTipo: 'CPF',
-    funcaoId: 1,
+    funcaoId: '1',
   );
 
   @override
@@ -48,7 +48,7 @@ class _FakeService extends CompletarCadastroService {
   @override
   Future<CadastroResult> completar({
     required String documento,
-    required List<int> funcoesSecundarias,
+    required List<String> funcoesSecundarias,
     required int raioMaxKm,
     required String precoHora,
     required String bio,

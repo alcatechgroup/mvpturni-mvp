@@ -18,7 +18,7 @@ class _FakeService extends VagaDetalheService {
   int calls = 0;
 
   @override
-  Future<DetalheResult> fetch(int id) async {
+  Future<DetalheResult> fetch(String id) async {
     calls++;
     if (delay != null) await Future<void>.delayed(delay!);
     return result?.call() ?? DetalheError();
@@ -49,7 +49,7 @@ VagaDetalhe _detalhe({
   String? estabelecimento = 'Bar do Zé',
   List<BreakdownLinha>? linhas,
 }) => VagaDetalhe(
-  id: 7,
+  id: '7',
   funcao: 'Garçom',
   estabelecimento: estabelecimento,
   cidade: 'São Paulo',
@@ -104,7 +104,7 @@ Widget _comRouter(_FakeService svc) {
     routes: [
       GoRoute(
         path: '/vaga/:id',
-        builder: (_, _) => VagaDetalheScreen(vagaId: 7, service: svc),
+        builder: (_, _) => VagaDetalheScreen(vagaId: '7', service: svc),
       ),
       GoRoute(
         path: '/feed',
@@ -321,7 +321,7 @@ void main() {
         _detalhe(
           jaCandidatou: true,
           candidatura: CandidaturaResumo(
-            id: 1,
+            id: '1',
             estado: 'pendente',
             criadaEm: DateTime(2026, 6, 2, 14, 20),
           ),

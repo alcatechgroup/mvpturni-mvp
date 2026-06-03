@@ -49,8 +49,8 @@ void main() {
           (_) async => http.Response(
             jsonEncode({
               'data': [
-                {'id': 1, 'slug': 'bartender', 'nome': 'Bartender'},
-                {'id': 2, 'slug': 'garcom', 'nome': 'Garçom'},
+                {'id': '1', 'slug': 'bartender', 'nome': 'Bartender'},
+                {'id': '2', 'slug': 'garcom', 'nome': 'Garçom'},
               ],
             }),
             200,
@@ -80,9 +80,9 @@ void main() {
     );
 
     test('201 → PublicarSuccess com id e estado (CA-6)', () async {
-      final svc = svcResponding(201, {'id': 42, 'estado': 'aberta'});
+      final svc = svcResponding(201, {'id': '42', 'estado': 'aberta'});
       final r = await svc.publicar(
-        funcaoId: 1,
+        funcaoId: '1',
         dataInicio: DateTime(2026, 6, 12, 18),
         dataFim: DateTime(2026, 6, 12, 23),
         valor: 150,
@@ -90,7 +90,7 @@ void main() {
         observacoes: 'x',
       );
       expect(r, isA<PublicarSuccess>());
-      expect((r as PublicarSuccess).vagaId, 42);
+      expect((r as PublicarSuccess).vagaId, '42');
       expect(r.estado, 'aberta');
     });
 
@@ -102,7 +102,7 @@ void main() {
         },
       });
       final r = await svc.publicar(
-        funcaoId: 1,
+        funcaoId: '1',
         dataInicio: DateTime(2026, 6, 12, 20),
         dataFim: DateTime(2026, 6, 12, 19),
         valor: 150,
@@ -118,7 +118,7 @@ void main() {
     test('403 → PublicarForbidden (CA-1)', () async {
       final svc = svcResponding(403, {'message': 'restrito'});
       final r = await svc.publicar(
-        funcaoId: 1,
+        funcaoId: '1',
         dataInicio: DateTime(2026, 6, 12, 18),
         dataFim: DateTime(2026, 6, 12, 23),
         valor: 150,
@@ -130,7 +130,7 @@ void main() {
     test('5xx → PublicarServerError', () async {
       final svc = svcResponding(500, {'message': 'erro'});
       final r = await svc.publicar(
-        funcaoId: 1,
+        funcaoId: '1',
         dataInicio: DateTime(2026, 6, 12, 18),
         dataFim: DateTime(2026, 6, 12, 23),
         valor: 150,
@@ -144,7 +144,7 @@ void main() {
         client: MockClient((_) async => throw Exception('sem rede')),
       );
       final r = await svc.publicar(
-        funcaoId: 1,
+        funcaoId: '1',
         dataInicio: DateTime(2026, 6, 12, 18),
         dataFim: DateTime(2026, 6, 12, 23),
         valor: 150,
@@ -161,9 +161,9 @@ void main() {
       String estado = 'aberta',
       int pendentes = 0,
     }) => {
-      'id': 7,
+      'id': '7',
       'funcao': 'Garçom',
-      'funcao_id': 3,
+      'funcao_id': '3',
       'data_inicio': '2026-06-12T18:00:00-03:00',
       'data_fim': '2026-06-12T23:00:00-03:00',
       'valor': 150.0,
@@ -262,31 +262,31 @@ void main() {
 
     test('200 → CancelarSuccess (CA-4)', () async {
       expect(
-        await svc(200, {'id': 42, 'estado': 'cancelada'}).cancelar(42),
+        await svc(200, {'id': 42, 'estado': 'cancelada'}).cancelar('42'),
         isA<CancelarSuccess>(),
       );
     });
 
     test('409 → CancelarConflict (transição inválida)', () async {
       expect(
-        await svc(409, {'message': 'x'}).cancelar(42),
+        await svc(409, {'message': 'x'}).cancelar('42'),
         isA<CancelarConflict>(),
       );
     });
 
     test('403 → CancelarForbidden (não-dono / profissional)', () async {
-      expect(await svc(403).cancelar(42), isA<CancelarForbidden>());
+      expect(await svc(403).cancelar('42'), isA<CancelarForbidden>());
     });
 
     test('5xx → CancelarServerError', () async {
-      expect(await svc(500).cancelar(42), isA<CancelarServerError>());
+      expect(await svc(500).cancelar('42'), isA<CancelarServerError>());
     });
 
     test('falha de rede → CancelarServerError (exceção)', () async {
       final s = VagaService(
         client: MockClient((_) async => throw Exception('sem rede')),
       );
-      expect(await s.cancelar(42), isA<CancelarServerError>());
+      expect(await s.cancelar('42'), isA<CancelarServerError>());
     });
   });
 }

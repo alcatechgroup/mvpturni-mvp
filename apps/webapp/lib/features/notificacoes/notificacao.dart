@@ -29,10 +29,10 @@ enum NotificacaoTipo {
 
 /// Uma notificação da caixa in-app (GET /api/notificacoes — CA-7).
 class Notificacao {
-  final int id;
+  final String id;
   final NotificacaoTipo tipo;
-  final int? vagaId;
-  final int? candidaturaId;
+  final String? vagaId;
+  final String? candidaturaId;
   final Map<String, dynamic> payload;
   DateTime? lidaEm;
   final DateTime? criadaEm;
@@ -50,10 +50,10 @@ class Notificacao {
   bool get lida => lidaEm != null;
 
   factory Notificacao.fromJson(Map<String, dynamic> json) => Notificacao(
-    id: (json['id'] as num?)?.toInt() ?? 0,
+    id: json['id'] as String,
     tipo: NotificacaoTipo.fromApi(json['tipo'] as String?),
-    vagaId: (json['vaga_id'] as num?)?.toInt(),
-    candidaturaId: (json['candidatura_id'] as num?)?.toInt(),
+    vagaId: json['vaga_id'] as String?,
+    candidaturaId: json['candidatura_id'] as String?,
     payload: (json['payload'] as Map?)?.cast<String, dynamic>() ?? const {},
     lidaEm: json['lida_em'] != null
         ? DateTime.tryParse(json['lida_em'] as String)

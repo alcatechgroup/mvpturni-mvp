@@ -23,7 +23,10 @@ int _contaCards(WidgetTester tester) =>
 /// Primeiro card do feed pela chave `feed-card-{id}` (id dinâmico do seed).
 final _primeiroCard = find.byWidgetPredicate((w) {
   final k = w.key;
-  return k is ValueKey<String> && RegExp(r'^feed-card-\d+$').hasMatch(k.value);
+  return k is ValueKey<String> &&
+      RegExp(
+        r'^feed-card-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+      ).hasMatch(k.value);
 }).first;
 
 void main() {

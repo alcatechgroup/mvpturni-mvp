@@ -43,7 +43,7 @@ class FeedScore {
 /// Item do feed (SCREEN-048 — o que o card precisa). `distanciaKm` null = geo indisponível
 /// (o card omite a distância). `podeCandidatar` vem do gate PDR-005 (CA-8).
 class FeedVagaResumo {
-  final int id;
+  final String id;
   final String funcao;
   final DateTime dataInicio;
   final DateTime dataFim;
@@ -71,7 +71,7 @@ class FeedVagaResumo {
   });
 
   factory FeedVagaResumo.fromJson(Map<String, dynamic> json) => FeedVagaResumo(
-    id: (json['id'] as num).toInt(),
+    id: json['id'] as String,
     funcao: json['funcao'] as String? ?? '',
     dataInicio: TurniDateTime.parseRequired(json['data_inicio'] as String),
     dataFim: TurniDateTime.parseRequired(json['data_fim'] as String),

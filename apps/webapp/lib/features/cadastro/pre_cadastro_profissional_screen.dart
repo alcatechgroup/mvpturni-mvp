@@ -45,7 +45,7 @@ class _PreCadastroProfissionalScreenState
   final _confirma = TextEditingController();
 
   List<Funcao> _funcoes = [];
-  int? _funcaoId;
+  String? _funcaoId;
   String? _tipoPessoa; // PF | MEI | PJ — nenhum selecionado por padrão
   FotoUpload? _foto;
 
@@ -489,7 +489,7 @@ class _PreCadastroProfissionalScreenState
         : _serverErrors['bairro'],
   );
 
-  Widget _funcaoField() => CadastroDropdownField<int>(
+  Widget _funcaoField() => CadastroDropdownField<String>(
     fieldKey: 'input-funcao',
     label: 'Função pretendida',
     hint: 'Escolha a principal',

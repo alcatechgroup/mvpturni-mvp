@@ -18,14 +18,14 @@ class _FakeVagaService extends VagaService {
   CancelarResult Function()? cancelarResult;
 
   int cancelarCalls = 0;
-  int? ultimaVagaCancelada;
+  String? ultimaVagaCancelada;
 
   @override
   Future<MinhasVagasResult> fetchMinhas() async =>
       minhasResult?.call() ?? MinhasVagasSuccess(const []);
 
   @override
-  Future<CancelarResult> cancelar(int vagaId) async {
+  Future<CancelarResult> cancelar(String vagaId) async {
     cancelarCalls++;
     ultimaVagaCancelada = vagaId;
     return cancelarResult?.call() ?? CancelarSuccess();
@@ -33,7 +33,7 @@ class _FakeVagaService extends VagaService {
 }
 
 VagaResumo _vaga({
-  int id = 1,
+  String id = '1',
   String funcao = 'Garçom',
   VagaEstadoResumo estado = VagaEstadoResumo.aberta,
   int posicoes = 3,
@@ -128,8 +128,8 @@ void main() {
   ) async {
     final svc = _FakeVagaService(
       minhasResult: () => MinhasVagasSuccess([
-        _vaga(id: 1, estado: VagaEstadoResumo.aberta, pendentes: 1),
-        _vaga(id: 2, estado: VagaEstadoResumo.fechada, funcao: 'Cozinheira'),
+        _vaga(id: '1', estado: VagaEstadoResumo.aberta, pendentes: 1),
+        _vaga(id: '2', estado: VagaEstadoResumo.fechada, funcao: 'Cozinheira'),
       ]),
     );
     await tester.pumpWidget(_comRouter(svc, filtroInicial: 'todas'));
@@ -219,8 +219,8 @@ void main() {
   ) async {
     final svc = _FakeVagaService(
       minhasResult: () => MinhasVagasSuccess([
-        _vaga(id: 1, estado: VagaEstadoResumo.aberta),
-        _vaga(id: 2, estado: VagaEstadoResumo.cancelada, funcao: 'Bartender'),
+        _vaga(id: '1', estado: VagaEstadoResumo.aberta),
+        _vaga(id: '2', estado: VagaEstadoResumo.cancelada, funcao: 'Bartender'),
       ]),
     );
     await tester.pumpWidget(_comRouter(svc));
@@ -237,8 +237,9 @@ void main() {
     'filtro sem resultado mostra vazio-por-filtro (não o vazio de 1ª vez)',
     (tester) async {
       final svc = _FakeVagaService(
-        minhasResult: () =>
-            MinhasVagasSuccess([_vaga(id: 1, estado: VagaEstadoResumo.aberta)]),
+        minhasResult: () => MinhasVagasSuccess([
+          _vaga(id: '1', estado: VagaEstadoResumo.aberta),
+        ]),
       );
       await tester.pumpWidget(_comRouter(svc));
       await tester.pumpAndSettle();
@@ -263,8 +264,8 @@ void main() {
     (tester) async {
       final svc = _FakeVagaService(
         minhasResult: () => MinhasVagasSuccess([
-          _vaga(id: 1, estado: VagaEstadoResumo.aberta),
-          _vaga(id: 2, estado: VagaEstadoResumo.cancelada),
+          _vaga(id: '1', estado: VagaEstadoResumo.aberta),
+          _vaga(id: '2', estado: VagaEstadoResumo.cancelada),
         ]),
       );
       await tester.pumpWidget(_comRouter(svc, filtroInicial: 'canceladas'));
@@ -281,7 +282,7 @@ void main() {
     tester,
   ) async {
     final svc = _FakeVagaService(
-      minhasResult: () => MinhasVagasSuccess([_vaga(id: 1, pendentes: 2)]),
+      minhasResult: () => MinhasVagasSuccess([_vaga(id: '1', pendentes: 2)]),
     );
     await tester.pumpWidget(_comRouter(svc));
     await tester.pumpAndSettle();
@@ -302,7 +303,7 @@ void main() {
     'diálogo sem pendentes usa a copy de "Nenhum candidato" (CA-4 borda)',
     (tester) async {
       final svc = _FakeVagaService(
-        minhasResult: () => MinhasVagasSuccess([_vaga(id: 1, pendentes: 0)]),
+        minhasResult: () => MinhasVagasSuccess([_vaga(id: '1', pendentes: 0)]),
       );
       await tester.pumpWidget(_comRouter(svc));
       await tester.pumpAndSettle();
@@ -323,7 +324,7 @@ void main() {
     tester,
   ) async {
     final svc = _FakeVagaService(
-      minhasResult: () => MinhasVagasSuccess([_vaga(id: 1)]),
+      minhasResult: () => MinhasVagasSuccess([_vaga(id: '1')]),
     );
     await tester.pumpWidget(_comRouter(svc));
     await tester.pumpAndSettle();
@@ -341,7 +342,7 @@ void main() {
     tester,
   ) async {
     final svc = _FakeVagaService(
-      minhasResult: () => MinhasVagasSuccess([_vaga(id: 1, pendentes: 1)]),
+      minhasResult: () => MinhasVagasSuccess([_vaga(id: '1', pendentes: 1)]),
       cancelarResult: () => CancelarSuccess(),
     );
     await tester.pumpWidget(_comRouter(svc, filtroInicial: 'todas'));
@@ -356,7 +357,7 @@ void main() {
     ); // fecha o diálogo + insere o toast
 
     expect(svc.cancelarCalls, 1);
-    expect(svc.ultimaVagaCancelada, 1);
+    expect(svc.ultimaVagaCancelada, '1');
     expect(find.byKey(const Key('vaga-cancelada-toast')), findsOneWidget);
     // O selo vira "Cancelada" e o botão cancelar some.
     expect(find.text('Cancelada'), findsOneWidget);
@@ -367,7 +368,7 @@ void main() {
     tester,
   ) async {
     final svc = _FakeVagaService(
-      minhasResult: () => MinhasVagasSuccess([_vaga(id: 1)]),
+      minhasResult: () => MinhasVagasSuccess([_vaga(id: '1')]),
       cancelarResult: () => CancelarConflict(),
     );
     await tester.pumpWidget(_comRouter(svc));

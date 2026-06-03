@@ -30,7 +30,7 @@ class _FakeFeedService extends FeedService {
 }
 
 FeedVagaResumo _vaga({
-  int id = 1,
+  String id = '1',
   String funcao = 'Garçom',
   double valor = 150.0,
   double? distanciaKm = 3.0,
@@ -198,8 +198,8 @@ void main() {
     final svc = _FakeFeedService(
       handler: (_, _) => FeedSuccess(
         [
-          _vaga(id: 7, funcao: 'Garçom', score: 94),
-          _vaga(id: 9, funcao: 'Cozinheira', score: 70),
+          _vaga(id: '7', funcao: 'Garçom', score: 94),
+          _vaga(id: '9', funcao: 'Cozinheira', score: 70),
         ],
         1,
         false,
@@ -224,14 +224,14 @@ void main() {
     final svc = _FakeFeedService(
       handler: (filtro, _) => switch (filtro) {
         FeedFiltro.altoMatch => FeedSuccess(
-          [_vaga(id: 1, score: 94)],
+          [_vaga(id: '1', score: 94)],
           1,
           false,
         ),
         _ => FeedSuccess(
           [
-            _vaga(id: 1, score: 94),
-            _vaga(id: 2, funcao: 'Cozinheira', score: 70),
+            _vaga(id: '1', score: 94),
+            _vaga(id: '2', funcao: 'Cozinheira', score: 70),
           ],
           1,
           false,
@@ -349,7 +349,7 @@ void main() {
   ) async {
     final svc = _FakeFeedService(
       handler: (_, _) =>
-          FeedSuccess([_vaga(id: 5, podeCandidatar: true)], 1, false),
+          FeedSuccess([_vaga(id: '5', podeCandidatar: true)], 1, false),
     );
     await tester.pumpWidget(_comRouter(svc));
     await tester.pumpAndSettle();
@@ -364,7 +364,7 @@ void main() {
     tester,
   ) async {
     final svc = _FakeFeedService(
-      handler: (_, _) => FeedSuccess([_vaga(id: 8)], 1, false),
+      handler: (_, _) => FeedSuccess([_vaga(id: '8')], 1, false),
     );
     await tester.pumpWidget(_comRouter(svc));
     await tester.pumpAndSettle();

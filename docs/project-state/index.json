@@ -1778,8 +1778,8 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-4-8 (sessão 2026-06-03 STORY-071)",
       "sprint_id": "SPRINT-2026-W27.5",
       "path": "epics/EPIC-010-refator-uuid-chaves-primarias/stories/STORY-071-refactor-frontend-uuid-flutter.md",
       "blocked_by": [

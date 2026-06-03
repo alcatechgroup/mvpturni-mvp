@@ -9,7 +9,7 @@ import 'package:turni_webapp/features/feed/feed_service.dart';
 // e mapeamento de status (200/403/5xx/rede) para FeedSuccess/Forbidden/Error.
 
 Map<String, dynamic> _vagaJson({
-  int id = 1,
+  String id = '1',
   int score = 97,
   double? dist = 3.0,
   bool podeCand = true,

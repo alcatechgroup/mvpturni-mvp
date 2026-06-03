@@ -15,7 +15,7 @@ class _FakeService extends CadastroService {
 
   @override
   Future<List<Funcao>> fetchFuncoes() async => const [
-    Funcao(id: 1, nome: 'Garçom / Garçonete'),
+    Funcao(id: '1', nome: 'Garçom / Garçonete'),
   ];
 
   @override
@@ -25,7 +25,7 @@ class _FakeService extends CadastroService {
     required String telefone,
     required String cidade,
     required String bairro,
-    required int funcaoId,
+    required String funcaoId,
     required String tipoPessoa,
     required String password,
     required String passwordConfirmation,

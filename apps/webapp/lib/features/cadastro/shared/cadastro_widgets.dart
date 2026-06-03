@@ -168,7 +168,7 @@ class CadastroPasswordField extends StatelessWidget {
   );
 }
 
-/// Select genérico (`DropdownButtonFormField<T>`). Profissional usa `<int>` (função);
+/// Select genérico (`DropdownButtonFormField<T>`). Profissional usa `<String>` (função, UUID);
 /// contratante usa `<String>` (tipo de operação). Wrapper keyed `$fieldKey-field`.
 class CadastroDropdownField<T> extends StatelessWidget {
   CadastroDropdownField({

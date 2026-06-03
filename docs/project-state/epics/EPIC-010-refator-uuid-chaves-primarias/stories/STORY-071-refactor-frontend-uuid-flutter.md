@@ -8,8 +8,8 @@ type: refactor
 target_role: programador
 requires_design: false
 design_screen_id: null
-status: ready
-owner_agent: null
+status: done
+owner_agent: claude-opus-4-8 (sessão 2026-06-03 STORY-071)
 created_at: 2026-06-03
 updated_at: 2026-06-03
 estimated_session_size: M
@@ -116,31 +116,35 @@ Padrão do projeto.
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões tomadas
-- <data> — <decisão local>
+- 2026-06-03 — IDs viram `String`/`String?` opacos (ADR-018 §Decisão 7). Sem typed ID class, sem validação de formato UUID no Flutter (quem valida é o backend). Parsing JSON: `as String`/`as String?`, removendo `(... as num).toInt()` e `?? 0`. Onde a UI exige não-nulo (ex.: `PublicarSuccess.vagaId`, `VagaEditar.funcaoId`), fallback `?? ''`.
+- 2026-06-03 — Ids string curtos (`'1'`, `'7'`…) nos testes unit/widget em vez de UUIDs literais. O Flutter trata o id como string opaca, então `'1'` preserva todas as asserções de `Key('feed-card-1')`/`Key('candidato-card-1')` sem reescrever os matchers — diff mínimo.
 
 ### Descobertas
-- <data> — <gotcha>
+- 2026-06-03 — **Runbook (§3) errou ao listar `ValueChanged<int>` (publicar_vaga:522 / editar_vaga:885) como "função → `<String>`".** Essas linhas são o **stepper de posições** (`onChanged(value-1)`/`onChanged(value+1)`) — inteiro real, não ID. Mantidas como `int`. Só os dropdowns de função (`DropdownMenu<int>`/`DropdownMenuEntry<int>`) viraram `<String>`.
+- 2026-06-03 — **`integration_test` tinha matcher de card com id numérico**: `RegExp(r'^feed-card-\d+$')` em `feed/feed_test.dart` e `vagas/candidatura_test.dart`. Com UUID o card vira `feed-card-019e8f6d-…` e o `\d+` não casava → trocado pelo pattern UUID `^feed-card-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$` (casa só o card principal, não as sub-keys `-score`/`-alto-match`).
+- 2026-06-03 — **Telas carregavam mais campos-ID que o runbook enumerou**: `feed_screen` (`_SeloRevisao`/`_ScoreChip`/`_ScoreBar`/`_AltoMatchBadge`), `minhas_vagas` (`_EstadoBadge`/`_PosicoesPill`), `painel_candidatos` (7 widgets com `vagaCandidatoId`), `vaga_detalhe_screen` (`onConflito`). Todos só usavam o id em `ValueKey` interpolada — retipados `int→String` sem outra mudança.
 
 ### Bloqueios encontrados
-- <data> — <bloqueio>
+- 2026-06-03 — **`integration_test` falhou na 1ª rodada por banco de dev sujo** (não por regressão): `_e2e-seed` faz `migrate + db:seed` (aditivo/idempotente), e runs anteriores deixaram a vaga do painel cancelada + 0 candidaturas pendentes + 12 vagas "Bartender" acumuladas. Resolvido com `migrate:fresh --seed --force --drop-types` (IDR-027 — o `--drop-types` é obrigatório pelos enums `vaga_estado`/`candidatura_estado` da STORY-070). Após reset, `PainelCandidatosSeeder` recriou "vaga do contratante.teste + 3 candidaturas ranqueadas" e a suíte passou 100%.
 
 ### Evidências por CA
-- CA-1: <link de commits>
-- CA-2: <link>
-- CA-3: <screenshots dos 4 fluxos>
-- CA-4: `integration_test` — <link CI>
-- CA-5: Playwright — <link CI>
-- CA-6: `int.tryParse` preservados — <lista>
-- CA-7: <ok>
-- CA-8: router — <link commit>
-- CA-9: build release — <log>
-- CA-10: IDR? <sim/não>
+- CA-1: services/DTOs convertidos — `feed_service`, `notificacao(es)_service`, `vaga_service`, `vaga_detalhe_service`, `candidatos_service`, `candidatura_service`, `cadastro_service`, `completar_cadastro_service`. `flutter analyze` limpo.
+- CA-2: modelos de domínio Dart (`Funcao`, `FeedVagaResumo`, `VagaResumo`, `VagaEditar`, `VagaDetalhe`, `Notificacao`, `PerfilCandidato`, `CandidatoCard`, `CandidaturaResumo`, `ConflitoInfo`) com `id`/`*_id` em `String`.
+- CA-3: 4 fluxos validados via `integration_test` (rodando no Chrome same-origin contra API UUID local): pré/completar cadastro (função no dropdown), publicar/editar vaga (função), candidatura, painel de candidatos.
+- CA-4: `make e2e-webapp-integration` → **All tests passed** (exit 0) em banco limpo.
+- CA-5: `make e2e-webapp-smoke` → 4 passed, 1 skipped (`/health` é homolog-only).
+- CA-6: `int.tryParse` preservados (não-ID): `completar_cadastro_contratante_screen.dart:652` (CEP filtrado por `\D`), `completar_cadastro_screen.dart:195` (raio_max_km) e `:312` (validação de raio em km). Nenhum sobre ID restante em `lib/`.
+- CA-7: mensagens de erro de form preservadas — `_serverErrors['funcao_id']`/validators intactos; widget tests verdes.
+- CA-8: `router.dart` — 3 rotas (`/vaga/:id`, `/contratante/vagas/:id/editar`, `…/:id/candidatos`) passaram de `int.tryParse(...) ?? 0` para `state.pathParameters['id'] ?? ''`; telas retipadas para `vagaId: String`.
+- CA-9: `flutter build web --release` → ✓ Built build/web (wasm dry-run ok, sem warnings novos).
+- CA-10: **Sem IDR formal** — as 2 descobertas (stepper `<int>` mal-listado no runbook; regex `\d+` no integration_test) são correções locais registradas aqui; não alteram ADR-018 nem o contrato. Vale o Arquiteto corrigir o runbook §3 para a próxima vez.
 
 ### Cobertura final
-- `integration_test`: <% / cenários>
-- E2E (Playwright smoke): <cenários>
+- `flutter test` (unit/widget): 340 testes verdes.
+- `integration_test` (área logada, local same-origin): feed ranqueado + detalhe/breakdown, painel candidatos, editar+diff, candidatura+retirada, conflito de horário — todos verdes.
+- E2E (Playwright smoke): hello-world, version.json, console limpo, deep link /login.
 
 ### Links de evidência
-- PR: <url>
-- Pipeline: <url>
-- Build release: <log>
+- Commit: `feat(STORY-071): UUID como String no Flutter webapp` (main)
+- Build release: `flutter build web --release` ✓ (local)
+- integration_test: `/tmp/e2e-out3.txt` (All tests passed)

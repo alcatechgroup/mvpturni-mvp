@@ -23,7 +23,7 @@ class PainelCandidatosScreen extends StatefulWidget {
     CandidatosService? service,
   }) : _service = service;
 
-  final int vagaId;
+  final String vagaId;
 
   /// Contexto da vaga vindo da navegação de "Minhas vagas" (CA-10). Ausente no deep-link/reload —
   /// a faixa degrada para só a contagem (fail-soft; o contrato CA-1 não inclui dados da vaga).
@@ -482,7 +482,7 @@ class _NivelBadge extends StatelessWidget {
 
   final String nivel;
   final bool isDark;
-  final int vagaCandidatoId;
+  final String vagaCandidatoId;
 
   @override
   Widget build(BuildContext context) {
@@ -522,7 +522,7 @@ class _ScoreChip extends StatelessWidget {
   final int total;
   final Color accent;
   final Color accentInk;
-  final int vagaCandidatoId;
+  final String vagaCandidatoId;
 
   @override
   Widget build(BuildContext context) {
@@ -566,7 +566,7 @@ class _ScoreBar extends StatelessWidget {
   final int total;
   final Color accent;
   final bool isDark;
-  final int vagaCandidatoId;
+  final String vagaCandidatoId;
 
   @override
   Widget build(BuildContext context) {
@@ -626,7 +626,7 @@ class _HabitualidadeBadge extends StatelessWidget {
   });
 
   final bool isDark;
-  final int vagaCandidatoId;
+  final String vagaCandidatoId;
 
   @override
   Widget build(BuildContext context) {
@@ -686,7 +686,7 @@ class _BreakdownToggle extends StatelessWidget {
   final bool aberto;
   final Color accentInk;
   final String nome;
-  final int vagaCandidatoId;
+  final String vagaCandidatoId;
   final VoidCallback onTap;
 
   @override
@@ -722,7 +722,7 @@ class _BreakdownBloco extends StatelessWidget {
 
   final ScoreBreakdown score;
   final bool isDark;
-  final int vagaCandidatoId;
+  final String vagaCandidatoId;
 
   @override
   Widget build(BuildContext context) {
@@ -746,7 +746,7 @@ class _BreakdownBloco extends StatelessWidget {
 class _AcoesDesabilitadas extends StatelessWidget {
   const _AcoesDesabilitadas({required this.vagaCandidatoId});
 
-  final int vagaCandidatoId;
+  final String vagaCandidatoId;
 
   @override
   Widget build(BuildContext context) {

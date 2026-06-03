@@ -20,7 +20,7 @@ class EditarVagaScreen extends StatefulWidget {
   }) : _service = service,
        _auth = auth;
 
-  final int vagaId;
+  final String vagaId;
   final VagaService? _service;
   final AuthService? _auth;
 
@@ -45,7 +45,7 @@ class _EditarVagaScreenState extends State<EditarVagaScreen> {
   _Phase _phase = _Phase.loading;
   List<Funcao> _funcoes = [];
   VagaEditar? _original;
-  int? _funcaoId;
+  String? _funcaoId;
   int _posicoes = 1;
   String? _funcaoErro;
   String? _quandoErro;
@@ -134,7 +134,7 @@ class _EditarVagaScreenState extends State<EditarVagaScreen> {
     return 'R\$ $b,$dec';
   }
 
-  String _funcaoNome(int? id) =>
+  String _funcaoNome(String? id) =>
       _funcoes.where((f) => f.id == id).map((f) => f.nome).firstOrNull ?? '—';
 
   // ──────────────────────────── ações ────────────────────────────
@@ -427,7 +427,7 @@ class _EditarVagaScreenState extends State<EditarVagaScreen> {
               const CadastroSection('Função'),
               Padding(
                 padding: const EdgeInsets.only(top: TurniSpacing.md),
-                child: DropdownMenu<int>(
+                child: DropdownMenu<String>(
                   key: const Key('editar-vaga-funcao-dropdown'),
                   initialSelection: _funcaoId,
                   requestFocusOnTap: true,
@@ -440,8 +440,10 @@ class _EditarVagaScreenState extends State<EditarVagaScreen> {
                   errorText: _funcaoErro,
                   dropdownMenuEntries: _funcoes
                       .map(
-                        (f) =>
-                            DropdownMenuEntry<int>(value: f.id, label: f.nome),
+                        (f) => DropdownMenuEntry<String>(
+                          value: f.id,
+                          label: f.nome,
+                        ),
                       )
                       .toList(),
                   onSelected: (v) => setState(() {
@@ -966,7 +968,7 @@ class _NaoEditavelView extends StatelessWidget {
   const _NaoEditavelView({required this.accent, required this.vagaId});
 
   final Color accent;
-  final int vagaId;
+  final String vagaId;
 
   @override
   Widget build(BuildContext context) {

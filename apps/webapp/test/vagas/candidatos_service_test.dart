@@ -14,8 +14,8 @@ import 'package:turni_webapp/features/vagas/vaga_detalhe_service.dart'
 const _utf8 = {'content-type': 'application/json; charset=utf-8'};
 
 Map<String, dynamic> _candidatoJson({
-  int id = 1,
-  int profId = 10,
+  String id = '1',
+  String profId = '10',
   String nome = 'Júlia Santos',
   String? foto,
   String? funcao = 'Garçom',
@@ -104,14 +104,14 @@ void main() {
         }),
       );
 
-      final res = await svc.fetch(7);
+      final res = await svc.fetch('7');
 
       expect(capturada.path, endsWith('/api/vagas/7/candidatos'));
       expect(res, isA<CandidatosSuccess>());
       final s = res as CandidatosSuccess;
       expect(s.total, 1);
       final c = s.candidatos.single;
-      expect(c.id, 1);
+      expect(c.id, '1');
       expect(c.profissional.nome, 'Júlia Santos');
       expect(c.profissional.funcaoPrimaria, 'Garçom');
       expect(c.profissional.nivel, 'Elite');
@@ -128,7 +128,7 @@ void main() {
         await _svc({
               'candidatos': [_candidatoJson()],
               'total': 1,
-            }).fetch(7)
+            }).fetch('7')
             as CandidatosSuccess;
 
     final score = res.candidatos.single.score!;
@@ -148,7 +148,7 @@ void main() {
         await _svc({
               'candidatos': [_candidatoJson(alerta: true)],
               'total': 1,
-            }).fetch(7)
+            }).fetch('7')
             as CandidatosSuccess;
 
     expect(res.candidatos.single.alertaHabitualidade, isTrue);
@@ -156,7 +156,7 @@ void main() {
 
   test('lista vazia → total 0 e sem candidatos (CA-7 / borda)', () async {
     final res =
-        await _svc({'candidatos': <dynamic>[], 'total': 0}).fetch(7)
+        await _svc({'candidatos': <dynamic>[], 'total': 0}).fetch('7')
             as CandidatosSuccess;
 
     expect(res.total, 0);
@@ -172,7 +172,7 @@ void main() {
                   _candidatoJson(comBreakdown: false, score: null),
                 ],
                 'total': 1,
-              }).fetch(7)
+              }).fetch('7')
               as CandidatosSuccess;
 
       final c = res.candidatos.single;
@@ -185,11 +185,11 @@ void main() {
     final res =
         await _svc({
               'candidatos': [
-                _candidatoJson(id: 1, nome: 'Júlia Santos'),
-                _candidatoJson(id: 2, nome: 'Madonna'),
+                _candidatoJson(id: '1', nome: 'Júlia Santos'),
+                _candidatoJson(id: '2', nome: 'Madonna'),
               ],
               'total': 2,
-            }).fetch(7)
+            }).fetch('7')
             as CandidatosSuccess;
 
     expect(res.candidatos[0].profissional.iniciais, 'JS');
@@ -197,17 +197,17 @@ void main() {
   });
 
   test('403 → CandidatosForbidden (RBAC — CA-1)', () async {
-    final res = await _svc(const {}, status: 403).fetch(7);
+    final res = await _svc(const {}, status: 403).fetch('7');
     expect(res, isA<CandidatosForbidden>());
   });
 
   test('404 → CandidatosNotFound', () async {
-    final res = await _svc(const {}, status: 404).fetch(7);
+    final res = await _svc(const {}, status: 404).fetch('7');
     expect(res, isA<CandidatosNotFound>());
   });
 
   test('500 → CandidatosError', () async {
-    final res = await _svc(const {}, status: 500).fetch(7);
+    final res = await _svc(const {}, status: 500).fetch('7');
     expect(res, isA<CandidatosError>());
   });
 
@@ -215,7 +215,7 @@ void main() {
     final svc = CandidatosService(
       client: MockClient((_) async => throw http.ClientException('sem rede')),
     );
-    expect(await svc.fetch(7), isA<CandidatosError>());
+    expect(await svc.fetch('7'), isA<CandidatosError>());
   });
 
   test('JSON inválido no 200 → CandidatosError', () async {
@@ -224,6 +224,6 @@ void main() {
         (_) async => http.Response('not json', 200, headers: _utf8),
       ),
     );
-    expect(await svc.fetch(7), isA<CandidatosError>());
+    expect(await svc.fetch('7'), isA<CandidatosError>());
   });
 }

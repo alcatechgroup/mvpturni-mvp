@@ -30,7 +30,7 @@ class CompletarContexto {
   final String nome;
   final String tipoPessoa; // PF | MEI | PJ
   final String documentoTipo; // CPF | CNPJ
-  final int?
+  final String?
   funcaoId; // função primária (excluída do multi-select de secundárias)
 
   const CompletarContexto({
@@ -45,7 +45,7 @@ class CompletarContexto {
         nome: json['nome'] as String? ?? '',
         tipoPessoa: json['tipo_pessoa'] as String? ?? 'PF',
         documentoTipo: json['documento_tipo'] as String? ?? 'CPF',
-        funcaoId: json['funcao_id'] as int?,
+        funcaoId: json['funcao_id'] as String?,
       );
 }
 
@@ -123,7 +123,7 @@ class CompletarCadastroService {
   /// POST completar (multipart) — gera o aceite e conclui o cadastro (CA-9/12).
   Future<CadastroResult> completar({
     required String documento,
-    required List<int> funcoesSecundarias,
+    required List<String> funcoesSecundarias,
     required int raioMaxKm,
     required String precoHora,
     required String bio,
@@ -143,8 +143,7 @@ class CompletarCadastroService {
           ..fields['chave_pix'] = chavePix;
 
     for (var i = 0; i < funcoesSecundarias.length; i++) {
-      request.fields['funcoes_secundarias[$i]'] = funcoesSecundarias[i]
-          .toString();
+      request.fields['funcoes_secundarias[$i]'] = funcoesSecundarias[i];
     }
     for (final arquivo in documentos) {
       request.files.add(

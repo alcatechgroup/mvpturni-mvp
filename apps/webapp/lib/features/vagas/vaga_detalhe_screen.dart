@@ -21,7 +21,7 @@ class VagaDetalheScreen extends StatefulWidget {
   }) : _service = service,
        _candidaturaService = candidaturaService;
 
-  final int vagaId;
+  final String vagaId;
   final VagaDetalheService? _service;
   final CandidaturaService? _candidaturaService;
 
@@ -173,7 +173,7 @@ class _VagaDetalheScreenState extends State<VagaDetalheScreen> {
     final confirmou = await _present<bool>(_RetirarSheet(accent: accent));
     if (!mounted || confirmou != true) return;
 
-    final result = await _candidatura.retirar(candidatura.id ?? 0);
+    final result = await _candidatura.retirar(candidatura.id ?? '');
     if (!mounted) return;
     switch (result) {
       case RetirarSuccess():
@@ -1405,7 +1405,7 @@ class _BloqueioSheet extends StatelessWidget {
   final String mensagem;
   final ConflitoInfo? conflito;
   final Color accent;
-  final void Function(int vagaId) onConflito;
+  final void Function(String vagaId) onConflito;
   final VoidCallback onVagaFechada;
 
   @override

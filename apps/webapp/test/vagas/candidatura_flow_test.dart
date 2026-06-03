@@ -17,7 +17,7 @@ class _FakeDetalheService extends VagaDetalheService {
   final VagaDetalhe _detalhe;
 
   @override
-  Future<DetalheResult> fetch(int id) async => DetalheSuccess(_detalhe);
+  Future<DetalheResult> fetch(String id) async => DetalheSuccess(_detalhe);
 }
 
 /// Fake de candidatura roteirizado: devolve [candidatarResults] em sequência (para exercitar
@@ -29,7 +29,7 @@ class _FakeCandidaturaService extends CandidaturaService {
   int candidatarCalls = 0;
 
   @override
-  Future<CandidaturaResult> candidatar(int vagaId) async {
+  Future<CandidaturaResult> candidatar(String vagaId) async {
     final r =
         candidatarResults![candidatarCalls.clamp(
           0,
@@ -40,14 +40,14 @@ class _FakeCandidaturaService extends CandidaturaService {
   }
 
   @override
-  Future<RetirarResult> retirar(int candidaturaId) async => retirarResult!;
+  Future<RetirarResult> retirar(String candidaturaId) async => retirarResult!;
 }
 
 VagaDetalhe _detalhe({
   bool jaCandidatou = false,
   CandidaturaResumo? candidatura,
 }) => VagaDetalhe(
-  id: 7,
+  id: '7',
   funcao: 'Garçom',
   estabelecimento: 'Bar do Zé',
   cidade: 'São Paulo',
@@ -72,7 +72,7 @@ Widget _app({
       GoRoute(
         path: '/vaga/:id',
         builder: (_, _) => VagaDetalheScreen(
-          vagaId: 7,
+          vagaId: '7',
           service: detalhe,
           candidaturaService: candidatura,
         ),
@@ -128,7 +128,7 @@ void main() {
       final cand = _FakeCandidaturaService(
         candidatarResults: [
           CandidaturaCriada(
-            id: 99,
+            id: '99',
             estado: 'pendente',
             candidatouEm: DateTime(2026, 6, 2, 14, 20),
             alerta: false,
@@ -220,7 +220,7 @@ void main() {
           erro: 'conflito_horario',
           mensagem: 'Você já tem um compromisso neste horário.',
           conflito: ConflitoInfo(
-            vagaId: 42,
+            vagaId: '42',
             funcao: 'Garçom',
             estabelecimento: 'Hotel Aurora',
             dataInicio: DateTime(2026, 6, 12, 17),
@@ -264,7 +264,7 @@ void main() {
       candidatarResults: [
         CandidaturaErroRede(),
         CandidaturaCriada(
-          id: 1,
+          id: '1',
           estado: 'pendente',
           candidatouEm: DateTime(2026, 6, 2, 14, 20),
           alerta: false,
@@ -305,7 +305,7 @@ void main() {
             _detalhe(
               jaCandidatou: true,
               candidatura: const CandidaturaResumo(
-                id: 5,
+                id: '5',
                 estado: 'pendente',
                 criadaEm: null,
               ),

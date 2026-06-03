@@ -15,7 +15,7 @@ class _FakeDetalheService extends VagaDetalheService {
   final VagaDetalhe _vaga;
 
   @override
-  Future<DetalheResult> fetch(int id) async => DetalheSuccess(_vaga);
+  Future<DetalheResult> fetch(String id) async => DetalheSuccess(_vaga);
 }
 
 class _FakeCandidaturaService extends CandidaturaService {
@@ -25,20 +25,20 @@ class _FakeCandidaturaService extends CandidaturaService {
   int retirarCalls = 0;
 
   @override
-  Future<RevisaoResult> manterAposEdicao(int id) async {
+  Future<RevisaoResult> manterAposEdicao(String id) async {
     manterCalls++;
     return manterResult?.call() ?? RevisaoSuccess('pendente');
   }
 
   @override
-  Future<RevisaoResult> retirarAposEdicao(int id) async {
+  Future<RevisaoResult> retirarAposEdicao(String id) async {
     retirarCalls++;
     return RevisaoSuccess('retirada_por_edicao');
   }
 }
 
 VagaDetalhe _emRevisao() => VagaDetalhe(
-  id: 7,
+  id: '7',
   funcao: 'Garçom',
   estabelecimento: 'Bar do Zé',
   cidade: 'São Paulo',
@@ -50,7 +50,7 @@ VagaDetalhe _emRevisao() => VagaDetalhe(
   podeCandidatar: false,
   jaCandidatou: true,
   candidatura: const CandidaturaResumo(
-    id: 33,
+    id: '33',
     estado: 'pendente_revisao_apos_edicao',
     criadaEm: null,
   ),
@@ -76,7 +76,7 @@ Widget _comRouter(_FakeDetalheService det, _FakeCandidaturaService cand) {
       GoRoute(
         path: '/vaga/:id',
         builder: (_, _) => VagaDetalheScreen(
-          vagaId: 7,
+          vagaId: '7',
           service: det,
           candidaturaService: cand,
         ),
@@ -183,7 +183,7 @@ void main() {
     tester,
   ) async {
     final vaga = VagaDetalhe(
-      id: 7,
+      id: '7',
       funcao: 'Garçom',
       estabelecimento: 'Bar do Zé',
       cidade: 'São Paulo',
@@ -195,7 +195,7 @@ void main() {
       podeCandidatar: false,
       jaCandidatou: true,
       candidatura: const CandidaturaResumo(
-        id: 33,
+        id: '33',
         estado: 'pendente',
         criadaEm: null,
       ),

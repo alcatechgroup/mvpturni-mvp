@@ -62,7 +62,7 @@ class _CompletarCadastroScreenState extends State<CompletarCadastroScreen> {
 
   CompletarContexto? _contexto;
   List<Funcao> _funcoes = [];
-  final Set<int> _funcoesSecundarias = {};
+  final Set<String> _funcoesSecundarias = {};
   List<ArquivoUpload> _documentos = [];
 
   _Fase _fase = _Fase.form;
@@ -766,8 +766,8 @@ class _FuncoesPickerSheet extends StatefulWidget {
   });
 
   final List<Funcao> disponiveis;
-  final Set<int> selecionadas;
-  final void Function(int id, bool selecionado) onToggle;
+  final Set<String> selecionadas;
+  final void Function(String id, bool selecionado) onToggle;
   final Color accent;
   final bool isDark;
 

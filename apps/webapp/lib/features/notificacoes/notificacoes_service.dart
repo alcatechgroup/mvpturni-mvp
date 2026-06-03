@@ -40,7 +40,7 @@ class NotificacoesService {
   }
 
   /// POST /api/notificacoes/{id}/marcar-lida. `false` em falha (a marcação é otimista — CA-8 §4.7).
-  Future<bool> marcarLida(int id) async {
+  Future<bool> marcarLida(String id) async {
     try {
       final res = await _client.post(
         Uri.parse('$_base/notificacoes/$id/marcar-lida'),

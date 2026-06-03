@@ -38,7 +38,7 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
 
   _Phase _phase = _Phase.loading;
   List<Funcao> _funcoes = [];
-  int? _funcaoId;
+  String? _funcaoId;
   int _posicoes = 1;
   int _gatePending = 0;
   String? _funcaoErro; // erro do seletor de função (não é FormField)
@@ -292,7 +292,7 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
                 // DropdownMenu (Material 3): campo com busca embutida — o usuário
                 // digita um termo e a lista filtra (enableFilter). Melhor que um
                 // select simples para a lista canônica de funções (~14 itens).
-                child: DropdownMenu<int>(
+                child: DropdownMenu<String>(
                   key: const Key('publicar-vaga-funcao-dropdown'),
                   initialSelection: _funcaoId,
                   requestFocusOnTap: true,
@@ -305,8 +305,10 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
                   errorText: _funcaoErro,
                   dropdownMenuEntries: _funcoes
                       .map(
-                        (f) =>
-                            DropdownMenuEntry<int>(value: f.id, label: f.nome),
+                        (f) => DropdownMenuEntry<String>(
+                          value: f.id,
+                          label: f.nome,
+                        ),
                       )
                       .toList(),
                   onSelected: (v) => setState(() {

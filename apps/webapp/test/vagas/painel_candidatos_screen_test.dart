@@ -20,7 +20,7 @@ class _FakeService extends CandidatosService {
   int calls = 0;
 
   @override
-  Future<CandidatosResult> fetch(int vagaId) async {
+  Future<CandidatosResult> fetch(String vagaId) async {
     calls++;
     if (delay != null) await Future<void>.delayed(delay!);
     return result?.call() ?? CandidatosError();
@@ -62,7 +62,7 @@ ScoreBreakdown _score(int total) => ScoreBreakdown(
 );
 
 CandidatoCard _cand({
-  int id = 1,
+  String id = '1',
   String nome = 'Júlia Santos',
   String? funcao = 'Garçom',
   String? nivel = 'Elite',
@@ -73,7 +73,7 @@ CandidatoCard _cand({
 }) => CandidatoCard(
   id: id,
   profissional: PerfilCandidato(
-    id: id + 100,
+    id: 'p',
     nome: nome,
     fotoUrl: foto,
     funcaoPrimaria: funcao,
@@ -94,7 +94,7 @@ Widget _comRouter(_FakeService svc) {
       GoRoute(
         path: '/contratante/vagas/:id/candidatos',
         builder: (_, _) => PainelCandidatosScreen(
-          vagaId: 7,
+          vagaId: '7',
           funcao: 'Garçom',
           dataInicio: DateTime(2026, 6, 12, 18),
           dataFim: DateTime(2026, 6, 12, 23),
@@ -140,9 +140,9 @@ void main() {
     (tester) async {
       final svc = _FakeService(
         result: () => CandidatosSuccess([
-          _cand(id: 1, nome: 'Júlia Santos', score: 92),
+          _cand(id: '1', nome: 'Júlia Santos', score: 92),
           _cand(
-            id: 2,
+            id: '2',
             nome: 'Bruno Costa',
             funcao: 'Cozinheiro',
             nivel: 'Destaque',
@@ -177,9 +177,9 @@ void main() {
   ) async {
     final svc = _FakeService(
       result: () => CandidatosSuccess([
-        _cand(id: 1, nome: 'Alta', score: 92),
-        _cand(id: 2, nome: 'Media', score: 88),
-        _cand(id: 3, nome: 'Baixa', score: 71),
+        _cand(id: '1', nome: 'Alta', score: 92),
+        _cand(id: '2', nome: 'Media', score: 88),
+        _cand(id: '3', nome: 'Baixa', score: 71),
       ], 3),
     );
     await _pump(tester, svc);
@@ -200,7 +200,7 @@ void main() {
     'toggle expande e colapsa o breakdown reusando BreakdownRow (CA-4)',
     (tester) async {
       final svc = _FakeService(
-        result: () => CandidatosSuccess([_cand(id: 1)], 1),
+        result: () => CandidatosSuccess([_cand(id: '1')], 1),
       );
       await _pump(tester, svc);
 
@@ -249,7 +249,7 @@ void main() {
     (tester) async {
       final svc = _FakeService(
         result: () => CandidatosSuccess([
-          _cand(id: 1, comBreakdown: false, score: null),
+          _cand(id: '1', comBreakdown: false, score: null),
         ], 1),
       );
       await _pump(tester, svc);
@@ -264,7 +264,7 @@ void main() {
 
   testWidgets('alerta de habitualidade mostra o badge (CA-5)', (tester) async {
     final svc = _FakeService(
-      result: () => CandidatosSuccess([_cand(id: 1, alerta: true)], 1),
+      result: () => CandidatosSuccess([_cand(id: '1', alerta: true)], 1),
     );
     await _pump(tester, svc);
 
@@ -279,7 +279,7 @@ void main() {
     tester,
   ) async {
     final svc = _FakeService(
-      result: () => CandidatosSuccess([_cand(id: 1)], 1),
+      result: () => CandidatosSuccess([_cand(id: '1')], 1),
     );
     await _pump(tester, svc);
 
@@ -291,7 +291,7 @@ void main() {
 
   testWidgets('aceitar e remover ficam desabilitados (CA-6)', (tester) async {
     final svc = _FakeService(
-      result: () => CandidatosSuccess([_cand(id: 1)], 1),
+      result: () => CandidatosSuccess([_cand(id: '1')], 1),
     );
     await _pump(tester, svc);
 
@@ -343,7 +343,7 @@ void main() {
     var primeiro = true;
     final svc = _FakeService(
       result: () =>
-          primeiro ? CandidatosError() : CandidatosSuccess([_cand(id: 1)], 1),
+          primeiro ? CandidatosError() : CandidatosSuccess([_cand(id: '1')], 1),
     );
     await _pump(tester, svc);
 
@@ -362,7 +362,7 @@ void main() {
     tester,
   ) async {
     final svc = _FakeService(
-      result: () => CandidatosSuccess([_cand(id: 1)], 1),
+      result: () => CandidatosSuccess([_cand(id: '1')], 1),
     );
     await _pump(tester, svc);
 

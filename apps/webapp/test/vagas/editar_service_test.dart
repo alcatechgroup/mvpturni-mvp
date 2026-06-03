@@ -16,9 +16,9 @@ void main() {
         client: MockClient(
           (_) async => http.Response(
             jsonEncode({
-              'id': 7,
+              'id': '7',
               'editavel': true,
-              'funcao_id': 1,
+              'funcao_id': '1',
               'data_inicio': '2026-06-12T18:00:00-03:00',
               'data_fim': '2026-06-12T23:00:00-03:00',
               'valor': 120.0,
@@ -30,7 +30,7 @@ void main() {
           ),
         ),
       );
-      final r = await svc.fetchEditar(7);
+      final r = await svc.fetchEditar('7');
       expect(r, isA<CarregarEdicaoSuccess>());
       final vaga = (r as CarregarEdicaoSuccess).vaga;
       expect(vaga.valor, 120.0);
@@ -41,7 +41,7 @@ void main() {
     test('403 → Forbidden, 404 → NotFound, 500 → Error', () async {
       Future<CarregarEdicaoResult> withStatus(int s) => VagaService(
         client: MockClient((_) async => http.Response('{}', s)),
-      ).fetchEditar(7);
+      ).fetchEditar('7');
 
       expect(await withStatus(403), isA<CarregarEdicaoForbidden>());
       expect(await withStatus(404), isA<CarregarEdicaoNotFound>());
@@ -60,7 +60,7 @@ void main() {
           expect(body['data_fim'] as String, endsWith('Z'));
           return http.Response(
             jsonEncode({
-              'id': 7,
+              'id': '7',
               'estado': 'aberta',
               'material': true,
               'candidatos_notificados': 2,
@@ -79,8 +79,8 @@ void main() {
         }),
       );
       final r = await svc.editar(
-        7,
-        funcaoId: 1,
+        '7',
+        funcaoId: '1',
         dataInicio: DateTime(2026, 6, 12, 18),
         dataFim: DateTime(2026, 6, 12, 23),
         valor: 150,
@@ -100,8 +100,8 @@ void main() {
             VagaService(
               client: MockClient((_) async => http.Response(body, s)),
             ).editar(
-              7,
-              funcaoId: 1,
+              '7',
+              funcaoId: '1',
               dataInicio: DateTime(2026, 6, 12, 18),
               dataFim: DateTime(2026, 6, 12, 23),
               valor: 150,
@@ -134,7 +134,7 @@ void main() {
           return http.Response(jsonEncode({'estado': 'pendente'}), 200);
         }),
       );
-      final r = await svc.manterAposEdicao(33);
+      final r = await svc.manterAposEdicao('33');
       expect(r, isA<RevisaoSuccess>());
       expect((r as RevisaoSuccess).estado, 'pendente');
     });
@@ -149,14 +149,14 @@ void main() {
           );
         }),
       );
-      final r = await svc.retirarAposEdicao(33);
+      final r = await svc.retirarAposEdicao('33');
       expect((r as RevisaoSuccess).estado, 'retirada_por_edicao');
     });
 
     test('409 → Conflict; 500 → Erro', () async {
       Future<RevisaoResult> manter(int s) => CandidaturaService(
         client: MockClient((_) async => http.Response('{}', s)),
-      ).manterAposEdicao(33);
+      ).manterAposEdicao('33');
 
       expect(await manter(409), isA<RevisaoConflict>());
       expect(await manter(500), isA<RevisaoErro>());

@@ -8,7 +8,7 @@ import 'vaga_detalhe_service.dart' show ScoreBreakdown;
 /// STORY-051 — perfil do candidato exibido no card do painel (CA-3). `plano` é stub (null no
 /// MVP — STORY-045 CA-5); `fotoUrl` é best-effort (null → avatar cai para iniciais).
 class PerfilCandidato {
-  final int id;
+  final String id;
   final String nome;
   final String? fotoUrl;
   final String? funcaoPrimaria;
@@ -36,7 +36,7 @@ class PerfilCandidato {
 
   factory PerfilCandidato.fromJson(Map<String, dynamic> json) =>
       PerfilCandidato(
-        id: (json['id'] as num?)?.toInt() ?? 0,
+        id: json['id'] as String,
         nome: json['nome'] as String? ?? '',
         fotoUrl: json['foto_url'] as String?,
         funcaoPrimaria: json['funcao_primaria'] as String?,
@@ -50,7 +50,7 @@ class PerfilCandidato {
 /// `score` (breakdown) é o **snapshot persistido** no instante da candidatura — não recalculado
 /// (CA-2/CA-4); pode ser nulo em candidatura legada (fail-soft, esconde o breakdown).
 class CandidatoCard {
-  final int id;
+  final String id;
   final PerfilCandidato profissional;
   final int? scoreNoMomento;
   final ScoreBreakdown? score;
@@ -70,7 +70,7 @@ class CandidatoCard {
     final breakdown = (json['score_breakdown'] as Map?)
         ?.cast<String, dynamic>();
     return CandidatoCard(
-      id: (json['id'] as num?)?.toInt() ?? 0,
+      id: json['id'] as String,
       profissional: PerfilCandidato.fromJson(
         (json['profissional'] as Map?)?.cast<String, dynamic>() ?? const {},
       ),
@@ -113,7 +113,7 @@ class CandidatosService {
 
   /// GET /api/vagas/{id}/candidatos — 200 → sucesso; 403 → sem permissão; 404 → vaga
   /// inexistente; rede/5xx → erro.
-  Future<CandidatosResult> fetch(int vagaId) async {
+  Future<CandidatosResult> fetch(String vagaId) async {
     http.Response res;
     try {
       res = await _client.get(

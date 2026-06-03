@@ -25,7 +25,7 @@ class GatePublicacao {
 sealed class PublicarResult {}
 
 class PublicarSuccess extends PublicarResult {
-  final int vagaId;
+  final String vagaId;
   final String estado;
   PublicarSuccess(this.vagaId, this.estado);
 }
@@ -60,7 +60,7 @@ enum VagaEstadoResumo {
 
 /// Item da lista "Minhas vagas" (STORY-047 CA-2) — o que o card precisa.
 class VagaResumo {
-  final int id;
+  final String id;
   final String funcao;
   final DateTime dataInicio;
   final DateTime dataFim;
@@ -83,7 +83,7 @@ class VagaResumo {
   });
 
   factory VagaResumo.fromJson(Map<String, dynamic> json) => VagaResumo(
-    id: (json['id'] as num).toInt(),
+    id: json['id'] as String,
     funcao: json['funcao'] as String? ?? '',
     dataInicio: TurniDateTime.parseRequired(json['data_inicio'] as String),
     dataFim: TurniDateTime.parseRequired(json['data_fim'] as String),
@@ -152,9 +152,9 @@ class DiffLinha {
 
 /// Valores atuais da vaga para o formulário de edição (STORY-052 CA-10).
 class VagaEditar {
-  final int id;
+  final String id;
   final bool editavel;
-  final int funcaoId;
+  final String funcaoId;
   final DateTime dataInicio;
   final DateTime dataFim;
   final double valor;
@@ -175,9 +175,9 @@ class VagaEditar {
   });
 
   factory VagaEditar.fromJson(Map<String, dynamic> json) => VagaEditar(
-    id: (json['id'] as num).toInt(),
+    id: json['id'] as String,
     editavel: json['editavel'] as bool? ?? false,
-    funcaoId: (json['funcao_id'] as num?)?.toInt() ?? 0,
+    funcaoId: json['funcao_id'] as String? ?? '',
     dataInicio: TurniDateTime.parseRequired(json['data_inicio'] as String),
     dataFim: TurniDateTime.parseRequired(json['data_fim'] as String),
     valor: (json['valor'] as num?)?.toDouble() ?? 0,
@@ -280,7 +280,7 @@ class VagaService {
   /// POST /api/vagas — publica a vaga (CA-6). 6 campos materiais; localização é
   /// derivada do contratante no servidor (ADR-013), por isso não vai no payload.
   Future<PublicarResult> publicar({
-    required int funcaoId,
+    required String funcaoId,
     required DateTime dataInicio,
     required DateTime dataFim,
     required double valor,
@@ -313,7 +313,7 @@ class VagaService {
     switch (res.statusCode) {
       case 201:
         return PublicarSuccess(
-          (data['id'] as num?)?.toInt() ?? 0,
+          data['id'] as String? ?? '',
           data['estado'] as String? ?? 'aberta',
         );
       case 422:
@@ -354,7 +354,7 @@ class VagaService {
 
   /// DELETE /api/vagas/{id} — cancela a vaga (STORY-047 CA-4/CA-5). 200 → ok; 409 →
   /// transição inválida (vaga não está mais aberta); 403 → não-dono; rede/5xx → erro.
-  Future<CancelarResult> cancelar(int vagaId) async {
+  Future<CancelarResult> cancelar(String vagaId) async {
     http.Response res;
     try {
       res = await _client.delete(
@@ -378,7 +378,7 @@ class VagaService {
   }
 
   /// GET /api/vagas/{id}/editar — valores atuais + candidatos a notificar (STORY-052 CA-10).
-  Future<CarregarEdicaoResult> fetchEditar(int vagaId) async {
+  Future<CarregarEdicaoResult> fetchEditar(String vagaId) async {
     http.Response res;
     try {
       res = await _client.get(
@@ -408,8 +408,8 @@ class VagaService {
   /// PATCH /api/vagas/{id} — edita a vaga (STORY-052). 200 → diff + nº notificados; 422 →
   /// validação; 409 → não editável; 403 → não-dono; rede/5xx → erro recuperável.
   Future<EditarResult> editar(
-    int vagaId, {
-    required int funcaoId,
+    String vagaId, {
+    required String funcaoId,
     required DateTime dataInicio,
     required DateTime dataFim,
     required double valor,

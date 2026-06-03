@@ -20,7 +20,7 @@ Map<String, dynamic> _detalheJson({
   String? motivo,
   double? dist = 3.0,
 }) => {
-  'id': 7,
+  'id': '7',
   'funcao': 'Garçom',
   'estabelecimento': 'Bar do Zé',
   'cidade': 'São Paulo',
@@ -85,7 +85,7 @@ void main() {
       }),
     );
 
-    final res = await svc.fetch(7);
+    final res = await svc.fetch('7');
 
     expect(capturada.path, endsWith('/api/vagas/7/detalhe'));
     expect(res, isA<DetalheSuccess>());
@@ -105,7 +105,7 @@ void main() {
   test(
     'breakdown vem na ordem canônica função→distância→histórico→nível (CA-2/CA-3)',
     () async {
-      final v = (await _svc(_detalheJson()).fetch(7) as DetalheSuccess).vaga;
+      final v = (await _svc(_detalheJson()).fetch('7') as DetalheSuccess).vaga;
 
       expect(v.score.linhas.map((l) => l.componente).toList(), [
         ComponenteMatch.funcao,
@@ -131,7 +131,7 @@ void main() {
                       'criada_em': '2026-06-02T14:20:00-03:00',
                     },
                   ),
-                ).fetch(7)
+                ).fetch('7')
                 as DetalheSuccess)
             .vaga;
 
@@ -148,7 +148,7 @@ void main() {
                     podeCand: false,
                     motivo: 'Avalie seu último turno para se candidatar.',
                   ),
-                ).fetch(7)
+                ).fetch('7')
                 as DetalheSuccess)
             .vaga;
 
@@ -158,7 +158,8 @@ void main() {
 
   test('distancia_km null é preservada (§4.8)', () async {
     final v =
-        (await _svc(_detalheJson(dist: null)).fetch(7) as DetalheSuccess).vaga;
+        (await _svc(_detalheJson(dist: null)).fetch('7') as DetalheSuccess)
+            .vaga;
     expect(v.distanciaKm, isNull);
   });
 
@@ -166,34 +167,34 @@ void main() {
     final svc = VagaDetalheService(
       client: MockClient((_) async => http.Response('', 403)),
     );
-    expect(await svc.fetch(7), isA<DetalheForbidden>());
+    expect(await svc.fetch('7'), isA<DetalheForbidden>());
   });
 
   test('404 → DetalheNotFound (§4.7)', () async {
     final svc = VagaDetalheService(
       client: MockClient((_) async => http.Response('', 404)),
     );
-    expect(await svc.fetch(7), isA<DetalheNotFound>());
+    expect(await svc.fetch('7'), isA<DetalheNotFound>());
   });
 
   test('5xx → DetalheError', () async {
     final svc = VagaDetalheService(
       client: MockClient((_) async => http.Response('', 500)),
     );
-    expect(await svc.fetch(7), isA<DetalheError>());
+    expect(await svc.fetch('7'), isA<DetalheError>());
   });
 
   test('corpo inválido em 200 → DetalheError (defensivo)', () async {
     final svc = VagaDetalheService(
       client: MockClient((_) async => http.Response('isto nao e json', 200)),
     );
-    expect(await svc.fetch(7), isA<DetalheError>());
+    expect(await svc.fetch('7'), isA<DetalheError>());
   });
 
   test('falha de rede → DetalheError', () async {
     final svc = VagaDetalheService(
       client: MockClient((_) async => throw Exception('sem rede')),
     );
-    expect(await svc.fetch(7), isA<DetalheError>());
+    expect(await svc.fetch('7'), isA<DetalheError>());
   });
 }

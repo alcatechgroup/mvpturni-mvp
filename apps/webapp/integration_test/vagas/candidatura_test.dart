@@ -30,7 +30,9 @@ Finder _cardComValor(String valor) => find.ancestor(
   matching: find.byWidgetPredicate((w) {
     final k = w.key;
     return k is ValueKey<String> &&
-        RegExp(r'^feed-card-\d+$').hasMatch(k.value);
+        RegExp(
+          r'^feed-card-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+        ).hasMatch(k.value);
   }),
 );
 

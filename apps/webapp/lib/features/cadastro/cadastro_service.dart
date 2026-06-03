@@ -10,13 +10,13 @@ export 'shared/cadastro_types.dart';
 
 /// Função pretendida (vem de GET /api/funcoes — STORY-017 / IDR-008).
 class Funcao {
-  final int id;
+  final String id;
   final String nome;
 
   const Funcao({required this.id, required this.nome});
 
   factory Funcao.fromJson(Map<String, dynamic> json) =>
-      Funcao(id: json['id'] as int, nome: json['nome'] as String);
+      Funcao(id: json['id'] as String, nome: json['nome'] as String);
 }
 
 /// Serviço do pré-cadastro de profissional (STORY-017).
@@ -47,7 +47,7 @@ class CadastroService {
     required String telefone,
     required String cidade,
     required String bairro,
-    required int funcaoId,
+    required String funcaoId,
     required String tipoPessoa,
     required String password,
     required String passwordConfirmation,
@@ -64,7 +64,7 @@ class CadastroService {
         'telefone': telefone,
         'cidade': cidade,
         'bairro': bairro,
-        'funcao_id': funcaoId.toString(),
+        'funcao_id': funcaoId,
         'tipo_pessoa': tipoPessoa,
         'password': password,
         'password_confirmation': passwordConfirmation,

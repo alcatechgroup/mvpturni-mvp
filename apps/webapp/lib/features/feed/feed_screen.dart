@@ -394,7 +394,7 @@ class _FeedCard extends StatelessWidget {
 class _SeloRevisao extends StatelessWidget {
   const _SeloRevisao({required this.vagaId, required this.isDark});
 
-  final int vagaId;
+  final String vagaId;
   final bool isDark;
 
   @override
@@ -440,7 +440,7 @@ class _ScoreChip extends StatelessWidget {
     required this.isDark,
   });
 
-  final int vagaId;
+  final String vagaId;
   final int total;
   final Color accent;
   final bool isDark;
@@ -485,7 +485,7 @@ class _ScoreBar extends StatelessWidget {
     required this.isDark,
   });
 
-  final int vagaId;
+  final String vagaId;
   final int total;
   final Color accent;
   final bool isDark;
@@ -558,7 +558,7 @@ class _ScoreBar extends StatelessWidget {
 class _AltoMatchBadge extends StatelessWidget {
   const _AltoMatchBadge({required this.vagaId});
 
-  final int vagaId;
+  final String vagaId;
 
   @override
   Widget build(BuildContext context) {

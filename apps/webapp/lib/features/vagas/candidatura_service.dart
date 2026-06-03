@@ -8,7 +8,7 @@ import '../cadastro/shared/cadastro_types.dart' show cadastroApiBase;
 /// `conflito_horario`). Função/estabelecimento podem vir nulos (fail-soft): o card cai para só
 /// "Ver vaga em conflito" e o link ainda funciona via [vagaId] (SCREEN-050 §4.5 / §10).
 class ConflitoInfo {
-  final int vagaId;
+  final String vagaId;
   final String? funcao;
   final String? estabelecimento;
   final DateTime? dataInicio;
@@ -25,7 +25,7 @@ class ConflitoInfo {
   static ConflitoInfo? fromDetalhe(Map<String, dynamic>? detalhe) {
     final c = (detalhe?['conflito_com'] as Map?)?.cast<String, dynamic>();
     if (c == null) return null;
-    final vagaId = (c['vaga_id'] as num?)?.toInt();
+    final vagaId = c['vaga_id'] as String?;
     if (vagaId == null) return null;
     return ConflitoInfo(
       vagaId: vagaId,
@@ -46,7 +46,7 @@ sealed class CandidaturaResult {}
 
 /// 201 — candidatura criada (`pendente`). `alerta` = MEI/PJ na 3ª alocação (não bloqueia).
 class CandidaturaCriada extends CandidaturaResult {
-  final int id;
+  final String id;
   final String estado;
   final DateTime? candidatouEm;
   final bool alerta;
@@ -116,7 +116,7 @@ class CandidaturaService {
   String get _base => '$cadastroApiBase/api';
 
   /// POST /api/vagas/{id}/candidaturas — candidata em 1 toque, aplicando os 3 gates no back.
-  Future<CandidaturaResult> candidatar(int vagaId) async {
+  Future<CandidaturaResult> candidatar(String vagaId) async {
     http.Response res;
     try {
       res = await _client.post(
@@ -134,7 +134,7 @@ class CandidaturaService {
     switch (res.statusCode) {
       case 201:
         return CandidaturaCriada(
-          id: (data['id'] as num?)?.toInt() ?? 0,
+          id: data['id'] as String? ?? '',
           estado: data['estado'] as String? ?? 'pendente',
           candidatouEm: data['candidatou_em'] != null
               ? DateTime.tryParse(data['candidatou_em'] as String)
@@ -160,7 +160,7 @@ class CandidaturaService {
   }
 
   /// DELETE /api/candidaturas/{id} — retira a própria candidatura `pendente` (CA-8).
-  Future<RetirarResult> retirar(int candidaturaId) async {
+  Future<RetirarResult> retirar(String candidaturaId) async {
     http.Response res;
     try {
       res = await _client.delete(
@@ -182,11 +182,11 @@ class CandidaturaService {
   }
 
   /// POST /api/candidaturas/{id}/confirmar-apos-edicao — mantém a candidatura (CA-7).
-  Future<RevisaoResult> manterAposEdicao(int candidaturaId) =>
+  Future<RevisaoResult> manterAposEdicao(String candidaturaId) =>
       _revisao('$_base/candidaturas/$candidaturaId/confirmar-apos-edicao');
 
   /// POST /api/candidaturas/{id}/retirar-apos-edicao — retira a candidatura (CA-8).
-  Future<RevisaoResult> retirarAposEdicao(int candidaturaId) =>
+  Future<RevisaoResult> retirarAposEdicao(String candidaturaId) =>
       _revisao('$_base/candidaturas/$candidaturaId/retirar-apos-edicao');
 
   Future<RevisaoResult> _revisao(String url) async {

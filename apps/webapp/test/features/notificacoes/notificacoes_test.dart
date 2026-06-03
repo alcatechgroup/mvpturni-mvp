@@ -11,9 +11,9 @@ import 'package:turni_webapp/features/notificacoes/notificacoes_service.dart';
 import 'package:turni_webapp/features/notificacoes/notificacoes_sino.dart';
 
 Notificacao notif({
-  int id = 1,
+  String id = '1',
   String tipo = 'candidatura_recebida',
-  int? vagaId = 10,
+  String? vagaId = '10',
   Map<String, dynamic>? payload,
   String? lidaEm,
   String? criadaEm,
@@ -74,14 +74,14 @@ void main() {
 
     test('rota de destino por tipo', () {
       expect(
-        notif(tipo: 'candidatura_recebida', vagaId: 7).rotaDestino,
+        notif(tipo: 'candidatura_recebida', vagaId: '7').rotaDestino,
         '/contratante/vagas/7/candidatos',
       );
       expect(
-        notif(tipo: 'vaga_editada_material', vagaId: 7).rotaDestino,
+        notif(tipo: 'vaga_editada_material', vagaId: '7').rotaDestino,
         '/vaga/7',
       );
-      expect(notif(tipo: 'vaga_cancelada', vagaId: 7).rotaDestino, '/feed');
+      expect(notif(tipo: 'vaga_cancelada', vagaId: '7').rotaDestino, '/feed');
     });
 
     test('tempo relativo pt-BR (sem AM/PM)', () {
@@ -128,9 +128,9 @@ void main() {
         naoLidas: 1,
         lista: [
           {
-            'id': 1,
+            'id': '1',
             'tipo': 'candidatura_recebida',
-            'vaga_id': 10,
+            'vaga_id': '10',
             'payload': {},
             'lida_em': null,
             'criada_em': DateTime.now().toIso8601String(),
@@ -167,7 +167,7 @@ void main() {
         falharMarcarTodas: true,
       );
       c.naoLidas = 2;
-      c.itens = [notif(id: 1), notif(id: 2)];
+      c.itens = [notif(id: '1'), notif(id: '2')];
       final ok = await c.marcarTodasLidas();
       expect(ok, isFalse);
       expect(c.naoLidas, 2); // revertido
@@ -232,7 +232,7 @@ void main() {
       final c = controllerComResposta(naoLidas: 1, lista: const []);
       c.fase = NotificacoesFase.pronto;
       c.naoLidas = 1;
-      c.itens = [notif(id: 9)];
+      c.itens = [notif(id: '9')];
       await pumpPainel(tester, c);
       expect(find.byKey(const Key('notificacoes-lista')), findsOneWidget);
       expect(find.byKey(const Key('notificacao-item-9')), findsOneWidget);

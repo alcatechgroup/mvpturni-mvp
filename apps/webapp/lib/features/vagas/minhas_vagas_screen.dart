@@ -498,7 +498,7 @@ class _EstadoBadge extends StatelessWidget {
   const _EstadoBadge({required this.estado, required this.vagaId});
 
   final VagaEstadoResumo estado;
-  final int vagaId;
+  final String vagaId;
 
   @override
   Widget build(BuildContext context) {
@@ -563,7 +563,7 @@ class _PosicoesPill extends StatelessWidget {
     required this.total,
   });
 
-  final int vagaId;
+  final String vagaId;
   final int preenchidas;
   final int total;
 

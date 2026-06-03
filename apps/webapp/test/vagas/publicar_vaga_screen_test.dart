@@ -18,7 +18,7 @@ class _FakeVagaService extends VagaService {
   PublicarResult Function()? publicarResult;
 
   int publicarCalls = 0;
-  int? ultimaFuncao;
+  String? ultimaFuncao;
   double? ultimoValor;
   int? ultimasPosicoes;
   DateTime? ultimoInicio;
@@ -32,7 +32,7 @@ class _FakeVagaService extends VagaService {
 
   @override
   Future<PublicarResult> publicar({
-    required int funcaoId,
+    required String funcaoId,
     required DateTime dataInicio,
     required DateTime dataFim,
     required double valor,
@@ -45,7 +45,7 @@ class _FakeVagaService extends VagaService {
     ultimasPosicoes = posicoes;
     ultimoInicio = dataInicio;
     ultimoFim = dataFim;
-    return publicarResult?.call() ?? PublicarSuccess(7, 'aberta');
+    return publicarResult?.call() ?? PublicarSuccess('7', 'aberta');
   }
 }
 
@@ -92,8 +92,8 @@ Widget _comRouter(_FakeVagaService svc) {
 }
 
 const _funcoes = [
-  Funcao(id: 1, nome: 'Bartender'),
-  Funcao(id: 2, nome: 'Garçom'),
+  Funcao(id: '1', nome: 'Bartender'),
+  Funcao(id: '2', nome: 'Garçom'),
 ];
 
 Future<void> _tapPublicar(WidgetTester tester) async {
@@ -268,7 +268,7 @@ void main() {
     await _tapPublicar(tester);
 
     expect(svc.publicarCalls, 1);
-    expect(svc.ultimaFuncao, 1);
+    expect(svc.ultimaFuncao, '1');
     expect(svc.ultimoValor, 150.0);
     expect(svc.ultimasPosicoes, 1);
     expect(svc.ultimoInicio, DateTime(2026, 6, 12, 18, 0));
@@ -377,10 +377,10 @@ void main() {
         _FakeVagaService(
           gate: const GatePublicacao(pending: 0),
           funcoes: const [
-            Funcao(id: 1, nome: 'Bartender'),
-            Funcao(id: 2, nome: 'Garçom'),
-            Funcao(id: 3, nome: 'Barista'),
-            Funcao(id: 4, nome: 'Cozinheiro'),
+            Funcao(id: '1', nome: 'Bartender'),
+            Funcao(id: '2', nome: 'Garçom'),
+            Funcao(id: '3', nome: 'Barista'),
+            Funcao(id: '4', nome: 'Cozinheiro'),
           ],
         ),
       ),

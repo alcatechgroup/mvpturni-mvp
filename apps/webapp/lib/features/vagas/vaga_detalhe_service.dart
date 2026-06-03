@@ -94,7 +94,7 @@ class ScoreBreakdown {
 /// Candidatura vigente do profissional nesta vaga (CA-6). `id` (STORY-050) é necessário para a
 /// retirada (DELETE /candidaturas/{id}); é nulo só no estado otimista pós-corrida (CA-6).
 class CandidaturaResumo {
-  final int? id;
+  final String? id;
   final String estado;
   final DateTime? criadaEm;
 
@@ -108,7 +108,7 @@ class CandidaturaResumo {
 
   factory CandidaturaResumo.fromJson(Map<String, dynamic> json) =>
       CandidaturaResumo(
-        id: (json['id'] as num?)?.toInt(),
+        id: json['id'] as String?,
         estado: json['estado'] as String? ?? '',
         criadaEm: json['criada_em'] != null
             ? DateTime.tryParse(json['criada_em'] as String)
@@ -137,7 +137,7 @@ class RevisaoInfo {
 
 /// Detalhe completo da vaga (contrato CA-1).
 class VagaDetalhe {
-  final int id;
+  final String id;
   final String funcao;
   final String? estabelecimento;
   final String? cidade;
@@ -173,7 +173,7 @@ class VagaDetalhe {
   bool get emRevisao => candidatura?.estado == 'pendente_revisao_apos_edicao';
 
   factory VagaDetalhe.fromJson(Map<String, dynamic> json) => VagaDetalhe(
-    id: (json['id'] as num).toInt(),
+    id: json['id'] as String,
     funcao: json['funcao'] as String? ?? '',
     estabelecimento: json['estabelecimento'] as String?,
     cidade: json['cidade'] as String?,
@@ -226,7 +226,7 @@ class VagaDetalheService {
 
   /// GET /api/vagas/{id}/detalhe — 200 → sucesso; 403 → contratante; 404 → indisponível;
   /// rede/5xx → erro.
-  Future<DetalheResult> fetch(int id) async {
+  Future<DetalheResult> fetch(String id) async {
     http.Response res;
     try {
       res = await _client.get(

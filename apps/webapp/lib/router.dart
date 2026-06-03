@@ -157,7 +157,7 @@ final router = GoRouter(
       // vaga e abrir outra, STORY-050), e a tela continua mostrando a vaga anterior. A key na
       // MaterialPage força uma Page nova → State novo → recarrega o detalhe da vaga certa.
       pageBuilder: (context, state) {
-        final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        final id = state.pathParameters['id'] ?? '';
         return MaterialPage(
           key: ValueKey('vaga-$id'),
           child: VagaDetalheScreen(vagaId: id),
@@ -188,7 +188,7 @@ final router = GoRouter(
     GoRoute(
       path: '/contratante/vagas/:id/editar',
       pageBuilder: (context, state) {
-        final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        final id = state.pathParameters['id'] ?? '';
         return MaterialPage(
           key: ValueKey('editar-vaga-$id'),
           child: EditarVagaScreen(vagaId: id),
@@ -204,7 +204,7 @@ final router = GoRouter(
     GoRoute(
       path: '/contratante/vagas/:id/candidatos',
       builder: (context, state) {
-        final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        final id = state.pathParameters['id'] ?? '';
         final ctx = state.extra is VagaResumo
             ? state.extra as VagaResumo
             : null;

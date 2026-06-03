@@ -8,12 +8,13 @@ import 'package:turni_webapp/features/vagas/vaga_detalhe_service.dart';
 
 class _CandSempreCria extends CandidaturaService {
   @override
-  Future<CandidaturaResult> candidatar(int vagaId) async => CandidaturaCriada(
-    id: vagaId,
-    estado: 'pendente',
-    candidatouEm: DateTime(2026, 6, 2, 14, 20),
-    alerta: false,
-  );
+  Future<CandidaturaResult> candidatar(String vagaId) async =>
+      CandidaturaCriada(
+        id: vagaId,
+        estado: 'pendente',
+        candidatouEm: DateTime(2026, 6, 2, 14, 20),
+        alerta: false,
+      );
 }
 
 // STORY-050 — regressão de navegação entre vagas: ao ir de /vaga/A → /feed → /vaga/B (mesma
@@ -21,9 +22,9 @@ class _CandSempreCria extends CandidaturaService {
 // Trava a correção (pageKey por id na MaterialPage + didUpdateWidget → recarrega o detalhe).
 
 class _PorIdService extends VagaDetalheService {
-  int? ultimoId;
+  String? ultimoId;
   @override
-  Future<DetalheResult> fetch(int id) async {
+  Future<DetalheResult> fetch(String id) async {
     ultimoId = id;
     return DetalheSuccess(
       VagaDetalhe(
@@ -33,7 +34,7 @@ class _PorIdService extends VagaDetalheService {
         cidade: 'São Paulo',
         dataInicio: DateTime(2026, 6, 12, 18),
         dataFim: DateTime(2026, 6, 12, 23),
-        valor: id.toDouble(), // valor = id → distingue a vaga na tela
+        valor: double.parse(id), // valor = id → distingue a vaga na tela
         distanciaKm: 1,
         score: const ScoreBreakdown(total: 90, linhas: []),
         podeCandidatar: true,
@@ -60,7 +61,7 @@ void main() {
         GoRoute(
           path: '/vaga/:id',
           pageBuilder: (context, state) {
-            final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+            final id = state.pathParameters['id'] ?? '';
             return MaterialPage(
               key: ValueKey('vaga-$id'),
               child: VagaDetalheScreen(vagaId: id, service: svc),
@@ -77,7 +78,7 @@ void main() {
 
     // Em /vaga/29 → mostra a vaga 29 (valor R$ 29,00).
     expect(find.textContaining('R\$ 29,00'), findsOneWidget);
-    expect(svc.ultimoId, 29);
+    expect(svc.ultimoId, '29');
 
     // Vai para /feed e depois /vaga/30 (mesma rota, param diferente).
     router.go('/feed');
@@ -88,7 +89,7 @@ void main() {
     // Deve recarregar a vaga 30 (R$ 30,00), não continuar na 29.
     expect(
       svc.ultimoId,
-      30,
+      '30',
       reason: 'fetch deveria ter sido chamado para a vaga 30',
     );
     expect(find.textContaining('R\$ 30,00'), findsOneWidget);
@@ -114,7 +115,7 @@ void main() {
           GoRoute(
             path: '/vaga/:id',
             pageBuilder: (context, state) {
-              final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+              final id = state.pathParameters['id'] ?? '';
               return MaterialPage(
                 key: ValueKey('vaga-$id'),
                 child: VagaDetalheScreen(

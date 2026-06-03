@@ -21,7 +21,7 @@ class _FakeVagaService extends VagaService {
   double? ultimoValor;
 
   @override
-  Future<CarregarEdicaoResult> fetchEditar(int vagaId) async =>
+  Future<CarregarEdicaoResult> fetchEditar(String vagaId) async =>
       carregar?.call() ?? CarregarEdicaoError();
 
   @override
@@ -29,8 +29,8 @@ class _FakeVagaService extends VagaService {
 
   @override
   Future<EditarResult> editar(
-    int vagaId, {
-    required int funcaoId,
+    String vagaId, {
+    required String funcaoId,
     required DateTime dataInicio,
     required DateTime dataFim,
     required double valor,
@@ -45,15 +45,15 @@ class _FakeVagaService extends VagaService {
 }
 
 const _funcoes = [
-  Funcao(id: 1, nome: 'Garçom'),
-  Funcao(id: 2, nome: 'Cozinheiro'),
+  Funcao(id: '1', nome: 'Garçom'),
+  Funcao(id: '2', nome: 'Cozinheiro'),
 ];
 
 VagaEditar _vagaEditar({int candidatos = 3, bool editavel = true}) =>
     VagaEditar(
-      id: 7,
+      id: '7',
       editavel: editavel,
-      funcaoId: 1,
+      funcaoId: '1',
       dataInicio: DateTime(2026, 6, 12, 18),
       dataFim: DateTime(2026, 6, 12, 23),
       valor: 120.0,
@@ -94,7 +94,7 @@ Widget _comRouter(_FakeVagaService svc) {
     routes: [
       GoRoute(
         path: '/editar',
-        builder: (_, _) => EditarVagaScreen(vagaId: 7, service: svc),
+        builder: (_, _) => EditarVagaScreen(vagaId: '7', service: svc),
       ),
       GoRoute(
         path: '/contratante/vagas',
@@ -408,9 +408,9 @@ void main() {
       // A API entrega o instante em UTC (app.timezone=UTC). O form exibe `.toLocal()` e o
       // submit reenvia o mesmo instante — abrir "Revisar" sem mexer deve dar "nada mudou".
       final vaga = VagaEditar(
-        id: 7,
+        id: '7',
         editavel: true,
-        funcaoId: 1,
+        funcaoId: '1',
         dataInicio: DateTime.utc(2026, 6, 12, 18),
         dataFim: DateTime.utc(2026, 6, 12, 23),
         valor: 120.0,
