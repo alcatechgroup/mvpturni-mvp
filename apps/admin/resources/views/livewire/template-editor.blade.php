@@ -12,6 +12,9 @@
             <div>
                 @if ($this->vazio)
                     O conteúdo não pode ficar vazio.
+                @elseif ($this->isEmail)
+                    @php $inval = implode(', ', array_map(fn ($p) => '{'.$p.'}', $this->placeholdersInvalidos)); @endphp
+                    A variável <span class="mono">{{ $inval }}</span> não existe neste e-mail. Use apenas as variáveis disponíveis (veja a lista abaixo).
                 @else
                     @php $inval = implode(', ', array_map(fn ($p) => '{{'.$p.'}}', $this->placeholdersInvalidos)); @endphp
                     O placeholder <span class="mono">{{ $inval }}</span> não existe. Use apenas os placeholders da lista (contratante.*, profissional.*, turno.*, aceite.*, habitualidade.*).
@@ -41,11 +44,19 @@
 
     <div class="help">
         <span class="ic" aria-hidden="true">ⓘ</span>
-        <div>
-            Use Markdown. Placeholders no formato <span class="mono">@{{namespace.campo}}</span>.<br>
-            Disponíveis: contratante.* · profissional.* · turno.* · aceite.* · habitualidade.* —
-            <a href="#" data-testid="template-editor-placeholders-link" x-on:click.prevent="placeholders = true">ver lista completa</a>
-        </div>
+        @if ($this->isEmail)
+            <div>
+                Front-matter (<span class="mono">chave: valor</span>) + <span class="mono">---</span> + corpo em Markdown.
+                Variáveis no formato <span class="mono">{snake_case}</span>, interpoladas com os dados da notificação.<br>
+                <a href="#" data-testid="template-editor-placeholders-link" x-on:click.prevent="placeholders = true">ver variáveis disponíveis</a>
+            </div>
+        @else
+            <div>
+                Use Markdown. Placeholders no formato <span class="mono">@{{namespace.campo}}</span>.<br>
+                Disponíveis: contratante.* · profissional.* · turno.* · aceite.* · habitualidade.* —
+                <a href="#" data-testid="template-editor-placeholders-link" x-on:click.prevent="placeholders = true">ver lista completa</a>
+            </div>
+        @endif
     </div>
 
     <div class="editor-foot">
@@ -56,16 +67,26 @@
         </button>
     </div>
 
-    {{-- Diálogo: lista completa de placeholders canônicos --}}
-    <div class="dlg-scrim" x-cloak x-show="placeholders" data-testid="template-editor-placeholders-dialog" role="dialog" aria-modal="true" aria-label="Placeholders disponíveis" x-on:keydown.escape.window="placeholders = false" x-on:click.self="placeholders = false">
+    {{-- Diálogo: lista de placeholders/variáveis disponíveis (CA-6 — documentadas no editor) --}}
+    <div class="dlg-scrim" x-cloak x-show="placeholders" data-testid="template-editor-placeholders-dialog" role="dialog" aria-modal="true" aria-label="Variáveis disponíveis" x-on:keydown.escape.window="placeholders = false" x-on:click.self="placeholders = false">
         <div class="dlg" style="max-width:520px">
-            <h4>Placeholders disponíveis</h4>
-            <p>Use exatamente estes. Qualquer outro bloqueia o salvamento.</p>
-            <ul class="ph-list">
-                @foreach ($placeholdersCanonicos as $p)
-                    <li>{!! '{{'.e($p).'}}' !!}</li>
-                @endforeach
-            </ul>
+            @if ($this->isEmail)
+                <h4>Variáveis disponíveis</h4>
+                <p>Use exatamente estas, no formato <span class="mono">{variavel}</span>. Qualquer outra bloqueia o salvamento.</p>
+                <ul class="ph-list" data-testid="template-editor-variaveis-email">
+                    @foreach ($this->variaveisDisponiveis as $v)
+                        <li>{{ '{'.$v.'}' }}</li>
+                    @endforeach
+                </ul>
+            @else
+                <h4>Placeholders disponíveis</h4>
+                <p>Use exatamente estes. Qualquer outro bloqueia o salvamento.</p>
+                <ul class="ph-list">
+                    @foreach ($placeholdersCanonicos as $p)
+                        <li>{!! '{{'.e($p).'}}' !!}</li>
+                    @endforeach
+                </ul>
+            @endif
             <div class="dlg-actions" style="margin-top:18px">
                 <button type="button" class="btn btn-ghost" x-on:click="placeholders = false" x-init="$el.focus()">Fechar</button>
             </div>

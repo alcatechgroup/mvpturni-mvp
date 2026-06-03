@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Domain\Templates\EmailTemplateCatalogo;
 use App\Domain\Templates\TemplateRenderer;
 use App\Models\Template;
 use App\Models\TemplateVersao;
@@ -87,12 +88,15 @@ class TemplateDetalhe extends Component
     {
         $template = $this->template;
         $ativa = $template->versoes->firstWhere('ativa', true);
+        // STORY-053 — preview de e-mail usa chips `{snake_case}`; contrato, `{{ns.campo}}`.
+        $isEmail = EmailTemplateCatalogo::isEmailSlug($this->slug);
+        $render = fn (string $c): string => $isEmail ? $renderer->htmlEmail($c) : $renderer->html($c);
 
         return view('livewire.template-detalhe', [
             'template' => $template,
             'ativa' => $ativa,
-            'ativaHtml' => $ativa ? $renderer->html($ativa->conteudo) : null,
-            'renderer' => $renderer,
+            'ativaHtml' => $ativa ? $render($ativa->conteudo) : null,
+            'render' => $render,
         ]);
     }
 }

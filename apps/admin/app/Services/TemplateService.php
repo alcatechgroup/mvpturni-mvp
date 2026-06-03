@@ -45,7 +45,8 @@ class TemplateService
             throw new InvalidArgumentException('O conteúdo não pode ficar vazio.');
         }
 
-        $desconhecidos = $this->validator->placeholdersDesconhecidos($conteudo);
+        // CA-6: validação ciente da categoria (e-mail usa `{snake_case}`; contrato, `{{ns.campo}}`).
+        $desconhecidos = $this->validator->placeholdersDesconhecidosPara($template->slug, $conteudo);
         if ($desconhecidos !== []) {
             throw new PlaceholderInvalidoException($desconhecidos);
         }

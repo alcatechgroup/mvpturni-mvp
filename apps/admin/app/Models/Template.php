@@ -16,7 +16,7 @@ class Template extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['slug', 'nome_amigavel'];
+    protected $fillable = ['slug', 'categoria', 'nome_amigavel'];
 
     /** @return HasMany<TemplateVersao> */
     public function versoes(): HasMany

@@ -29,6 +29,29 @@ class TemplateRenderer
         return $this->destacarPlaceholders($html, $invalidos);
     }
 
+    /**
+     * STORY-053 (CA-6) — preview de template de e-mail: `{snake_case}` viram chips visíveis
+     * (`⟦var⟧`), inválidos em vermelho. Mesma renderização markdown segura dos contratos.
+     *
+     * @param  list<string>  $invalidos
+     */
+    public function htmlEmail(string $conteudo, array $invalidos = []): string
+    {
+        $html = Str::markdown($conteudo, [
+            'html_input' => 'strip',
+            'allow_unsafe_links' => false,
+        ]);
+
+        return preg_replace_callback('/\{([a-z0-9_]+)\}/', function (array $m) use ($invalidos) {
+            $nome = $m[1];
+            $bad = in_array($nome, $invalidos, true);
+            $classe = $bad ? 'ph ph-bad' : 'ph';
+            $titulo = $bad ? ' title="variável inválida"' : '';
+
+            return '<span class="'.$classe.'"'.$titulo.'>⟦'.e($nome).'⟧</span>';
+        }, $html) ?? $html;
+    }
+
     /** @param list<string> $invalidos */
     private function destacarPlaceholders(string $html, array $invalidos): string
     {

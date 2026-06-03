@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Domain\Templates\EmailTemplateCatalogo;
 use App\Domain\Templates\TemplateContentValidator;
 use App\Domain\Templates\TemplateRenderer;
 use App\Exceptions\PlaceholderInvalidoException;
@@ -49,17 +50,36 @@ class TemplateEditor extends Component
         $this->conteudo = $template->versaoAtiva?->conteudo ?? '';
     }
 
+    /** STORY-053 — template de e-mail (categoria `email`) muda sintaxe/validação/ajuda. */
+    #[Computed]
+    public function isEmail(): bool
+    {
+        return EmailTemplateCatalogo::isEmailSlug($this->slug);
+    }
+
+    /** Variáveis disponíveis a documentar no editor (CA-6); vazio para contrato. */
+    #[Computed]
+    public function variaveisDisponiveis(): array
+    {
+        return EmailTemplateCatalogo::variaveis($this->slug);
+    }
+
     /** @return list<string> */
     #[Computed]
     public function placeholdersInvalidos(): array
     {
-        return app(TemplateContentValidator::class)->placeholdersDesconhecidos($this->conteudo);
+        return app(TemplateContentValidator::class)->placeholdersDesconhecidosPara($this->slug, $this->conteudo);
     }
 
     /** @return list<string> */
     #[Computed]
     public function secoesFaltando(): array
     {
+        // Convenção de seções é só de contrato; e-mails não têm "Termos gerais/do turno".
+        if ($this->isEmail) {
+            return [];
+        }
+
         return app(TemplateContentValidator::class)->secoesFaltando($this->conteudo);
     }
 
@@ -72,7 +92,11 @@ class TemplateEditor extends Component
     #[Computed]
     public function previewHtml(): string
     {
-        return app(TemplateRenderer::class)->html($this->conteudo, $this->placeholdersInvalidos);
+        $renderer = app(TemplateRenderer::class);
+
+        return $this->isEmail
+            ? $renderer->htmlEmail($this->conteudo, $this->placeholdersInvalidos)
+            : $renderer->html($this->conteudo, $this->placeholdersInvalidos);
     }
 
     public function salvar(TemplateService $service): mixed

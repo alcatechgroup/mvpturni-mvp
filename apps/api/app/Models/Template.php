@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class Template extends Model
 {
-    protected $fillable = ['slug', 'nome_amigavel'];
+    protected $fillable = ['slug', 'categoria', 'nome_amigavel'];
 
     /** @return HasMany<TemplateVersao> */
     public function versoes(): HasMany

@@ -24,6 +24,10 @@ class DatabaseSeeder extends Seeder
         // STORY-020 — catálogo de templates contratuais + versão 1 ativa (dev/homolog/prod).
         $this->call(TemplatesContratuaisSeeder::class);
 
+        // STORY-053 — 5 corpos de e-mail de notificação como template `email` v1 ativa (CA-6, Path A).
+        // Depende de AdminUserSeeder (autor da versão).
+        $this->call(NotificacoesEmailTemplatesSeeder::class);
+
         // STORY-044 — seed mínimo de vagas do EPIC-002 (3 abertas, 1 fechada, 1 cancelada).
         $this->call(VagasSeeder::class);
 

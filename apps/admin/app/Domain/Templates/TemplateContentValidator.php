@@ -43,6 +43,37 @@ class TemplateContentValidator
     private const SECOES_ESPERADAS = ['Termos gerais', 'Termos do turno'];
 
     /**
+     * STORY-053 (CA-6) — placeholders desconhecidos PARA UM TEMPLATE, ciente da categoria.
+     * E-mail (EmailTemplateCatalogo): sintaxe `{snake_case}`, lista de variáveis por slug.
+     * Contrato (default): sintaxe `{{ns.campo}}`, lista canônica de ADR-010.
+     *
+     * @return list<string>
+     */
+    public function placeholdersDesconhecidosPara(string $slug, string $conteudo): array
+    {
+        if (EmailTemplateCatalogo::isEmailSlug($slug)) {
+            return array_values(array_diff(
+                $this->variaveisEmail($conteudo),
+                EmailTemplateCatalogo::variaveis($slug),
+            ));
+        }
+
+        return $this->placeholdersDesconhecidos($conteudo);
+    }
+
+    /**
+     * Variáveis `{snake_case}` presentes num corpo de e-mail (sem duplicatas, na ordem).
+     *
+     * @return list<string>
+     */
+    public function variaveisEmail(string $conteudo): array
+    {
+        preg_match_all('/\{([a-z0-9_]+)\}/', $conteudo, $matches);
+
+        return array_values(array_unique($matches[1]));
+    }
+
+    /**
      * Extrai todos os placeholders `{{ns.campo}}` presentes no conteúdo, na ordem de aparição
      * (sem duplicatas). Tolera espaços internos: `{{ ns.campo }}`.
      *

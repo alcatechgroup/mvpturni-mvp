@@ -50,7 +50,7 @@
                 @endunless
 
                 @if ($expandidaId === $versao->id)
-                    <div class="hist-doc"><div class="doc">{!! $renderer->html($versao->conteudo) !!}</div></div>
+                    <div class="hist-doc"><div class="doc">{!! $render($versao->conteudo) !!}</div></div>
                 @endif
             </div>
         @endforeach
