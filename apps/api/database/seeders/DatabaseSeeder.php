@@ -42,5 +42,9 @@ class DatabaseSeeder extends Seeder
         // STORY-051 — vaga do contratante.teste + 3 candidaturas ranqueadas (snapshot persistido)
         // para o E2E do painel de candidatos. Depende de AdminUserSeeder + FuncaoSeeder.
         $this->call(PainelCandidatosSeeder::class);
+
+        // STORY-053 — smoke de e-mail (CA-12): contratante com e-mail ENTREGÁVEL + vaga candidatável
+        // p/ validar `candidatura → e-mail (Resend)` em homolog. Gateado a NÃO rodar em produção.
+        $this->call(Ca12EmailSmokeSeeder::class);
     }
 }
