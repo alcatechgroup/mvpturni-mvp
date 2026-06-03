@@ -61,7 +61,7 @@ Sem essa porta de entrada, o resto da sprint vira invisível para o usuário. É
 
 ## Decisões já tomadas
 
-- ADR-013 (modelo herdado), ADR-015 (modelo Turno), DDR-001/002, IDR-010/011/026.
+- ADR-013 (modelo herdado), ADR-015 (modelo Turno), **ADR-018 (UUIDv7 em PKs — DTOs Flutter tipam `id` como `String`; URLs `/turnos/{uuid}` aceitam string)**, DDR-001/002, IDR-010/011/026.
 
 ## Liberdade técnica
 

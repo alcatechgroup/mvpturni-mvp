@@ -62,7 +62,7 @@ PIN bilateral só é "bilateral" quando o contratante valida. Sem essa validaç�
 
 ## Decisões já tomadas
 
-ADR-015, PDR-008.
+ADR-015, **ADR-018 (UUIDv7 em PKs — URL `/turnos/{uuid}/validar-checkin` aceita UUID; rate limit chave por `turno_id` UUID; evento `TurnoIniciado` carrega `turno_id` UUID string)**, PDR-008.
 
 ## Liberdade técnica
 

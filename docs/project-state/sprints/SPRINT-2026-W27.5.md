@@ -39,12 +39,12 @@ A sprint **NÃO** abre frente nova fora do EPIC-010. EPIC-003 (W28) só começa 
 
 ### EPIC-010 — Refatoração transversal UUID
 
-| ID        | Título                                                                          | Papel        | Tipo           | Tamanho | Bloqueada por           |
-| --------- | ------------------------------------------------------------------------------- | ------------ | -------------- | ------- | ----------------------- |
-| STORY-069 | Spike Arquiteto — variante UUID, polimórficos, plano (produz ADR-018 `accepted`) | arquiteto    | spike          | M       | W27 fechada             |
-| STORY-070 | Refactor backend — schema, models, FKs, polimórficos, seeders, factories, testes (api + admin) | programador  | refactor       | **L**   | 069                     |
-| STORY-071 | Refactor frontend — Flutter webapp: DTOs, services, telas, integration_test    | programador  | refactor       | M       | 069 (paralelo a 070)    |
-| STORY-072 | Validação final EPIC-010 — re-run EPIC-001 + EPIC-002 + smoke `migrate:rollback` | validador    | validation     | M       | 070, 071                |
+| ID        | Título                                                                                         | Papel       | Tipo       | Tamanho | Bloqueada por        |
+| --------- | ---------------------------------------------------------------------------------------------- | ----------- | ---------- | ------- | -------------------- |
+| STORY-069 | Spike Arquiteto — variante UUID, polimórficos, plano (produz ADR-018 `accepted`)               | arquiteto   | spike      | M       | W27 fechada          |
+| STORY-070 | Refactor backend — schema, models, FKs, polimórficos, seeders, factories, testes (api + admin) | programador | refactor   | **L**   | 069                  |
+| STORY-071 | Refactor frontend — Flutter webapp: DTOs, services, telas, integration_test                    | programador | refactor   | M       | 069 (paralelo a 070) |
+| STORY-072 | Validação final EPIC-010 — re-run EPIC-001 + EPIC-002 + smoke `migrate:rollback`               | validador   | validation | M       | 070, 071             |
 
 **Sizing total da sprint**: 1 L + 3 M. Mais leve que W27 e W28 por design — sprint cirúrgica.
 

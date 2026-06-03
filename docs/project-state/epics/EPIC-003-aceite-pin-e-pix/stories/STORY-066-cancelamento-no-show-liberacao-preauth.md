@@ -64,7 +64,7 @@ Sem cancelamento, contratante e profissional ficam presos com pré-autorização
 
 ## Decisões já tomadas
 
-ADR-015 / ADR-016, PDR-007.
+ADR-015 / ADR-016 / **ADR-018 (UUIDv7 em PKs — URL `/turnos/{uuid}/cancelar` aceita UUID; chave de idempotência da liberação usa UUID; evento `TurnoCancelado`/`TurnoNoShow` carrega `turno_id` UUID string)**, PDR-007.
 
 ## Liberdade técnica
 

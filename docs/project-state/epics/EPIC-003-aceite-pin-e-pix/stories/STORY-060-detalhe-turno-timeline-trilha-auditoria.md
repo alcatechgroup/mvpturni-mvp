@@ -60,7 +60,7 @@ Tela `/turnos/{id}` (compartilhada profissional/contratante, RBAC) com: atributo
 
 ## Decisões já tomadas
 
-ADR-013, ADR-015, ADR-010 (imutabilidade do aceite), DDR-001/002, IDR-026.
+ADR-013, ADR-015, ADR-010 (imutabilidade do aceite), **ADR-018 (UUIDv7 em PKs — URL `/turnos/{uuid}`; DTO Flutter tipa `id` como `String`; audit log payload referencia entidades por UUID)**, DDR-001/002, IDR-026.
 
 ## Liberdade técnica
 

@@ -71,6 +71,7 @@ Cronômetro fora de sincronia entre os 2 lados quebra a confiança no produto (c
 ## Decisões já tomadas (não as reabra)
 
 - ADR-001 / ADR-002 / ADR-004 / ADR-008 / IDR-026
+- **ADR-018 — UUIDv7 em PKs (EPIC-010/W27.5). Eventos do canal de tempo real carregam `turno_id` como string UUID.**
 - PDR-008 — comportamento de geofencing (alerta-e-registra, não bloqueia)
 
 ## Liberdade técnica do agente

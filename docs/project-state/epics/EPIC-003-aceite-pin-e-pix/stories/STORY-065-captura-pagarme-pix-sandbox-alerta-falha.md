@@ -67,7 +67,7 @@ Sem captura, o contratante não paga e o profissional não recebe. Sem Pix em �
 
 ## Decisões já tomadas
 
-ADR-005 / ADR-008 / ADR-015 / ADR-016 — PDR-004 / PDR-010.
+ADR-005 / ADR-008 / ADR-015 / ADR-016 / **ADR-018 (UUIDv7 em PKs — `external_reference` Pagar.me carrega `turno_id` UUID string; chave de idempotência da captura/Pix usa UUID; eventos `PagamentoCapturado`/`PixEnviado`/`PixFalhou` referenciam entidades por UUID)** — PDR-004 / PDR-010.
 
 ## Liberdade técnica
 

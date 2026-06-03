@@ -74,7 +74,7 @@ Sem validação independente, não há prova confiável de que o épico mais arr
 
 ## Decisões já tomadas
 
-Todas as ADRs/PDRs/IDRs vigentes — validador respeita, não reabre.
+Todas as ADRs/PDRs/IDRs vigentes — validador respeita, não reabre. **Em particular ADR-018 (UUIDv7 em PKs) — checklist deve verificar que PKs/FKs do EPIC-003 (Turno, AceiteEletronicoTurno, pagamento_operacoes) são UUID na base de homolog; tentativa de inserir `bigint` no `id` falha.**
 
 ## Liberdade técnica
 

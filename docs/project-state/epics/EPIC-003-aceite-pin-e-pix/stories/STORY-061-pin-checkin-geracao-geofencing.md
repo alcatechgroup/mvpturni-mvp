@@ -63,7 +63,7 @@ PIN bilateral é um dos 3 pilares do produto. Sem geração, não há check-in. 
 
 ## Decisões já tomadas
 
-ADR-015, ADR-017, PDR-008, IDR-026.
+ADR-015, ADR-017, **ADR-018 (UUIDv7 em PKs — `turno_id` em audit log/eventos é UUID string; URL `/turnos/{uuid}/gerar-pin-checkin` aceita UUID)**, PDR-008, IDR-026.
 
 ## Liberdade técnica
 

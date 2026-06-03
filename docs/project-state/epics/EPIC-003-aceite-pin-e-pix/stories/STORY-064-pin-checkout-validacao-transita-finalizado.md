@@ -70,7 +70,7 @@ Fecha o ciclo do PIN bilateral. Sem o check-out, o turno fica preso em `ativo` e
 
 ## Decisões já tomadas
 
-ADR-015, PDR-006 (disputa — apenas para saber que **não** entra agora).
+ADR-015, **ADR-018 (UUIDv7 em PKs — espelha STORY-061/062; URL `/turnos/{uuid}/...` aceita UUID; evento `TurnoFinalizado` carrega `turno_id` UUID string)**, PDR-006 (disputa — apenas para saber que **não** entra agora).
 
 ## Liberdade técnica
 

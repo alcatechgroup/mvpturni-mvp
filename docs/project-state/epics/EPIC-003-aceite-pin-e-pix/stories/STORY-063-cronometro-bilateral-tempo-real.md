@@ -73,7 +73,7 @@ Quebra registrada em "Mudanças no escopo do sprint" no W28. **Não inflar** a s
 
 ## Decisões já tomadas
 
-ADR-015, ADR-017, IDR-026.
+ADR-015, ADR-017, **ADR-018 (UUIDv7 em PKs — canal de tempo real publica em tópico/channel identificado por `turno_id` UUID string; payload do tick referencia entidades por UUID)**, IDR-026.
 
 ## Liberdade técnica
 

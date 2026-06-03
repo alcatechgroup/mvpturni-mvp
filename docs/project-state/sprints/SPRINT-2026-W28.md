@@ -1,14 +1,14 @@
 ---
 sprint_id: SPRINT-2026-W28
 wave: WAVE-2026-01
-status: active
-start_date: 2026-06-03  # ativada no fechamento da SPRINT-2026-W27 (mesmo dia)
+status: planned
+start_date: null  # ativa SOMENTE quando SPRINT-2026-W27.5 fechar (closure_rule explícito da W27.5)
 end_date: null
-soft_cap_date: 2026-07-04  # ~31 dias corridos a partir de 2026-06-03; folga maior que W24/W25/W27 (21d) porque é o épico mais pesado da onda
+soft_cap_date: 2026-07-04  # ~31 dias corridos a partir da provável ativação; folga maior que W24/W25/W27 (21d) porque é o épico mais pesado da onda
 opened_at: 2026-06-03
 opened_by: "PO (Alexandro / Claude)"
-activated_at: 2026-06-03  # mesmo dia da abertura — W27 fechou e W28 entrou ativa em sequência
-closure_rule: "Fechamento por goal-atingido: encerra quando STORY-055..067 + STORY-069 estiverem `done` E STORY-068 (validador) tiver emitido veredito em `validation/report.md` aceitável pelo PO (`approved` ou `approved_with_pending` que o PO assuma como goal-atingido). Soft-cap em 2026-07-04 (~31 dias corridos) serve como gatilho de reavaliação — não é prazo de entrega. Se até 2026-06-20 (D+16) o caminho até `ativo` não estiver vivo em homolog, abrir mini-sprint W29 dedicada ao check-out + captura + Pix em vez de inflar a W28. STORY-069 (fix `schedule:run`) é ortogonal e pode iniciar imediatamente — quita F-NB-1 do EPIC-002 carregada da W27."
+blocked_by_sprint: SPRINT-2026-W27.5  # ADR-018 accepted exige refator UUID antes de o EPIC-003 começar (STORY-056 Pagar.me usa external_reference apontando para IDs do Turni — janela cirúrgica para virar o tipo se fecha nesse commit)
+closure_rule: "Fechamento por goal-atingido: encerra quando STORY-055..067 + STORY-073 estiverem `done` E STORY-068 (validador) tiver emitido veredito em `validation/report.md` aceitável pelo PO (`approved` ou `approved_with_pending` que o PO assuma como goal-atingido). Soft-cap em 2026-07-04 (~31 dias corridos) serve como gatilho de reavaliação — não é prazo de entrega. Se até 2026-06-20 (D+16) o caminho até `ativo` não estiver vivo em homolog, abrir mini-sprint W29 dedicada ao check-out + captura + Pix em vez de inflar a W28. STORY-073 (fix `schedule:run`) é ortogonal e pode iniciar imediatamente — quita F-NB-1 do EPIC-002 carregada da W27."
 goal: "Ciclo do turno vivo em homolog (EPIC-003): contratante aceita candidatura no Backoffice → Pagar.me sandbox pré-autoriza `total_contratante` → turno em `confirmado` → profissional gera PIN de check-in (4 dígitos) com flag de geofencing capturada → contratante valida o PIN → turno transita para `ativo` com cronômetro bilateral vivo em tempo real nos dois lados (latência ≤ 2s) → profissional gera PIN de check-out → contratante valida → turno transita para `finalizado` → Pagar.me sandbox captura o valor pré-autorizado → Pix sandbox cai na chave do profissional em ≤ 15 min. Habitualidade (PDR-002) aplicada nos 4 cenários no momento do aceite (PF bloqueia 3ª, PJ alerta+override registrado no AceiteEletronico). Geofencing (PDR-008) alerta-e-registra sem bloquear. Cancelamento antes do check-in libera a pré-autorização; `no_show_pro` por timeout libera também (PDR-007 mínimo, sem motor de penalidade). 3 ADRs novas aceitas (ADR-015 modelo Turno + AceiteEletronico, ADR-016 ACL Pagar.me sandbox + idempotência + webhook, ADR-017 tempo real cronômetro + geolocalização). Validador independente (STORY-068, 4ª aparição após STORY-011/025/054) emite veredito do EPIC-003."
 ---
 
@@ -32,7 +32,7 @@ A sprint **NÃO** abre frente nova fora do EPIC-003. EPIC-004 (avaliação recí
 
 ## Escopo e duração
 
-- **Escopo**: **15 estórias** — EPIC-003 inteiro (14) + STORY-069 (bugfix carry-forward do EPIC-002 — quita F-NB-1 da STORY-054). Mix: **1 S + 12 M + 2 L**.
+- **Escopo**: **15 estórias** — EPIC-003 inteiro (14) + STORY-073 (bugfix carry-forward do EPIC-002 — quita F-NB-1 da STORY-054). Mix: **1 S + 12 M + 2 L**.
   - As **duas L** (STORY-056 Pagar.me e STORY-063 cronômetro bilateral) são candidatas naturais a estouro de sessão única. Gatilho de quebra documentado na própria estória; agente escala ao PO **antes** de inflar. Critérios de quebra:
     - STORY-056 → separar `adapter mock em container` (back-end) de `contract test contra sandbox real no CI noturno` (CI/IaC) em duas estórias.
     - STORY-063 → separar `canal de tempo real + backend de eventos` (back-end) de `UI bilateral consumindo o canal` (front-end) em duas estórias.
@@ -57,9 +57,9 @@ A sprint **NÃO** abre frente nova fora do EPIC-003. EPIC-004 (avaliação recí
 | STORY-066 | Cancelamento antes do check-in + `no_show_pro` + liberação da pré-autorização | EPIC-003 | implementation | programador (+ designer) | M | ready |
 | STORY-067 | Notificações in-app + e-mail dos eventos do turno (8 templates via STORY-020) | EPIC-003 | implementation | programador | M | ready |
 | STORY-068 | Validação final do EPIC-003 | EPIC-003 | validation | validador | M | ready |
-| STORY-069 | Fix — `php artisan schedule:run` em homolog/prod (quita F-NB-1 do EPIC-002) | EPIC-002 | bugfix | programador | M | ready |
+| STORY-073 | Fix — `php artisan schedule:run` em homolog/prod (quita F-NB-1 do EPIC-002) | EPIC-002 | bugfix | programador | M | ready |
 
-**Sizing total**: 1 S + 12 M + 2 L (15 estórias). Mais pesada que W27 (2 S + 10 M + 1 L) por **4 estórias-medidas**: 1 spike a mais (3 vs 2 da W27), 1 L a mais (2 vs 1), e 1 bugfix carry-forward (STORY-069). A STORY-069 é ortogonal ao EPIC-003 e cabe em qualquer janela da sprint.
+**Sizing total**: 1 S + 12 M + 2 L (15 estórias). Mais pesada que W27 (2 S + 10 M + 1 L) por **4 estórias-medidas**: 1 spike a mais (3 vs 2 da W27), 1 L a mais (2 vs 1), e 1 bugfix carry-forward (STORY-073). A STORY-073 é ortogonal ao EPIC-003 e cabe em qualquer janela da sprint.
 
 ## Ordem de execução obrigatória (máquina de estados do turno)
 
@@ -149,7 +149,7 @@ Esta sprint entrega o **ciclo do turno ponta a ponta** em homolog com Pagar.me s
 
 A sprint **respeita** todas as decisões já aceitas e **adiciona** 3 ADRs novas. Os agentes operam sob:
 
-- **ADRs vigentes** (todas aceitas em EPIC-000/EPIC-001/EPIC-002): ADR-000 (Postgres), ADR-001/002/003 (stack), ADR-004 (GCP), ADR-005 (Pagar.me alto nível — STORY-056 vai refinar em ADR-016), ADR-006 (habitualidade — STORY-058 consome), ADR-007/008 (Sanctum + Argon2id + log JSON + health), ADR-009 (modelo identidade), ADR-010 (template imutável — espelhado em AceiteEletronico do turno), ADR-011 (provedor e-mail — STORY-067 consome), ADR-012 (landing — não afeta), ADR-013 (modelo Vaga + Candidatura — STORY-058 consome), ADR-014 (algoritmo Match — não afeta esta sprint).
+- **ADRs vigentes** (todas aceitas em EPIC-000/EPIC-001/EPIC-002 + EPIC-010): ADR-000 (Postgres), ADR-001/002/003 (stack), ADR-004 (GCP), ADR-005 (Pagar.me alto nível — STORY-056 vai refinar em ADR-016), ADR-006 (habitualidade — STORY-058 consome), ADR-007/008 (Sanctum + Argon2id + log JSON + health), ADR-009 (modelo identidade), ADR-010 (template imutável — espelhado em AceiteEletronico do turno), ADR-011 (provedor e-mail — STORY-067 consome), ADR-012 (landing — não afeta), ADR-013 (modelo Vaga + Candidatura — STORY-058 consome), ADR-014 (algoritmo Match — não afeta esta sprint), **ADR-018 (UUIDv7 em PKs — aplicado pela SPRINT-2026-W27.5 antes desta sprint ativar; todas as 14 estórias do EPIC-003 já citam ADR-018 em "Decisões já tomadas"; modelo Turno + AceiteEletronicoTurno + pagamento_operacoes têm `id` uuid; `external_reference` Pagar.me carrega UUID string; URLs RESTful aceitam UUID; DTOs Flutter tipam `id` como `String`)**.
 - **PDRs vigentes que afetam esta sprint**: PDR-001 (PF/MEI/PJ — diferenciação no AceiteEletronico), PDR-002 (habitualidade no aceite), PDR-003 (duas interfaces), PDR-004 (Taxa Turni — base do cálculo de pré-autorização), PDR-005 (gate avaliação — não afeta esta sprint, EPIC-004), PDR-006 (disputa via admin — não afeta esta sprint, EPIC-005), PDR-007 (cancelamento — versão mínima sem motor de penalidade), PDR-008 (geofencing alerta-e-registra), PDR-010 (refresh Pix fora MVP — uma tentativa, alerta admin em falha), PDR-012 (editor de templates — usado para os 8 templates novos), PDR-013 (dual-theme), PDR-015 (fronteira landing — não afeta), PDR-016 (formatação de entradas).
 - **DDR-001 + DDR-002** — Design System vivo + locale pt-BR + horário 24h. Telas novas (lista de turnos, detalhe + timeline, PIN check-in/out, cronômetro, alerta geofencing, cancelamento) consomem tokens. Designer entrega 6 SCREEN specs em paralelo no início da sprint (telas das STORY-059, 060, 061, 062, 064, 066 — 8 espera-se que sejam suficientes para cobrir, pois 062 e 061 podem compartilhar componentes).
 - **IDR-010/011 + IDR-026** (W26/W27) — modelo híbrido E2E + padrão Flutter de testes + `TurniDateTime` (política única de data/hora). Todos os E2E desta sprint usam `integration_test` em Chrome headless; Playwright só para smoke HTTP. Cronômetro consome `TurniDateTime` (UTC na API, local na UI, round-trip lossless).
@@ -194,7 +194,7 @@ Agente programador, arquiteto e designer carregam suas próprias skills + as dec
 6. **Spike antes de implementação** (aprendizado W27 STORY-048) — 3 spikes nesta sprint (055/056/057) precedem todas as 10 estórias de implementação.
 7. **Snapshot de payload explicável nasce na estória que cria o dado** (aprendizado W27 STORY-051) — STORY-058 emite AceiteEletronico com payload renderizado completo e imutável; STORY-061 emite evento de check-in com geofencing completo (não só flag); STORY-065 emite evento de captura com `charge_id` do Pagar.me e timestamp do Pix.
 8. **Bug que aparece numa estória pode ser sintoma de regra transversal** (aprendizado W27 STORY-052 → IDR-026) — antes de corrigir local, perguntar se vira IDR/DDR/PDR.
-9. **F-NB-N do veredito anterior endereçado na sprint seguinte** (padrão consolidado W23 → W27): F-NB-1 do EPIC-002 (auto-retirada de candidatura em limbo porque `schedule:run` não roda em homolog/prod) é endereçada nesta sprint pela STORY-069 (bugfix infra). Ortogonal ao EPIC-003; pode iniciar imediatamente.
+9. **F-NB-N do veredito anterior endereçado na sprint seguinte** (padrão consolidado W23 → W27): F-NB-1 do EPIC-002 (auto-retirada de candidatura em limbo porque `schedule:run` não roda em homolog/prod) é endereçada nesta sprint pela STORY-073 (bugfix infra). Ortogonal ao EPIC-003; pode iniciar imediatamente.
 
 ## Mudanças no escopo do sprint
 
@@ -202,7 +202,9 @@ Agente programador, arquiteto e designer carregam suas próprias skills + as dec
 
 | Data | O que mudou | Motivo | Custo (estória solta/movida) |
 |---|---|---|---|
-| — | — | — | — |
+| 2026-06-03 | **Sprint deixou de ativar imediatamente após W27 fechar.** Status voltou de `active` para `planned` e ganhou `blocked_by_sprint: SPRINT-2026-W27.5`. | Arquiteto abriu em paralelo a SPRINT-2026-W27.5 (cirúrgica, EPIC-010 refator UUID) com closure_rule explícita "SPRINT-2026-W28 NÃO ativa até esta sprint fechar". ADR-018 já `accepted`. Janela cirúrgica para virar tipo da PK a baixo custo fecha no commit da STORY-056 (Pagar.me `external_reference`). | Zero — W28 não tinha começado nenhuma estória; só o status pulou. |
+| 2026-06-03 | **STORY-069 renumerada para STORY-073** (colisão com EPIC-010). | EPIC-010 reservou STORY-069..072 antes (mesmo dia, mas com ADR-018 já em proposed → accepted). | Zero — só renumeração de arquivo + frontmatter + referências. |
+| 2026-06-03 | **14 estórias do EPIC-003 (055..068) revisadas** para refletir ADR-018: STORY-055 e STORY-056 com edições materiais (schema PK uuid, FKs foreignUuid, `external_reference` UUID string); STORY-057..068 com ADR-018 adicionada em "Decisões já tomadas" com nota específica sobre o impacto local (URL/DTO/canal/payload/idempotência). | ADR-018 `accepted` por Alexandro implica que toda escrita nova de schema/payload/URL no EPIC-003 deve usar UUID. Revisão preventiva evita retrabalho do agente programador. | Zero — só atualização das instruções; nenhuma estória adicionada/removida. |
 
 ## Fechamento do sprint (preencher no encerramento)
 

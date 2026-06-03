@@ -72,7 +72,7 @@ Sem essa ação, o produto não tem Turno. Sem o AceiteEletronico imutável anex
 
 ## Decisões já tomadas
 
-- ADR-006, ADR-010, ADR-015, ADR-016 — PDR-002, PDR-004, PDR-010, PDR-012.
+- ADR-006, ADR-010, ADR-015, ADR-016, **ADR-018 (UUIDv7 em PKs — Turno + AceiteEletronicoTurno + pagamento_operacoes têm `id` uuid; FKs `foreignUuid`; idempotência usa UUID do turno; URLs/rotas RESTful aceitam UUIDs)** — PDR-002, PDR-004, PDR-010, PDR-012.
 
 ## Liberdade técnica
 

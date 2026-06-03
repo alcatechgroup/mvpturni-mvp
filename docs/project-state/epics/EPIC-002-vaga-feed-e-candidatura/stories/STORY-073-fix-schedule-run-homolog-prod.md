@@ -1,5 +1,5 @@
 ---
-story_id: STORY-069
+story_id: STORY-073
 slug: fix-schedule-run-homolog-prod
 title: Fix — `php artisan schedule:run` em homolog/prod (F-NB-1 do EPIC-002 — auto-retirada de candidatura em limbo)
 epic_id: EPIC-002
@@ -14,9 +14,10 @@ created_at: 2026-06-03
 updated_at: 2026-06-03
 estimated_session_size: M
 produces_idr: null  # possivelmente produz IDR de "Scheduler como Cloud Run Job + Cloud Scheduler"
+renumbered_from: STORY-069  # numeração original colidiu com EPIC-010 STORY-069 (spike UUID/ADR-018) criada pelo Arquiteto no mesmo 2026-06-03 — renumerada para STORY-073 (próximo livre após 069..072 do EPIC-010)
 ---
 
-# STORY-069 — Fix: `schedule:run` em homolog/prod (quita F-NB-1 do EPIC-002)
+# STORY-073 — Fix: `schedule:run` em homolog/prod (quita F-NB-1 do EPIC-002)
 
 > **Para o agente programador:** este fix nasce do veredito `approved_with_pending` do EPIC-002 (STORY-054). O validador encontrou que o comando agendado `candidaturas:auto-retirar-apos-edicao` (STORY-052 CA-9) **nunca dispara** em homolog/prod porque o ambiente implantado só roda `queue:work` — não há ninguém invocando `php artisan schedule:run`. Comentário em `apps/api/routes/console.php:28-30` confirma a gap por escrito. O fix é de **infra + verificação**, não de regra de negócio.
 
@@ -113,8 +114,8 @@ Se durante a execução perceber que precisa propor IDR (ex: "scheduler-job: pad
 - [ ] Deploy em homolog verificado (Alexandro confirma em chat — extrato de log + observação manual do cenário do CA-3).
 - [ ] Runbook atualizado.
 - [ ] Comentário em `routes/console.php` atualizado.
-- [ ] `index.json` atualizado: STORY-069 `done`, F-NB-1 do EPIC-002 marcado como `quitada_por: STORY-069`.
-- [ ] EPIC-002 `validation/report.md` (ou anexo) recebe nota "F-NB-1 quitada por STORY-069 em 2026-MM-DD".
+- [ ] `index.json` atualizado: STORY-073 `done`, F-NB-1 do EPIC-002 marcado como `quitada_por: STORY-073`.
+- [ ] EPIC-002 `validation/report.md` (ou anexo) recebe nota "F-NB-1 quitada por STORY-073 em 2026-MM-DD".
 - [ ] "Notas do agente" preenchida.
 
 ## Protocolo do agente (obrigatório)

@@ -71,7 +71,7 @@ Sem notificação automática, profissional e contratante precisam ficar olhando
 
 ## Decisões já tomadas
 
-ADR-011, PDR-012, IDR de idempotência da STORY-053 (se houver).
+ADR-011, **ADR-018 (UUIDv7 em PKs — tabela `notificacoes` herda `id` UUIDv7 da refatoração; payload jsonb referencia `turno_id`/`profissional_id`/`contratante_id` como UUID string; chave de idempotência `"{tipo}:{turno_id}"` usa UUID)**, PDR-012, IDR de idempotência da STORY-053 (se houver).
 
 ## Liberdade técnica
 
