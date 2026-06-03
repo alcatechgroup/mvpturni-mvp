@@ -6,8 +6,8 @@
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W27.5",
     "last_closed_sprint": "SPRINT-2026-W27",
-    "phase": "wave-2026-01-sprint-w27-5-active-epic-010-refator-uuid-aguarda-agente-arquiteto-iniciar-story-069",
-    "next_action": "SPRINT-2026-W27 ENCERRADA em 2026-06-03 (13/13 done; EPIC-002 + EPIC-008 ambos `done`; F-NB-1 do EPIC-002 endereçada por STORY-073 na W28). Em paralelo o Arquiteto abriu SPRINT-2026-W27.5 (cirúrgica, ~4 dias) para quitar débito antigo: refator UUID transversal (EPIC-010, 4 estórias) — ADR-018 já `accepted` por Alexandro. W27.5 ATIVA agora (W27 fechou). W28 (EPIC-003) permanece `planned` — closure_rule da W27.5 é explícita: 'SPRINT-2026-W28 NÃO ativa até esta sprint fechar'. Aguarda agente Arquiteto iniciar STORY-069 (spike UUID, valida 4 pontos finos da ADR-018 e destrava STORY-070/071).",
+    "phase": "wave-2026-01-sprint-w27-5-epic-010-refator-uuid-FECHADO-aguarda-po-ativar-w28",
+    "next_action": "EPIC-010 (refator UUID transversal) FECHADO em 2026-06-03: 4/4 estórias done; STORY-072 (validação) veredito `approved` (validador claude-opus-4-8; 23 passes, 0 fails) confirmado pelo PO em chat. Schema UUIDv7 (ADR-018) íntegro em homolog rc.61, sem regressão nos fluxos do EPIC-001/EPIC-002. Com o EPIC-010 fechado, a closure_rule da SPRINT-2026-W27.5 está satisfeita: destrava a ativação da SPRINT-2026-W28 (EPIC-003 — Pagar.me, 14 estórias). Próxima ação a cargo do PO: fechar formalmente a W27.5 e ativar a W28. HISTÓRICO: SPRINT-2026-W27 encerrada em 2026-06-03 (13/13 done; EPIC-002 + EPIC-008 done; F-NB-1 do EPIC-002 endereçada por STORY-073 na W28); W27.5 (cirúrgica) aberta em paralelo para o refator UUID.",
     "notes": "Snapshot 2026-06-03 pós-renumeração + revisão de sequência: W27 fechada. W27.5 ATIVA (refator UUID, EPIC-010, 4 estórias). W28 PLANNED (EPIC-003, 15 estórias — STORY-069 da minha intenção renomeada para STORY-073 por colisão com EPIC-010). Estórias do EPIC-003 estão sendo revistas para refletir ADR-018 (PKs UUID, FKs uuid, payloads referenciando IDs como string)."
   },
   "product": {
@@ -364,7 +364,9 @@
       "slug": "refator-uuid-chaves-primarias",
       "title": "Refatoração transversal — UUID nas chaves primárias das entidades de domínio",
       "wave": "WAVE-2026-01",
-      "status": "ready",
+      "status": "done",
+      "closed_at": "2026-06-03",
+      "closed_by": "PO (Alexandro / chat — confirmou veredito approved da STORY-072)",
       "path": "epics/EPIC-010-refator-uuid-chaves-primarias/epic.md",
       "story_ids": [
         "STORY-069",
@@ -379,11 +381,16 @@
         "EPIC-001",
         "EPIC-002"
       ],
-      "validation_report": null,
+      "validation_report": {
+        "path": "epics/EPIC-010-refator-uuid-chaves-primarias/validation/report.md",
+        "verdict": "approved",
+        "validated_at": "2026-06-03",
+        "validated_by": "validador (sessão claude-opus-4-8 — STORY-072)"
+      },
       "created_at": "2026-06-03",
       "updated_at": "2026-06-03",
       "sprint": "SPRINT-2026-W27.5",
-      "next_action": "EPIC-010 (refator UUID transversal) decomposto em 4 estórias pelo Arquiteto em 2026-06-03 em paralelo ao fechamento da W27. Janela cirúrgica entre W27 (closed) e W28 (planned, EPIC-003 — Pagar.me): a STORY-056 da W28 implementa adapter Pagar.me sandbox com `external_reference` apontando para IDs do Turni, depois desse commit a janela para virar o tipo a baixo custo se fecha. ADR-018 (UUIDv7 em PKs) já `accepted` por Alexandro. SPRINT-W27.5 ATIVA — aguarda Arquiteto iniciar STORY-069 (spike valida 4 pontos finos da ADR-018 + plano de execução); destrava STORY-070 (backend api+admin, L) + STORY-071 (frontend Flutter) em paralelo; STORY-072 valida re-run dos fluxos do EPIC-001 + EPIC-002 sem regressão."
+      "next_action": "FECHADO 2026-06-03. 4/4 estórias done (STORY-069 spike, STORY-070 backend api+admin, STORY-071 frontend Flutter, STORY-072 validação). STORY-072 = veredito `approved` (validador claude-opus-4-8; 23 passes, 0 fails), confirmado pelo PO (Alexandro) em chat. Schema UUIDv7 (ADR-018) íntegro em homolog (rc.61) sem regressão nos fluxos do EPIC-001/EPIC-002. Com o EPIC-010 fechado, a closure_rule da SPRINT-2026-W27.5 é satisfeita — destrava a ativação da SPRINT-2026-W28 (EPIC-003 — Pagar.me), decisão de ativação a cargo do PO. HISTÓRICO: EPIC-010 (refator UUID transversal) decomposto em 4 estórias pelo Arquiteto em 2026-06-03 em paralelo ao fechamento da W27. Janela cirúrgica entre W27 (closed) e W28 (planned, EPIC-003 — Pagar.me): a STORY-056 da W28 implementa adapter Pagar.me sandbox com `external_reference` apontando para IDs do Turni, depois desse commit a janela para virar o tipo a baixo custo se fecha. ADR-018 (UUIDv7 em PKs) já `accepted` por Alexandro. SPRINT-W27.5 ATIVA — aguarda Arquiteto iniciar STORY-069 (spike valida 4 pontos finos da ADR-018 + plano de execução); destrava STORY-070 (backend api+admin, L) + STORY-071 (frontend Flutter) em paralelo; STORY-072 valida re-run dos fluxos do EPIC-001 + EPIC-002 sem regressão."
     }
   ],
   "stories": [
@@ -1799,8 +1806,8 @@
       "target_role": "validador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "validador (sessão claude-opus-4-8)",
       "sprint_id": "SPRINT-2026-W27.5",
       "path": "epics/EPIC-010-refator-uuid-chaves-primarias/stories/STORY-072-validacao-final-epic-010.md",
       "blocked_by": [
@@ -1809,6 +1816,9 @@
         "STORY-071"
       ],
       "blocks": [],
+      "verdict": "approved",
+      "validation_report_path": "epics/EPIC-010-refator-uuid-chaves-primarias/validation/report.md",
+      "po_confirmed_at": "2026-06-03",
       "created_at": "2026-06-03",
       "updated_at": "2026-06-03"
     }

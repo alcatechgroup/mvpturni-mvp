@@ -8,12 +8,13 @@ type: validation
 target_role: validador
 requires_design: false
 design_screen_id: null
-status: ready
-owner_agent: null
+status: done
+owner_agent: validador (sessão claude-opus-4-8)
 created_at: 2026-06-03
 updated_at: 2026-06-03
 estimated_session_size: M
 produces_idr: null
+verdict: approved
 ---
 
 # STORY-072 — Validação final EPIC-010
@@ -146,28 +147,35 @@ Padrão do projeto + protocolo do Validador em `docs/skills/validador/`.
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões tomadas
-- <data> — <decisão local>
+- 2026-06-03 — Metodologia local-primária (precedente STORY-025/054 + IDR-004): o grosso da verificação material rodou na stack local, que executa o mesmo código (rc.61) e schema implantados em homolog; homolog usado para evidência de deploy/health. Sem acesso ao Cloud SQL de homolog (limitação herdada), checagens ao vivo de banco feitas no Postgres local.
+- 2026-06-03 — Não forcei mutação de banco para exercitar o gatilho de `admin_audit_log` (tabela vazia no seed local) — princípio "validador não altera banco". Registrado como pass com ressalva, coberto pela suíte admin.
 
 ### Descobertas
-- <data> — <inconsistência ou pendência>
+- 2026-06-03 — Homolog está em `v0.1.0-rc.61` (= commit HEAD sob validação `0c5c8de`), não rc.60: a STORY-071 (frontend) também foi deployada após o reset de schema da STORY-070. Backend+frontend UUID no ar.
+- 2026-06-03 — Nenhuma regressão. Schema UUID íntegro, gatilhos de imutabilidade ativos em PK UUID, `uuidMorphs` operante, suítes verdes, migrações simétricas.
 
 ### Bloqueios encontrados
-- <data> — <bloqueio>
+- 2026-06-03 — Nenhum.
 
 ### Evidências por CA
-- CA-A1..A8: <links>
-- CA-B1..B9: <links>
-- CA-C1..C3: <links>
-- CA-D1: report — <link>
-- CA-D2: veredito — <approved | approved_with_pending | rejected>
-- CA-D3: confirmação PO — <data + forma>
+- CA-A1..A8: `validation/report.md` Bloco A + Apêndice A.1/A.2/A.3/A.4/A.5.
+- CA-B1..B9: `validation/report.md` Bloco B + Apêndice A.1/A.3/A.6/A.7/A.8/A.9.
+- CA-C1..C3: `validation/report.md` Bloco C + Apêndice A.6/A.10/A.11.
+- CA-D1: report — `epics/EPIC-010-refator-uuid-chaves-primarias/validation/report.md`.
+- CA-D2: veredito — **approved**.
+- CA-D3: confirmação PO — Alexandro confirmou "Aprovada" em chat (2026-06-03).
 
 ### Métricas observadas
-- SLA notificação p95: <valor>
-- Feed p95 (1k vagas): <valor>
+- SLA notificação p95: não re-medido ao vivo em homolog (limitação — semeadura proibida ao validador); pipeline verde na suíte + baselines STORY-053 (45,5s) / STORY-054 orgânico (~27s), ambos ≤ 60s.
+- Feed p95 (1k vagas): ≤ 800ms (`FeedLatencyTest`, sem warning STDERR; gate 1200ms), dentro da margem ≤ 880ms vs baseline.
+
+### Cobertura observada
+- api: 535 passed (3788 assertions), 93,1% (`--min=80` verde).
+- admin: 100 passed (237 assertions).
+- webapp: 340 passed.
 
 ### Links de evidência
-- PR: <url>
-- Pipeline: <url>
-- Logs homolog: <url>
-- `validation/report.md`: <url>
+- Commit/tag sob validação: `0c5c8de` / `v0.1.0-rc.61`.
+- Logs locais: `/tmp/story072-test-api.log`, `/tmp/story072-test-admin.log`, `/tmp/story072-test-webapp.log`.
+- Homolog health: `https://app.homolog.turni.com.br/health` → rc.61.
+- `validation/report.md`: `epics/EPIC-010-refator-uuid-chaves-primarias/validation/report.md`.
