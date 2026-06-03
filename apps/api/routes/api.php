@@ -14,6 +14,7 @@ use App\Http\Controllers\Cadastro\ProfissionalCadastroController;
 use App\Http\Controllers\Candidatura\CandidaturaController;
 use App\Http\Controllers\Feed\FeedController;
 use App\Http\Controllers\Feed\VagaDetalheController;
+use App\Http\Controllers\Notificacao\NotificacaoController;
 use App\Http\Controllers\Usuario\WelcomeController;
 use App\Http\Controllers\Vaga\CandidatosController;
 use App\Http\Controllers\Vaga\VagaController;
@@ -124,4 +125,11 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     // profissional) no controller; vaga inexistente → 404 (model binding). Lista os candidatos
     // `pendentes` ranqueados por score (snapshot persistido — não recalcula) com breakdown (CA-1..CA-9).
     Route::get('/vagas/{vaga}/candidatos', [CandidatosController::class, 'index']);
+
+    // Caixa de notificações in-app (STORY-053 CA-7). Qualquer papel ativo lê as PRÓPRIAS
+    // (RBAC por destinatario_id no controller; 404 p/ terceiros). `marcar-todas-lidas` (path
+    // estático) antes de `{notificacao}/marcar-lida` por clareza — paths distintos não conflitam.
+    Route::get('/notificacoes', [NotificacaoController::class, 'index']);
+    Route::post('/notificacoes/marcar-todas-lidas', [NotificacaoController::class, 'marcarTodasLidas']);
+    Route::post('/notificacoes/{notificacao}/marcar-lida', [NotificacaoController::class, 'marcarLida']);
 });
