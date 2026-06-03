@@ -3,11 +3,12 @@ epic_id: EPIC-003
 slug: aceite-pin-e-pix
 title: Aceite da candidatura, PIN bilateral e Pix via Pagar.me
 wave: WAVE-2026-01
-status: draft
+status: ready
 owner_role: po
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-06-03
 target_completion: 2026-08-18  # estimativa orientativa
+sprint_id: SPRINT-2026-W28  # primeira (e potencialmente única) sprint do épico
 ---
 
 # EPIC-003 — Aceite, PIN bilateral e Pix
@@ -82,7 +83,54 @@ Os dois lados conseguem ver o estado do turno em tempo real (cronômetro vivo, e
 
 ## Estórias
 
-> A decompor via Fluxo B quando o épico entrar em sprint. Provavelmente o maior épico da onda (XL).
+Decompostas via Fluxo B em **2026-06-03** (PO Alexandro/Claude), em paralelo ao fechamento da SPRINT-2026-W27. Total **14 estórias** (3 spikes + 10 implementação + 1 validação) — escopo do EPIC-003 inteiro alocado à **SPRINT-2026-W28**. Mix de sizing: 1 S + 11 M + 2 L. As duas L (STORY-056 Pagar.me e STORY-063 cronômetro bilateral) carregam gatilho de quebra documentado na própria estória.
+
+Ordem de execução obrigatória (dependências):
+
+```
+STORY-055 (spike modelo Turno + máquina de estados + AceiteEletronico imutável)
+STORY-056 (spike Pagar.me sandbox: ACL + mock em container + idempotência + webhook)
+STORY-057 (spike tempo real cronômetro + geolocalização Haversine)
+    │
+    ├─► STORY-058 (aceitar candidatura no Backoffice + pré-autorização Pagar.me)
+    │       │
+    │       ├─► STORY-059 (lista "Meus turnos"/"Vagas confirmadas")
+    │       └─► STORY-060 (detalhe do turno + trilha de auditoria)
+    │               │
+    │               ├─► STORY-061 (PIN check-in: geração + geofencing)
+    │               │       │
+    │               │       └─► STORY-062 (validação check-in pelo contratante → ativo)
+    │               │               │
+    │               │               └─► STORY-063 (cronômetro bilateral vivo)
+    │               │                       │
+    │               │                       └─► STORY-064 (PIN check-out)
+    │               │                               │
+    │               │                               └─► STORY-065 (captura + Pix sandbox)
+    │               │
+    │               └─► STORY-066 (cancelamento + no_show_pro + liberação pré-auth)
+    │
+    └─► STORY-067 (notificações in-app + e-mail dos eventos do turno)
+                                                         │
+                                                         ▼
+                                                   STORY-068 (validador independente — última)
+```
+
+| ID | Título | Tipo | Papel | Tamanho |
+|---|---|---|---|---|
+| STORY-055 | Spike Arquiteto — modelo Turno + AceiteEletronico imutável + máquina de estados | spike | arquiteto | M |
+| STORY-056 | Spike Arquiteto — ACL Pagar.me + adapter sandbox/mock + idempotência + webhook | spike | arquiteto | **L** |
+| STORY-057 | Spike Arquiteto — tempo real cronômetro bilateral + geolocalização Haversine | spike | arquiteto | M |
+| STORY-058 | Aceitar candidatura no Backoffice + AceiteEletronico imutável + pré-autorização Pagar.me | implementation | programador | M |
+| STORY-059 | Lista "Meus turnos" (profissional) + "Vagas confirmadas" (contratante) no WebApp | implementation | programador (+ designer) | S |
+| STORY-060 | Detalhe do turno (ambos os lados) + timeline + trilha de auditoria visível | implementation | programador (+ designer) | M |
+| STORY-061 | PIN de check-in — geração pelo profissional + captura de geofencing (PDR-008) | implementation | programador (+ designer) | M |
+| STORY-062 | Validação do PIN de check-in pelo contratante + transição para `ativo` | implementation | programador (+ designer) | M |
+| STORY-063 | Cronômetro bilateral vivo em tempo real (latência ≤ 2s) | implementation | programador (+ designer) | **L** |
+| STORY-064 | PIN de check-out — geração + validação + transição para `finalizado` | implementation | programador (+ designer) | M |
+| STORY-065 | Captura Pagar.me + Pix sandbox + alerta admin em falha (PDR-010) | implementation | programador | M |
+| STORY-066 | Cancelamento antes do check-in + `no_show_pro` + liberação da pré-autorização | implementation | programador (+ designer) | M |
+| STORY-067 | Notificações in-app + e-mail dos eventos do turno (8 templates via STORY-020) | implementation | programador | M |
+| STORY-068 | Validação final do EPIC-003 | validation | validador | M |
 
 ## Validação final
 
