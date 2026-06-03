@@ -36,6 +36,7 @@ FeedVagaResumo _vaga({
   double? distanciaKm = 3.0,
   int score = 97,
   bool jaCandidatou = false,
+  bool emRevisao = false,
   bool podeCandidatar = true,
 }) => FeedVagaResumo(
   id: id,
@@ -54,6 +55,7 @@ FeedVagaResumo _vaga({
     },
   ),
   jaCandidatou: jaCandidatou,
+  emRevisao: emRevisao,
   podeCandidatar: podeCandidatar,
 );
 
@@ -142,6 +144,33 @@ void main() {
       expect(find.byKey(const Key('feed-card-1-candidatar-btn')), findsNothing);
     },
   );
+
+  testWidgets(
+    'STORY-052 CA-11 — vaga em revisão mostra selo "Vaga editada — confirme" no card',
+    (tester) async {
+      final svc = _FakeFeedService(
+        handler: (_, _) =>
+            FeedSuccess([_vaga(jaCandidatou: true, emRevisao: true)], 1, false),
+      );
+      await tester.pumpWidget(_comRouter(svc));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('feed-card-revisao-1')), findsOneWidget);
+      expect(find.text('Vaga editada — confirme'), findsOneWidget);
+    },
+  );
+
+  testWidgets('candidatada sem revisão NÃO mostra o selo de edição', (
+    tester,
+  ) async {
+    final svc = _FakeFeedService(
+      handler: (_, _) => FeedSuccess([_vaga(jaCandidatou: true)], 1, false),
+    );
+    await tester.pumpWidget(_comRouter(svc));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('feed-card-revisao-1')), findsNothing);
+  });
 
   testWidgets('score < 80 não mostra selo Alto match', (tester) async {
     final svc = _FakeFeedService(

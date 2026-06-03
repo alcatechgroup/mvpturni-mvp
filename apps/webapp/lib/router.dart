@@ -12,6 +12,7 @@ import 'features/cadastro/pre_cadastro_contratante_screen.dart';
 import 'features/cadastro/pre_cadastro_profissional_screen.dart';
 import 'features/feed/feed_screen.dart';
 import 'features/funnel/welcome_screen.dart' as funnel;
+import 'features/vagas/editar_vaga_screen.dart';
 import 'features/vagas/minhas_vagas_screen.dart';
 import 'features/vagas/painel_candidatos_screen.dart';
 import 'features/vagas/publicar_vaga_screen.dart';
@@ -180,6 +181,21 @@ final router = GoRouter(
         successMessage: state.extra as String?,
       ),
     ),
+    // Editar vaga do contratante (STORY-052 / PDR-009). RBAC (CA-1) tratado dentro da tela:
+    // profissional/não-dono cai em "sem permissão"; vaga não-aberta cai em "não pode mais ser
+    // editada". O link "Editar" de Minhas vagas (047) aponta para cá. `/editar` antes de
+    // `/:id/candidatos` na lista de rotas só por organização — paths distintos não conflitam.
+    GoRoute(
+      path: '/contratante/vagas/:id/editar',
+      pageBuilder: (context, state) {
+        final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        return MaterialPage(
+          key: ValueKey('editar-vaga-$id'),
+          child: EditarVagaScreen(vagaId: id),
+        );
+      },
+    ),
+
     // Painel de candidatos da vaga (STORY-051). RBAC (CA-1) tratado dentro da tela: profissional
     // ou contratante não-dono (403) cai em "sem permissão"; 404 cai em "vaga não encontrada". O
     // link "Ver candidatos" de Minhas vagas (047 CA-6) aponta para cá e passa o contexto da vaga

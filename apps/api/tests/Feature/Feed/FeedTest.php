@@ -53,7 +53,7 @@ test('feed devolve o contrato esperado por vaga (CA-1)', function () {
             'vagas' => [[
                 'id', 'funcao', 'data_inicio', 'data_fim', 'valor', 'distancia_km',
                 'score' => ['total', 'componentes' => ['funcao', 'distancia', 'historico', 'nivel']],
-                'ja_candidatou', 'pode_candidatar',
+                'ja_candidatou', 'em_revisao', 'pode_candidatar',
             ]],
             'page', 'has_next',
         ])
@@ -178,6 +178,33 @@ test('filtro "candidatadas" só traz vagas com candidatura ativa (CA-4)', functi
 
     expect(collect($res->json('vagas'))->pluck('id')->all())->toBe([$comCandidatura->id]);
     $res->assertJsonPath('vagas.0.ja_candidatou', true);
+});
+
+test('em_revisao marca o card quando a candidatura está em revisão pós-edição (STORY-052 CA-11)', function () {
+    $funcao = Funcao::factory()->create();
+    $prof = profFeed(['funcao_id' => $funcao->id]);
+
+    $editada = vagaFeed($funcao->id);
+    $normal = vagaFeed($funcao->id);
+    Candidatura::factory()->create([
+        'vaga_id' => $editada->id,
+        'profissional_id' => $prof->id,
+        'estado' => CandidaturaEstado::PendenteRevisaoAposEdicao,
+    ]);
+    Candidatura::factory()->create([
+        'vaga_id' => $normal->id,
+        'profissional_id' => $prof->id,
+        'estado' => CandidaturaEstado::Pendente,
+    ]);
+
+    $vagas = collect(
+        $this->actingAs($prof)->getJson('/api/feed?filtro=candidatadas')->assertStatus(200)->json('vagas')
+    )->keyBy('id');
+
+    expect($vagas[$editada->id]['ja_candidatou'])->toBeTrue()
+        ->and($vagas[$editada->id]['em_revisao'])->toBeTrue()
+        ->and($vagas[$normal->id]['ja_candidatou'])->toBeTrue()
+        ->and($vagas[$normal->id]['em_revisao'])->toBeFalse();
 });
 
 test('ja_candidatou reflete candidatura ativa do profissional (CA-1)', function () {

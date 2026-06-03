@@ -15,3 +15,10 @@ Schedule::command('lembretes:cadastro')
     ->dailyAt('09:00')
     ->timezone('America/Sao_Paulo')
     ->withoutOverlapping();
+
+// Auto-retirada de candidaturas não confirmadas após edição material (STORY-052 CA-9 / PDR-009).
+// 1×/min para honrar o "24h ou início do turno" com granularidade fina; reusa o Cloud Run Job
+// + Scheduler da STORY-034. Idempotente, então withoutOverlapping é só higiene.
+Schedule::command('candidaturas:auto-retirar-apos-edicao')
+    ->everyMinute()
+    ->withoutOverlapping();

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import 'candidatos_service.dart';
 import 'vaga_detalhe_service.dart' show ScoreBreakdown;
@@ -211,7 +212,7 @@ class _Contexto extends StatelessWidget {
     final f = funcao?.trim();
     if (f == null || f.isEmpty) return null;
     if (dataInicio != null && dataFim != null) {
-      return '$f · ${_formatQuando(dataInicio!, dataFim!)}';
+      return '$f · ${TurniDateTime.formatIntervalo(dataInicio!, dataFim!)}';
     }
     return f;
   }
@@ -367,7 +368,7 @@ class _CandidatoCardViewState extends State<_CandidatoCardView> {
           if (c.candidatouEm != null) ...[
             const SizedBox(height: TurniSpacing.xs),
             Text(
-              'Candidatou ${_formatDataHora(c.candidatouEm!)}',
+              'Candidatou ${TurniDateTime.formatResumo(c.candidatouEm!)}',
               key: Key('candidato-card-${c.id}-data'),
               style: TextStyle(fontSize: 13, color: textMuted),
             ),
@@ -998,26 +999,4 @@ class _NaoEncontradaView extends StatelessWidget {
       ),
     );
   }
-}
-
-// ───────────────────────── Formatação pt-BR / 24h (DDR-002) ─────────────────────────
-
-const _diasSemana = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
-
-String _dois(int n) => n.toString().padLeft(2, '0');
-
-/// "Sex, 12/06 · 18:00–23:00" (24h, pt-BR). Horário local do dispositivo.
-String _formatQuando(DateTime inicio, DateTime fim) {
-  final i = inicio.toLocal();
-  final f = fim.toLocal();
-  final dia = _diasSemana[i.weekday - 1];
-  return '$dia, ${_dois(i.day)}/${_dois(i.month)} · '
-      '${_dois(i.hour)}:${_dois(i.minute)}–${_dois(f.hour)}:${_dois(f.minute)}';
-}
-
-/// "Sex, 12/06 · 14:20" — data/hora da candidatura (24h, pt-BR).
-String _formatDataHora(DateTime d) {
-  final l = d.toLocal();
-  final dia = _diasSemana[l.weekday - 1];
-  return '$dia, ${_dois(l.day)}/${_dois(l.month)} · ${_dois(l.hour)}:${_dois(l.minute)}';
 }

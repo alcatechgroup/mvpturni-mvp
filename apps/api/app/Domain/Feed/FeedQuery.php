@@ -55,7 +55,9 @@ final class FeedQuery
         }
 
         $candidatos = $this->candidatos($profissional, $perfil, $filtro);
-        $jaCandidatou = $this->vagasJaCandidatadas($profissional, $candidatos->pluck('id')->all());
+        // Estado da candidatura ativa por vaga (uma consulta): deriva `ja_candidatou` e, quando
+        // `pendente_revisao_apos_edicao`, o selo "Vaga editada" do card (STORY-052 CA-11).
+        $estadoPorVaga = $this->estadoCandidaturaPorVaga($profissional, $candidatos->pluck('id')->all());
 
         $feedVagas = [];
         foreach ($candidatos as $vaga) {
@@ -77,11 +79,13 @@ final class FeedQuery
                 continue;
             }
 
+            $estado = $estadoPorVaga[$vaga->id] ?? null;
             $feedVagas[] = new FeedVaga(
                 vaga: $vaga,
                 distanciaKm: $distancia,
                 score: $score,
-                jaCandidatou: in_array($vaga->id, $jaCandidatou, true),
+                jaCandidatou: $estado !== null,
+                emRevisao: $estado === CandidaturaEstado::PendenteRevisaoAposEdicao,
             );
         }
 
@@ -148,13 +152,13 @@ final class FeedQuery
     }
 
     /**
-     * Vagas (dentre as candidatas) em que o profissional já tem candidatura ativa — para
-     * marcar `ja_candidatou` no payload (CA-1).
+     * Estado da candidatura ATIVA do profissional por vaga (dentre as candidatas). Alimenta
+     * `ja_candidatou` (CA-1) e o selo de revisão do card (STORY-052 CA-11). Uma só consulta.
      *
      * @param  list<int>  $vagaIds
-     * @return list<int>
+     * @return array<int,CandidaturaEstado>
      */
-    private function vagasJaCandidatadas(User $profissional, array $vagaIds): array
+    private function estadoCandidaturaPorVaga(User $profissional, array $vagaIds): array
     {
         if ($vagaIds === []) {
             return [];
@@ -164,8 +168,8 @@ final class FeedQuery
             ->where('profissional_id', $profissional->id)
             ->whereIn('vaga_id', $vagaIds)
             ->whereIn('estado', $this->estadosCandidaturaAtiva())
-            ->pluck('vaga_id')
-            ->map(fn ($id) => (int) $id)
+            ->pluck('estado', 'vaga_id')
+            ->mapWithKeys(fn ($estado, $vagaId) => [(int) $vagaId => $estado])
             ->all();
     }
 

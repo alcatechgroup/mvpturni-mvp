@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../core/time/turni_datetime.dart';
 import '../cadastro/shared/cadastro_types.dart' show cadastroApiBase;
 
 /// STORY-048 — filtros fixos do feed (CA-1/CA-4). `slug` casa com o `?filtro=` da API;
@@ -50,6 +51,10 @@ class FeedVagaResumo {
   final double? distanciaKm;
   final FeedScore score;
   final bool jaCandidatou;
+
+  /// STORY-052 CA-11 — a candidatura nesta vaga está em revisão pós-edição (a vaga mudou). O
+  /// card mostra o selo "Vaga editada — confirme" sem precisar abrir o detalhe.
+  final bool emRevisao;
   final bool podeCandidatar;
 
   const FeedVagaResumo({
@@ -61,20 +66,22 @@ class FeedVagaResumo {
     required this.distanciaKm,
     required this.score,
     required this.jaCandidatou,
+    required this.emRevisao,
     required this.podeCandidatar,
   });
 
   factory FeedVagaResumo.fromJson(Map<String, dynamic> json) => FeedVagaResumo(
     id: (json['id'] as num).toInt(),
     funcao: json['funcao'] as String? ?? '',
-    dataInicio: DateTime.parse(json['data_inicio'] as String),
-    dataFim: DateTime.parse(json['data_fim'] as String),
+    dataInicio: TurniDateTime.parseRequired(json['data_inicio'] as String),
+    dataFim: TurniDateTime.parseRequired(json['data_fim'] as String),
     valor: (json['valor'] as num?)?.toDouble() ?? 0,
     distanciaKm: (json['distancia_km'] as num?)?.toDouble(),
     score: FeedScore.fromJson(
       (json['score'] as Map?)?.cast<String, dynamic>() ?? {},
     ),
     jaCandidatou: json['ja_candidatou'] as bool? ?? false,
+    emRevisao: json['em_revisao'] as bool? ?? false,
     podeCandidatar: json['pode_candidatar'] as bool? ?? true,
   );
 }

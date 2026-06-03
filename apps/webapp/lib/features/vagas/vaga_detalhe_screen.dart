@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import 'candidatura_service.dart';
 import 'vaga_detalhe_service.dart';
@@ -44,9 +45,18 @@ class _VagaDetalheScreenState extends State<VagaDetalheScreen> {
   bool? _jaCandidatouOverride;
   CandidaturaResumo? _candidaturaOverride;
 
+  // STORY-052 — revisão pós-edição: busy do botão e flag para sumir o banner após manter/retirar.
+  bool _revisaoBusy = false;
+  bool _revisaoResolvida = false;
+
   bool get _jaCandidatou => _jaCandidatouOverride ?? _vaga!.jaCandidatou;
   CandidaturaResumo? get _candidaturaVigente =>
       _jaCandidatouOverride == null ? _vaga!.candidatura : _candidaturaOverride;
+
+  // Mostra o banner de revisão (CA-11) enquanto a candidatura está em revisão e o profissional
+  // ainda não resolveu (manter/retirar) nesta sessão de tela.
+  bool get _mostrarRevisao =>
+      _vaga!.emRevisao && !_revisaoResolvida && _vaga!.revisao != null;
 
   @override
   void initState() {
@@ -70,6 +80,8 @@ class _VagaDetalheScreenState extends State<VagaDetalheScreen> {
       _phase = _Phase.loading;
       _jaCandidatouOverride = null;
       _candidaturaOverride = null;
+      _revisaoBusy = false;
+      _revisaoResolvida = false;
     });
     final result = await _service.fetch(widget.vagaId);
     if (!mounted) return;
@@ -177,6 +189,72 @@ class _VagaDetalheScreenState extends State<VagaDetalheScreen> {
     }
   }
 
+  /// STORY-052 CA-7 — mantém a candidatura após a edição. 200 → volta a `pendente` (banner some);
+  /// 409 → o prazo já estourou e o cron retirou (banner some, toast informa); rede → toast.
+  Future<void> _manterAposEdicao() async {
+    final id = _candidaturaVigente?.id;
+    if (id == null) return;
+    setState(() => _revisaoBusy = true);
+    final result = await _candidatura.manterAposEdicao(id);
+    if (!mounted) return;
+    setState(() => _revisaoBusy = false);
+    switch (result) {
+      case RevisaoSuccess():
+        setState(() {
+          _revisaoResolvida = true;
+          _jaCandidatouOverride = true;
+          _candidaturaOverride = CandidaturaResumo(
+            id: id,
+            estado: 'pendente',
+            criadaEm: _candidaturaVigente?.criadaEm,
+          );
+        });
+        _toast('Candidatura mantida.');
+      case RevisaoConflict():
+        setState(() => _revisaoResolvida = true);
+        _toast(
+          'O prazo para confirmar terminou e sua candidatura saiu desta vaga.',
+        );
+      case RevisaoErro():
+        _toast('Não foi possível agora. Tente de novo.');
+    }
+  }
+
+  /// STORY-052 CA-8 — retira a candidatura após a edição (com confirmação leve). 200 → "não está
+  /// mais candidatado"; 409 → o cron já retirou (mesmo desfecho visual); rede → toast.
+  Future<void> _retirarAposEdicao() async {
+    final id = _candidaturaVigente?.id;
+    if (id == null) return;
+    final accent = _accent(Theme.of(context).brightness == Brightness.dark);
+    final confirmou = await _present<bool>(_RetirarSheet(accent: accent));
+    if (!mounted || confirmou != true) return;
+
+    setState(() => _revisaoBusy = true);
+    final result = await _candidatura.retirarAposEdicao(id);
+    if (!mounted) return;
+    setState(() => _revisaoBusy = false);
+    switch (result) {
+      case RevisaoSuccess():
+        setState(() {
+          _revisaoResolvida = true;
+          _jaCandidatouOverride = false;
+          _candidaturaOverride = null;
+        });
+        _toast('Candidatura retirada.');
+      case RevisaoConflict():
+        setState(() {
+          _revisaoResolvida = true;
+          _jaCandidatouOverride = false;
+          _candidaturaOverride = null;
+        });
+        _toast(
+          'O prazo para confirmar terminou e sua candidatura saiu desta vaga.',
+        );
+      case RevisaoErro():
+        _toast('Não foi possível agora. Tente de novo.');
+    }
+  }
+
   void _toast(String msg) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -263,7 +341,15 @@ class _VagaDetalheScreenState extends State<VagaDetalheScreen> {
       case _Phase.erro:
         return _ErroView(isDark: isDark, onRetry: _load);
       case _Phase.pronto:
-        return _Conteudo(vaga: _vaga!, isDark: isDark, accent: accent);
+        return _Conteudo(
+          vaga: _vaga!,
+          isDark: isDark,
+          accent: accent,
+          revisao: _mostrarRevisao ? _vaga!.revisao : null,
+          revisaoBusy: _revisaoBusy,
+          onManter: _manterAposEdicao,
+          onRetirar: _retirarAposEdicao,
+        );
     }
   }
 }
@@ -275,11 +361,19 @@ class _Conteudo extends StatelessWidget {
     required this.vaga,
     required this.isDark,
     required this.accent,
+    required this.revisao,
+    required this.revisaoBusy,
+    required this.onManter,
+    required this.onRetirar,
   });
 
   final VagaDetalhe vaga;
   final bool isDark;
   final Color accent;
+  final RevisaoInfo? revisao;
+  final bool revisaoBusy;
+  final VoidCallback onManter;
+  final VoidCallback onRetirar;
 
   @override
   Widget build(BuildContext context) {
@@ -301,6 +395,16 @@ class _Conteudo extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (revisao != null) ...[
+                    _RevisaoBanner(
+                      revisao: revisao!,
+                      isDark: isDark,
+                      busy: revisaoBusy,
+                      onManter: onManter,
+                      onRetirar: onRetirar,
+                    ),
+                    const SizedBox(height: TurniSpacing.lg),
+                  ],
                   _Cabecalho(vaga: vaga, isDark: isDark, accent: accent),
                   const SizedBox(height: TurniSpacing.lg),
                   Text(
@@ -343,6 +447,202 @@ class _Conteudo extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+// ───────────────────────── Banner de revisão pós-edição (STORY-052 CA-11) ─────────────────────────
+
+/// Faixa de revisão pós-edição: "a vaga foi editada", prazo, o que mudou (diff) e as 2 ações
+/// Manter/Retirar. Cor de atenção (warnSoft), independente do acento do papel. A diferença é
+/// legível sem cor (rótulo + antigo → novo) — WCAG AA (SCREEN-052 §6).
+class _RevisaoBanner extends StatelessWidget {
+  const _RevisaoBanner({
+    required this.revisao,
+    required this.isDark,
+    required this.busy,
+    required this.onManter,
+    required this.onRetirar,
+  });
+
+  final RevisaoInfo revisao;
+  final bool isDark;
+  final bool busy;
+  final VoidCallback onManter;
+  final VoidCallback onRetirar;
+
+  String _prazoTexto() {
+    final prazo = revisao.prazoEm;
+    if (prazo == null) {
+      return 'Confirme em até 24h — senão sua candidatura sai sozinha.';
+    }
+    return 'Confirme até ${TurniDateTime.formatPrazo(prazo)} — '
+        'senão sua candidatura sai sozinha.';
+  }
+
+  String _valorLinha(DiffLinha l) {
+    switch (l.tipo) {
+      case 'valor':
+        return '${_brl((l.antes as num?)?.toDouble())} → ${_brl((l.depois as num?)?.toDouble())}';
+      case 'data':
+        return '${_dataHora(l.antes as String?)} → ${_dataHora(l.depois as String?)}';
+      default:
+        return '${l.antes} → ${l.depois}';
+    }
+  }
+
+  String _brl(double? v) {
+    if (v == null) return '—';
+    final c = (v * 100).round();
+    final reais = (c ~/ 100).toString();
+    final dec = (c % 100).toString().padLeft(2, '0');
+    final b = StringBuffer();
+    for (var i = 0; i < reais.length; i++) {
+      if (i > 0 && (reais.length - i) % 3 == 0) b.write('.');
+      b.write(reais[i]);
+    }
+    return 'R\$ $b,$dec';
+  }
+
+  String _dataHora(String? iso) {
+    final d = TurniDateTime.parse(iso);
+    return d == null ? '—' : TurniDateTime.formatDataHoraCurta(d);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = isDark ? TurniColors.warnSoftDark : TurniColors.warnSoftLight;
+    final ink = isDark ? TurniColors.warnDark : TurniColors.warnLight;
+    final strong = isDark
+        ? TurniColors.textStrongDark
+        : TurniColors.textStrongLight;
+    final muted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+    final verde = isDark ? TurniColors.accentDark : TurniColors.accentLight;
+
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        key: const Key('vaga-detalhe-revisao-banner'),
+        padding: const EdgeInsets.all(TurniSpacing.md),
+        decoration: BoxDecoration(
+          color: bg,
+          border: Border.all(color: ink.withAlpha(110)),
+          borderRadius: const BorderRadius.all(TurniRadius.md),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.edit_calendar_outlined, size: 20, color: ink),
+                const SizedBox(width: TurniSpacing.sm),
+                Expanded(
+                  child: Text(
+                    'Esta vaga foi editada',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: strong,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: TurniSpacing.xs),
+            Text(
+              _prazoTexto(),
+              style: TextStyle(
+                fontSize: 14,
+                color: strong,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (revisao.diff.isNotEmpty) ...[
+              const SizedBox(height: TurniSpacing.md),
+              Text(
+                'O QUE MUDOU',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: muted,
+                  letterSpacing: .5,
+                ),
+              ),
+              const SizedBox(height: TurniSpacing.xs),
+              for (final l in revisao.diff)
+                Padding(
+                  key: Key('vaga-detalhe-revisao-diff-${l.campo}'),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: TurniSpacing.xs,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 96,
+                        child: Text(
+                          l.label,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: muted,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Semantics(
+                          label: '${l.label}: de ${l.antes} para ${l.depois}',
+                          child: Text(
+                            _valorLinha(l),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: strong,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+            const SizedBox(height: TurniSpacing.md),
+            FilledButton(
+              key: const Key('vaga-detalhe-manter-btn'),
+              onPressed: busy ? null : onManter,
+              style: FilledButton.styleFrom(
+                backgroundColor: verde,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(48),
+                shape: const StadiumBorder(),
+              ),
+              child: busy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Manter candidatura'),
+            ),
+            const SizedBox(height: TurniSpacing.sm),
+            OutlinedButton(
+              key: const Key('vaga-detalhe-retirar-btn'),
+              onPressed: busy ? null : onRetirar,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: strong,
+                minimumSize: const Size.fromHeight(48),
+                shape: const StadiumBorder(),
+              ),
+              child: const Text('Retirar'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -420,7 +720,7 @@ class _Cabecalho extends StatelessWidget {
           ],
           const SizedBox(height: 2),
           Text(
-            _formatQuando(vaga.dataInicio, vaga.dataFim),
+            TurniDateTime.formatIntervalo(vaga.dataInicio, vaga.dataFim),
             style: TextStyle(fontSize: 14, color: textMuted),
           ),
           const SizedBox(height: TurniSpacing.sm),
@@ -879,7 +1179,7 @@ class _JaCandidatou extends StatelessWidget {
         if (quando != null) ...[
           const SizedBox(height: 6),
           Text(
-            'em ${_formatData(quando)} às ${_formatHora(quando)}',
+            'em ${TurniDateTime.formatDataCurta(quando)} às ${TurniDateTime.formatHora(quando)}',
             style: const TextStyle(
               fontSize: 13,
               color: TurniColors.textMutedLight,
@@ -998,7 +1298,7 @@ class _ConfirmarSheetState extends State<_ConfirmarSheet> {
         '${v.funcao} · $estab'
       else
         v.funcao,
-      '${_formatQuando(v.dataInicio, v.dataFim)} · ${_formatBRL(v.valor)}',
+      '${TurniDateTime.formatIntervalo(v.dataInicio, v.dataFim)} · ${_formatBRL(v.valor)}',
     ].join('\n');
 
     return _SheetShell(
@@ -1222,7 +1522,7 @@ class _ConflitoCard extends StatelessWidget {
       conflito.estabelecimento,
     ].whereType<String>().where((s) => s.trim().isNotEmpty).join(' · ');
     final quando = conflito.dataInicio != null && conflito.dataFim != null
-        ? _formatQuando(conflito.dataInicio!, conflito.dataFim!)
+        ? TurniDateTime.formatIntervalo(conflito.dataInicio!, conflito.dataFim!)
         : null;
 
     return Semantics(
@@ -1532,28 +1832,7 @@ class _IndisponivelView extends StatelessWidget {
 
 // ───────────────────────── Formatação pt-BR / 24h (DDR-002) ─────────────────────────
 
-const _diasSemana = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
-
 String _dois(int n) => n.toString().padLeft(2, '0');
-
-/// "Sex, 12/06 · 18:00–23:00" (24h, pt-BR). Horário local do dispositivo.
-String _formatQuando(DateTime inicio, DateTime fim) {
-  final i = inicio.toLocal();
-  final f = fim.toLocal();
-  final dia = _diasSemana[i.weekday - 1];
-  return '$dia, ${_dois(i.day)}/${_dois(i.month)} · '
-      '${_dois(i.hour)}:${_dois(i.minute)}–${_dois(f.hour)}:${_dois(f.minute)}';
-}
-
-String _formatData(DateTime d) {
-  final l = d.toLocal();
-  return '${_dois(l.day)}/${_dois(l.month)}';
-}
-
-String _formatHora(DateTime d) {
-  final l = d.toLocal();
-  return '${_dois(l.hour)}:${_dois(l.minute)}';
-}
 
 /// "R$ 1.234,56" — formatação monetária pt-BR sem dependência de intl.
 String _formatBRL(double valor) {

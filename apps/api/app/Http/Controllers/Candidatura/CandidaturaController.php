@@ -7,6 +7,7 @@ use App\Models\Candidatura;
 use App\Models\Vaga;
 use App\Services\CriarCandidaturaService;
 use App\Services\RetirarCandidaturaService;
+use App\Services\RevisarCandidaturaService;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -63,6 +64,49 @@ class CandidaturaController extends Controller
             return response()->json([
                 'erro' => 'estado_invalido',
                 'mensagem' => 'Esta candidatura não pode mais ser retirada.',
+            ], 409);
+        }
+
+        return response()->json(['estado' => $candidatura->estado->value]);
+    }
+
+    /**
+     * STORY-052 CA-7 — POST /api/candidaturas/{candidatura}/confirmar-apos-edicao: o profissional
+     * dono **mantém** a candidatura após a vaga ter sido editada (`pendente_revisao_apos_edicao →
+     * pendente`). Fora desse estado → 409 (já resolvida pelo cron ou nunca esteve em revisão).
+     */
+    public function confirmarAposEdicao(Request $request, Candidatura $candidatura, RevisarCandidaturaService $service): JsonResponse
+    {
+        return $this->revisar($request, $candidatura, fn () => $service->manter($candidatura));
+    }
+
+    /**
+     * STORY-052 CA-8 — POST /api/candidaturas/{candidatura}/retirar-apos-edicao: o profissional
+     * dono **retira** a candidatura após a edição (`pendente_revisao_apos_edicao →
+     * retirada_por_edicao`). Fora desse estado → 409.
+     */
+    public function retirarAposEdicao(Request $request, Candidatura $candidatura, RevisarCandidaturaService $service): JsonResponse
+    {
+        return $this->revisar($request, $candidatura, fn () => $service->retirar($candidatura));
+    }
+
+    /**
+     * Esqueleto comum das duas ações de revisão (CA-7/CA-8): RBAC (profissional dono — 404 esconde
+     * a existência para terceiros) + tradução da transição inválida para 409. `$acao` executa a
+     * transição já validada pelo RevisarCandidaturaService.
+     */
+    private function revisar(Request $request, Candidatura $candidatura, callable $acao): JsonResponse
+    {
+        $user = $request->user();
+        abort_unless($user !== null && $user->isProfissional(), 403);
+        abort_unless($candidatura->profissional_id === $user->id, 404);
+
+        try {
+            $acao();
+        } catch (DomainException) {
+            return response()->json([
+                'erro' => 'estado_invalido',
+                'mensagem' => 'Esta candidatura não está mais em revisão.',
             ], 409);
         }
 

@@ -4,6 +4,7 @@
 // resolvam `../helpers/...` (mesma razão de auth_test.dart/cadastro_test.dart). Roda
 // SAME-ORIGIN sob o harness (proxy reverso + --web-launch-url) — fluxo autenticado.
 import 'vagas/candidatura_test.dart' as candidatura;
+import 'vagas/editar_vaga_test.dart' as editar_vaga;
 import 'vagas/minhas_vagas_test.dart' as minhas_vagas;
 import 'vagas/painel_candidatos_test.dart' as painel_candidatos;
 import 'vagas/publicar_vaga_test.dart' as publicar_vaga;
@@ -15,6 +16,9 @@ void main() {
   // `aberta` (botão "Ver candidatos" presente) e o filtro no padrão.
   painel_candidatos.main();
   publicar_vaga.main();
+  // editar_vaga publica e edita a PRÓPRIA vaga (self-contained); roda antes de minhas_vagas
+  // (que mexe no filtro/cancela) para começar do estado padrão da lista.
+  editar_vaga.main();
   minhas_vagas.main();
   candidatura.main();
 }

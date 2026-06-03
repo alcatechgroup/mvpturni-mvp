@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
 import 'vaga_service.dart';
@@ -244,6 +245,9 @@ class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
                                     // painel (STORY-051); no deep-link a tela degrada p/ a contagem.
                                     extra: v,
                                   ),
+                                  onEditar: () => context.go(
+                                    '/contratante/vagas/${v.id}/editar',
+                                  ),
                                 ),
                               ),
                             )
@@ -344,6 +348,7 @@ class _VagaCard extends StatelessWidget {
     required this.accent,
     required this.onCancelar,
     required this.onVerCandidatos,
+    required this.onEditar,
   });
 
   final VagaResumo vaga;
@@ -351,7 +356,10 @@ class _VagaCard extends StatelessWidget {
   final Color accent;
   final VoidCallback onCancelar;
   final VoidCallback onVerCandidatos;
+  final VoidCallback onEditar;
 
+  // Editar é permitido enquanto a vaga está `aberta` (STORY-052 / PDR-009).
+  bool get _podeEditar => vaga.estado == VagaEstadoResumo.aberta;
   bool get _podeCancelar => vaga.estado == VagaEstadoResumo.aberta;
   bool get _podeVerCandidatos =>
       (vaga.estado == VagaEstadoResumo.aberta &&
@@ -403,7 +411,10 @@ class _VagaCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      _formatQuando(vaga.dataInicio, vaga.dataFim),
+                      TurniDateTime.formatIntervalo(
+                        vaga.dataInicio,
+                        vaga.dataFim,
+                      ),
                       style: TextStyle(fontSize: 14, color: textMuted),
                     ),
                   ],
@@ -437,12 +448,10 @@ class _VagaCard extends StatelessWidget {
               style: TextStyle(fontSize: 14, color: textMuted),
             ),
           ],
-          if (_podeCancelar || _podeVerCandidatos) ...[
+          if (_podeCancelar || _podeVerCandidatos || _podeEditar) ...[
             Divider(color: border, height: TurniSpacing.lg),
-            Row(
-              mainAxisAlignment: _podeCancelar && _podeVerCandidatos
-                  ? MainAxisAlignment.spaceBetween
-                  : MainAxisAlignment.start,
+            Wrap(
+              spacing: TurniSpacing.sm,
               children: [
                 if (_podeVerCandidatos)
                   TextButton(
@@ -450,6 +459,13 @@ class _VagaCard extends StatelessWidget {
                     onPressed: onVerCandidatos,
                     style: TextButton.styleFrom(foregroundColor: inkLink),
                     child: const Text('Ver candidatos'),
+                  ),
+                if (_podeEditar)
+                  TextButton(
+                    key: Key('minhas-vagas-editar-${vaga.id}'),
+                    onPressed: onEditar,
+                    style: TextButton.styleFrom(foregroundColor: inkLink),
+                    child: const Text('Editar'),
                   ),
                 if (_podeCancelar)
                   TextButton(
@@ -616,7 +632,7 @@ class _CancelarDialogState extends State<_CancelarDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${widget.vaga.funcao} · ${_formatResumo(widget.vaga.dataInicio)}',
+            '${widget.vaga.funcao} · ${TurniDateTime.formatResumo(widget.vaga.dataInicio)}',
             style: TextStyle(color: TurniColors.textMutedLight, fontSize: 14),
           ),
           const SizedBox(height: TurniSpacing.sm),
@@ -845,25 +861,7 @@ class _SkeletonCard extends StatelessWidget {
 
 // ───────────────────────── Formatação pt-BR / 24h (DDR-002) ─────────────────────────
 
-const _diasSemana = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
-
 String _dois(int n) => n.toString().padLeft(2, '0');
-
-/// "Sex, 12/06 · 18:00–23:00" (24h, pt-BR). Usa o horário local do dispositivo.
-String _formatQuando(DateTime inicio, DateTime fim) {
-  final i = inicio.toLocal();
-  final f = fim.toLocal();
-  final dia = _diasSemana[i.weekday - 1];
-  return '$dia, ${_dois(i.day)}/${_dois(i.month)} · '
-      '${_dois(i.hour)}:${_dois(i.minute)}–${_dois(f.hour)}:${_dois(f.minute)}';
-}
-
-/// "Sex, 12/06 · 18:00" — resumo curto para o diálogo.
-String _formatResumo(DateTime inicio) {
-  final i = inicio.toLocal();
-  final dia = _diasSemana[i.weekday - 1];
-  return '$dia, ${_dois(i.day)}/${_dois(i.month)} · ${_dois(i.hour)}:${_dois(i.minute)}';
-}
 
 /// "R$ 1.234,56" — formatação monetária pt-BR sem dependência de intl.
 String _formatBRL(double valor) {

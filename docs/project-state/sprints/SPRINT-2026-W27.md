@@ -318,6 +318,15 @@ do PO), STORY-054 (validador, última).
   dela no aggregator, e o seeder reabre a vaga seed a cada `db:seed`. Padrão para próximos E2E que
   compartilham o mesmo usuário seed: testes read-only antes dos que mutam estado.
 
+## Atualização de progresso — 2026-06-03 (STORY-052 done)
+
+| ID        | Status   | Observação                                                                                                                                                                                                          |
+| --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| STORY-051 | **done** | Painel de candidatos do contratante (ranqueado + breakdown) shipped — SCREEN-051 validado.                                                                                                                          |
+| STORY-052 | **done** | Edição material PDR-009 (Designer + Programador). SCREEN-052 validado no browser e **estória aprovada por Alexandro**. Backend: `PATCH /vagas/{id}` + detector material puro + transação (snapshot v(N+1) + transição candidaturas + evento `VagaEditadaMaterialmente`), endpoints confirmar/retirar-apos-edicao, cron `candidaturas:auto-retirar-apos-edicao` (everyMinute, reusa STORY-034). Frontend: tela `/contratante/vagas/{id}/editar` com preview do diff + aviso de candidatos; **CA-11 completo** — selo "Vaga editada — confirme" no card do feed (Candidatadas, `em_revisao`) **+** banner de revisão no detalhe (049) com Manter/Retirar. **api 496 testes** (núcleo ≈98.4%), **webapp 326 testes** (editar 87.2%, detalhe 93.5%), E2E backend do ciclo completo (`travel(25h)`) + integration_test same-origin. **Emergiu IDR-026** (política única de data/hora `TurniDateTime`): bug de fuso achado no teste humano (card 15:00 vs edição 18:00) resolvido de forma centralizada — UTC na API, local na UI, round-trip lossless; 6 telas + 3 serviços passaram a delegar. Follow-up não-bloqueante: `make e2e-webapp-integration` + deploy homolog no próximo pacote. |
+
+**Restam:** STORY-053 (notificações — consome o evento `VagaEditadaMaterialmente` desta estória + texto-seed dos 5 templates do PO) e STORY-054 (validador). EPIC-002: 11/11 estórias de implementação fechadas; falta só o validador.
+
 ## Aprendizados em curso (mid-sprint)
 
 > Registrar conforme acontecem; consolidar na seção "Fechamento do sprint" no fim.

@@ -61,6 +61,8 @@ class FeedController extends Controller
                 'componentes' => $fv->score->componentes,
             ],
             'ja_candidatou' => $fv->jaCandidatou,
+            // STORY-052 CA-11 — selo "Vaga editada — confirme" no card (sem abrir o detalhe).
+            'em_revisao' => $fv->emRevisao,
             'pode_candidatar' => $podeCandidatar,
         ];
     }

@@ -91,6 +91,21 @@ class RetirarConflict extends RetirarResult {}
 /// 403/404/rede — falha; a UI avisa sem alterar o estado visual otimista.
 class RetirarErro extends RetirarResult {}
 
+/// STORY-052 (CA-7/CA-8) — desfecho de manter/retirar candidatura após edição material.
+sealed class RevisaoResult {}
+
+class RevisaoSuccess extends RevisaoResult {
+  /// Estado resultante (`pendente` ao manter; `retirada_por_edicao` ao retirar).
+  final String estado;
+  RevisaoSuccess(this.estado);
+}
+
+/// 409 — não está mais em revisão (o prazo estourou e o cron já retirou). SCREEN-052 §4.6.
+class RevisaoConflict extends RevisaoResult {}
+
+/// 403/404/rede — falha; a UI volta o botão ao normal sem mudar o estado visual.
+class RevisaoErro extends RevisaoResult {}
+
 /// Serviço de candidatura (STORY-050). Sessão Sanctum same-origin: o cookie trafega sozinho
 /// (não refazemos /sanctum/csrf-cookie no meio da sessão — IDR-019).
 class CandidaturaService {
@@ -163,6 +178,38 @@ class CandidaturaService {
         return RetirarConflict();
       default:
         return RetirarErro();
+    }
+  }
+
+  /// POST /api/candidaturas/{id}/confirmar-apos-edicao — mantém a candidatura (CA-7).
+  Future<RevisaoResult> manterAposEdicao(int candidaturaId) =>
+      _revisao('$_base/candidaturas/$candidaturaId/confirmar-apos-edicao');
+
+  /// POST /api/candidaturas/{id}/retirar-apos-edicao — retira a candidatura (CA-8).
+  Future<RevisaoResult> retirarAposEdicao(int candidaturaId) =>
+      _revisao('$_base/candidaturas/$candidaturaId/retirar-apos-edicao');
+
+  Future<RevisaoResult> _revisao(String url) async {
+    http.Response res;
+    try {
+      res = await _client.post(
+        Uri.parse(url),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
+    } catch (_) {
+      return RevisaoErro();
+    }
+
+    switch (res.statusCode) {
+      case 200:
+        return RevisaoSuccess(_json(res.body)['estado'] as String? ?? '');
+      case 409:
+        return RevisaoConflict();
+      default:
+        return RevisaoErro();
     }
   }
 

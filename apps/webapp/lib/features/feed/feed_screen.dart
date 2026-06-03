@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import 'package:go_router/go_router.dart';
 
+import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
 import 'feed_service.dart';
@@ -332,7 +334,10 @@ class _FeedCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              _formatQuando(vaga.dataInicio, vaga.dataFim),
+                              TurniDateTime.formatIntervalo(
+                                vaga.dataInicio,
+                                vaga.dataFim,
+                              ),
                               style: TextStyle(fontSize: 14, color: textMuted),
                             ),
                           ],
@@ -352,6 +357,12 @@ class _FeedCard extends StatelessWidget {
                   _linhaValor(vaga),
                   style: TextStyle(fontSize: 15, color: textStrong),
                 ),
+                // STORY-052 CA-11 — selo informativo: a vaga que ele se candidatou foi editada.
+                // O quê exatamente mudou fica no detalhe (toque no card abre lá).
+                if (vaga.emRevisao) ...[
+                  const SizedBox(height: TurniSpacing.sm),
+                  _SeloRevisao(vagaId: vaga.id, isDark: isDark),
+                ],
                 const SizedBox(height: 12),
                 _ScoreBar(
                   vagaId: vaga.id,
@@ -371,6 +382,49 @@ class _FeedCard extends StatelessWidget {
 }
 
 /// match.scorechip — número de match no canto do card (⬢ + número).
+/// STORY-052 CA-11 — selo "Vaga editada — confirme" no card de uma vaga candidatada em revisão
+/// pós-edição. Apenas informa (cor de atenção, ícone ✎); o diff + Manter/Retirar ficam no detalhe.
+class _SeloRevisao extends StatelessWidget {
+  const _SeloRevisao({required this.vagaId, required this.isDark});
+
+  final int vagaId;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = isDark ? TurniColors.warnSoftDark : TurniColors.warnSoftLight;
+    final ink = isDark
+        ? TurniColors.contratanteAccentDark
+        : TurniColors.contratanteAccentInkLight;
+    return Container(
+      key: Key('feed-card-revisao-$vagaId'),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TurniSpacing.sm,
+        vertical: TurniSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: const BorderRadius.all(TurniRadius.full),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.edit_calendar_outlined, size: 15, color: ink),
+          const SizedBox(width: TurniSpacing.xs),
+          Text(
+            'Vaga editada — confirme',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: ink,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ScoreChip extends StatelessWidget {
   const _ScoreChip({
     required this.vagaId,
@@ -846,18 +900,7 @@ class _SkeletonCard extends StatelessWidget {
 
 // ───────────────────────── Formatação pt-BR / 24h (DDR-002) ─────────────────────────
 
-const _diasSemana = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
-
 String _dois(int n) => n.toString().padLeft(2, '0');
-
-/// "Sex, 12/06 · 18:00–23:00" (24h, pt-BR). Horário local do dispositivo.
-String _formatQuando(DateTime inicio, DateTime fim) {
-  final i = inicio.toLocal();
-  final f = fim.toLocal();
-  final dia = _diasSemana[i.weekday - 1];
-  return '$dia, ${_dois(i.day)}/${_dois(i.month)} · '
-      '${_dois(i.hour)}:${_dois(i.minute)}–${_dois(f.hour)}:${_dois(f.minute)}';
-}
 
 /// "R$ 150,00 · turno" ou "R$ 150,00 · turno · a 3 km" (distância só quando há geo).
 String _linhaValor(FeedVagaResumo v) {

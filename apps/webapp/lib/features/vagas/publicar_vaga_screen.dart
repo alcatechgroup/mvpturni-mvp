@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
 import '../cadastro/shared/cadastro_widgets.dart';
@@ -95,40 +96,20 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
 
   // ──────────────────────────── ações ────────────────────────────
 
-  /// Parseia "dd/mm/aaaa" + "HH:mm" num DateTime; null se inválido.
-  DateTime? _parseDataHora(String data, String hora) {
-    final dm = RegExp(r'^(\d{2})/(\d{2})/(\d{4})$').firstMatch(data.trim());
-    final hm = RegExp(r'^(\d{1,2}):(\d{2})$').firstMatch(hora.trim());
-    if (dm == null || hm == null) return null;
-    final dia = int.parse(dm.group(1)!);
-    final mes = int.parse(dm.group(2)!);
-    final ano = int.parse(dm.group(3)!);
-    final h = int.parse(hm.group(1)!);
-    final min = int.parse(hm.group(2)!);
-    if (mes < 1 || mes > 12 || dia < 1 || dia > 31 || h > 23 || min > 59) {
-      return null;
-    }
-    final dt = DateTime(ano, mes, dia, h, min);
-    // Rejeita datas que "transbordam" (ex.: 31/02 vira 02/03).
-    if (dt.month != mes || dt.day != dia) return null;
-    return dt;
-  }
-
-  /// Duração do turno (início → fim) em texto, ou null se as datas ainda não são
-  /// válidas. Precisa, em horas e minutos: "5h", "5h30", "45min".
+  /// Duração do turno (início → fim) em texto, ou null se as datas ainda não são válidas.
+  /// Formatação centralizada no TurniDateTime ("5h"/"5h30"/"45min") — IDR-026.
   String? _duracaoTexto() {
-    final inicio = _parseDataHora(_dataInicioCtrl.text, _horaInicioCtrl.text);
-    final fim = _parseDataHora(_dataFimCtrl.text, _horaFimCtrl.text);
-    if (inicio == null || fim == null || !fim.isAfter(inicio)) return null;
-    final d = fim.difference(inicio);
-    final h = d.inHours;
-    final m = d.inMinutes % 60;
-    final corpo = h == 0
-        ? '${m}min'
-        : m == 0
-        ? '${h}h'
-        : '${h}h${m.toString().padLeft(2, '0')}';
-    return 'A vaga dura $corpo.';
+    final inicio = TurniDateTime.parseEntrada(
+      _dataInicioCtrl.text,
+      _horaInicioCtrl.text,
+    );
+    final fim = TurniDateTime.parseEntrada(
+      _dataFimCtrl.text,
+      _horaFimCtrl.text,
+    );
+    if (inicio == null || fim == null) return null;
+    final dur = TurniDateTime.formatDuracao(inicio, fim);
+    return dur == null ? null : 'A vaga dura $dur.';
   }
 
   Future<void> _submit() async {
@@ -138,8 +119,14 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
     // Função: DropdownMenu não é FormField, então valida-se à parte (como as datas).
     final funcaoErro = _funcaoId == null ? 'Escolha a função do turno.' : null;
 
-    final inicio = _parseDataHora(_dataInicioCtrl.text, _horaInicioCtrl.text);
-    final fim = _parseDataHora(_dataFimCtrl.text, _horaFimCtrl.text);
+    final inicio = TurniDateTime.parseEntrada(
+      _dataInicioCtrl.text,
+      _horaInicioCtrl.text,
+    );
+    final fim = TurniDateTime.parseEntrada(
+      _dataFimCtrl.text,
+      _horaFimCtrl.text,
+    );
 
     String? quandoErro;
     if (inicio == null) {
@@ -212,11 +199,7 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
       helpText: 'Escolha a data',
     );
     if (escolhida != null) {
-      setState(() {
-        ctrl.text =
-            '${escolhida.day.toString().padLeft(2, '0')}/'
-            '${escolhida.month.toString().padLeft(2, '0')}/${escolhida.year}';
-      });
+      setState(() => ctrl.text = TurniDateTime.formatData(escolhida));
     }
   }
 
@@ -228,9 +211,10 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
     );
     if (escolhida != null) {
       setState(() {
-        ctrl.text =
-            '${escolhida.hour.toString().padLeft(2, '0')}:'
-            '${escolhida.minute.toString().padLeft(2, '0')}';
+        ctrl.text = TurniDateTime.formatHoraComponentes(
+          escolhida.hour,
+          escolhida.minute,
+        );
       });
     }
   }

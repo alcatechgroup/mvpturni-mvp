@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<!--
+  PROTÓTIPO DE VALIDAÇÃO — NÃO É CÓDIGO DE PRODUÇÃO.
+  SCREEN-STORY-052 — Edição material de vaga (PDR-009).
+  Duas superfícies: A) contratante edita + preview do diff; B) profissional vê banner de revisão.
+  HTML/CSS/JS vanilla, sem rede, sem build. Abra clicando no arquivo.
+  Tokens reais (DDR-001). Locale pt-BR / 24h (DDR-002). Microcopy = §5 do spec; data-testid = §7.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCREEN-STORY-052 — Editar vaga + diff</title>
+<style>
+  :root {
+    --page: #F7F4EC; --surface: #FFFFFF;
+    --border-subtle: #E0DDD3; --border-strong: #C8C5BB;
+    --text-strong: #0F1B2D; --text-muted: #42504A;
+    --brand: #00A868;
+    /* Contratante (mostarda) */
+    --c-accent: #9A6E25; --c-ink: #6E4E12; --on-accent: #FFFFFF;
+    /* Profissional (verde-sage) */
+    --p-accent: #2D5F3F; --p-ink: #2D5F3F;
+    --warn: #9A6E25; --warn-soft: #FBEED1; --warn-ink: #6E4E12;
+    --success: #2D7A4F; --success-soft: #E2F0E5;
+    --info: #4A6FA5; --info-soft: #E0E9F5;
+    --error: #B83A3A; --error-soft: #FBE2E2;
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-full: 999px;
+    --s-xs: 4px; --s-sm: 8px; --s-md: 16px; --s-lg: 24px; --s-xl: 32px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #EAE6DA; color: var(--text-strong);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased; }
+  .proto-bar { position: sticky; top: 0; z-index: 50; background: #23211c; color: #F3ECD9;
+    padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; }
+  .proto-bar strong { color: #fff; }
+  .proto-bar .grp { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .proto-bar .lbl { opacity: .7; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+  .proto-bar a { color: #F3ECD9; text-decoration: none; padding: 4px 10px; border: 1px solid #555;
+    border-radius: var(--r-full); font-size: 12px; cursor: pointer; }
+  .proto-bar a.on { background: #D4A95C; color: #23211c; border-color: #D4A95C; font-weight: 700; }
+  .stage { display: flex; justify-content: center; padding: 20px; }
+  .device { background: var(--page); width: 390px; min-height: 720px; border-radius: 28px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.25); overflow: hidden; position: relative; border: 1px solid var(--border-strong); }
+  .device.desktop { width: 900px; min-height: 600px; border-radius: 16px; }
+  .appbar { display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+    background: var(--surface); border-bottom: 1px solid var(--border-subtle); }
+  .appbar .back { font-size: 20px; width: 40px; height: 40px; display: grid; place-items: center;
+    border-radius: var(--r-full); cursor: default; }
+  .appbar h1 { font-size: 18px; margin: 0; font-weight: 800; }
+  .body { padding: 16px; }
+  .desktop .inner { max-width: 640px; margin: 0 auto; }
+
+  .section { font-size: 13px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: .5px; margin: 18px 0 8px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .input { width: 100%; padding: 12px 14px; border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+    background: var(--surface); font-size: 15px; color: var(--text-strong); }
+  .input.changed { border-color: var(--c-accent); box-shadow: 0 0 0 2px rgba(154,110,37,.18); }
+  .row2 { display: flex; gap: 8px; }
+  .row2 .input { flex: 1; }
+  .helper { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .stepper { display: flex; align-items: center; gap: 14px; }
+  .stepper button { width: 44px; height: 44px; border-radius: var(--r-full); border: 1px solid var(--border-strong);
+    background: var(--surface); font-size: 20px; cursor: default; }
+  .stepper .val { font-size: 18px; min-width: 20px; text-align: center; }
+
+  .btn { display: block; width: 100%; text-align: center; padding: 14px; border-radius: var(--r-full);
+    font-size: 15px; font-weight: 700; border: none; cursor: default; margin-top: 10px; }
+  .btn-c { background: var(--c-accent); color: var(--on-accent); }
+  .btn-p { background: var(--p-accent); color: #fff; }
+  .btn-text { background: transparent; color: var(--text-muted); }
+  .btn-text.c { color: var(--c-ink); }
+  .btn-outline { background: transparent; border: 1px solid var(--border-strong); color: var(--text-strong); }
+  .btn:disabled, .btn.disabled { opacity: .5; }
+
+  /* diff */
+  .diffcard { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: var(--r-md);
+    padding: 14px 16px; margin: 12px 0; }
+  .diffcard .h { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
+    color: var(--text-muted); margin-bottom: 10px; }
+  .diffrow { padding: 7px 0; border-top: 1px solid var(--border-subtle); }
+  .diffrow:first-of-type { border-top: none; }
+  .diffrow .campo { font-size: 12px; color: var(--text-muted); font-weight: 700; }
+  .diffrow .vals { font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+  .diffrow .old { color: var(--text-muted); text-decoration: line-through; }
+  .diffrow .arrow { color: var(--text-muted); }
+  .diffrow .new { color: var(--text-strong); font-weight: 700; }
+
+  .banner { border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 14px; }
+  .banner.warn { background: var(--warn-soft); border: 1px solid rgba(154,110,37,.5); }
+  .banner.err { background: var(--error-soft); border: 1px solid rgba(184,58,58,.5); }
+  .banner.info { background: var(--info-soft); border: 1px solid rgba(74,111,165,.4); }
+  .banner .bt { font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .banner .bp { font-size: 14px; margin-top: 6px; color: var(--text-strong); }
+  .banner .prazo { font-weight: 800; }
+
+  .sheet-scrim { position: absolute; inset: 0; background: rgba(0,0,0,.4); display: flex; align-items: flex-end; }
+  .desktop .sheet-scrim { align-items: center; justify-content: center; }
+  .sheet { background: var(--surface); width: 100%; border-radius: 18px 18px 0 0; padding: 20px 18px 24px; }
+  .desktop .sheet { width: 520px; border-radius: 16px; }
+  .sheet h2 { margin: 0 0 4px; font-size: 18px; }
+  .sheet .sub { color: var(--text-muted); font-size: 14px; margin-bottom: 12px; }
+  .desktop .sheet .actions { display: flex; justify-content: flex-end; gap: 10px; }
+  .desktop .sheet .actions .btn { width: auto; padding: 12px 22px; margin-top: 16px; }
+
+  .toast { position: absolute; left: 16px; right: 16px; bottom: 16px; background: #23211c; color: #fff;
+    padding: 13px 16px; border-radius: var(--r-md); font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+
+  /* feed card */
+  .fcard { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: var(--r-md);
+    padding: 14px 16px; margin-bottom: 14px; position: relative; }
+  .fcard .funcao { font-weight: 800; font-size: 16px; }
+  .fcard .meta { color: var(--text-muted); font-size: 14px; margin-top: 3px; }
+  .seloedit { display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; padding: 5px 11px;
+    border-radius: var(--r-full); background: var(--warn-soft); color: var(--warn-ink); font-size: 13px; font-weight: 700; }
+
+  .detalhe-rest { margin-top: 16px; padding: 14px 16px; background: var(--surface);
+    border: 1px solid var(--border-subtle); border-radius: var(--r-md); color: var(--text-muted); font-size: 14px; }
+  .hide { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="proto-bar">
+    <strong>SCREEN-052</strong>
+    <span class="grp"><span class="lbl">Superfície</span>
+      <a data-surf="A" class="on" onclick="setSurf('A')">Contratante</a>
+      <a data-surf="B" onclick="setSurf('B')">Profissional</a>
+    </span>
+    <span class="grp" id="grpA"><span class="lbl">Estado</span>
+      <a data-st="form" class="on" onclick="setState('form')">Form</a>
+      <a data-st="confirm" onclick="setState('confirm')">Confirmar (3 cand.)</a>
+      <a data-st="confirm0" onclick="setState('confirm0')">Confirmar (sem cand.)</a>
+      <a data-st="nada" onclick="setState('nada')">Nada mudou</a>
+      <a data-st="errorede" onclick="setState('errorede')">Erro rede</a>
+      <a data-st="erro409" onclick="setState('erro409')">Erro 409</a>
+      <a data-st="sucesso" onclick="setState('sucesso')">Sucesso</a>
+    </span>
+    <span class="grp hide" id="grpB"><span class="lbl">Estado</span>
+      <a data-st="feed" class="on" onclick="setState('feed')">Card feed</a>
+      <a data-st="revisao" onclick="setState('revisao')">Detalhe revisão</a>
+      <a data-st="retirar" onclick="setState('retirar')">Confirmar retirar</a>
+      <a data-st="expirada" onclick="setState('expirada')">Prazo expirado</a>
+    </span>
+    <span class="grp"><span class="lbl">Viewport</span>
+      <a data-vp="mobile" class="on" onclick="setVp('mobile')">Mobile</a>
+      <a data-vp="desktop" onclick="setVp('desktop')">Desktop</a>
+    </span>
+  </div>
+
+  <div class="stage">
+    <div class="device" id="device"></div>
+  </div>
+
+<script>
+  let surf = 'A', state = 'form', vp = 'mobile';
+
+  function setSurf(s){ surf = s; state = (s==='A'?'form':'feed');
+    document.querySelectorAll('[data-surf]').forEach(a=>a.classList.toggle('on', a.dataset.surf===s));
+    document.getElementById('grpA').classList.toggle('hide', s!=='A');
+    document.getElementById('grpB').classList.toggle('hide', s!=='B');
+    document.querySelectorAll('[data-st]').forEach(a=>a.classList.toggle('on', a.dataset.st===state));
+    render(); }
+  function setState(s){ state = s;
+    document.querySelectorAll('[data-st]').forEach(a=>a.classList.toggle('on', a.dataset.st===s)); render(); }
+  function setVp(v){ vp = v; document.querySelectorAll('[data-vp]').forEach(a=>a.classList.toggle('on', a.dataset.vp===v)); render(); }
+
+  const diffRows = `
+    <div class="diffrow" data-testid="editar-vaga-diff-valor">
+      <div class="campo">Valor</div>
+      <div class="vals"><span class="old">R$ 120,00</span><span class="arrow">→</span><span class="new">R$ 150,00</span></div>
+    </div>
+    <div class="diffrow" data-testid="editar-vaga-diff-data_inicio">
+      <div class="campo">Início</div>
+      <div class="vals"><span class="old">18:00</span><span class="arrow">→</span><span class="new">19:00</span></div>
+    </div>`;
+
+  function appbar(title){ return `<div class="appbar"><div class="back">←</div><h1>${title}</h1></div>`; }
+
+  function formBody(changed){
+    const ch = changed ? 'changed' : '';
+    return `
+      <div class="section">Função</div>
+      <div class="field"><input class="input" value="Garçom ▾" readonly></div>
+      <div class="section">Quando</div>
+      <div class="field"><label>Início</label>
+        <div class="row2"><input class="input" value="12/06/2026"><input class="input" value="19:00"></div></div>
+      <div class="field"><label>Fim</label>
+        <div class="row2"><input class="input" value="12/06/2026"><input class="input" value="23:00"></div>
+        <div class="helper">⏱ A vaga dura 4h.</div></div>
+      <div class="section">Pagamento e posições</div>
+      <div class="field"><label>Valor por turno</label><input class="input ${ch}" value="R$ 150,00">
+        <div class="helper">O quanto o profissional recebe por este turno.</div></div>
+      <div class="field"><label>Quantas pessoas?</label>
+        <div class="stepper"><button>−</button><span class="val">2</span><button>+</button></div></div>
+      <div class="section">Observações (opcional)</div>
+      <div class="field"><input class="input" value="Levar avental preto."></div>`;
+  }
+
+  function avisoCand(n){
+    if(n===0) return `<div class="banner warn" data-testid="editar-vaga-aviso-candidatos">
+      <div class="bp">Ninguém se candidatou ainda — a alteração entra na hora, sem avisos.</div></div>`;
+    const txt = n===1
+      ? '1 candidato pendente vai ser avisado e tem até 24h (ou até o turno começar) para confirmar. Quem não confirmar sai automaticamente.'
+      : `${n} candidatos pendentes vão ser avisados e têm até 24h (ou até o turno começar) para confirmar. Quem não confirmar sai automaticamente.`;
+    return `<div class="banner warn" data-testid="editar-vaga-aviso-candidatos">
+      <div class="bt">⚠ Atenção</div><div class="bp">${txt}</div></div>`;
+  }
+
+  function confirmSheet(n, extra){
+    return `<div class="sheet-scrim"><div class="sheet" data-testid="editar-vaga-confirmar-sheet">
+      <h2>Revisar alteração</h2>
+      <div class="sub">Confira o que muda antes de salvar.</div>
+      <div class="diffcard"><div class="h">O que muda</div>${diffRows}</div>
+      ${extra || avisoCand(n)}
+      <div class="actions">
+        <button class="btn btn-c" data-testid="editar-vaga-confirmar-btn">Confirmar alteração</button>
+        <button class="btn btn-text c" data-testid="editar-vaga-voltar-btn">Voltar e ajustar</button>
+      </div>
+    </div></div>`;
+  }
+
+  function render(){
+    const d = document.getElementById('device');
+    d.className = 'device' + (vp==='desktop' ? ' desktop' : '');
+    let inner = '';
+
+    if(surf==='A'){
+      const screen = `<div class="body" data-testid="editar-vaga-screen"><div class="inner">`;
+      switch(state){
+        case 'form':
+          inner = appbar('Editar vaga') + screen + formBody(true) +
+            `<button class="btn btn-c" data-testid="editar-vaga-revisar-btn">Revisar alteração</button></div></div>`;
+          break;
+        case 'confirm':
+          inner = appbar('Editar vaga') + screen + formBody(true) +
+            `<button class="btn btn-c">Revisar alteração</button></div></div>` + confirmSheet(3);
+          break;
+        case 'confirm0':
+          inner = appbar('Editar vaga') + screen + formBody(true) +
+            `<button class="btn btn-c">Revisar alteração</button></div></div>` + confirmSheet(0);
+          break;
+        case 'nada':
+          inner = appbar('Editar vaga') + screen + formBody(false) +
+            `<button class="btn btn-c disabled">Revisar alteração</button>
+             <div class="helper" data-testid="editar-vaga-nada-mudou" style="text-align:center;margin-top:8px;color:var(--text-muted)">Você ainda não alterou nada.</div></div></div>`;
+          break;
+        case 'errorede':
+          inner = appbar('Editar vaga') + screen + formBody(true) +
+            `<button class="btn btn-c">Revisar alteração</button></div></div>` +
+            confirmSheet(3, `<div class="banner err" data-testid="editar-vaga-erro-rede"><div class="bt">⚠ Erro</div>
+              <div class="bp">Não foi possível salvar agora. Verifique sua conexão e tente de novo.</div></div>
+              <div class="actions"><button class="btn btn-c">Tentar de novo</button></div>`);
+          break;
+        case 'erro409':
+          inner = appbar('Editar vaga') + screen +
+            `<div class="banner err" data-testid="editar-vaga-erro-409"><div class="bt">⚠ Não dá mais para editar</div>
+              <div class="bp">Esta vaga não pode mais ser editada (ela foi fechada ou cancelada).</div></div>
+              <button class="btn btn-outline">Ver a vaga</button></div></div>`;
+          break;
+        case 'sucesso':
+          inner = appbar('Minhas vagas') + screen +
+            `<div class="fcard"><div class="funcao">Garçom</div><div class="meta">12/06 · 19:00–23:00 · R$ 150,00 · 2 vagas</div></div>
+             </div></div><div class="toast">Vaga atualizada — 3 candidatos foram avisados.</div>`;
+          break;
+      }
+    } else {
+      const restoDetalhe = `<div class="detalhe-rest">Garçom · Bar do Zé<br>12/06 · 19:00–23:00 · R$ 150,00 · 2,3 km<br>(resto do detalhe da vaga — STORY-049)</div>`;
+      switch(state){
+        case 'feed':
+          inner = appbar('Candidatadas') + `<div class="body"><div class="inner">
+            <div class="fcard" data-testid="feed-card-revisao-42">
+              <div class="funcao">Garçom</div>
+              <div class="meta">Bar do Zé · 12/06 · 19:00–23:00 · R$ 150,00</div>
+              <span class="seloedit">✎ Vaga editada — confirme</span>
+            </div>
+            <div class="fcard"><div class="funcao">Recepcionista</div>
+              <div class="meta">Hotel Aurora · 14/06 · 08:00–16:00 · R$ 180,00</div></div>
+          </div></div>`;
+          break;
+        case 'revisao':
+          inner = appbar('Detalhe da vaga') + `<div class="body"><div class="inner">
+            <div class="banner warn" data-testid="vaga-detalhe-revisao-banner">
+              <div class="bt">✎ Esta vaga foi editada</div>
+              <div class="bp"><span class="prazo">Confirme até qui, 12/06 às 18:00</span> — senão sua candidatura sai sozinha.</div>
+              <div class="diffcard" style="margin-bottom:6px"><div class="h">O que mudou</div>
+                <div class="diffrow" data-testid="vaga-detalhe-revisao-diff-valor"><div class="campo">Valor</div>
+                  <div class="vals"><span class="old">R$ 120,00</span><span class="arrow">→</span><span class="new">R$ 150,00</span></div></div>
+                <div class="diffrow" data-testid="vaga-detalhe-revisao-diff-data_inicio"><div class="campo">Início</div>
+                  <div class="vals"><span class="old">18:00</span><span class="arrow">→</span><span class="new">19:00</span></div></div>
+              </div>
+              <button class="btn btn-p" data-testid="vaga-detalhe-manter-btn">Manter candidatura</button>
+              <button class="btn btn-outline" data-testid="vaga-detalhe-retirar-btn">Retirar</button>
+            </div>
+            ${restoDetalhe}
+          </div></div>`;
+          break;
+        case 'retirar':
+          inner = appbar('Detalhe da vaga') + `<div class="body"><div class="inner">
+            <div class="banner warn"><div class="bt">✎ Esta vaga foi editada</div></div>${restoDetalhe}</div></div>
+            <div class="sheet-scrim"><div class="sheet">
+              <h2>Retirar candidatura?</h2>
+              <div class="sub">Você sai desta vaga e não recebe mais novidades dela.</div>
+              <div class="actions">
+                <button class="btn btn-outline">Sim, retirar</button>
+                <button class="btn btn-text">Voltar</button>
+              </div>
+            </div></div>`;
+          break;
+        case 'expirada':
+          inner = appbar('Detalhe da vaga') + `<div class="body"><div class="inner">
+            <div class="banner info" data-testid="vaga-detalhe-revisao-expirada">
+              <div class="bp">O prazo para confirmar terminou e sua candidatura saiu desta vaga.</div></div>
+            ${restoDetalhe}</div></div>`;
+          break;
+      }
+    }
+    d.innerHTML = inner;
+  }
+  render();
+</script>
+</body>
+</html>

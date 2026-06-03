@@ -86,6 +86,13 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     Route::get('/vagas/minhas', [VagaController::class, 'minhas']);
     Route::delete('/vagas/{vaga}', [VagaController::class, 'destroy']);
 
+    // Edição material da vaga (STORY-052 / PDR-009). RBAC (papel contratante + dono) no controller.
+    // GET /editar carrega os valores atuais + candidatos a notificar (CA-10); PATCH detecta edição
+    // material, snapshota, transita candidaturas pendentes e devolve o diff (CA-1..CA-5). Vaga não
+    // `aberta` → 409. `/editar` antes do PATCH `/{vaga}` por clareza (sufixo não conflita).
+    Route::get('/vagas/{vaga}/editar', [VagaController::class, 'editar']);
+    Route::patch('/vagas/{vaga}', [VagaController::class, 'update']);
+
     // Gate PDR-005 (STORY-046 CA-5): turnos finalizados pendentes de avaliação do
     // contratante. Contrato { pending, turnos }; stub-honesto até o EPIC-003.
     Route::get('/avaliacoes/pendentes-do-contratante', [AvaliacoesPendentesController::class, 'index']);
@@ -106,6 +113,12 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     // `pendente` (CA-1..CA-7). DELETE retira a própria candidatura `pendente` (CA-8).
     Route::post('/vagas/{vaga}/candidaturas', [CandidaturaController::class, 'store']);
     Route::delete('/candidaturas/{candidatura}', [CandidaturaController::class, 'destroy']);
+
+    // Revisão da candidatura após edição material da vaga (STORY-052 CA-7/CA-8). RBAC profissional
+    // dono no controller (404 esconde p/ terceiros). `confirmar` mantém (→pendente); `retirar`
+    // sai (→retirada_por_edicao). Fora de `pendente_revisao_apos_edicao` → 409.
+    Route::post('/candidaturas/{candidatura}/confirmar-apos-edicao', [CandidaturaController::class, 'confirmarAposEdicao']);
+    Route::post('/candidaturas/{candidatura}/retirar-apos-edicao', [CandidaturaController::class, 'retirarAposEdicao']);
 
     // Painel de candidatos do contratante (STORY-051). RBAC contratante dono (403 p/ não-dono e
     // profissional) no controller; vaga inexistente → 404 (model binding). Lista os candidatos

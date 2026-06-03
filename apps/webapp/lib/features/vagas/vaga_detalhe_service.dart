@@ -2,7 +2,11 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../core/time/turni_datetime.dart';
 import '../cadastro/shared/cadastro_types.dart' show cadastroApiBase;
+import 'vaga_service.dart' show DiffLinha;
+
+export 'vaga_service.dart' show DiffLinha;
 
 /// STORY-049 — estado visual de um componente do breakdown (domain/match.md / ADR-014):
 /// `ok` pontuou cheio, `partial` pontuou parcial, `miss` zerou. A cor/ícone vêm daqui.
@@ -112,6 +116,25 @@ class CandidaturaResumo {
       );
 }
 
+/// STORY-052 CA-11 — bloco de revisão pós-edição: prazo para confirmar + o que mudou (diff
+/// "o que o profissional viu → estado atual"). Presente só quando a candidatura está em
+/// `pendente_revisao_apos_edicao`.
+class RevisaoInfo {
+  final DateTime? prazoEm;
+  final List<DiffLinha> diff;
+
+  const RevisaoInfo({required this.prazoEm, required this.diff});
+
+  factory RevisaoInfo.fromJson(Map<String, dynamic> json) => RevisaoInfo(
+    prazoEm: json['prazo_em'] != null
+        ? DateTime.tryParse(json['prazo_em'] as String)
+        : null,
+    diff: (json['diff'] as List? ?? [])
+        .map((e) => DiffLinha.fromJson(e as Map<String, dynamic>))
+        .toList(growable: false),
+  );
+}
+
 /// Detalhe completo da vaga (contrato CA-1).
 class VagaDetalhe {
   final int id;
@@ -127,6 +150,7 @@ class VagaDetalhe {
   final bool jaCandidatou;
   final CandidaturaResumo? candidatura;
   final String? motivoBloqueio;
+  final RevisaoInfo? revisao;
 
   const VagaDetalhe({
     required this.id,
@@ -142,15 +166,19 @@ class VagaDetalhe {
     required this.jaCandidatou,
     required this.candidatura,
     required this.motivoBloqueio,
+    this.revisao,
   });
+
+  /// A candidatura precisa de revisão pós-edição (banner com Manter/Retirar — CA-11).
+  bool get emRevisao => candidatura?.estado == 'pendente_revisao_apos_edicao';
 
   factory VagaDetalhe.fromJson(Map<String, dynamic> json) => VagaDetalhe(
     id: (json['id'] as num).toInt(),
     funcao: json['funcao'] as String? ?? '',
     estabelecimento: json['estabelecimento'] as String?,
     cidade: json['cidade'] as String?,
-    dataInicio: DateTime.parse(json['data_inicio'] as String),
-    dataFim: DateTime.parse(json['data_fim'] as String),
+    dataInicio: TurniDateTime.parseRequired(json['data_inicio'] as String),
+    dataFim: TurniDateTime.parseRequired(json['data_fim'] as String),
     valor: (json['valor'] as num?)?.toDouble() ?? 0,
     distanciaKm: (json['distancia_km'] as num?)?.toDouble(),
     score: ScoreBreakdown.fromJson(
@@ -164,6 +192,9 @@ class VagaDetalhe {
           )
         : null,
     motivoBloqueio: json['motivo_bloqueio'] as String?,
+    revisao: json['revisao'] != null
+        ? RevisaoInfo.fromJson((json['revisao'] as Map).cast<String, dynamic>())
+        : null,
   );
 }
 

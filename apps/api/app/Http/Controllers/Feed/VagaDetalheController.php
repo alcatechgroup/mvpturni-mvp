@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Feed;
 
 use App\Domain\Avaliacao\AvaliacoesPendentesProfissional;
+use App\Domain\Vaga\EdicaoMaterial;
 use App\Domain\Vaga\VagaDetalhe;
 use App\Domain\Vaga\VagaDetalheQuery;
+use App\Enums\CandidaturaEstado;
 use App\Http\Controllers\Controller;
 use App\Models\ContratanteProfile;
+use App\Models\Funcao;
 use App\Models\Vaga;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -63,8 +66,74 @@ class VagaDetalheController extends Controller
                 'estado' => $candidatura->estado->value,
                 'criada_em' => $candidatura->created_at?->toIso8601String(),
             ],
+            // STORY-052 CA-11 — quando a candidatura está em revisão pós-edição, o banner do
+            // profissional precisa do prazo + do que mudou (diff "o que viu → estado atual").
+            'revisao' => $this->revisao($d),
             'motivo_bloqueio' => $motivoBloqueio,
         ];
+    }
+
+    /**
+     * STORY-052 CA-11 — bloco de revisão pós-edição (null se a candidatura não está em
+     * `pendente_revisao_apos_edicao`). O diff compara a versão que o profissional viu/aceitou
+     * (`vaga_versoes` apontada pela candidatura) contra o estado material atual da vaga; a
+     * comparação é a mesma do contratante (EdicaoMaterial), garantindo simetria (SCREEN-052).
+     *
+     * @return array{prazo_em:?string,diff:list<array<string,mixed>>}|null
+     */
+    private function revisao(VagaDetalhe $d): ?array
+    {
+        $candidatura = $d->candidatura;
+        if ($candidatura === null || $candidatura->estado !== CandidaturaEstado::PendenteRevisaoAposEdicao) {
+            return null;
+        }
+
+        $snapshot = $candidatura->vagaVersao?->snapshot;
+        $diff = $snapshot === null
+            ? []
+            : $this->resolverFuncoes(
+                EdicaoMaterial::diff(
+                    EdicaoMaterial::snapshotDePayload($snapshot),
+                    EdicaoMaterial::snapshotDeVaga($d->vaga),
+                ),
+            );
+
+        return [
+            'prazo_em' => $candidatura->revisao_prazo_em?->toIso8601String(),
+            'diff' => $diff,
+        ];
+    }
+
+    /**
+     * Substitui os ids de função por nomes legíveis nas linhas de diff do tipo `funcao` — o
+     * banner mostra "Garçom → Cozinheiro", não ids. Demais linhas passam intactas.
+     *
+     * @param  list<array<string,mixed>>  $diff
+     * @return list<array<string,mixed>>
+     */
+    private function resolverFuncoes(array $diff): array
+    {
+        $ids = [];
+        foreach ($diff as $linha) {
+            if (($linha['tipo'] ?? null) === 'funcao') {
+                $ids[] = $linha['antes'];
+                $ids[] = $linha['depois'];
+            }
+        }
+        if ($ids === []) {
+            return $diff;
+        }
+
+        $nomes = Funcao::query()->whereIn('id', array_filter($ids))->pluck('nome', 'id');
+
+        return array_map(function (array $linha) use ($nomes) {
+            if (($linha['tipo'] ?? null) === 'funcao') {
+                $linha['antes'] = $nomes[$linha['antes']] ?? null;
+                $linha['depois'] = $nomes[$linha['depois']] ?? null;
+            }
+
+            return $linha;
+        }, $diff);
     }
 
     /**
