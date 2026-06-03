@@ -23,9 +23,11 @@ Schedule::command('candidaturas:auto-retirar-apos-edicao')
     ->everyMinute()
     ->withoutOverlapping();
 
-// E-mail das notificações (STORY-053 CA-5): drena a fila implícita `notificacoes`. 1×/min para o
-// SLA de ≤60s p95 (CA-9); reusa o Cloud Run Job + Scheduler da STORY-034. Retry/backoff via
-// `tentativas_envio` na própria tabela; withoutOverlapping evita lote concorrente.
+// Sweeper/backfill do e-mail das notificações (STORY-053 CA-5). REDE DE SEGURANÇA, não o caminho
+// primário: a entrega real é EnviarEmailDaNotificacaoJob na fila `database`, processada pelo
+// `queue:work` que roda em homolog/prod (`schedule:run` NÃO roda lá — por isso a fila, não o
+// Schedule). Este agendamento só tem efeito onde houver `schedule:run`; mantido para reprocessar
+// pendências (ex.: jobs perdidos) quando/se isso existir.
 Schedule::command('notificacoes:enviar-emails')
     ->everyMinute()
     ->withoutOverlapping();

@@ -3,6 +3,7 @@
 namespace App\Services\Notificacao;
 
 use App\Enums\NotificacaoTipo;
+use App\Jobs\EnviarEmailDaNotificacaoJob;
 use App\Models\AuditLog;
 use App\Models\Notificacao;
 use Illuminate\Http\Request;
@@ -55,6 +56,12 @@ class CriarNotificacaoService
                 'ip' => $this->request->ip(),
                 'user_agent' => $this->request->userAgent(),
             ]);
+
+            // CA-5 — entrega o e-mail pela fila (caminho que roda em homolog via queue:work).
+            // Fila `database`: o job é INSERIDO na tabela `jobs` dentro da MESMA transação que cria a
+            // notificação (e a candidatura/edição que a originou), então o worker só o enxerga após o
+            // commit e o rollback o desfaz junto — transação-seguro sem precisar de afterCommit.
+            EnviarEmailDaNotificacaoJob::dispatch($notificacao->id);
         }
 
         return $notificacao;
