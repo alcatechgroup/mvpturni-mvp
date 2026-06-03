@@ -207,6 +207,10 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
 - **CA-7 (feito, verde):** `NotificacaoController` + rotas; `GET /api/notificacoes[?lidas=false]`
   (50 + `nao_lidas` p/ badge), `marcar-lida` (RBAC destinatario, 404 terceiros), `marcar-todas-lidas`.
   7 testes.
+- **CA-8 (feito, verde):** UI Flutter — `NotificacoesSino` (badge `error` nas `actions:` de
+  feed/minhas-vagas), `NotificacoesPainel` (`endDrawer`, tema por papel, estados
+  lista/loading/vazio/erro), `NotificacoesController` (otimista) + serviço. Toque marca lida +
+  navega por tipo. 14 testes; suíte WebApp 340 verde; analyze/format limpos.
 
 ### Decisões / Descobertas / Bloqueios / IDRs
 - **IDR-053 (a registrar):** assuntos dos 5 e-mails de notificação ficam em `App\Enums\NotificacaoTipo`
@@ -225,15 +229,15 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
   envia via ACL (`EnviaEmailTransacional`), retry via `tentativas_envio` (3) → `falha_envio_em`.
 - **CA-6 (templates no editor — Path A):** coluna `categoria` em `templates` (migração admin) + seeder
   dos 5 corpos (texto-seed v1) como `TemplateVersao` ativa + renderer de interpolação na api.
-- **CA-8 (Flutter):** sino+badge nas `actions:` de `feed_screen`/`minhas_vagas_screen`, painel
-  `endDrawer`, serviço + estados (SCREEN-053) + widget tests (≥80%).
 - **Templates 4/5:** hooks nos endpoints de confirmar/retirar + auto-retirada.
-- **CA-11/12:** fechar cobertura ≥95% back, ≥80% widget; E2E 3 cenários (Mailpit homolog); SLA ≤60s.
+- **CA-11/12:** fechar cobertura ≥95% back, ≥80% widget (in-app já ~ok); E2E 3 cenários (Mailpit
+  homolog); SLA ≤60s; deploy homolog.
 
 ### Cobertura final
-- Unitários: parcial — listeners 6 testes (100% nos listeners), endpoints 7 testes. Falta worker/render.
-- E2E: pendente.
+- Unitários back: listeners 6 testes (100%), endpoints 7 testes. Falta worker/render (CA-5/6).
+- Widget WebApp: 14 testes da feature notificações; suíte 340 verde. Falta E2E.
+- E2E: pendente (CA-12 — Mailpit homolog).
 ### Templates carregados
 - Pendente (CA-6 / Path A).
 ### Links
-- Commits: `9b00dba` (design+listeners), `248f9d6` (endpoints). PR/Deploy: pendente.
+- Commits: `9b00dba` (design+listeners), `248f9d6` (endpoints), `00c8ee7` (Flutter CA-8). PR/Deploy: pendente.
