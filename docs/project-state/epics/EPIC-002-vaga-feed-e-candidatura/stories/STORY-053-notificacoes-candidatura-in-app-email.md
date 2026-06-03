@@ -82,7 +82,7 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
 - [ ] CAs checados. *(CA-1..8, 10, 11 ok; faltam CA-9 SLA e CA-12 E2E — ambos exigem homolog.)*
 - [ ] Cobertura + E2E verdes, SLA observado. *(Cobertura back/widget ok; E2E + SLA pendentes em homolog.)*
 - [x] 5 templates ativos no editor (TemplateVersao ativa).
-- [x] Deploy de homolog: **rc.49** no ar (api/admin/webapp `v0.1.0-rc.49`, smoke verde). *(O ciclo candidata→e-mail no Mailpit de homolog ainda não foi exercido ponta-a-ponta — é o CA-12.)*
+- [x] Deploy de homolog: **rc.53** no ar; **ciclo candidata→e-mail exercido e CONFIRMADO** em homolog (ver Notas).
 - [x] `index.json` atualizado.
 - [x] "Notas do agente" preenchida com link para os 5 templates carregados.
 
@@ -273,10 +273,30 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
   homolog. A pré-condição "Mailpit em homolog" da story está desatualizada; a validação de CA-12 será
   por Resend + Cloud Logging (`notificacao.email.sent` com `message_id`), não por inbox Mailpit.
 
-### Pendente (próxima sessão — só o que exige homolog)
-- **CA-12 / CA-9:** E2E 3 cenários (Mailpit homolog, 0 flake em 3 runs) + SLA ≤60s p95 via log-based
-  metric. O deploy de homolog (rc.49) já está no ar; falta exercer o ciclo candidata→e-mail no Mailpit
-  de homolog e instrumentar a métrica. Fecham junto com STORY-054 (validador do épico).
+### ✅ Validação em HOMOLOG (2026-06-03, rc.53) — CA-5 ponta-a-ponta confirmada
+- **Setup (CA-12 smoke):** `Ca12EmailSmokeSeeder` (ungated — `db:seed` só roda em homolog) cria
+  contratante **entregável** `xandroalmeida+turni-homolog@gmail.com` + vaga candidatável (valor 137).
+  Necessário porque **homolog usa Resend** (`MAIL_MAILER=resend`, remetente `mail.homolog.turni.com.br`),
+  **não Mailpit**, e os usuários de seed `@turni.local` são indeligíveis.
+- **Fluxo:** `profissional.teste` candidatou via API (vaga 9, 17:45:54) → `CandidaturaEnviada` →
+  notificação → `EnviarEmailDaNotificacaoJob` na fila → `queue:work` (tick ~1/min) processou (17:46:15)
+  → **Resend aceitou** (17:46:16). Log `notificacao.email.sent` em homolog:
+  `tipo=candidatura_recebida`, `destinatario=x•••@gmail.com`,
+  `message_id=8b1b71a4c75a817e9f10d0cc548900f1@mail.homolog.turni.com.br`, `latencia_ms=680`.
+- **E-mail recebido e conferido pelo PO** (screenshot): H1 "Nova candidatura recebida", saudação
+  "Olá, Contratante CA-12 (smoke).", corpo interpolado (função, data, score 85/100), CTA "Ver candidatos"
+  → `app.homolog.turni.com.br/contratante/vagas/9/candidatos`, rodapé da convenção. Render fiel ao texto-seed v1.
+- **SLA (CA-9):** candidatura→e-mail ≈ **22s** neste disparo (dentro do ≤60s p95). A *métrica log-based
+  formal* (a partir do `notificacao.email.sent`) ainda é item à parte.
+
+### Pendente (próxima sessão)
+- **CA-9 (métrica formal):** o SLA ≤60s já foi *observado* (~22s) em homolog; falta instrumentar a
+  **log-based metric** a partir do `notificacao.email.sent` (timestamp criada_em→sent) + alerta.
+- **CA-12 (automação):** o cenário "candidata→e-mail" foi validado MANUALMENTE em homolog (Resend);
+  falta automatizar os **3 cenários** (candidata / edita-material / cancela) com asserção de inbox e
+  **0 flake em 3 runs**. Como homolog usa Resend (não Mailpit), a asserção será via Cloud Logging
+  (`notificacao.email.sent`/`message_id`) ou via Resend API, não por inbox Mailpit — a premissa
+  "Mailpit em homolog" do CA-12 precisa ser revista com o PO. Fecha junto com STORY-054.
 
 ### Cobertura final
 - Unitários back: listeners 6 + endpoints 7 + **renderer 6 (EmailTemplateRenderer 96% linhas)** +
