@@ -52,7 +52,7 @@ function contratanteCand(array $perfil = []): User
 }
 
 /** Vaga aberta futura na Grande SP. */
-function vagaCand(int $funcaoId, array $over = []): Vaga
+function vagaCand(string $funcaoId, array $over = []): Vaga
 {
     $contratanteId = $over['contratante_id'] ?? contratanteCand()->id;
     unset($over['contratante_id']);
@@ -124,7 +124,7 @@ test('não autenticado recebe 401 ao candidatar', function () {
 test('vaga inexistente → 404', function () {
     $prof = profCand();
 
-    $this->actingAs($prof)->postJson('/api/vagas/999999/candidaturas')->assertStatus(404);
+    $this->actingAs($prof)->postJson('/api/vagas/00000000-0000-0000-0000-000000000000/candidaturas')->assertStatus(404);
 });
 
 // ───────────────────────── CA-5 — pré-condições (vaga fechada) ─────────────────────────
@@ -257,7 +257,7 @@ test('sem sobreposição de horário → candidatura criada (CA-3)', function ()
 // ───────────────────────── CA-4 — habitualidade (PDR-002) ─────────────────────────
 
 /** Cria duas alocações pendentes do prof no estabelecimento $contratante, na semana de $base. */
-function duasAlocacoesNaSemana(User $prof, User $contratante, int $funcaoId): void
+function duasAlocacoesNaSemana(User $prof, User $contratante, string $funcaoId): void
 {
     foreach ([0, 1] as $offset) {
         $dia = now()->addWeek()->startOfWeek(CarbonInterface::MONDAY)->addDays($offset)->setTime(18, 0);

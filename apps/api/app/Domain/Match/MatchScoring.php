@@ -24,9 +24,9 @@ final class MatchScoring
     public function paraEntidades(ProfissionalProfile $profissional, Vaga $vaga, ?float $distanciaKm): MatchScore
     {
         return $this->calculator->calcular(new MatchInput(
-            funcaoVagaId: (int) $vaga->funcao_id,
-            funcaoPrimariaProfId: (int) $profissional->funcao_id,
-            funcoesSecundariasProfIds: array_map('intval', $profissional->funcoes_secundarias ?? []),
+            funcaoVagaId: (string) $vaga->funcao_id,
+            funcaoPrimariaProfId: (string) $profissional->funcao_id,
+            funcoesSecundariasProfIds: array_map('strval', $profissional->funcoes_secundarias ?? []),
             distanciaKm: $distanciaKm,
             raioMaxKm: (int) ($profissional->raio_max_km ?? 0),
             scoreHistorico: $profissional->score !== null ? (float) $profissional->score : null,

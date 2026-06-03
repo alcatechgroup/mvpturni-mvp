@@ -27,7 +27,7 @@ final class VagaDetalheQuery
         private readonly MatchScoring $scoring = new MatchScoring,
     ) {}
 
-    public function paraProfissional(User $profissional, int $vagaId): ?VagaDetalhe
+    public function paraProfissional(User $profissional, string $vagaId): ?VagaDetalhe
     {
         $vaga = Vaga::query()
             ->where('id', $vagaId)
@@ -66,7 +66,7 @@ final class VagaDetalheQuery
      * Candidatura vigente do profissional nesta vaga: pendente, em revisão pós-edição, ou
      * aprovada (estados que significam "já candidatou"). Retiradas/recusadas não contam.
      */
-    private function candidaturaVigente(int $profissionalId, int $vagaId): ?Candidatura
+    private function candidaturaVigente(string $profissionalId, string $vagaId): ?Candidatura
     {
         return Candidatura::query()
             ->where('profissional_id', $profissionalId)

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class CadastroLembrete extends Model
 {
+    use HasUuids;
+
     protected $table = 'cadastro_lembretes';
 
     protected $fillable = ['user_id', 'numero', 'enviado_em'];

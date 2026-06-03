@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * STORY-044 / ADR-013 Decisão 3 (CA-8) — popula ~1k vagas abertas para o microbenchmark
@@ -51,6 +52,8 @@ class VagasStressSeeder extends Seeder
         for ($i = 0; $i < self::TOTAL; $i++) {
             $inicio = (clone $now)->addDays(($i % 60) + 1)->setTime(18, 0);
             $rows[] = [
+                // STORY-070/ADR-018: uuid gerado na aplicação (insert em lote via query builder).
+                'id' => (string) Str::uuid7(),
                 'contratante_id' => $contratante->id,
                 'funcao_id' => $funcoes[$i % count($funcoes)],
                 'data_inicio' => $inicio,

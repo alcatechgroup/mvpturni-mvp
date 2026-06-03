@@ -54,9 +54,9 @@ return new class extends Migration
         DB::unprepared('DROP FUNCTION IF EXISTS prevent_aceite_eletronico_mutation() CASCADE');
 
         Schema::create('aceites_eletronicos', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('template_versao_id')->constrained('template_versoes');
-            $table->foreignId('user_id')->constrained('users');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('template_versao_id')->constrained('template_versoes');
+            $table->foreignUuid('user_id')->constrained('users');
             $table->text('conteudo_renderizado'); // documento integral exibido/assinado (autocontido)
             $table->jsonb('dados_renderizados');   // mapa placeholder -> valor usado na renderização
             $table->timestampTz('aceito_em')->default(DB::raw('NOW()'));

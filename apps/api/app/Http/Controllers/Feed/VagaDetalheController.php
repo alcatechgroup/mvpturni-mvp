@@ -25,7 +25,7 @@ class VagaDetalheController extends Controller
 {
     public function __construct(private readonly VagaDetalheQuery $query) {}
 
-    public function show(Request $request, int $vaga, AvaliacoesPendentesProfissional $gate): JsonResponse
+    public function show(Request $request, string $vaga, AvaliacoesPendentesProfissional $gate): JsonResponse
     {
         $user = $request->user();
         abort_unless($user !== null && $user->isProfissional(), 403);

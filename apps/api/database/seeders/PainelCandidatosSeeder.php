@@ -90,7 +90,7 @@ class PainelCandidatosSeeder extends Seeder
         $this->command?->info('PainelCandidatosSeeder: vaga do contratante.teste + 3 candidaturas ranqueadas.');
     }
 
-    private function vaga(int $contratanteId, int $funcaoId): Vaga
+    private function vaga(string $contratanteId, string $funcaoId): Vaga
     {
         $existente = Vaga::where('observacoes', self::MARCADOR)->first();
         if ($existente !== null) {
@@ -135,7 +135,7 @@ class PainelCandidatosSeeder extends Seeder
         return $vaga;
     }
 
-    private function profissional(string $email, string $nome, int $funcaoId, string $nivel, float $score): User
+    private function profissional(string $email, string $nome, string $funcaoId, string $nivel, float $score): User
     {
         $user = User::updateOrCreate(
             ['email' => $email],

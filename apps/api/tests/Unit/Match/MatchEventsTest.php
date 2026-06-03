@@ -22,12 +22,12 @@ function scoreExemplo(): MatchScore
 test('feed.vaga_apresentada loga score e componentes (CA-6)', function () {
     Log::spy();
 
-    MatchEvents::vagaApresentada(vagaId: 10, profissionalId: 20, score: scoreExemplo());
+    MatchEvents::vagaApresentada(vagaId: '10', profissionalId: '20', score: scoreExemplo());
 
     Log::shouldHaveReceived('info')->once()->withArgs(function (string $event, array $ctx) {
         return $event === 'feed.vaga_apresentada'
-            && $ctx['vaga_id'] === 10
-            && $ctx['profissional_id'] === 20
+            && $ctx['vaga_id'] === '10'
+            && $ctx['profissional_id'] === '20'
             && $ctx['score_total'] === 100
             && $ctx['componentes']['funcao'] === 40;
     });
@@ -36,12 +36,12 @@ test('feed.vaga_apresentada loga score e componentes (CA-6)', function () {
 test('feed.vaga_filtrada loga o motivo do filtro (CA-6)', function () {
     Log::spy();
 
-    MatchEvents::vagaFiltrada(vagaId: 11, profissionalId: 21, motivo: MotivoFiltro::ForaRaio);
+    MatchEvents::vagaFiltrada(vagaId: '11', profissionalId: '21', motivo: MotivoFiltro::ForaRaio);
 
     Log::shouldHaveReceived('info')->once()->withArgs(function (string $event, array $ctx) {
         return $event === 'feed.vaga_filtrada'
-            && $ctx['vaga_id'] === 11
-            && $ctx['profissional_id'] === 21
+            && $ctx['vaga_id'] === '11'
+            && $ctx['profissional_id'] === '21'
             && $ctx['motivo_filtro'] === 'fora_raio';
     });
 });
@@ -49,11 +49,11 @@ test('feed.vaga_filtrada loga o motivo do filtro (CA-6)', function () {
 test('match.candidatura_enviada registra o score do momento (CA-6)', function () {
     Log::spy();
 
-    MatchEvents::candidaturaEnviada(vagaId: 12, profissionalId: 22, candidaturaId: 500, score: scoreExemplo());
+    MatchEvents::candidaturaEnviada(vagaId: '12', profissionalId: '22', candidaturaId: '500', score: scoreExemplo());
 
     Log::shouldHaveReceived('info')->once()->withArgs(function (string $event, array $ctx) {
         return $event === 'match.candidatura_enviada'
-            && $ctx['candidatura_id'] === 500
+            && $ctx['candidatura_id'] === '500'
             && $ctx['score_total'] === 100
             && isset($ctx['componentes']);
     });
@@ -62,11 +62,11 @@ test('match.candidatura_enviada registra o score do momento (CA-6)', function ()
 test('match.candidatura_aprovada registra o score do momento (CA-6)', function () {
     Log::spy();
 
-    MatchEvents::candidaturaAprovada(vagaId: 13, profissionalId: 23, candidaturaId: 501, score: scoreExemplo());
+    MatchEvents::candidaturaAprovada(vagaId: '13', profissionalId: '23', candidaturaId: '501', score: scoreExemplo());
 
     Log::shouldHaveReceived('info')->once()->withArgs(function (string $event, array $ctx) {
         return $event === 'match.candidatura_aprovada'
-            && $ctx['candidatura_id'] === 501
+            && $ctx['candidatura_id'] === '501'
             && $ctx['score_total'] === 100;
     });
 });

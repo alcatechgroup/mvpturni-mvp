@@ -15,11 +15,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('vaga_versoes', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('vaga_id')->constrained('vagas');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('vaga_id')->constrained('vagas');
             $table->smallInteger('versao');
             $table->jsonb('snapshot');
-            $table->foreignId('editado_por')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUuid('editado_por')->nullable()->constrained('users')->nullOnDelete();
             // Append-only: só created_at, com default no banco.
             $table->timestampTz('created_at')->default(DB::raw('NOW()'));
 

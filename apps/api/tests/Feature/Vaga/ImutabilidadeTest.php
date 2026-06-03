@@ -9,13 +9,15 @@ use App\Models\Vaga;
 use App\Models\VagaVersao;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
 // ── vaga_versoes ──
 test('vaga_versoes aceita INSERT', function () {
     $versao = VagaVersao::factory()->create();
-    expect($versao->id)->toBeInt()->toBeGreaterThan(0);
+    expect($versao->id)->toBeString();
+    expect(Str::isUuid($versao->id))->toBeTrue();
 });
 
 test('vaga_versoes é imutável — UPDATE (SQL) lança exceção do banco', function () {
@@ -49,10 +51,11 @@ test('audit_logs aceita INSERT', function () {
         'actor_id' => User::factory()->contratante()->ativo()->create()->id,
         'action' => 'vaga.criada',
         'target_type' => 'Vaga',
-        'target_id' => 1,
-        'payload' => ['funcao_id' => 1, 'posicoes' => 2],
+        'target_id' => (string) Str::uuid7(),
+        'payload' => ['posicoes' => 2],
     ]);
-    expect($log->id)->toBeInt()->toBeGreaterThan(0);
+    expect($log->id)->toBeString();
+    expect(Str::isUuid($log->id))->toBeTrue();
 });
 
 test('audit_logs é imutável — UPDATE lança exceção', function () {

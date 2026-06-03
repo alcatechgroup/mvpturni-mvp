@@ -12,10 +12,10 @@ namespace App\Domain\Match;
  */
 final class MatchInput
 {
-    /** @param list<int> $funcoesSecundariasProfIds */
+    /** @param list<string> $funcoesSecundariasProfIds */
     public function __construct(
-        public readonly int $funcaoVagaId,
-        public readonly int $funcaoPrimariaProfId,
+        public readonly string $funcaoVagaId,
+        public readonly string $funcaoPrimariaProfId,
         public readonly array $funcoesSecundariasProfIds,
         public readonly ?float $distanciaKm,
         public readonly int $raioMaxKm,

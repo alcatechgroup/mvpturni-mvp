@@ -106,7 +106,7 @@ final class EdicaoMaterial
     private static function normalizar(array $dados): array
     {
         return [
-            'funcao_id' => $dados['funcao_id'] !== null ? (int) $dados['funcao_id'] : null,
+            'funcao_id' => $dados['funcao_id'] !== null ? (string) $dados['funcao_id'] : null,
             'data_inicio' => self::data($dados['data_inicio']),
             'data_fim' => self::data($dados['data_fim']),
             'valor' => $dados['valor'] !== null ? number_format((float) $dados['valor'], 2, '.', '') : null,

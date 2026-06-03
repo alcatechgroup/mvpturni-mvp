@@ -38,7 +38,7 @@ final class DiffParaTexto
         return match ($tipo) {
             'data' => DataHora::completa(Carbon::parse((string) $v)) ?? (string) $v,
             'valor' => 'R$ '.number_format((float) $v, 2, ',', '.'),
-            'funcao' => Funcao::find((int) $v)?->nome ?? "Função #{$v}",
+            'funcao' => Funcao::find($v)?->nome ?? "Função #{$v}",
             default => (string) $v,
         };
     }

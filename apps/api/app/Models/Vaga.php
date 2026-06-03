@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\VagaEstado;
 use DomainException;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Vaga extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'contratante_id', 'funcao_id', 'data_inicio', 'data_fim', 'valor', 'valor_hora',

@@ -147,7 +147,7 @@ class CriarCandidaturaService
     }
 
     /** Candidatura (de qualquer estado) deste profissional nesta vaga — para idempotência/reativação. */
-    private function candidaturaExistente(int $profissionalId, int $vagaId): ?Candidatura
+    private function candidaturaExistente(string $profissionalId, string $vagaId): ?Candidatura
     {
         return Candidatura::query()
             ->where('profissional_id', $profissionalId)
@@ -165,7 +165,7 @@ class CriarCandidaturaService
         ], true);
     }
 
-    private function versaoAtualId(Vaga $vaga): ?int
+    private function versaoAtualId(Vaga $vaga): ?string
     {
         return VagaVersao::query()
             ->where('vaga_id', $vaga->id)

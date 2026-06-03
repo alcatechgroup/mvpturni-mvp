@@ -6,6 +6,7 @@ use App\Models\AdminAuditLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
@@ -22,7 +23,8 @@ test('audit log pode ser criado (INSERT funciona)', function () {
         'user_agent' => 'Test',
     ]);
 
-    expect($entry->id)->toBeInt()->toBeGreaterThan(0);
+    expect($entry->id)->toBeString();
+    expect(Str::isUuid($entry->id))->toBeTrue();
 });
 
 test('audit log é imutável — UPDATE lança exceção do banco (trigger)', function () {

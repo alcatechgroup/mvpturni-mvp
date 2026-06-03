@@ -45,7 +45,7 @@ function contratanteComEstabelecimento(array $perfil = []): User
 }
 
 /** Vaga aberta futura na Grande SP, com contratante + estabelecimento. */
-function vagaDet(int $funcaoId, array $over = []): Vaga
+function vagaDet(string $funcaoId, array $over = []): Vaga
 {
     $contratanteId = $over['contratante_id'] ?? contratanteComEstabelecimento()->id;
     unset($over['contratante_id']);
@@ -133,7 +133,7 @@ test('não autenticado recebe 401', function () {
 test('vaga inexistente → 404', function () {
     $prof = profDet();
 
-    $this->actingAs($prof)->getJson('/api/vagas/999999/detalhe')->assertStatus(404);
+    $this->actingAs($prof)->getJson('/api/vagas/00000000-0000-0000-0000-000000000000/detalhe')->assertStatus(404);
 });
 
 test('vaga fechada → 404 (não está mais disponível)', function () {

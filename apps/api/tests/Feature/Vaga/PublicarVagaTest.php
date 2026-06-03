@@ -179,7 +179,7 @@ test('valor ≤ 0 → 422 (CA-2)', function () {
 test('funcao_id fora da lista canônica → 422 (CA-2/CA-4)', function () {
     $contratante = contratanteAtivoComPerfil();
 
-    $this->actingAs($contratante)->postJson('/api/vagas', payloadVaga(['funcao_id' => 999999]))
+    $this->actingAs($contratante)->postJson('/api/vagas', payloadVaga(['funcao_id' => '00000000-0000-0000-0000-000000000000']))
         ->assertStatus(422)->assertJsonValidationErrors('funcao_id');
 });
 

@@ -27,14 +27,14 @@ return new class extends Migration
         )");
 
         Schema::create('notificacoes', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             // `tipo` adicionado via ALTER (enum nativo).
-            $table->foreignId('destinatario_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUuid('destinatario_id')->constrained('users')->restrictOnDelete();
             // Vaga/candidatura de contexto — nullable + nullOnDelete: a notificação sobrevive
             // ao (improvável) sumiço do alvo; vagas/candidaturas no MVP transitam de estado,
             // não são apagadas.
-            $table->foreignId('vaga_id')->nullable()->constrained('vagas')->nullOnDelete();
-            $table->foreignId('candidatura_id')->nullable()->constrained('candidaturas')->nullOnDelete();
+            $table->foreignUuid('vaga_id')->nullable()->constrained('vagas')->nullOnDelete();
+            $table->foreignUuid('candidatura_id')->nullable()->constrained('candidaturas')->nullOnDelete();
             $table->jsonb('payload')->nullable();
             // Idempotência (story §"Idempotência"): "<tipo>:<candidatura_id>[:<vaga_versao>]".
             $table->string('idempotency_key', 191)->unique();

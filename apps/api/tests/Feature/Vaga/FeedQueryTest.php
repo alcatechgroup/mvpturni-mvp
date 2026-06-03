@@ -12,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 /** Query candidata do feed (ADR-013 §Plano de verificação). */
-function feed(int $funcaoId, array $latRange, array $lngRange)
+function feed(string $funcaoId, array $latRange, array $lngRange)
 {
     return Vaga::query()
         ->where('estado', VagaEstado::Aberta)

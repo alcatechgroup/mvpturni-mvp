@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 final class MatchEvents
 {
     /** Vaga entrou no feed do profissional com um score. */
-    public static function vagaApresentada(int $vagaId, int $profissionalId, MatchScore $score): void
+    public static function vagaApresentada(string $vagaId, string $profissionalId, MatchScore $score): void
     {
         Log::info('feed.vaga_apresentada', [
             'event' => 'feed.vaga_apresentada',
@@ -29,7 +29,7 @@ final class MatchEvents
     }
 
     /** Vaga ficou de fora do feed por um filtro (função, raio, horário, gate de avaliação). */
-    public static function vagaFiltrada(int $vagaId, int $profissionalId, MotivoFiltro $motivo): void
+    public static function vagaFiltrada(string $vagaId, string $profissionalId, MotivoFiltro $motivo): void
     {
         Log::info('feed.vaga_filtrada', [
             'event' => 'feed.vaga_filtrada',
@@ -40,7 +40,7 @@ final class MatchEvents
     }
 
     /** Profissional se candidatou; o score do momento é registrado. */
-    public static function candidaturaEnviada(int $vagaId, int $profissionalId, int $candidaturaId, MatchScore $score): void
+    public static function candidaturaEnviada(string $vagaId, string $profissionalId, string $candidaturaId, MatchScore $score): void
     {
         Log::info('match.candidatura_enviada', [
             'event' => 'match.candidatura_enviada',
@@ -53,7 +53,7 @@ final class MatchEvents
     }
 
     /** Contratante aprovou a candidatura; o score do momento é registrado. */
-    public static function candidaturaAprovada(int $vagaId, int $profissionalId, int $candidaturaId, MatchScore $score): void
+    public static function candidaturaAprovada(string $vagaId, string $profissionalId, string $candidaturaId, MatchScore $score): void
     {
         Log::info('match.candidatura_aprovada', [
             'event' => 'match.candidatura_aprovada',

@@ -106,7 +106,7 @@ test('cancelar vaga já cancelada → 409 (idempotência fail-closed)', function
 test('cancelar vaga inexistente → 404 (borda)', function () {
     $contratante = User::factory()->contratante()->ativo()->create();
 
-    $this->actingAs($contratante)->deleteJson('/api/vagas/999999')->assertStatus(404);
+    $this->actingAs($contratante)->deleteJson('/api/vagas/00000000-0000-0000-0000-000000000000')->assertStatus(404);
 });
 
 test('cancelar NÃO dispara evento quando a transição falha (409)', function () {

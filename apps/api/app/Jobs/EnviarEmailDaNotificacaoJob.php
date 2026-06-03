@@ -33,7 +33,7 @@ class EnviarEmailDaNotificacaoJob implements ShouldQueue
 
     public int $timeout = 30;
 
-    public function __construct(public readonly int $notificacaoId)
+    public function __construct(public readonly string $notificacaoId)
     {
         $this->onConnection('database');
     }

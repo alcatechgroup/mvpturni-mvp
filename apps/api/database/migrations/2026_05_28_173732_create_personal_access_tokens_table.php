@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
-            $table->morphs('tokenable');
+            // STORY-070 / ADR-018 (Decisão 4): tokenable_id aponta para users.id (uuid).
+            // PK própria (id) permanece bigint — default do Sanctum.
+            $table->uuidMorphs('tokenable');
             $table->text('name');
             $table->string('token', 64)->unique();
             $table->text('abilities')->nullable();

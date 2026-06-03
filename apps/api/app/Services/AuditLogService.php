@@ -12,9 +12,9 @@ class AuditLogService
 
     public function log(
         string $action,
-        ?int $actorId = null,
+        ?string $actorId = null,
         ?string $targetType = null,
-        ?int $targetId = null,
+        ?string $targetId = null,
         array $payload = [],
     ): void {
         AdminAuditLog::create([

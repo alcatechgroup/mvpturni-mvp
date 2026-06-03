@@ -14,12 +14,12 @@ final class LinksWebApp
         return rtrim((string) config('app.webapp_url', config('app.url')), '/');
     }
 
-    public static function painelCandidatos(int $vagaId): string
+    public static function painelCandidatos(string $vagaId): string
     {
         return self::base()."/contratante/vagas/{$vagaId}/candidatos";
     }
 
-    public static function detalheVaga(int $vagaId): string
+    public static function detalheVaga(string $vagaId): string
     {
         return self::base()."/vaga/{$vagaId}";
     }

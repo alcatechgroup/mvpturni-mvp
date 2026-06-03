@@ -11,8 +11,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('contratante_profiles', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
             $table->text('cnpj_encrypted')->nullable(); // Eloquent Encrypted Cast
             $table->string('nome_estabelecimento')->nullable();
             $table->string('tipo_operacao')->nullable();

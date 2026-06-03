@@ -87,6 +87,6 @@ test('diff de data devolve ISO-8601 e diff de função devolve os ids (resolvido
     $diff = collect(EdicaoMaterial::diff($a, $b))->keyBy('campo');
 
     expect($diff['data_inicio']['depois'])->toContain('2026-06-12T19:00:00');
-    expect($diff['funcao_id']['antes'])->toBe(1);
-    expect($diff['funcao_id']['depois'])->toBe(7);
+    expect($diff['funcao_id']['antes'])->toBe('1');
+    expect($diff['funcao_id']['depois'])->toBe('7');
 });

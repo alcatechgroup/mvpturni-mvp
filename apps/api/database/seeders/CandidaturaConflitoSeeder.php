@@ -67,7 +67,7 @@ class CandidaturaConflitoSeeder extends Seeder
         }
     }
 
-    private function criarVaga(int $contratanteId, int $funcaoId, $inicio, $fim, float $valor, string $marcador): Vaga
+    private function criarVaga(string $contratanteId, string $funcaoId, $inicio, $fim, float $valor, string $marcador): Vaga
     {
         // Idempotente: reusa a vaga marcada se já existe (não recria a cada `db:seed`).
         $existente = Vaga::where('observacoes', $marcador)->first();

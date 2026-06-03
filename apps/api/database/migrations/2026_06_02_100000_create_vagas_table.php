@@ -19,9 +19,9 @@ return new class extends Migration
         DB::statement("CREATE TYPE vaga_estado AS ENUM ('aberta', 'fechada', 'cancelada')");
 
         Schema::create('vagas', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('contratante_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('funcao_id')->constrained('funcoes')->restrictOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('contratante_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUuid('funcao_id')->constrained('funcoes')->restrictOnDelete();
             $table->timestampTz('data_inicio');
             $table->timestampTz('data_fim');
             $table->decimal('valor', 10, 2);

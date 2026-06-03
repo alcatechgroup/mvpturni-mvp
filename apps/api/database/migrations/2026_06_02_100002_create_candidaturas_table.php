@@ -22,11 +22,11 @@ return new class extends Migration
         )");
 
         Schema::create('candidaturas', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('vaga_id')->constrained('vagas')->restrictOnDelete();
-            $table->foreignId('profissional_id')->constrained('users')->restrictOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('vaga_id')->constrained('vagas')->restrictOnDelete();
+            $table->foreignUuid('profissional_id')->constrained('users')->restrictOnDelete();
             // `estado` adicionado via ALTER (enum nativo).
-            $table->foreignId('vaga_versao_id')->nullable()->constrained('vaga_versoes')->nullOnDelete();
+            $table->foreignUuid('vaga_versao_id')->nullable()->constrained('vaga_versoes')->nullOnDelete();
             $table->timestampTz('revisao_prazo_em')->nullable();
             $table->timestampTz('aprovada_em')->nullable();
             $table->timestampTz('retirada_em')->nullable();

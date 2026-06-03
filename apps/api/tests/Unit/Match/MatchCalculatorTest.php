@@ -14,8 +14,8 @@ use App\Domain\Match\MatchScore;
  * só o que cada teste exercita.
  */
 function entrada(
-    int $funcaoVagaId = 1,
-    int $funcaoPrimariaProfId = 99,
+    string $funcaoVagaId = '1',
+    string $funcaoPrimariaProfId = '99',
     array $funcoesSecundariasProfIds = [],
     ?float $distanciaKm = null,
     int $raioMaxKm = 8,
@@ -26,7 +26,7 @@ function entrada(
     return new MatchInput(
         funcaoVagaId: $funcaoVagaId,
         funcaoPrimariaProfId: $funcaoPrimariaProfId,
-        funcoesSecundariasProfIds: $funcoesSecundariasProfIds,
+        funcoesSecundariasProfIds: array_map('strval', $funcoesSecundariasProfIds),
         distanciaKm: $distanciaKm,
         raioMaxKm: $raioMaxKm,
         scoreHistorico: $scoreHistorico,

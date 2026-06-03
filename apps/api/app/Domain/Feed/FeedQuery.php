@@ -137,16 +137,16 @@ final class FeedQuery
      * Funções que entram na visibilidade: "Minha função" usa só a primária; os demais
      * filtros usam primária + secundárias (domain/vaga.md §Visibilidade).
      *
-     * @return list<int>
+     * @return list<string>
      */
     private function funcoesVisiveis(ProfissionalProfile $perfil, FeedFiltro $filtro): array
     {
-        $primaria = (int) $perfil->funcao_id;
+        $primaria = (string) $perfil->funcao_id;
         if ($filtro === FeedFiltro::MinhaFuncao) {
             return [$primaria];
         }
 
-        $secundarias = array_map('intval', $perfil->funcoes_secundarias ?? []);
+        $secundarias = array_map('strval', $perfil->funcoes_secundarias ?? []);
 
         return array_values(array_unique([$primaria, ...$secundarias]));
     }
@@ -155,8 +155,8 @@ final class FeedQuery
      * Estado da candidatura ATIVA do profissional por vaga (dentre as candidatas). Alimenta
      * `ja_candidatou` (CA-1) e o selo de revisão do card (STORY-052 CA-11). Uma só consulta.
      *
-     * @param  list<int>  $vagaIds
-     * @return array<int,CandidaturaEstado>
+     * @param  list<string>  $vagaIds
+     * @return array<string,CandidaturaEstado>
      */
     private function estadoCandidaturaPorVaga(User $profissional, array $vagaIds): array
     {
@@ -169,7 +169,7 @@ final class FeedQuery
             ->whereIn('vaga_id', $vagaIds)
             ->whereIn('estado', $this->estadosCandidaturaAtiva())
             ->pluck('estado', 'vaga_id')
-            ->mapWithKeys(fn ($estado, $vagaId) => [(int) $vagaId => $estado])
+            ->mapWithKeys(fn ($estado, $vagaId) => [(string) $vagaId => $estado])
             ->all();
     }
 
@@ -258,7 +258,7 @@ final class FeedQuery
      *
      * @param  list<FeedVaga>  $feedVagas
      */
-    private function paginar(array $feedVagas, int $page, int $profissionalId): FeedResultado
+    private function paginar(array $feedVagas, int $page, string $profissionalId): FeedResultado
     {
         $total = count($feedVagas);
         $offset = ($page - 1) * self::PER_PAGE;

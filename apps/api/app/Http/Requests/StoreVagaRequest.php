@@ -25,7 +25,7 @@ class StoreVagaRequest extends FormRequest
     {
         return [
             'funcao_id' => [
-                'required', 'integer',
+                'bail', 'required', 'uuid',
                 Rule::exists('funcoes', 'id')->where('ativo', true),
             ],
             'data_inicio' => ['required', 'date'],

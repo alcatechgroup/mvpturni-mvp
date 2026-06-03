@@ -32,7 +32,7 @@ class StoreProfissionalPreCadastroRequest extends FormRequest
             'telefone' => ['required', 'string', 'regex:/^\(?\d{2}\)?[\s-]?9?\d{4}[\s-]?\d{4}$/'],
             'cidade' => ['required', 'string', 'max:120'],
             'bairro' => ['required', 'string', 'max:120'],
-            'funcao_id' => ['required', 'integer', Rule::exists('funcoes', 'id')->where('ativo', true)],
+            'funcao_id' => ['bail', 'required', 'uuid', Rule::exists('funcoes', 'id')->where('ativo', true)],
             'tipo_pessoa' => ['required', Rule::in(['PF', 'MEI', 'PJ'])],
             'foto' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
             'password' => ['required', 'string', 'confirmed', Password::min(10)->mixedCase()->numbers()],

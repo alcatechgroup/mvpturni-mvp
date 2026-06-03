@@ -13,8 +13,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cadastro_lembretes', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->unsignedTinyInteger('numero'); // 1=48h, 2=5d, 3=14d
             $table->timestampTz('enviado_em');
             $table->timestamps();

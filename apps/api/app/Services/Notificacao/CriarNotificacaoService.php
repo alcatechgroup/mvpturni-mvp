@@ -24,9 +24,9 @@ class CriarNotificacaoService
      */
     public function criar(
         NotificacaoTipo $tipo,
-        int $destinatarioId,
-        ?int $vagaId,
-        ?int $candidaturaId,
+        string $destinatarioId,
+        ?string $vagaId,
+        ?string $candidaturaId,
         array $payload,
         string $idempotencyKey,
     ): Notificacao {

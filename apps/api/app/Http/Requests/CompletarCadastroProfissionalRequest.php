@@ -31,7 +31,7 @@ class CompletarCadastroProfissionalRequest extends FormRequest
         return [
             'documento' => ['required', 'string', 'max:20'],
             'funcoes_secundarias' => ['nullable', 'array', 'max:10'],
-            'funcoes_secundarias.*' => ['integer', 'distinct', 'exists:funcoes,id'],
+            'funcoes_secundarias.*' => ['bail', 'uuid', 'distinct', 'exists:funcoes,id'],
             'raio_max_km' => ['required', 'integer', 'min:1', 'max:500'],
             'preco_hora' => ['required', 'numeric', 'min:1', 'max:100000'],
             'bio' => ['nullable', 'string', 'max:500'],

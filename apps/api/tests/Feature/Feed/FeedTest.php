@@ -28,7 +28,7 @@ function profFeed(array $perfil = []): User
 }
 
 /** Vaga aberta futura na Grande SP (dentro do raio padrão do perfil). */
-function vagaFeed(int $funcaoId, array $over = []): Vaga
+function vagaFeed(string $funcaoId, array $over = []): Vaga
 {
     return Vaga::factory()->create(array_merge([
         'funcao_id' => $funcaoId,

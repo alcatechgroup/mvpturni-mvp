@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\NotificacaoTipo;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Notificacao extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     public $timestamps = false;
 
@@ -46,7 +47,7 @@ class Notificacao extends Model
     }
 
     /** Caixa do destinatário (CA-7): mais recentes primeiro. */
-    public function scopeDoDestinatario(Builder $query, int $userId): Builder
+    public function scopeDoDestinatario(Builder $query, string $userId): Builder
     {
         return $query->where('destinatario_id', $userId)->orderByDesc('criada_em');
     }

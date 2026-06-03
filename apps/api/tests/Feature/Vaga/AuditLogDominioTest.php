@@ -7,6 +7,7 @@
 use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
@@ -26,7 +27,7 @@ test('cada evento de domínio do CA-6 é gravável com ator, alvo e payload', fu
         'actor_id' => $ator->id,
         'action' => $action,
         'target_type' => $targetType,
-        'target_id' => 42,
+        'target_id' => (string) Str::uuid7(),
         'payload' => $payload,
     ]);
 

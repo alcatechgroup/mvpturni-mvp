@@ -19,7 +19,7 @@ class VagaVersaoFactory extends Factory
             'vaga_id' => Vaga::factory(),
             'versao' => 1,
             'snapshot' => [
-                'funcao_id' => 1,
+                'funcao_id' => fake()->uuid(),
                 'data_inicio' => now()->addDays(3)->toIso8601String(),
                 'data_fim' => now()->addDays(3)->addHours(6)->toIso8601String(),
                 'valor' => 150.00,

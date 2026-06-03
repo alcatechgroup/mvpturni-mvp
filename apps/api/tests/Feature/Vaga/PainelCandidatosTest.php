@@ -37,7 +37,7 @@ function pcContratante(array $perfil = []): User
 }
 
 /** Vaga aberta do contratante informado. */
-function pcVaga(int $contratanteId, int $funcaoId, array $over = []): Vaga
+function pcVaga(string $contratanteId, string $funcaoId, array $over = []): Vaga
 {
     return Vaga::factory()->create(array_merge([
         'contratante_id' => $contratanteId,
@@ -51,7 +51,7 @@ function pcVaga(int $contratanteId, int $funcaoId, array $over = []): Vaga
 }
 
 /** Profissional ativo com perfil (função + nível + score). */
-function pcProf(int $funcaoId, array $perfil = []): User
+function pcProf(string $funcaoId, array $perfil = []): User
 {
     $user = User::factory()->profissional()->ativo()->create();
     ProfissionalProfile::factory()->create(array_merge([
@@ -145,7 +145,7 @@ test('não autenticado recebe 401', function () {
 test('vaga inexistente → 404 (CA-1)', function () {
     $dono = pcContratante();
 
-    $this->actingAs($dono)->getJson('/api/vagas/999999/candidatos')->assertStatus(404);
+    $this->actingAs($dono)->getJson('/api/vagas/00000000-0000-0000-0000-000000000000/candidatos')->assertStatus(404);
 });
 
 // ───────────────────────── CA-7 — vaga sem candidatos ─────────────────────────

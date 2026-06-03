@@ -17,18 +17,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('templates', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('slug', 50)->unique();
             $table->string('nome_amigavel', 200);
             $table->timestampsTz();
         });
 
         Schema::create('template_versoes', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('template_id')->constrained('templates');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('template_id')->constrained('templates');
             $table->integer('versao');
             $table->text('conteudo');
-            $table->foreignId('criado_por_admin_id')->constrained('users');
+            $table->foreignUuid('criado_por_admin_id')->constrained('users');
             $table->boolean('ativa')->default(false);
             // Append-only: sem updated_at. Só `ativa` muda após o INSERT (ativação/desativação).
             $table->timestampTz('created_at')->default(DB::raw('NOW()'));
