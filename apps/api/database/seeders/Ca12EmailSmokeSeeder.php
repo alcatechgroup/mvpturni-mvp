@@ -32,17 +32,12 @@ class Ca12EmailSmokeSeeder extends Seeder
 
     public function run(): void
     {
-        // Homolog roda com APP_ENV=production (mirror de prod), então NÃO dá para gatear só por
-        // environment('production') — isso pularia homolog também. Distinguimos a prod REAL pela
-        // ausência de "homolog" na APP_URL (homolog = https://app.homolog.turni.com.br). Roda em
-        // local (env != production) e em homolog; pula só a produção de verdade.
-        $ehProducaoReal = app()->environment('production')
-            && ! str_contains((string) config('app.url'), 'homolog');
-
-        if ($ehProducaoReal) {
-            return;
-        }
-
+        // SEM gate de ambiente (de propósito): este seeder roda no mesmo `db:seed` que cria
+        // admin@turni.local, profissional.teste, etc. — todo o DatabaseSeeder é dado de teste e a
+        // PIPELINE só roda `db:seed` em homolog (prod é migrate-only, release.yml). Gatear por
+        // environment('production') pularia homolog (que roda APP_ENV=production), e gatear por
+        // APP_URL não funciona: o job de migração/seed não seta APP_URL (config('app.url')=localhost).
+        // Por isso seguimos o padrão dos seeders que DEVEM rodar em homolog: ungated.
         $funcaoPrimaria = Funcao::query()->orderBy('id')->value('id');
         if ($funcaoPrimaria === null) {
             $this->command?->warn('Ca12EmailSmokeSeeder: sem funções — rode FuncaoSeeder antes.');
