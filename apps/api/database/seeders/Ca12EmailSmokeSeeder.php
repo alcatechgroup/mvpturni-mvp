@@ -32,7 +32,14 @@ class Ca12EmailSmokeSeeder extends Seeder
 
     public function run(): void
     {
-        if (app()->environment('production')) {
+        // Homolog roda com APP_ENV=production (mirror de prod), então NÃO dá para gatear só por
+        // environment('production') — isso pularia homolog também. Distinguimos a prod REAL pela
+        // ausência de "homolog" na APP_URL (homolog = https://app.homolog.turni.com.br). Roda em
+        // local (env != production) e em homolog; pula só a produção de verdade.
+        $ehProducaoReal = app()->environment('production')
+            && ! str_contains((string) config('app.url'), 'homolog');
+
+        if ($ehProducaoReal) {
             return;
         }
 
