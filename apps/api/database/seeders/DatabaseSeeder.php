@@ -43,8 +43,9 @@ class DatabaseSeeder extends Seeder
         // para o E2E do painel de candidatos. Depende de AdminUserSeeder + FuncaoSeeder.
         $this->call(PainelCandidatosSeeder::class);
 
-        // STORY-053 — smoke de e-mail (CA-12): contratante com e-mail ENTREGÁVEL + vaga candidatável
-        // p/ validar `candidatura → e-mail (Resend)` em homolog. Gateado a NÃO rodar em produção.
-        $this->call(Ca12EmailSmokeSeeder::class);
+        // STORY-053 — smoke de e-mail (CA-12) DESREGISTRADO: a validação em homolog já foi feita
+        // (CA-12 done). O seeder `Ca12EmailSmokeSeeder` + `scripts/ca12-homolog-e2e.sh` ficam no repo
+        // para reuso manual (`php artisan db:seed --class=Ca12EmailSmokeSeeder`), mas NÃO rodam no
+        // deploy — evita poluir homolog com dados de teste a cada release.
     }
 }
