@@ -3,6 +3,13 @@
 namespace App\Providers;
 
 use App\Email\MailEnviaEmailTransacional;
+use App\Events\CandidaturaEnviada;
+use App\Events\VagaCancelada;
+use App\Events\VagaEditadaMaterialmente;
+use App\Listeners\HandleCandidaturaEnviada;
+use App\Listeners\HandleVagaCancelada;
+use App\Listeners\HandleVagaEditadaMaterialmente;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Turni\Domain\Email\EnviaEmailTransacional;
 
@@ -25,6 +32,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // STORY-053 (CA-2/3/4) — listeners dos 3 eventos de domínio que criam notificações
+        // in-app + alimentam a fila de e-mail. Registro explícito (sem event discovery): os
+        // eventos são despachados síncronos dentro da transação que os origina, então a
+        // notificação é transacionalmente consistente com a candidatura/edição/cancelamento.
+        Event::listen(CandidaturaEnviada::class, HandleCandidaturaEnviada::class);
+        Event::listen(VagaEditadaMaterialmente::class, HandleVagaEditadaMaterialmente::class);
+        Event::listen(VagaCancelada::class, HandleVagaCancelada::class);
     }
 }
