@@ -19,11 +19,16 @@ void main() {
       await pumpApp(tester, initialRoute: '/cadastro/contratante');
 
       assertOnRoute(tester, '/cadastro/contratante');
-      expect(find.byKey(const Key('screen-cadastro-contratante')), findsOneWidget);
+      expect(
+        find.byKey(const Key('screen-cadastro-contratante')),
+        findsOneWidget,
+      );
       expect(find.text('Criar conta de estabelecimento'), findsOneWidget);
     });
 
-    testWidgets('submeter vazio exibe erros de campo obrigatório', (tester) async {
+    testWidgets('submeter vazio exibe erros de campo obrigatório', (
+      tester,
+    ) async {
       await pumpApp(tester, initialRoute: '/cadastro/contratante');
 
       // O botão fica no fim de um SingleChildScrollView — garante visível antes de tocar.
@@ -36,7 +41,9 @@ void main() {
       expect(find.text('Informe o nome do estabelecimento.'), findsOneWidget);
     });
 
-    testWidgets('link "Já tem conta? Entrar" volta para /login', (tester) async {
+    testWidgets('link "Já tem conta? Entrar" volta para /login', (
+      tester,
+    ) async {
       await pumpApp(tester, initialRoute: '/cadastro/contratante');
 
       await tester.tap(find.byKey(const Key('link-entrar')));

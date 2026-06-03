@@ -22,11 +22,16 @@ void main() {
       await pumpApp(tester, initialRoute: '/cadastro/profissional');
 
       assertOnRoute(tester, '/cadastro/profissional');
-      expect(find.byKey(const Key('screen-cadastro-profissional')), findsOneWidget);
+      expect(
+        find.byKey(const Key('screen-cadastro-profissional')),
+        findsOneWidget,
+      );
       expect(find.text('Criar conta de profissional'), findsOneWidget);
     });
 
-    testWidgets('submeter vazio exibe erros de campo obrigatório', (tester) async {
+    testWidgets('submeter vazio exibe erros de campo obrigatório', (
+      tester,
+    ) async {
       await pumpApp(tester, initialRoute: '/cadastro/profissional');
 
       // Validação é client-side (sem rede): tocar Enviar mostra os erros inline.
@@ -44,7 +49,9 @@ void main() {
       );
     });
 
-    testWidgets('link "Já tem conta? Entrar" volta para /login', (tester) async {
+    testWidgets('link "Já tem conta? Entrar" volta para /login', (
+      tester,
+    ) async {
       await pumpApp(tester, initialRoute: '/cadastro/profissional');
 
       await tester.tap(find.byKey(const Key('link-entrar')));

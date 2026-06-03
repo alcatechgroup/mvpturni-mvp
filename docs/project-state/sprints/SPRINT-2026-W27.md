@@ -318,14 +318,62 @@ do PO), STORY-054 (validador, última).
   dela no aggregator, e o seeder reabre a vaga seed a cada `db:seed`. Padrão para próximos E2E que
   compartilham o mesmo usuário seed: testes read-only antes dos que mutam estado.
 
-## Atualização de progresso — 2026-06-03 (STORY-052 done)
+## Atualização de progresso — 2026-06-03 (D+2, STORY-052 done)
+
+> Quarto snapshot. STORY-052 fechou no início do D+2; sprint chega a **11/13 (85%)** e o EPIC-002
+> está com **todas as estórias de implementação `done`** — restam apenas notificações (053) e a
+> validação final (054).
+
+### Estado atual: 11/13 done (85%) — restam STORY-053 e STORY-054
 
 | ID        | Status   | Observação                                                                                                                                                                                                          |
 | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | STORY-051 | **done** | Painel de candidatos do contratante (ranqueado + breakdown) shipped — SCREEN-051 validado.                                                                                                                          |
 | STORY-052 | **done** | Edição material PDR-009 (Designer + Programador). SCREEN-052 validado no browser e **estória aprovada por Alexandro**. Backend: `PATCH /vagas/{id}` + detector material puro + transação (snapshot v(N+1) + transição candidaturas + evento `VagaEditadaMaterialmente`), endpoints confirmar/retirar-apos-edicao, cron `candidaturas:auto-retirar-apos-edicao` (everyMinute, reusa STORY-034). Frontend: tela `/contratante/vagas/{id}/editar` com preview do diff + aviso de candidatos; **CA-11 completo** — selo "Vaga editada — confirme" no card do feed (Candidatadas, `em_revisao`) **+** banner de revisão no detalhe (049) com Manter/Retirar. **api 496 testes** (núcleo ≈98.4%), **webapp 326 testes** (editar 87.2%, detalhe 93.5%), E2E backend do ciclo completo (`travel(25h)`) + integration_test same-origin. **Emergiu IDR-026** (política única de data/hora `TurniDateTime`): bug de fuso achado no teste humano (card 15:00 vs edição 18:00) resolvido de forma centralizada — UTC na API, local na UI, round-trip lossless; 6 telas + 3 serviços passaram a delegar. Follow-up não-bloqueante: `make e2e-webapp-integration` + deploy homolog no próximo pacote. |
 
-**Restam:** STORY-053 (notificações — consome o evento `VagaEditadaMaterialmente` desta estória + texto-seed dos 5 templates do PO) e STORY-054 (validador). EPIC-002: 11/11 estórias de implementação fechadas; falta só o validador.
+### O que falta concretamente nesta sprint
+
+| Estória   | Status | Bloqueio real                                              | Quem destrava                          |
+| --------- | ------ | ---------------------------------------------------------- | -------------------------------------- |
+| STORY-053 | ready  | **Texto-seed v1 dos 5 templates** (entrega do PO, ainda não feita) | PO (Alexandro) — antes de iniciar 053  |
+| STORY-054 | ready  | Tudo o resto deployado em homolog                          | Validador (independente)               |
+
+**Caminho:** PO entrega texto-seed v1 dos 5 templates → agente programador executa STORY-053 (listener dos 3 eventos + tabela `notificacoes` + `GET /api/notificacoes` + `POST /api/notificacoes/{id}/marcar-lida` + cron via Cloud Run Job da STORY-034 + carregamento dos 5 templates como `TemplateVersao` ativa no editor da STORY-020) → deploy em homolog → STORY-054 (validador) verifica métrica primária do EPIC-002 (vaga publicada → primeira candidatura ≤ 2h em cenário seedado), reexecuta o ciclo em homolog e emite `validation/report.md`.
+
+### Riscos da abertura — releitura no D+2
+
+| Risco                                       | Estado                                                                                                                                          |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sprint pesada demais                        | **Mitigado.** 11/13 (85%) em D+2 — soft-cap 2026-06-22 não será acionado.                                                                       |
+| Cron de auto-retirada (STORY-052)           | **Mitigado.** Cron `everyMinute` reusou STORY-034; E2E `travel(25h)` verde.                                                                     |
+| Notificações spammam contratante (STORY-053) | Aberto — SLA 60s herdado da abertura; PO revisa microcopy ao validar texto-seed.                                                                |
+| Texto-seed do PO                            | **Vira gargalo agora.** Sprint depende da entrega para STORY-053 iniciar — sem isso, a sprint trava com 11/13. **Sem progresso registrado.**    |
+| Alexandro nos 5 papéis                      | Ritmo mantido; texto-seed exige modo PO dedicado (sem programar em paralelo).                                                                   |
+
+### Decisões do PO (D+2)
+
+- **Próximo bloco de trabalho:** PO em modo dedicado para escrever **texto-seed v1 dos 5 templates** (`candidatura_recebida_contratante`, `vaga_editada_material_profissional`, `vaga_cancelada_profissional`, `vaga_editada_material_candidatura_mantida_contratante`, `vaga_editada_material_candidatura_retirada_contratante`). Variáveis disponíveis estão documentadas no editor da STORY-020.
+- **STORY-053 só inicia quando o texto-seed estiver pronto e validado.** Iniciar antes seria entregar a infra sem o conteúdo — anti-padrão do EPIC-001 (STORY-015).
+- **STORY-054 entra em sequência** depois que 053 deployar em homolog. Não tentar paralelizar — validador depende do estado final do épico.
+- **Reavaliação do escopo da sprint:** mantido. Mover 053 para W28 só se o texto-seed estourar 48h sem entrega.
+- **Follow-up registrado:** `make e2e-webapp-integration` + deploy homolog do código da STORY-052 entra no próximo pacote, não bloqueia 053.
+
+## Atualização de progresso — 2026-06-03 (D+2, texto-seed v1 aprovado)
+
+> Gargalo do PO **quitado no mesmo dia**: texto-seed v1 dos 5 templates da STORY-053 escrito e aprovado pelo PO em chat. STORY-053 destravada — pronta para o agente programador pegar.
+
+### Estado: 11/13 done, 1/13 destravada, 1/13 aguarda
+
+| Estória   | Status | Bloqueio                                                       | Próximo movimento                                                              |
+| --------- | ------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| STORY-053 | ready  | **Nenhum.** Texto-seed v1 aprovado, dependências (021/020/034/050/052/047) todas done. | Agente programador pega e executa (M).                                          |
+| STORY-054 | ready  | Aguarda STORY-053 deployar em homolog.                         | Validador independente entra em sequência.                                     |
+
+### Decisões / aprendizados do fechamento do texto-seed
+
+- **Padrão STORY-015 mantido.** Texto-seed escrito como rascunho na própria estória, validado em chat pelo PO no mesmo dia, marcado como "v1 aprovado" antes do agente programador pegar — sem etapa separada de PDR, porque a decisão durável é o assunto canônico (já em ADR-011), não a copy.
+- **Risco "texto-seed do PO vira gargalo" não materializou.** Diferente do que o snapshot da manhã previa, a janela de produção de conteúdo (escrita + revisão) coube em uma sessão de PO dedicada — sem programar em paralelo.
+- **Idempotência do envio:** chave sugerida no rascunho (`"{tipo}:{candidatura_id}:{vaga_versao}"` para edição material; `"{tipo}:{candidatura_id}"` para os demais) — agente pode reusar como está ou propor IDR se descobrir caso de borda.
 
 ## Aprendizados em curso (mid-sprint)
 
@@ -338,6 +386,9 @@ do PO), STORY-054 (validador, última).
 - **Estória "Designer + Programador na mesma sessão" entrega bem.** STORY-049 e STORY-050 fecharam SCREEN + back + front em uma sessão cada. Padrão útil quando a tela é pequena e a regra de negócio cabe num spike pré-existente — não tentar quando uma das duas dimensões está grande.
 - **Reuso de componente nasce na estória anterior.** `BreakdownRow` saiu como público na STORY-049 antecipando o consumo pela STORY-051. Custo de planejar reuso na hora certa é baixo; custo de não planejar é refatoração tardia.
 - **Componente compartilhado backend (Haversine→Support\Geo).** Refatoração de oportunidade na STORY-049 evitou duplicação feed↔detalhe. Sinal saudável; não inflar estória só pra refatorar, mas aceitar quando o overhead é nulo.
+- **Snapshot de payload explicável tem que nascer na estória que cria o dado, não na que consome.** A STORY-050 só persistia `score_no_momento` (total); a 051 precisou voltar e adicionar `score_breakdown jsonb` + `alerta_habitualidade`. Pequena dívida cobrada com juros baixos, mas evitável: na próxima estória que persista resultado de algoritmo, exigir CA explícita de "snapshot do payload completo".
+- **Bug de fuso revela política transversal faltante.** STORY-052 expôs em teste humano uma inconsistência entre card e edição (15:00 vs 18:00) que tinha causa em UTC↔local espalhado pelo código. Em vez de patch local, virou **IDR-026** (TurniDateTime) e 6 telas + 3 serviços passaram a delegar. Padrão: bug que aparece numa estória pode ser sintoma de regra transversal — antes de corrigir local, perguntar se vira IDR.
+- **Cron `everyMinute` reusando STORY-034 funcionou sem mais infra.** Mais um voto a favor de manter "1 worker, vários commands" no MVP em vez de proliferar Cloud Run Jobs por feature.
 
 ## Fechamento do sprint (preencher no encerramento)
 

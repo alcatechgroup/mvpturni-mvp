@@ -86,6 +86,113 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
 - [ ] `index.json` atualizado.
 - [ ] "Notas do agente" preenchida com link para os 5 templates carregados.
 
+## Texto-seed v1 dos 5 templates (aprovado pelo PO — Alexandro, 2026-06-03)
+
+> **Status:** **v1 aprovado pelo PO em chat (2026-06-03)** — destrava CA-6 e a estória inteira.
+> Carregado pelo agente como `TemplateVersao` ativa (CA-6), mesmo padrão de STORY-015.
+> Tom: sóbrio, direto, PT-BR, sem firulas — espelha o de STORY-021. Saudação padrão segue convenção do `TransacionalMail`: `"Olá, {nome}."` com fallback `"Olá."`. Assunto é canônico e fica fixado em `TipoEmail::assunto()` (ADR-011 §d) — **não reabrir** sem PDR. Variáveis usam `{snake_case}`; o renderer (STORY-020) faz a interpolação a partir do `payload jsonb` do registro de `notificacoes`.
+
+### Convenções comuns
+
+- **Remetente:** `no-reply@mail.turni.com.br` (config `mail.from`, ADR-011 §d).
+- **Rodapé curto (todos):** `"Você recebeu este e-mail porque é parte do funil ativo de uma vaga no Turni. Dúvidas: contato@turni.com.br · Política de privacidade."`
+- **In-app** (badge + painel lateral) reusa `h1` e a primeira linha do primeiro parágrafo como microcopy resumida; CTA in-app navega para `ctaUrl` interno (`/vaga/{vaga_id}` ou `/contratante/vagas/{vaga_id}/candidatos`).
+- **Variáveis disponíveis em cada template:** documentadas no editor (CA-6) a partir do `payload` listado abaixo.
+
+### 1. `candidatura_recebida_contratante` — disparado por `CandidaturaEnviada`
+
+- **Destinatário:** contratante dono da vaga.
+- **Payload (CA-2):** `{ profissional_nome, profissional_score, vaga_id, vaga_funcao, vaga_data_inicio, link_painel }`.
+- **Assunto:** `Nova candidatura para sua vaga no Turni`
+- **Preheader:** `{profissional_nome} se candidatou à sua vaga de {vaga_funcao}.`
+- **H1:** `Nova candidatura recebida`
+- **Saudação:** `Olá, {nome}.`
+- **Parágrafos:**
+  1. `{profissional_nome} se candidatou à sua vaga de {vaga_funcao} em {vaga_data_inicio}.`
+  2. `Score de match: {profissional_score}/100. O painel mostra o detalhamento do score e os outros candidatos ranqueados.`
+- **CTA:** label `Ver candidatos` · url `{link_painel}` (ex.: `https://app.turni.com.br/contratante/vagas/{vaga_id}/candidatos`)
+- **Aviso:** `null`
+- **Privacidade (CA-10):** sem CPF, sem telefone — só nome e score. Esses só entram no e-mail pós-aceite (EPIC-003).
+
+---
+
+### 2. `vaga_editada_material_profissional` — disparado por `VagaEditadaMaterialmente`
+
+- **Destinatário:** profissional com candidatura pendente na vaga.
+- **Payload (CA-3):** `{ vaga_id, vaga_funcao, diff: { campo: { antes, depois } }, prazo_em, link_detalhe }`. O `diff` traz **apenas** os campos materiais (PDR-009) — agente formata em lista "antes → depois" no e-mail.
+- **Assunto:** `Vaga em que você se candidatou foi alterada — confirme até {prazo_em}`
+- **Preheader:** `A vaga de {vaga_funcao} mudou. Confirme se ainda quer participar.`
+- **H1:** `Uma vaga em que você se candidatou foi editada`
+- **Saudação:** `Olá, {nome}.`
+- **Parágrafos:**
+  1. `O contratante alterou a vaga de {vaga_funcao} em que você se candidatou. Veja o que mudou:`
+  2. *(bloco gerado pelo agente a partir de `diff` — uma linha por campo no formato `{campo_legivel}: {antes} → {depois}`. Ex.: "Início do turno: 03/06/2026 18:00 → 03/06/2026 20:00")*
+  3. `Você tem até {prazo_em} para confirmar que ainda quer manter sua candidatura. Sem resposta, ela é retirada automaticamente.`
+- **CTA:** label `Confirmar ou retirar` · url `{link_detalhe}` (ex.: `https://app.turni.com.br/vaga/{vaga_id}`)
+- **Aviso:** `Sem resposta até {prazo_em}, sua candidatura é retirada automaticamente.`
+- **Observação:** se o `diff` for grande (3+ campos), agente resume os 2 mais relevantes (data/hora, valor) e usa "+ outras alterações" — detalhe completo fica no detalhe da vaga.
+
+---
+
+### 3. `vaga_cancelada_profissional` — disparado por `VagaCancelada`
+
+- **Destinatário:** profissional com candidatura pendente na vaga.
+- **Payload (CA-4):** `{ vaga_id, vaga_funcao, vaga_data_inicio, link_feed }`.
+- **Assunto:** `Vaga em que você se candidatou foi cancelada`
+- **Preheader:** `O contratante cancelou a vaga de {vaga_funcao}.`
+- **H1:** `Vaga cancelada pelo contratante`
+- **Saudação:** `Olá, {nome}.`
+- **Parágrafos:**
+  1. `O contratante cancelou a vaga de {vaga_funcao} marcada para {vaga_data_inicio}. Sua candidatura foi retirada automaticamente.`
+  2. `Você não precisa fazer nada. Veja outras vagas próximas no feed.`
+- **CTA:** label `Ver outras vagas` · url `{link_feed}` (ex.: `https://app.turni.com.br/feed`)
+- **Aviso:** `null`
+- **Observação:** a UI já mostra um banner no card no momento do cancelamento; este e-mail garante a chegada quando o profissional está com o app fechado.
+
+---
+
+### 4. `vaga_editada_material_candidatura_mantida_contratante` — disparado quando profissional **confirma** após edição
+
+- **Destinatário:** contratante dono da vaga.
+- **Payload:** `{ profissional_nome, profissional_score, vaga_id, vaga_funcao, vaga_data_inicio, link_painel }`.
+- **Assunto:** `Candidato confirmou continuar na sua vaga editada`
+- **Preheader:** `{profissional_nome} confirmou continuar na sua vaga de {vaga_funcao}.`
+- **H1:** `Candidato mantido após edição`
+- **Saudação:** `Olá, {nome}.`
+- **Parágrafos:**
+  1. `{profissional_nome} viu as alterações que você fez na vaga de {vaga_funcao} ({vaga_data_inicio}) e confirmou que quer continuar candidatado.`
+  2. `O score atualizado segue no painel.`
+- **CTA:** label `Ver candidatos` · url `{link_painel}`
+- **Aviso:** `null`
+
+---
+
+### 5. `vaga_editada_material_candidatura_retirada_contratante` — disparado quando candidatura é **retirada** após edição (voluntária ou auto)
+
+- **Destinatário:** contratante dono da vaga.
+- **Payload:** `{ profissional_nome, vaga_id, vaga_funcao, vaga_data_inicio, motivo: "voluntaria" | "auto_24h", link_painel }`.
+- **Assunto:** `Candidato deixou sua vaga após a alteração`
+- **Preheader:** `{profissional_nome} não confirmou as mudanças na vaga de {vaga_funcao}.`
+- **H1:** `Candidato saiu da vaga após edição`
+- **Saudação:** `Olá, {nome}.`
+- **Parágrafos:**
+  1. *(condicional por `motivo`)*
+     - se `motivo == "voluntaria"`: `{profissional_nome} optou por não continuar candidatado à vaga de {vaga_funcao} ({vaga_data_inicio}) depois das alterações.`
+     - se `motivo == "auto_24h"`: `{profissional_nome} não respondeu à alteração da vaga de {vaga_funcao} ({vaga_data_inicio}) no prazo de 24h. A candidatura foi retirada automaticamente.`
+  2. `Outros candidatos seguem ativos no painel. Você pode editar a vaga novamente ou aguardar novas candidaturas.`
+- **CTA:** label `Ver candidatos` · url `{link_painel}`
+- **Aviso:** `null`
+
+---
+
+### Notas para o agente
+
+- **Renderização do `diff` (template 2):** o `payload.diff` é um `jsonb` com chave por campo material. Campos materiais conhecidos (PDR-009): `data_inicio`, `data_fim`, `valor`, `funcao`, `endereco`. Mapeie nome técnico → rótulo legível PT-BR (`data_inicio` → "Início do turno", `valor` → "Valor", etc.). Formato de data/hora segue **IDR-026** (`TurniDateTime`) — sempre local na UI/e-mail, UTC no banco.
+- **`prazo_em`:** já calculado no `payload` (STORY-052) como `min(criada_em + 24h, vaga.data_inicio)`. Renderize com `TurniDateTime` em PT-BR.
+- **Paridade HTML/text/plain:** as duas vistas consomem o mesmo array de conteúdo (mesmo padrão de `TransacionalMail` da STORY-021).
+- **Idempotência:** chave sugerida = `"{tipo}:{candidatura_id}:{vaga_versao}"` para edição material; `"{tipo}:{candidatura_id}"` para os demais.
+- **Quando PO validar v1:** este bloco vai pro editor (`TemplateVersao` v1 ativa). Edições futuras passam pelo editor (STORY-020), gerando v2/v3 — não reescrever esta seção.
+
 ## Notas do agente
 
 ### Decisões / Descobertas / Bloqueios / IDRs
