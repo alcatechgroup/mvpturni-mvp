@@ -134,7 +134,7 @@ test('ativar versão obsoleta (sumiu) devolve toast de erro e não quebra', func
 
     Livewire::actingAs(umAdmin())
         ->test(TemplateDetalhe::class, ['slug' => $template->slug])
-        ->call('pedirAtivacao', 999999)
+        ->call('pedirAtivacao', '00000000-0000-0000-0000-000000000000')
         ->call('confirmarAtivacao')
         ->assertDispatched('toast', type: 'error');
 });

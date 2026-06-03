@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('telefone', 20)->nullable()->after('tipo_pessoa');
             $table->string('cidade', 120)->nullable()->after('telefone');
             $table->string('bairro', 120)->nullable()->after('cidade');
-            $table->foreignId('funcao_id')->nullable()->after('bairro')
+            $table->foreignUuid('funcao_id')->nullable()->after('bairro')
                 ->constrained('funcoes')->nullOnDelete();
             // Timestamp do aceite dos Termos/Política — consentimento explícito (LGPD).
             $table->timestampTz('termos_aceitos_at')->nullable()->after('foto_path');

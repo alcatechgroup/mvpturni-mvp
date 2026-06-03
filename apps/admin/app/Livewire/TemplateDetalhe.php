@@ -23,10 +23,10 @@ class TemplateDetalhe extends Component
     public string $slug;
 
     /** Versão cujo conteúdo está expandido inline ("ver completa"). */
-    public ?int $expandidaId = null;
+    public ?string $expandidaId = null;
 
     /** Versão pendente de confirmação de ativação (abre o diálogo). */
-    public ?int $confirmandoAtivarId = null;
+    public ?string $confirmandoAtivarId = null;
 
     public function mount(string $slug): void
     {
@@ -47,12 +47,12 @@ class TemplateDetalhe extends Component
             ->firstOrFail();
     }
 
-    public function verCompleta(int $versaoId): void
+    public function verCompleta(string $versaoId): void
     {
         $this->expandidaId = $this->expandidaId === $versaoId ? null : $versaoId;
     }
 
-    public function pedirAtivacao(int $versaoId): void
+    public function pedirAtivacao(string $versaoId): void
     {
         $this->confirmandoAtivarId = $versaoId;
     }

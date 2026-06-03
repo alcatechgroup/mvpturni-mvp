@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -43,7 +44,10 @@ class TemplatesContratuaisSeeder extends Seeder
             $templateId = DB::table('templates')->where('slug', $slug)->value('id');
 
             if ($templateId === null) {
-                $templateId = DB::table('templates')->insertGetId([
+                // STORY-070/ADR-018: uuid gerado na aplicação (query builder não usa HasUuids).
+                $templateId = (string) Str::uuid7();
+                DB::table('templates')->insert([
+                    'id' => $templateId,
                     'slug' => $slug,
                     'nome_amigavel' => $meta['nome'],
                     'created_at' => now(),
@@ -61,6 +65,7 @@ class TemplatesContratuaisSeeder extends Seeder
             $hash = hash('sha256', $conteudo);
 
             DB::table('template_versoes')->insert([
+                'id' => (string) Str::uuid7(),
                 'template_id' => $templateId,
                 'versao' => 1,
                 'conteudo' => $conteudo,

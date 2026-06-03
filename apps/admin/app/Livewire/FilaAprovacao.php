@@ -33,7 +33,7 @@ class FilaAprovacao extends Component
     public ?string $tipoPessoa = null;
 
     /** Id do usuário aberto no drawer de detalhe (null = fechado). */
-    public ?int $selectedId = null;
+    public ?string $selectedId = null;
 
     public function updatedPapel(): void
     {
@@ -63,7 +63,7 @@ class FilaAprovacao extends Component
         $this->resetPage();
     }
 
-    public function verDetalhes(int $userId): void
+    public function verDetalhes(string $userId): void
     {
         $this->selectedId = $userId;
     }

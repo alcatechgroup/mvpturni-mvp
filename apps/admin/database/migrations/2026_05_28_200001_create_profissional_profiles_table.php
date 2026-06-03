@@ -11,8 +11,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('profissional_profiles', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('tipo_pessoa', 10); // PF | MEI | PJ
             $table->text('documento_encrypted')->nullable(); // CPF ou CNPJ — Eloquent Encrypted Cast
             $table->string('documento_tipo', 10)->nullable(); // CPF | CNPJ

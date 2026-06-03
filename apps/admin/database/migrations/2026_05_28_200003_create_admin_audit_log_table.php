@@ -13,12 +13,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('admin_audit_log', function (Blueprint $table) {
-            // GENERATED ALWAYS AS IDENTITY garante que o app nunca injeta ID manualmente
-            $table->id();
-            $table->foreignId('actor_id')->nullable()->constrained('users')->nullOnDelete();
+            // STORY-070 / ADR-018: PK uuid gerada na aplicação (HasUuids). A imutabilidade
+            // append-only continua garantida pela trigger + REVOKE UPDATE/DELETE abaixo,
+            // não mais pela identidade do banco.
+            $table->uuid('id')->primary();
+            $table->foreignUuid('actor_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('action', 100);
             $table->string('target_type', 100)->nullable();
-            $table->unsignedBigInteger('target_id')->nullable();
+            $table->uuid('target_id')->nullable();
             $table->jsonb('payload')->nullable();
             $table->ipAddress('ip')->nullable();
             $table->text('user_agent')->nullable();

@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /** Função pretendida pelo profissional (STORY-017 — tabela auxiliar com seed). */
 class Funcao extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     protected $table = 'funcoes';
 
