@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\VagaEstado;
 use App\Models\ContratanteProfile;
 use App\Models\Funcao;
+use App\Models\ProfissionalProfile;
 use App\Models\User;
 use App\Models\Vaga;
 use App\Models\VagaVersao;
@@ -110,6 +111,45 @@ class Ca12EmailSmokeSeeder extends Seeder
             ],
         );
 
-        $this->command?->info("Ca12EmailSmokeSeeder: contratante {$contratante->email} + vaga {$vaga->id} (valor ".self::VALOR_MARCADOR.') prontos.');
+        // 2 profissionais ENTREGÁVEIS (Gmail) para os cenários edita/cancela do E2E (CA-12): eles
+        // precisam RECEBER e-mail (vaga_editada_material / vaga_cancelada), então não podem ser
+        // @turni.local (Resend rejeita). Função primária + geo iguais à vaga → candidatáveis.
+        foreach (['prof1', 'prof2'] as $alias) {
+            $this->profissionalEntregavel($alias, $funcaoPrimaria);
+        }
+
+        $this->command?->info("Ca12EmailSmokeSeeder: contratante {$contratante->email} + vaga {$vaga->id} (valor ".self::VALOR_MARCADOR.') + 2 profissionais Gmail prontos.');
+    }
+
+    private function profissionalEntregavel(string $alias, int $funcaoPrimaria): void
+    {
+        $user = User::updateOrCreate(
+            ['email' => "xandroalmeida+{$alias}-homolog@gmail.com"],
+            [
+                'name' => 'Profissional CA-12 '.strtoupper($alias),
+                'password' => Hash::make('turni-dev'),
+                'role' => 'profissional',
+                'status' => 'ativo',
+                'email_verified_at' => now(),
+                'welcome_seen_at' => now(),
+                'cadastro_completed_at' => now(),
+            ],
+        );
+
+        ProfissionalProfile::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'tipo_pessoa' => 'MEI',
+                'cidade' => 'São Paulo',
+                'bairro' => 'Centro',
+                'funcao_id' => $funcaoPrimaria,
+                'lat' => -23.55,
+                'lng' => -46.63,
+                'raio_max_km' => 50,
+                'nivel' => 'Elite',
+                'score' => 4.5,
+                'turnos_realizados' => 120,
+            ],
+        );
     }
 }

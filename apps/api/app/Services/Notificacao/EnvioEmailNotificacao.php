@@ -53,7 +53,8 @@ class EnvioEmailNotificacao
             conteudo: $conteudo,
         ));
 
-        $notificacao->update(['enviada_email_em' => now()]);
+        $agora = now();
+        $notificacao->update(['enviada_email_em' => $agora]);
 
         Log::info('notificacao.email.sent', [
             'event' => 'notificacao.email.sent',
@@ -61,7 +62,13 @@ class EnvioEmailNotificacao
             'notificacao_id' => $notificacao->id,
             'destinatario' => $this->mascarar($destinatario->email),
             'message_id' => $enviado?->getMessageId(),
+            // Latência do envio em si (chamada ao provedor).
             'latencia_ms' => (int) round((microtime(true) - $inicio) * 1000),
+            // SLA ponta-a-ponta (CA-9): criação da notificação → e-mail enviado. Alimenta a
+            // log-based metric `turni_<env>_notificacao_email_sla_ms` (p95 ≤ 60s).
+            'sla_ms' => $notificacao->criada_em !== null
+                ? max(0, (int) $notificacao->criada_em->diffInMilliseconds($agora))
+                : null,
         ]);
     }
 

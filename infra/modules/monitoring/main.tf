@@ -369,3 +369,117 @@ resource "google_monitoring_alert_policy" "cadastro_completar_falhou" {
     auto_close = "1800s"
   }
 }
+
+# ── SLA de e-mail das notificações (STORY-053 CA-9) ───────────────────────────
+# O worker (queue:work) emite INFO `notificacao.email.sent` ao enviar cada e-mail de
+# notificação, com `sla_ms` = latência ponta-a-ponta (criação da notificação → envio).
+# Log Monolog JsonFormatter: evento em `jsonPayload.message`, campos sob
+# `jsonPayload.context.*` (mesma forma do `email_failures`). Métrica de DISTRIBUIÇÃO →
+# permite p50/p95/p99 no dashboard e no alerta. CA-9: p95 ≤ 60s.
+resource "google_logging_metric" "notificacao_email_sla" {
+  project = var.project_id
+  name    = "turni_${var.env}_notificacao_email_sla_ms"
+  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND jsonPayload.message=\"notificacao.email.sent\""
+
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "DISTRIBUTION"
+    unit        = "ms"
+    labels {
+      key         = "tipo"
+      value_type  = "STRING"
+      description = "Tipo da notificação (candidatura_recebida | vaga_editada_material | vaga_cancelada | ...)"
+    }
+  }
+
+  value_extractor = "EXTRACT(jsonPayload.context.sla_ms)"
+
+  label_extractors = {
+    "tipo" = "EXTRACT(jsonPayload.context.tipo)"
+  }
+
+  bucket_options {
+    exponential_buckets {
+      num_finite_buckets = 20
+      growth_factor      = 2
+      scale              = 1
+    }
+  }
+}
+
+# Alerta: p95 do SLA acima de 60s (CA-9). Janela de 5 min para evitar ruído de spikes.
+resource "google_monitoring_alert_policy" "notificacao_email_sla" {
+  project      = var.project_id
+  display_name = "Turni SLA de e-mail de notificação > 60s p95 (${var.env})"
+  combiner     = "OR"
+
+  conditions {
+    display_name = "p95(sla_ms) > 60000ms"
+    condition_threshold {
+      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_notificacao_email_sla_ms\" AND resource.type=\"cloud_run_job\""
+      comparison      = "COMPARISON_GT"
+      threshold_value = 60000
+      duration        = "300s"
+      aggregations {
+        alignment_period   = "300s"
+        per_series_aligner = "ALIGN_PERCENTILE_95"
+      }
+    }
+  }
+
+  notification_channels = [google_monitoring_notification_channel.email.name]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+}
+
+# Falha definitiva de e-mail de notificação: o worker loga ERROR `notificacao.email.falhou`
+# ao esgotar as 3 tentativas do EnviarEmailDaNotificacaoJob. Sinal acionável de "notificações
+# não estão saindo" — alerta imediato (mesmo padrão do `email_failure` crítico).
+resource "google_logging_metric" "notificacao_email_failures" {
+  project = var.project_id
+  name    = "turni_${var.env}_notificacao_email_failures"
+  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND jsonPayload.message=\"notificacao.email.falhou\""
+
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "INT64"
+    unit        = "1"
+    labels {
+      key         = "tipo"
+      value_type  = "STRING"
+      description = "Tipo da notificação cujo e-mail falhou definitivamente"
+    }
+  }
+
+  label_extractors = {
+    "tipo" = "EXTRACT(jsonPayload.context.tipo)"
+  }
+}
+
+resource "google_monitoring_alert_policy" "notificacao_email_failure" {
+  project      = var.project_id
+  display_name = "Turni falha de e-mail de notificação (${var.env})"
+  combiner     = "OR"
+
+  conditions {
+    display_name = "E-mail de notificação falhou após retries"
+    condition_threshold {
+      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_notificacao_email_failures\" AND resource.type=\"cloud_run_job\""
+      comparison      = "COMPARISON_GT"
+      threshold_value = 0
+      duration        = "0s"
+      aggregations {
+        alignment_period   = "300s"
+        per_series_aligner = "ALIGN_SUM"
+      }
+    }
+  }
+
+  notification_channels = [google_monitoring_notification_channel.email.name]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+}
