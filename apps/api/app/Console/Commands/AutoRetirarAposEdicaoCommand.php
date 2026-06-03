@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Enums\CandidaturaEstado;
 use App\Models\AuditLog;
 use App\Models\Candidatura;
+use App\Services\Notificacao\NotificarRevisaoAposEdicao;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +30,11 @@ class AutoRetirarAposEdicaoCommand extends Command
     protected $signature = 'candidaturas:auto-retirar-apos-edicao';
 
     protected $description = 'Retira candidaturas não confirmadas após edição material da vaga (PDR-009 / STORY-052 CA-9).';
+
+    public function __construct(private readonly NotificarRevisaoAposEdicao $notificar)
+    {
+        parent::__construct();
+    }
 
     public function handle(): int
     {
@@ -95,6 +101,9 @@ class AutoRetirarAposEdicaoCommand extends Command
                 'vaga_id' => $fresh->vaga_id,
                 'profissional_id' => $fresh->profissional_id,
             ]);
+
+            // STORY-053 (template 5) — avisa o contratante da retirada automática (motivo auto_24h).
+            $this->notificar->retirada($fresh, 'auto_24h');
         });
     }
 }

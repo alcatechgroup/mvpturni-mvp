@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\CandidaturaEstado;
 use App\Models\AuditLog;
 use App\Models\Candidatura;
+use App\Services\Notificacao\NotificarRevisaoAposEdicao;
 use DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,10 @@ use Illuminate\Support\Facades\Log;
  */
 class RevisarCandidaturaService
 {
-    public function __construct(private readonly Request $request) {}
+    public function __construct(
+        private readonly Request $request,
+        private readonly NotificarRevisaoAposEdicao $notificar,
+    ) {}
 
     public function manter(Candidatura $candidatura): Candidatura
     {
@@ -37,6 +41,10 @@ class RevisarCandidaturaService
 
             $this->audit($candidatura, 'candidatura.mantida_apos_edicao');
             $this->telemetria('candidatura.mantida_apos_edicao', $candidatura);
+
+            // STORY-053 (template 4) — avisa o contratante que o candidato continua. Síncrono
+            // na transação: rollback da transição desfaz a notificação.
+            $this->notificar->mantida($candidatura);
 
             return $candidatura;
         });
@@ -49,6 +57,9 @@ class RevisarCandidaturaService
 
             $this->audit($candidatura, 'candidatura.retirada_por_edicao_voluntaria');
             $this->telemetria('candidatura.retirada_por_edicao_voluntaria', $candidatura);
+
+            // STORY-053 (template 5) — retirada voluntária após edição.
+            $this->notificar->retirada($candidatura, 'voluntaria');
 
             return $candidatura;
         });
