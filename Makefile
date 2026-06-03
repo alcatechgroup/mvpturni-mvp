@@ -120,7 +120,9 @@ test: test-api test-admin test-webapp ## Roda a suíte completa (usada pelo pré
 test-api: ## Testes do app api (unit + integração contra Postgres + cobertura)
 	$(DC) up -d postgres
 	$(MAKE) _wait-db
-	$(COMPOSE_RUN) -e DB_DATABASE=turni_test api ./vendor/bin/pest --colors=always --coverage --min=80
+	# memory_limit=512M: a agregação do relatório de cobertura (todos os arquivos) estoura o
+	# default de 128M do PHP CLI conforme a base cresce. A suíte em si passa; só o report OOMava.
+	$(COMPOSE_RUN) -e DB_DATABASE=turni_test api php -d memory_limit=512M ./vendor/bin/pest --colors=always --coverage --min=80
 
 test-admin: ## Testes do app admin (unit + integração contra Postgres)
 	$(DC) up -d postgres
