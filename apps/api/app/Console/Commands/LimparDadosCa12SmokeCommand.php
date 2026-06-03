@@ -54,7 +54,12 @@ class LimparDadosCa12SmokeCommand extends Command
             DB::unprepared("GRANT DELETE ON vaga_versoes TO \"{$ru}\"");
             DB::unprepared("GRANT UPDATE ON audit_logs TO \"{$ru}\"");
             DB::unprepared("GRANT UPDATE ON admin_audit_log TO \"{$ru}\"");
-            foreach (['vaga_versoes', 'audit_logs', 'admin_audit_log'] as $t) {
+            // aceites_eletronicos: FK `user_id` é RESTRICT (NO ACTION) e a tabela é append-only
+            // (REVOKE UPDATE,DELETE + trigger — ADR-010). Para apagar o usuário de teste é preciso
+            // remover o aceite ANTES do delete de users; e a própria trava `FOR KEY SHARE` do delete
+            // exige privilégio na tabela. Concede DELETE e desabilita o trigger só nesta transação.
+            DB::unprepared("GRANT DELETE ON aceites_eletronicos TO \"{$ru}\"");
+            foreach (['vaga_versoes', 'audit_logs', 'admin_audit_log', 'aceites_eletronicos'] as $t) {
                 DB::statement("ALTER TABLE {$t} DISABLE TRIGGER USER");
             }
 
@@ -73,16 +78,18 @@ class LimparDadosCa12SmokeCommand extends Command
 
             DB::table('contratante_profiles')->whereIn('user_id', $userIds)->delete();
             DB::table('profissional_profiles')->whereIn('user_id', $userIds)->delete();
+            $ae = DB::table('aceites_eletronicos')->whereIn('user_id', $userIds)->delete();
             $u = DB::table('users')->whereIn('id', $userIds)->delete();
 
-            foreach (['vaga_versoes', 'audit_logs', 'admin_audit_log'] as $t) {
+            foreach (['vaga_versoes', 'audit_logs', 'admin_audit_log', 'aceites_eletronicos'] as $t) {
                 DB::statement("ALTER TABLE {$t} ENABLE TRIGGER USER");
             }
             DB::unprepared("REVOKE DELETE ON vaga_versoes FROM \"{$ru}\"");
             DB::unprepared("REVOKE UPDATE ON audit_logs FROM \"{$ru}\"");
             DB::unprepared("REVOKE UPDATE ON admin_audit_log FROM \"{$ru}\"");
+            DB::unprepared("REVOKE DELETE ON aceites_eletronicos FROM \"{$ru}\"");
 
-            $this->info("Removidos: notificacoes={$n} candidaturas={$c} vaga_versoes={$vv} vagas={$v} users={$u}.");
+            $this->info("Removidos: notificacoes={$n} candidaturas={$c} vaga_versoes={$vv} vagas={$v} aceites={$ae} users={$u}.");
         });
 
         return self::SUCCESS;
