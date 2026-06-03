@@ -221,6 +221,20 @@ Job que falha:
 - **Erros permanentes**: marque o job como `failed`, não retry — vai gastar recursos.
 - **Após N falhas**: envie para **dead letter queue** (ou tabela equivalente em Postgres) — humano investiga depois.
 
+### Turni — trabalho recorrente/background **tem que ser Job de fila**, não comando agendado
+
+No Turni, homolog/prod rodam **só `php artisan queue:work database`** (Cloud Run Job + Cloud Scheduler 1/min — STORY-034 / IDR-016). **`schedule:run` NÃO roda em nenhum ambiente** (não está na infra, no Dockerfile nem no entrypoint). Consequência direta:
+
+> **Todo `Schedule::command(...)` do `routes/console.php` NÃO executa em homolog/prod** — só localmente, quando alguém roda o comando à mão. Quem processa trabalho em homolog é a **fila** (`queue:work`).
+
+Regra ao implementar:
+
+- Trabalho recorrente/background que **precisa rodar em homolog/prod** = **Job de fila** (`ShouldQueue`, `onConnection('database')`, `tries`/`backoff`, `failed()`), despachado de onde o evento acontece. **Nunca** um `Schedule::command` "que o cron drena". Padrões de referência: `EnviarEmailTransacionalJob` (STORY-021), `EnviarEmailDaNotificacaoJob` (STORY-053).
+- Fila `database`: o `INSERT` em `jobs` entra na **transação corrente** → o worker só vê o job após o commit e o rollback o desfaz junto. Transação-seguro **sem** `afterCommit`.
+- Se o requisito for **cron real** (por horário/intervalo, não por evento), aí sim precisa de **fix de infra** (worker passar a rodar `schedule:run`, via Terraform) — não é só código. Até isso existir, comandos agendados (ex.: `lembretes:cadastro`, `candidaturas:auto-retirar-apos-edicao`) **não rodam** em homolog.
+
+**Por que esta regra existe:** na STORY-053 o envio de e-mail das notificações foi entregue como **comando agendado** drenando uma "fila implícita". Passou em todos os testes e no deploy, mas em homolog a notificação era criada e **o e-mail nunca saía** — porque nada chama `schedule:run`. Custou um ciclo inteiro de diagnóstico. Cuidado análogo de privilégio (DB local superuser mascara grants que só explodem no Cloud SQL) está em `database-discipline.md`.
+
 ## Resumo operacional
 
 Antes de marcar uma estória pronta que envolva tratamento de erro:
@@ -229,6 +243,7 @@ Antes de marcar uma estória pronta que envolva tratamento de erro:
 - [ ] Erro esperado é distinguido de bug — status code, log level, mensagem certa para cada.
 - [ ] Mensagens para usuário são acionáveis; mensagens internas têm contexto suficiente.
 - [ ] Operação sensível (pagamento, envio, etc) é idempotente.
+- [ ] Trabalho recorrente/background que precisa rodar em homolog/prod é **Job de fila** (`ShouldQueue`), **não** `Schedule::command` (homolog só roda `queue:work`, não `schedule:run`).
 - [ ] Chamadas externas têm timeout + retry com backoff/jitter quando aplicável.
 - [ ] Nenhuma exceção é engolida silenciosamente.
 - [ ] Códigos HTTP usados corretamente (4xx vs 5xx).

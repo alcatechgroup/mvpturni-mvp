@@ -137,6 +137,14 @@ Em tabela grande (milhões de linhas), operações inocentes ficam perigosas:
 - **Renomear coluna**: quebra app que ainda usa o nome antigo. Padrão "expand-contract": adicionar nova → fazer app escrever em ambas → migrar leitura → parar de escrever na antiga → remover antiga. Várias migrações, mas zero downtime.
 - **DROP COLUMN/TABLE**: praticamente irreversível em produção (rollback de migração não traz dado de volta). Pense duas vezes.
 
+### Cuidados com privilégios (GRANT/REVOKE) — **o banco local mente**
+
+No Turni, o Postgres dockerizado (dev/CI/test) conecta como `turni`, que é **superuser** e **ignora GRANT/REVOKE**. No **Cloud SQL** (homolog/prod) o `turni` é usuário comum. Logo, **qualquer bug de privilégio numa migração passa verde localmente e em todos os testes, e só explode no `migrate+seed` de homolog**.
+
+- **Nunca `REVOKE UPDATE` numa tabela referenciada por FK.** Ao inserir o filho, o Postgres valida a FK com `SELECT ... FOR KEY SHARE` na tabela-pai — lock que **exige privilégio UPDATE** na pai (doc do `GRANT`). Revogar UPDATE quebra **todo INSERT** que referencie a pai. Para append-only, revogue só `DELETE` e proteja `UPDATE` com **trigger** (`prevent_*_mutation`), não com REVOKE. (Incidente real: STORY-044/052 `vaga_versoes` → `42501 permission denied` no seed de homolog; fix na migração `2026_06_03_140000`.)
+- **Prove bug/fix de privilégio com role não-superuser**: `CREATE ROLE t LOGIN; GRANT ...; SET ROLE t;` e rode a query — conectado direto como `turni` você não reproduz nada.
+- O erro real do `migrate+seed` de homolog **não** aparece no GitHub Actions (só "execution failed") — está no **Cloud Logging** do Cloud Run Job `turni-migrate-homolog` (projeto `turni-mvp`).
+
 ### Backfill de dado existente
 
 Quando a migração precisa preencher coluna nova com dado calculado:
