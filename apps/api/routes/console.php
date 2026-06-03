@@ -22,3 +22,10 @@ Schedule::command('lembretes:cadastro')
 Schedule::command('candidaturas:auto-retirar-apos-edicao')
     ->everyMinute()
     ->withoutOverlapping();
+
+// E-mail das notificações (STORY-053 CA-5): drena a fila implícita `notificacoes`. 1×/min para o
+// SLA de ≤60s p95 (CA-9); reusa o Cloud Run Job + Scheduler da STORY-034. Retry/backoff via
+// `tentativas_envio` na própria tabela; withoutOverlapping evita lote concorrente.
+Schedule::command('notificacoes:enviar-emails')
+    ->everyMinute()
+    ->withoutOverlapping();
