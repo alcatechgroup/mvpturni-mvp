@@ -82,7 +82,7 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
 - [ ] CAs checados. *(CA-1..8, 10, 11 ok; faltam CA-9 SLA e CA-12 E2E — ambos exigem homolog.)*
 - [ ] Cobertura + E2E verdes, SLA observado. *(Cobertura back/widget ok; E2E + SLA pendentes em homolog.)*
 - [x] 5 templates ativos no editor (TemplateVersao ativa).
-- [ ] Deploy de homolog: ciclo completo (candidata → e-mail no Mailpit do contratante).
+- [x] Deploy de homolog: **rc.49** no ar (api/admin/webapp `v0.1.0-rc.49`, smoke verde). *(O ciclo candidata→e-mail no Mailpit de homolog ainda não foi exercido ponta-a-ponta — é o CA-12.)*
 - [x] `index.json` atualizado.
 - [x] "Notas do agente" preenchida com link para os 5 templates carregados.
 
@@ -247,11 +247,19 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
 - **Templates 4/5 (mantida/retirada):** não há evento de domínio para "confirmar/retirar após
   edição" — serão criados via hook nos endpoints `confirmar-apos-edicao`/`retirar-apos-edicao`
   (STORY-052) e na auto-retirada (`auto_24h`). Fora dos 3 listeners da CA-2/3/4.
+- **BUG pré-existente da STORY-052 destravado no deploy (fix incluído):** o `migrate+seed` de homolog
+  falhava (e bloqueava api/admin desde o rc.47) com `42501 permission denied for table vaga_versoes`
+  no INSERT de candidatura do seed. Causa: a migração de `vaga_versoes` fazia `REVOKE UPDATE, DELETE`
+  como append-only, mas `vaga_versoes` é tabela-PAI de FK (`candidaturas.vaga_versao_id`); o Postgres
+  valida a FK com `SELECT ... FOR KEY SHARE` na pai, lock que **exige privilégio UPDATE**. Passava
+  batido localmente porque o `turni` do Docker é superuser (ignora grants); no Cloud SQL não. Fix:
+  migração original passa a revogar só DELETE + migração forward `2026_06_03_140000` faz `GRANT UPDATE`
+  (conserta homolog). Append-only do UPDATE segue pelo trigger. Provado com role não-superuser local.
 
 ### Pendente (próxima sessão — só o que exige homolog)
 - **CA-12 / CA-9:** E2E 3 cenários (Mailpit homolog, 0 flake em 3 runs) + SLA ≤60s p95 via log-based
-  metric + deploy homolog (ciclo candidata→e-mail). Exigem ambiente; ficam para o fechamento da
-  estória (junto com STORY-054, o validador do épico).
+  metric. O deploy de homolog (rc.49) já está no ar; falta exercer o ciclo candidata→e-mail no Mailpit
+  de homolog e instrumentar a métrica. Fecham junto com STORY-054 (validador do épico).
 
 ### Cobertura final
 - Unitários back: listeners 6 + endpoints 7 + **renderer 6 (EmailTemplateRenderer 96% linhas)** +
@@ -268,5 +276,8 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
   Seed: `apps/api/database/seeders/emails/*.md` (+ cópia no admin). Editáveis no Backoffice
   (`/templates`), com variáveis documentadas por `EmailTemplateCatalogo`.
 ### Links
-- Commits: `9b00dba` (design+listeners), `248f9d6` (endpoints), `00c8ee7` (Flutter CA-8); CA-5/6
-  nos commits desta sessão. PR/Deploy: pendente.
+- Commits: `9b00dba` (design+listeners), `248f9d6` (endpoints), `00c8ee7` (Flutter CA-8),
+  `1be8377` (CA-6 templates/editor), `324d45d` (CA-5 worker), `6c25600` (templates 4/5 wiring),
+  `52d443d` (fix FK vaga_versoes que destravou homolog).
+- Deploy: **`v0.1.0-rc.49` em homolog** (api/admin/webapp `v0.1.0-rc.49`, smoke verde). O rc.48 subiu
+  só a WebApp (migrate/seed bloqueado pelo bug de `vaga_versoes`); o rc.49 destravou api+admin.

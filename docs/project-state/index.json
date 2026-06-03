@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-06-03T15:28:37Z",
+  "generated_at": "2026-06-03T16:51:30Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W27",
     "last_closed_sprint": "SPRINT-2026-W26",
     "phase": "wave-2026-01-sprint-w27-active-11-of-13-done-d-plus-2-053-destravada-aguarda-agente",
-    "next_action": "SPRINT-2026-W27 ATIVA — STORY-053 (notificações in-app + e-mail) CODE-COMPLETE em 2026-06-03: tabela notificacoes + 3 listeners (CA-2/3/4), endpoints (CA-7), UI Flutter sino+painel (CA-8), worker notificacoes:enviar-emails 1/min reusando Cloud Run Job da STORY-034 (CA-5), 5 templates de e-mail editáveis no Backoffice como categoria `email`/TemplateVersao ativa (CA-6, Path A), e wiring dos templates 4/5 (mantida/retirada após edição) nos hooks de RevisarCandidaturaService + AutoRetirarAposEdicaoCommand. Cobertura back ≥95% (worker 97%, renderer 96%, NotificarRevisaoAposEdicao 100%) e widget ≥80%; pint limpo. Verificado local no Mailpit (candidata→e-mail interpolado→enviada_email_em). PENDENTE (exige homolog): CA-9 (SLA ≤60s p95 via log-based metric), CA-12 (E2E 3 cenários no Mailpit de homolog, 0 flake em 3 runs) e deploy de homolog. Próximo: subir 053 em homolog + STORY-054 (validador) fecha o EPIC-002.",
-    "notes": "Snapshot W27 (2026-06-03): STORY-053 code-complete (CA-1..8,10,11 + templates 4/5 wired); só CA-9 (SLA) e CA-12 (E2E) + deploy seguem pendentes por exigirem homolog. EPIC-002: 9/9 implementação fechadas. STORY-054 (validador) entra após deploy de 053 em homolog. Decisões aceitas na sprint: ADR-013, ADR-014, IDR-020, IDR-025, IDR-026, DDR-002."
+    "next_action": "SPRINT-2026-W27 — STORY-053 (notificações in-app + e-mail) deployada em homolog no v0.1.0-rc.49 (api/admin/webapp confirmados, smoke verde). Inclui worker notificacoes:enviar-emails 1/min, 5 templates de e-mail editáveis no Backoffice (categoria `email`), wiring dos templates 4/5, e o FIX do bug de grant em vaga_versoes (REVOKE UPDATE quebrava a FK de candidatura no Cloud SQL) que bloqueava migrate+seed de homolog desde o rc.47 — api/admin voltaram a deployar. PENDENTE: CA-12 (E2E 3 cenários no Mailpit de homolog, 0 flake/3 runs) e CA-9 (SLA ≤60s p95 via log-based metric). Depois STORY-054 (validador) fecha o EPIC-002.",
+    "notes": "Snapshot W27 (2026-06-03): STORY-053 deployada em homolog (rc.49); restam CA-9 (SLA) e CA-12 (E2E homolog). rc.49 destravou o migrate+seed de homolog (fix do REVOKE UPDATE em vaga_versoes). EPIC-002: 9/9 implementação fechadas. STORY-054 (validador) na sequência."
   },
   "product": {
     "vision": "product/vision.md",
@@ -2062,7 +2062,7 @@
         "STORY-054"
       ],
       "last_progress_update": "2026-06-03",
-      "progress_summary": "11/13 done; STORY-053 (notificações) CODE-COMPLETE em D+2 — CA-1..8,10,11 + templates 4/5 wired + worker de e-mail verificado no Mailpit local. Restam só CA-9 (SLA) e CA-12 (E2E) que exigem homolog. STORY-054 (validador) na sequência."
+      "progress_summary": "11/13 done; STORY-053 (notificações) CODE-COMPLETE e DEPLOYADA em homolog (rc.49) — CA-1..8,10,11 + templates 4/5 + worker de e-mail. O rc.49 também consertou um bug pré-existente de grant (vaga_versoes REVOKE UPDATE quebrava FK no Cloud SQL) que travava o migrate+seed de homolog desde o rc.47. Restam só CA-9 (SLA) e CA-12 (E2E Mailpit homolog). STORY-054 na sequência."
     }
   ],
   "decisions": {
