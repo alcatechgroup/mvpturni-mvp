@@ -2,10 +2,10 @@
 adr_id: ADR-018
 slug: uuid-chave-primaria-entidades-dominio
 title: UUID como tipo de chave primária das entidades de domínio
-status: proposed  # proposed | accepted | superseded | rejected | deferred
-decided_at: null
+status: accepted  # proposed | accepted | superseded | rejected | deferred
+decided_at: 2026-06-03
 decided_by: arquiteto
-approved_by: null
+approved_by: Alexandro
 supersedes: null
 superseded_by: null
 related_adrs: [ADR-000, ADR-001, ADR-007, ADR-009, ADR-013]
@@ -250,11 +250,11 @@ Os trade-offs são reconhecidos: v7 vaza timestamp (já vazamos com `created_at`
 
 > Esta seção é o registro formal do aceite. Não preencher sozinho — preencher quando o humano aprovar no chat ou via PR.
 
-- **Status final:** ⬜ pendente
-- **Aprovado por:** —
-- **Data:** —
-- **Forma do aceite:** —
-- **Condicionantes do aceite:** —
+- **Status final:** ✅ aceita
+- **Aprovado por:** Alexandro
+- **Data:** 2026-06-03
+- **Forma do aceite:** aprovado em chat (sessão de 2026-06-03 com PO/Claude, em paralelo ao fechamento da SPRINT-2026-W27)
+- **Condicionantes do aceite:** nenhuma. STORY-069 ainda valida empiricamente os 4 pontos finos (Decisões 4, 5 e 6 são tomadas com base na proposta — qualquer descoberta empírica que invalide alguma delas deve ser registrada como nota nesta ADR e, se for material, reabrir a decisão específica antes de a STORY-070 começar).
 
 ### Em caso de rejeição
 - **Motivo:** ...
@@ -269,3 +269,4 @@ Os trade-offs são reconhecidos: v7 vaza timestamp (já vazamos com `created_at`
 ## Histórico
 
 - 2026-06-03 — criada como `proposed` por Arquiteto (rascunho PO), a partir da análise feita em paralelo ao fechamento da SPRINT-2026-W27. Spike de validação dos 4 pontos finos atribuído à STORY-069 da SPRINT-2026-W27.5.
+- 2026-06-03 — `accepted` por Alexandro (aprovação em chat). STORY-069 destravada para execução assim que SPRINT-2026-W27 fechar (STORY-053 + STORY-054 `done` + veredito aceito).
