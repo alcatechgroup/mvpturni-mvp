@@ -44,8 +44,16 @@ return new class extends Migration
             FOR EACH ROW EXECUTE FUNCTION prevent_vaga_versoes_mutation();
         ');
 
+        // Append-only no nível de privilégio: revoga só DELETE. UPDATE NÃO pode ser revogado aqui —
+        // `vaga_versoes` é tabela-PAI de uma FK (candidaturas.vaga_versao_id), e o Postgres valida a
+        // FK ao inserir o filho com `SELECT ... FOR KEY SHARE` na pai, lock que EXIGE privilégio
+        // UPDATE (doc do GRANT). Revogar UPDATE quebra todo INSERT de candidatura num banco onde o
+        // runtime não é superuser (Cloud SQL homolog/prod) — passa batido localmente porque o `turni`
+        // do Docker é superuser e ignora grants. A imutabilidade do UPDATE já é garantida pelo trigger
+        // prevent_vaga_versoes_mutation acima. Ver 2026_06_03_140000 (conserta ambientes que já
+        // rodaram a versão antiga deste REVOKE).
         $runtimeUser = config('database.connections.pgsql.username', 'turni');
-        DB::unprepared("REVOKE UPDATE, DELETE ON vaga_versoes FROM \"{$runtimeUser}\"");
+        DB::unprepared("REVOKE DELETE ON vaga_versoes FROM \"{$runtimeUser}\"");
     }
 
     public function down(): void
