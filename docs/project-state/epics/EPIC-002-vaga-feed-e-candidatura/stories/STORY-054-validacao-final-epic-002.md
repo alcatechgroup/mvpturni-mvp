@@ -87,13 +87,21 @@ Decide: ordem de execução do checklist, forma de captura de evidência, estrut
 ## Notas do agente
 
 ### Veredito final
-- 
+- **APPROVED com pendências** (`approved_with_pending`). Contagem: 7 `pass`, 6 `pass com ressalva`, 1 `fail não-bloqueante`, 0 bloqueante, 0 `n/a`. Validado contra `main` (`9ec29c7` — único commit pós-STORY-053 é só docs do EPIC-010) e homolog **rc.57**.
+
 ### Bloqueantes (F-B-N)
-- 
+- Nenhum.
+
 ### Não-bloqueantes (F-NB-N)
-- 
+- **F-NB-1** — o comando agendado `candidaturas:auto-retirar-apos-edicao` (auto-retirada 24h do PDR-009) **não executa em homolog/prod**: o worker roda só `queue:work`, não há `schedule:run` (gap de infra pré-existente, documentado na STORY-053; afeta também `lembretes:cadastro` da STORY-021). O ciclo PDR-009 (snapshot + transição + e-mail) funciona; o comando está coberto por E2E de backend com `travel(25h)`.
+
 ### Evidências
-- 
+- Cobertura/suítes: api **531 verdes / 93,2%** (Domain/Match 100%, CandidaturaController 100%, gates 100%); admin **100 verdes**; webapp **340 verdes**.
+- Imutabilidade `vaga_versoes` ao vivo: UPDATE e DELETE levantam exceção do trigger mesmo com role superusuário.
+- Homolog (Cloud Logging): `notificacao.email.sent` × 31 (17 candidatura_recebida / 8 vaga_editada_material / 6 vaga_cancelada), 0 falhas; `sla_ms` ~27s (STORY-053 p95 45,5s ≤ 60s); `/api/feed` 200 em 224–261ms; destinatário mascarado (CA-10).
+- audit_logs (local) com as 4 ações; RBAC por testes de rota + 401 ao vivo; CI da main verde (escopo lint/build/scans; suíte+cobertura é gate de pré-push).
+- Detalhe completo, ressalvas e limitações em `validation/report.md`.
+
 ### Links
 - Relatório: `validation/report.md`
 - Checklist: `validation/checklist.md`

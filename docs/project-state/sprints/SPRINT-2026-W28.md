@@ -1,13 +1,14 @@
 ---
 sprint_id: SPRINT-2026-W28
 wave: WAVE-2026-01
-status: planned
-start_date: null  # ativa quando SPRINT-2026-W27 fechar (STORY-053 + STORY-054 done)
+status: active
+start_date: 2026-06-03  # ativada no fechamento da SPRINT-2026-W27 (mesmo dia)
 end_date: null
-soft_cap_date: 2026-07-04  # ~31 dias corridos a partir da provável ativação 2026-06-04; folga maior que W24/W25/W27 (21d) porque é o épico mais pesado da onda
+soft_cap_date: 2026-07-04  # ~31 dias corridos a partir de 2026-06-03; folga maior que W24/W25/W27 (21d) porque é o épico mais pesado da onda
 opened_at: 2026-06-03
 opened_by: "PO (Alexandro / Claude)"
-closure_rule: "Fechamento por goal-atingido: encerra quando STORY-055..067 estiverem `done` E STORY-068 (validador) tiver emitido veredito em `validation/report.md` aceitável pelo PO (`approved` ou `approved_with_pending` que o PO assuma como goal-atingido). Soft-cap em 2026-07-04 (~31 dias corridos) serve como gatilho de reavaliação — não é prazo de entrega. Se até 2026-06-20 (D+16) o caminho até `ativo` não estiver vivo em homolog, abrir mini-sprint W29 dedicada ao check-out + captura + Pix em vez de inflar a W28."
+activated_at: 2026-06-03  # mesmo dia da abertura — W27 fechou e W28 entrou ativa em sequência
+closure_rule: "Fechamento por goal-atingido: encerra quando STORY-055..067 + STORY-069 estiverem `done` E STORY-068 (validador) tiver emitido veredito em `validation/report.md` aceitável pelo PO (`approved` ou `approved_with_pending` que o PO assuma como goal-atingido). Soft-cap em 2026-07-04 (~31 dias corridos) serve como gatilho de reavaliação — não é prazo de entrega. Se até 2026-06-20 (D+16) o caminho até `ativo` não estiver vivo em homolog, abrir mini-sprint W29 dedicada ao check-out + captura + Pix em vez de inflar a W28. STORY-069 (fix `schedule:run`) é ortogonal e pode iniciar imediatamente — quita F-NB-1 do EPIC-002 carregada da W27."
 goal: "Ciclo do turno vivo em homolog (EPIC-003): contratante aceita candidatura no Backoffice → Pagar.me sandbox pré-autoriza `total_contratante` → turno em `confirmado` → profissional gera PIN de check-in (4 dígitos) com flag de geofencing capturada → contratante valida o PIN → turno transita para `ativo` com cronômetro bilateral vivo em tempo real nos dois lados (latência ≤ 2s) → profissional gera PIN de check-out → contratante valida → turno transita para `finalizado` → Pagar.me sandbox captura o valor pré-autorizado → Pix sandbox cai na chave do profissional em ≤ 15 min. Habitualidade (PDR-002) aplicada nos 4 cenários no momento do aceite (PF bloqueia 3ª, PJ alerta+override registrado no AceiteEletronico). Geofencing (PDR-008) alerta-e-registra sem bloquear. Cancelamento antes do check-in libera a pré-autorização; `no_show_pro` por timeout libera também (PDR-007 mínimo, sem motor de penalidade). 3 ADRs novas aceitas (ADR-015 modelo Turno + AceiteEletronico, ADR-016 ACL Pagar.me sandbox + idempotência + webhook, ADR-017 tempo real cronômetro + geolocalização). Validador independente (STORY-068, 4ª aparição após STORY-011/025/054) emite veredito do EPIC-003."
 ---
 
@@ -31,7 +32,7 @@ A sprint **NÃO** abre frente nova fora do EPIC-003. EPIC-004 (avaliação recí
 
 ## Escopo e duração
 
-- **Escopo**: 14 estórias — EPIC-003 inteiro. Mix: **1 S + 11 M + 2 L**.
+- **Escopo**: **15 estórias** — EPIC-003 inteiro (14) + STORY-069 (bugfix carry-forward do EPIC-002 — quita F-NB-1 da STORY-054). Mix: **1 S + 12 M + 2 L**.
   - As **duas L** (STORY-056 Pagar.me e STORY-063 cronômetro bilateral) são candidatas naturais a estouro de sessão única. Gatilho de quebra documentado na própria estória; agente escala ao PO **antes** de inflar. Critérios de quebra:
     - STORY-056 → separar `adapter mock em container` (back-end) de `contract test contra sandbox real no CI noturno` (CI/IaC) em duas estórias.
     - STORY-063 → separar `canal de tempo real + backend de eventos` (back-end) de `UI bilateral consumindo o canal` (front-end) em duas estórias.
@@ -56,8 +57,9 @@ A sprint **NÃO** abre frente nova fora do EPIC-003. EPIC-004 (avaliação recí
 | STORY-066 | Cancelamento antes do check-in + `no_show_pro` + liberação da pré-autorização | EPIC-003 | implementation | programador (+ designer) | M | ready |
 | STORY-067 | Notificações in-app + e-mail dos eventos do turno (8 templates via STORY-020) | EPIC-003 | implementation | programador | M | ready |
 | STORY-068 | Validação final do EPIC-003 | EPIC-003 | validation | validador | M | ready |
+| STORY-069 | Fix — `php artisan schedule:run` em homolog/prod (quita F-NB-1 do EPIC-002) | EPIC-002 | bugfix | programador | M | ready |
 
-**Sizing total**: 1 S + 11 M + 2 L. Mais pesada que W27 (2 S + 10 M + 1 L) por **3 estórias-medidas**: 1 spike a mais (3 vs 2 da W27) e 1 L a mais (2 vs 1).
+**Sizing total**: 1 S + 12 M + 2 L (15 estórias). Mais pesada que W27 (2 S + 10 M + 1 L) por **4 estórias-medidas**: 1 spike a mais (3 vs 2 da W27), 1 L a mais (2 vs 1), e 1 bugfix carry-forward (STORY-069). A STORY-069 é ortogonal ao EPIC-003 e cabe em qualquer janela da sprint.
 
 ## Ordem de execução obrigatória (máquina de estados do turno)
 
@@ -192,6 +194,7 @@ Agente programador, arquiteto e designer carregam suas próprias skills + as dec
 6. **Spike antes de implementação** (aprendizado W27 STORY-048) — 3 spikes nesta sprint (055/056/057) precedem todas as 10 estórias de implementação.
 7. **Snapshot de payload explicável nasce na estória que cria o dado** (aprendizado W27 STORY-051) — STORY-058 emite AceiteEletronico com payload renderizado completo e imutável; STORY-061 emite evento de check-in com geofencing completo (não só flag); STORY-065 emite evento de captura com `charge_id` do Pagar.me e timestamp do Pix.
 8. **Bug que aparece numa estória pode ser sintoma de regra transversal** (aprendizado W27 STORY-052 → IDR-026) — antes de corrigir local, perguntar se vira IDR/DDR/PDR.
+9. **F-NB-N do veredito anterior endereçado na sprint seguinte** (padrão consolidado W23 → W27): F-NB-1 do EPIC-002 (auto-retirada de candidatura em limbo porque `schedule:run` não roda em homolog/prod) é endereçada nesta sprint pela STORY-069 (bugfix infra). Ortogonal ao EPIC-003; pode iniciar imediatamente.
 
 ## Mudanças no escopo do sprint
 

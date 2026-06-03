@@ -4,11 +4,11 @@
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
-    "current_sprint": "SPRINT-2026-W27",
-    "last_closed_sprint": "SPRINT-2026-W26",
-    "phase": "wave-2026-01-sprint-w27-active-11-of-13-done-d-plus-2-053-destravada-aguarda-agente",
-    "next_action": "SPRINT-2026-W27 — STORY-053 (notificações in-app + e-mail) DONE e em homolog (rc.54): worker via fila, 5 templates editáveis, templates 4/5, CA-9 (sla_ms + log-based metric p95≤60s, observado 45,5s) e CA-12 (E2E 3 cenários × 3 runs, 0 flake, asserção via Cloud Logging). Fixes de bônus: grant vaga_versoes (destravou migrate de homolog) e entrega por Job de fila (schedule não roda em homolog). PRÓXIMO: STORY-054 (validador) — desbloqueada, fecha o EPIC-002 medindo a métrica primária. Pendência operacional: terraform apply em homolog p/ ativar a métrica/alerta de SLA (IaC commitado).",
-    "notes": "Snapshot W27 (2026-06-03): STORY-053 DONE (12/12 CAs, validada em homolog). EPIC-002 9/9 implementação fechadas. STORY-054 (validador) desbloqueada — última da sprint."
+    "current_sprint": "SPRINT-2026-W28",
+    "last_closed_sprint": "SPRINT-2026-W27",
+    "phase": "wave-2026-01-sprint-w28-active-epic-003-aguarda-agente-iniciar-story-055-ou-story-069",
+    "next_action": "SPRINT-2026-W27 ENCERRADA em 2026-06-03 com 13/13 estórias done — EPIC-002 + EPIC-008 ambos `done`. Validador STORY-054 emitiu `approved_with_pending` (0 bloqueantes; 1 F-NB-1 — auto-retirada cron não dispara em homolog/prod por gap de `schedule:run`); PO aceitou como goal-atingido em 2026-06-03 — 19 dias antes do soft-cap. SPRINT-2026-W28 planejada em paralelo: 15 estórias (EPIC-003 inteiro — 3 spikes + 10 implementação + 1 validador + STORY-069 carry-forward que quita a F-NB-1). Aguarda agente iniciar STORY-055 (modelo Turno + máquina de estados + AceiteEletronico imutável) OU STORY-069 (bugfix infra `schedule:run` — ortogonal, pode começar primeiro).",
+    "notes": "Snapshot 2026-06-03: W27 fechada (13/13 done). EPIC-002 `done` com F-NB-1 carregada para W28 (STORY-069). EPIC-003 `ready` com 14 estórias decompostas (Fluxo B aplicado). W28 `planned` com 15 estórias — sprint mais pesada do projeto até hoje, soft-cap deliberadamente maior (~31d vs 21d) por ser o épico mais arriscado (Pagar.me sandbox). Próxima ação: agente programador pega STORY-055 ou STORY-069."
   },
   "product": {
     "vision": "product/vision.md",
@@ -183,7 +183,8 @@
       "slug": "vaga-feed-e-candidatura",
       "title": "Publicação de vaga, feed do profissional e candidatura",
       "wave": "WAVE-2026-01",
-      "status": "ready",
+      "status": "done",
+      "closed_at": "2026-06-03",
       "path": "epics/EPIC-002-vaga-feed-e-candidatura/epic.md",
       "story_ids": [
         "STORY-44",
@@ -196,13 +197,29 @@
         "STORY-51",
         "STORY-52",
         "STORY-53",
-        "STORY-54"
+        "STORY-54",
+        "STORY-069"
       ],
-      "validation_report": null,
+      "validation_report": {
+        "path": "epics/EPIC-002-vaga-feed-e-candidatura/validation/report.md",
+        "verdict": "approved_with_pending",
+        "validated_at": "2026-06-03",
+        "validated_by": "validador (sessão claude-opus-4-8)",
+        "pending_findings": [
+          {
+            "id": "F-NB-1",
+            "summary": "Comando agendado `candidaturas:auto-retirar-apos-edicao` (STORY-052 CA-9) nunca dispara em homolog/prod — só `queue:work` roda no ambiente implantado, `schedule:run` não é invocado. Candidaturas em `pendente_revisao_apos_edicao` ficam em limbo indefinidamente quando candidato ignora notificação de edição material. Comentário em `apps/api/routes/console.php:28-30` confirma a gap por escrito.",
+            "blocking": false,
+            "addressed_by": "STORY-069",
+            "addressed_in_sprint": "SPRINT-2026-W28"
+          }
+        ]
+      },
       "created_at": "2026-05-26",
-      "updated_at": "2026-06-01",
+      "updated_at": "2026-06-03",
       "sprint": "SPRINT-2026-W27",
-      "next_action": "STORY-048 (feed do profissional) implementada em 2026-06-02 — status in_review. GET /api/feed (visibilidade ADR-013 + match on-demand ADR-014 + ranqueamento + telemetria), tela /feed (score número+barra, 4 filtros sem reload, gate PDR-005), geo do profissional persistida. api 402 testes verdes (FeedQuery 95,8%/controller 100%); perf p95 ≤ 800ms com 1k vagas; webapp 225 widget + E2E same-origin verdes. Próxima: STORY-049 (detalhe + breakdown) / STORY-050 (candidatar)."
+      "carry_forward_to": "SPRINT-2026-W28",
+      "next_action": "EPIC-002 fechado com veredito `approved_with_pending` em 2026-06-03 (STORY-054). 1 F-NB-1 carregada para SPRINT-2026-W28 via STORY-069 (fix `schedule:run` em homolog/prod, plumbar Cloud Run Job + Cloud Scheduler invocando `php artisan schedule:run` a cada minuto)."
     },
     {
       "id": "EPIC-003",
@@ -1663,8 +1680,8 @@
       "target_role": "validador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_review",
+      "owner_agent": "validador (claude-opus-4-8)",
       "sprint_id": "SPRINT-2026-W27",
       "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-054-validacao-final-epic-002.md",
       "blocked_by": [
@@ -1682,7 +1699,7 @@
       "estimated_session_size": "M",
       "produces_idr": null,
       "created_at": "2026-06-01",
-      "updated_at": "2026-06-01"
+      "updated_at": "2026-06-03"
     }
   ],
   "sprints": [
@@ -2027,9 +2044,12 @@
     {
       "id": "SPRINT-2026-W27",
       "wave": "WAVE-2026-01",
-      "status": "active",
+      "status": "closed",
       "start_date": "2026-06-01",
-      "end_date": null,
+      "end_date": "2026-06-03",
+      "closed_at": "2026-06-03",
+      "closed_by": "PO (Alexandro / Claude)",
+      "goal_outcome": "achieved",
       "soft_cap_date": "2026-06-22",
       "opened_at": "2026-06-01",
       "opened_by": "PO (Alexandro / Claude)",
@@ -2070,26 +2090,35 @@
         "STORY-050",
         "STORY-051",
         "STORY-052",
-        "STORY-053"
-      ],
-      "in_progress_story_ids": [],
-      "pending_story_ids": [
+        "STORY-053",
         "STORY-054"
       ],
+      "in_progress_story_ids": [],
+      "pending_story_ids": [],
+      "carry_forward": [
+        {
+          "type": "non_blocking_finding",
+          "from_epic": "EPIC-002",
+          "id": "F-NB-1",
+          "summary": "Comando agendado `candidaturas:auto-retirar-apos-edicao` não dispara em homolog/prod — `schedule:run` não é invocado no ambiente implantado.",
+          "addressed_by": "STORY-069",
+          "addressed_in_sprint": "SPRINT-2026-W28"
+        }
+      ],
       "last_progress_update": "2026-06-03",
-      "progress_summary": "12/13 done; STORY-053 (notificações in-app + e-mail) DONE — todos os 12 CAs, incluindo CA-9 (SLA p95=45,5s, log-based metric) e CA-12 (E2E 3 cenários × 3 runs, 0 flake) validados em homolog (Resend). STORY-054 (validador) DESBLOQUEADA — última da sprint."
+      "progress_summary": "ENCERRADA em 2026-06-03 com 13/13 done. EPIC-002 + EPIC-008 ambos `done`. Validador STORY-054 emitiu `approved_with_pending` (0 bloqueantes; 1 F-NB-1 carregada para W28/STORY-069). Duração 2 dias vs soft-cap 21 — encerramento 19d antes do gatilho. 2 ADRs (013/014) + 4 decisões transversais novas (IDR-020/025/026 + DDR-002) `accepted`. Métricas primárias do EPIC-002 observadas em homolog (feed p95 ≤ 800ms com 1k vagas; vaga → candidatura ≤ 2h em cenário seedado)."
     },
     {
       "id": "SPRINT-2026-W28",
       "wave": "WAVE-2026-01",
-      "status": "planned",
-      "start_date": null,
+      "status": "active",
+      "start_date": "2026-06-03",
       "end_date": null,
       "soft_cap_date": "2026-07-04",
       "opened_at": "2026-06-03",
       "opened_by": "PO (Alexandro / Claude)",
-      "closure_rule": "Fechamento por goal-atingido: encerra quando STORY-055..067 estiverem `done` E STORY-068 (validador) emitir veredito aceitável pelo PO. Soft-cap 2026-07-04 (~31d a partir da ativação ~2026-06-04) — folga deliberadamente maior que W24/W25/W27 (21d) porque é o épico mais pesado da onda. Gatilho de reescopo cedo em 2026-06-20 (D+16): se caminho até `ativo` (STORY-063 cronômetro vivo) não estiver demonstrável em homolog, abrir mini-sprint W29 dedicada a check-out+captura+Pix.",
-      "goal": "Ciclo do turno vivo em homolog (EPIC-003): aceite → AceiteEletronico imutável → pré-autorização Pagar.me sandbox → PIN check-in (4 dígitos) + geofencing → validação contratante → ativo + cronômetro bilateral ≤2s → PIN check-out → finalizado → captura Pagar.me → Pix sandbox ≤15min na chave do profissional. Habitualidade PDR-002 nos 4 cenários (PF bloqueia 3ª; PJ alerta+override registrado no AceiteEletronico). Geofencing PDR-008 alerta-e-registra. Cancelamento + no_show_pro liberam pré-autorização (PDR-007 mínimo). 3 ADRs novas (015 modelo Turno, 016 ACL Pagar.me, 017 tempo real + geo). Validador (STORY-068, 4ª aparição) fecha EPIC-003.",
+      "closure_rule": "Fechamento por goal-atingido: encerra quando STORY-055..067 + STORY-069 estiverem `done` E STORY-068 (validador) emitir veredito aceitável pelo PO. Soft-cap 2026-07-04 (~31d a partir da ativação ~2026-06-04) — folga deliberadamente maior que W24/W25/W27 (21d) porque é o épico mais pesado da onda. Gatilho de reescopo cedo em 2026-06-20 (D+16): se caminho até `ativo` (STORY-063 cronômetro vivo) não estiver demonstrável em homolog, abrir mini-sprint W29 dedicada a check-out+captura+Pix. STORY-069 (fix `schedule:run`) é ortogonal — quita F-NB-1 do EPIC-002.",
+      "goal": "Ciclo do turno vivo em homolog (EPIC-003): aceite → AceiteEletronico imutável → pré-autorização Pagar.me sandbox → PIN check-in (4 dígitos) + geofencing → validação contratante → ativo + cronômetro bilateral ≤2s → PIN check-out → finalizado → captura Pagar.me → Pix sandbox ≤15min na chave do profissional. Habitualidade PDR-002 nos 4 cenários (PF bloqueia 3ª; PJ alerta+override registrado no AceiteEletronico). Geofencing PDR-008 alerta-e-registra. Cancelamento + no_show_pro liberam pré-autorização (PDR-007 mínimo). 3 ADRs novas (015 modelo Turno, 016 ACL Pagar.me, 017 tempo real + geo). Validador (STORY-068, 4ª aparição) fecha EPIC-003. Em paralelo: STORY-069 quita a F-NB-1 do EPIC-002 (plumba `schedule:run` em homolog/prod via Cloud Run Job + Cloud Scheduler 1/min, ativando a auto-retirada de candidatura após edição material e os agendamentos colaterais STORY-021 lembretes + STORY-053 sweeper).",
       "path": "sprints/SPRINT-2026-W28.md",
       "story_ids": [
         "STORY-055",
@@ -2105,14 +2134,23 @@
         "STORY-065",
         "STORY-066",
         "STORY-067",
-        "STORY-068"
+        "STORY-068",
+        "STORY-069"
       ],
       "stretch_story_ids": [],
-      "sizing_total": "1 S + 11 M + 2 L (STORY-056 Pagar.me + STORY-063 cronômetro — gatilhos de quebra documentados)",
+      "sizing_total": "1 S + 12 M + 2 L (15 estórias; STORY-056 Pagar.me + STORY-063 cronômetro com gatilhos de quebra; STORY-069 bugfix carry-forward do EPIC-002)",
       "epics": [
-        "EPIC-003"
+        "EPIC-003",
+        "EPIC-002"
       ],
-      "scope_changes": [],
+      "scope_changes": [
+        {
+          "date": "2026-06-03",
+          "change": "STORY-069 adicionada ao escopo",
+          "reason": "F-NB-1 do EPIC-002 (validador STORY-054 em 2026-06-03): `candidaturas:auto-retirar-apos-edicao` não dispara em homolog/prod porque o ambiente implantado só roda `queue:work` — não há `schedule:run`. Fix de infra (Cloud Run Job + Cloud Scheduler 1/min) para plumbar o Scheduler do Laravel. Ortogonal ao EPIC-003.",
+          "cost": "+1 estória M; sizing total subiu de 14 (1S+11M+2L) para 15 (1S+12M+2L). Sem impacto no soft-cap ou no gatilho de reescopo cedo (STORY-069 não depende de nenhuma do EPIC-003)."
+        }
+      ],
       "delivered_story_ids": [],
       "in_progress_story_ids": [],
       "pending_story_ids": [
@@ -2129,10 +2167,11 @@
         "STORY-065",
         "STORY-066",
         "STORY-067",
-        "STORY-068"
+        "STORY-068",
+        "STORY-069"
       ],
       "last_progress_update": "2026-06-03",
-      "progress_summary": "Sprint planejada em 2026-06-03 em paralelo ao fechamento da W27. Aguarda ativação quando STORY-053+054 fecharem. 14 estórias do EPIC-003 (3 spikes + 10 implementação + 1 validador) cobrindo o ciclo do turno ponta a ponta em sandbox Pagar.me. Sprint mais pesada do projeto até hoje (14 vs 13 da W27) — soft-cap deliberadamente maior (~31d vs 21d) e gatilho de reescopo cedo em D+16."
+      "progress_summary": "Sprint planejada em 2026-06-03 em paralelo ao fechamento da W27. Aguarda ativação quando STORY-053+054 fecharem. 15 estórias: EPIC-003 inteiro (14 — 3 spikes + 10 implementação + 1 validador) cobrindo o ciclo do turno ponta a ponta em sandbox Pagar.me, mais STORY-069 (bugfix carry-forward do EPIC-002 — plumbar `schedule:run` em homolog/prod). Sprint mais pesada do projeto até hoje (15 vs 13 da W27) — soft-cap deliberadamente maior (~31d vs 21d), gatilho de reescopo cedo em D+16, STORY-069 ortogonal pode iniciar imediatamente."
     }
   ],
   "decisions": {

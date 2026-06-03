@@ -1,14 +1,18 @@
 ---
 sprint_id: SPRINT-2026-W27
 wave: WAVE-2026-01
-status: active
+status: closed
 start_date: 2026-06-01
-end_date: null
+end_date: 2026-06-03
 soft_cap_date: 2026-06-22  # ~21 dias corridos, espelhando W24/W25
 opened_at: 2026-06-01
 opened_by: "PO (Alexandro / Claude)"
+closed_at: 2026-06-03
+closed_by: "PO (Alexandro / Claude)"
+goal_outcome: achieved
 closure_rule: "Fechamento por goal-atingido: encerra quando STORY-041, STORY-042, STORY-044, STORY-045, STORY-046, STORY-047, STORY-048, STORY-049, STORY-050, STORY-051, STORY-052, STORY-053 estiverem `done` E STORY-054 (validador) tiver emitido veredito em `validation/report.md` aceitável pelo PO (`approved` ou `approved_with_pending` que o PO assuma como goal-atingido). Soft-cap em 2026-06-22 (~21 dias corridos) serve como gatilho de reavaliação — não é prazo de entrega."
 goal: "Primeiro encontro Turni vivo em homolog: contratante publica vaga e recebe candidatura em ≤ 2h; profissional vê feed ranqueado por match (p95 ≤ 800ms com 1k vagas) com breakdown explicável; candidatura em 1 toque com 3 gates (PDR-005 avaliação, conflito horário, habitualidade PDR-002); painel de candidatos do contratante ranqueado; edição material PDR-009 com snapshot imutável + notificação a candidatos + cron de auto-retirada 24h; notificações in-app + e-mail (5 templates) entregando ao destino certo. WebApp Flutter instalável como PWA com identidade Turni (ícones substituem logo padrão do Flutter; ação 'Instalar app' com prompt nativo Android/Chromium e fallback iOS). 2 ADRs novas aceitas (ADR-013 modelo Vaga/Candidatura/snapshot; ADR-014 algoritmo Match + cache + eventos) e 1 IDR (IDR-020 estratégia de instalação PWA). Validador independente (STORY-054) emite veredito do EPIC-002."
+verdict_resolution: "13/13 estórias `done` em D+2 (2026-06-03). EPIC-002 + EPIC-008 ambos fechados. Validador (STORY-054) emitiu veredito `approved_with_pending` em `epics/EPIC-002-vaga-feed-e-candidatura/validation/report.md`: 0 fails bloqueantes; 1 fail não-bloqueante (F-NB-1) — comando agendado `candidaturas:auto-retirar-apos-edicao` (STORY-052 CA-9) nunca dispara em homolog/prod porque o ambiente implantado só roda `queue:work` (não há `schedule:run`); candidaturas em `pendente_revisao_apos_edicao` ficam em limbo quando candidato ignora notificação. PO aceitou o veredito como goal-atingido em 2026-06-03: 3 dos 4 passos de PDR-009 funcionam em homolog (notificar + transitar + Manter/Retirar manuais); o passo 4 (auto-retirada após 24h) funciona em test runner mas não em ambiente implantado por gap de infra documentada (`apps/api/routes/console.php:28-30` admite a gap por escrito). F-NB-1 endereçada pela STORY-069 (bugfix infra — plumbar Cloud Run Job + Cloud Scheduler 1/min invocando `schedule:run`) carregada para SPRINT-2026-W28 com `addressed_in_sprint` registrado no `validation_report.pending_findings`. Duração efetiva ~2 dias (2026-06-01 → 2026-06-03) vs. soft-cap 21d — encerramento ~19d antes do gatilho de reavaliação. Núcleo do épico observado em homolog: vaga publicada → feed ranqueado (p95 ≤ 800ms com 1k vagas seedadas) → candidatura em 1 toque com 3 gates → painel de candidatos ranqueado → edição material PDR-009 com snapshot imutável → notificações in-app + e-mail entregues. WebApp instalável como PWA com identidade Turni (EPIC-008 fechado em D+1). 2 ADRs (013/014) + 4 decisões transversais novas (IDR-020 PWA, IDR-025 sessão no boot, IDR-026 TurniDateTime, DDR-002 locale pt-BR + 24h) — todas `accepted`."
 ---
 
 # SPRINT-2026-W27
@@ -390,19 +394,100 @@ do PO), STORY-054 (validador, última).
 - **Bug de fuso revela política transversal faltante.** STORY-052 expôs em teste humano uma inconsistência entre card e edição (15:00 vs 18:00) que tinha causa em UTC↔local espalhado pelo código. Em vez de patch local, virou **IDR-026** (TurniDateTime) e 6 telas + 3 serviços passaram a delegar. Padrão: bug que aparece numa estória pode ser sintoma de regra transversal — antes de corrigir local, perguntar se vira IDR.
 - **Cron `everyMinute` reusando STORY-034 funcionou sem mais infra.** Mais um voto a favor de manter "1 worker, vários commands" no MVP em vez de proliferar Cloud Run Jobs por feature.
 
-## Fechamento do sprint (preencher no encerramento)
+## Fechamento do sprint (encerrado em 2026-06-03)
+
+> Sprint fechada pelo PO em **2026-06-03**, dois dias depois da abertura (2026-06-01). Goal atingido com **13/13 estórias `done`** e veredito `approved_with_pending` aceito pelo PO, **19 dias antes do soft-cap** (2026-06-22). Sprint mais larga do projeto até então (13 estórias em 2 épicos) fechou em ritmo equivalente às anteriores — confirma que o padrão "fechamento por goal-atingido" continua válido em escala maior.
 
 ### O que foi entregue
-- 
+
+**Estórias (13/13 `done`):**
+
+EPIC-008 (PWA instalável) — **fechado em D+1**:
+- **STORY-041** — Ícones da marca Turni substituindo o logo padrão do Flutter (rc.44/45); PO validou ao vivo em iOS.
+- **STORY-042** — Ação "Instalar app" + IDR-020 (estratégia de instalação PWA) aceita; bug de layout iOS corrigido em rc.46→rc.47. EPIC-008 fechado sem regredir auto-update da STORY-037.
+
+EPIC-002 (Vaga, feed e candidatura) — **fechado em D+2**:
+- **STORY-044** — Spike modelo Vaga + Candidatura + VagaVersao (snapshot PDR-009); ADR-013 `accepted`. F-NB-1 do EPIC-000 (migrate:rollback) quitada nesta estória conforme planejado.
+- **STORY-045** — Spike algoritmo Match on-demand + módulo puro + 4 eventos de telemetria; ADR-014 `accepted`.
+- **STORY-046** — Publicar vaga (contratante) + gate PDR-005. Emergiram **DDR-002** (locale pt-BR + 24h transversal) e **IDR-025** (restaurar sessão no boot).
+- **STORY-047** — Lista "Minhas vagas" do contratante + cancelar vaga `aberta`.
+- **STORY-048** — Feed do profissional com match (única L da sprint — fechou em 1 sessão sem acionar gatilho de quebra). API 402 testes verdes, p95 ≤ 800ms com 1k vagas, webapp 225 widgets verdes.
+- **STORY-049** — Detalhe da vaga + breakdown explicável do match. Helper `Support\Geo` (Haversine) extraído como componente compartilhado feed↔detalhe; `BreakdownRow` publicado antecipando reuso da STORY-051.
+- **STORY-050** — Candidatura em 1 toque + 3 gates (PDR-005 avaliação, conflito horário, habitualidade PDR-002). API 444 testes / 97,4% (núcleo 100%), E2E 0 flake em 3 runs. Extra aprovado: selo "Você já se candidatou" no card do feed.
+- **STORY-051** — Painel de candidatos do contratante ranqueado por score snapshot + breakdown reusando `BreakdownRow` da STORY-049. Nova coluna `candidaturas.score_breakdown jsonb` + `alerta_habitualidade` persistidos no envio (dívida pequena cobrada da STORY-050).
+- **STORY-052** — Edição material PDR-009. Backend (PATCH + detector + transação snapshot + transição candidaturas + evento `VagaEditadaMaterialmente`) + frontend (preview do diff + aviso + selo "Vaga editada — confirme" + banner de revisão Manter/Retirar) + cron `everyMinute`. **Emergiu IDR-026** (TurniDateTime) a partir de bug de fuso em teste humano: 6 telas + 3 serviços passaram a delegar.
+- **STORY-053** — Notificações in-app + e-mail (candidatura + edição material + cancelamento). Worker via fila (`EnviarEmailDaNotificacaoJob` em `database`) — 5 templates editáveis no Backoffice, SLA p95 ≤ 60s observado (45,5s), E2E 3 cenários × 3 runs sem flake via Cloud Logging. Fix de bônus: grant em `vaga_versoes` que travava migrate de homolog desde rc.47 (REVOKE UPDATE quebrava FK no Cloud SQL).
+- **STORY-054** — Validação final EPIC-002. Veredito `approved_with_pending`: 0 bloqueantes, 1 F-NB (auto-retirada cron não dispara em homolog/prod por gap de `schedule:run`).
+
+**Métricas primárias verificadas pelo validador em homolog:**
+
+- **Vaga publicada → primeira candidatura ≤ 2h** em cenário seedado — observada.
+- **Feed p95 ≤ 800ms com 1k vagas** — observada (medida em CI + em homolog).
+- **Validação de match com breakdown explicável** — todos os 4 componentes (geo, função, score recíproco, habitualidade) visíveis ao profissional.
+- **Edição material PDR-009 nos 4 passos** — passos 1, 2, 3 funcionam em homolog (notificar + transitar + Manter/Retirar manuais); passo 4 (auto-retirada) funciona em test runner mas não em ambiente implantado (F-NB-1, fix em STORY-069/W28).
+
+**Decisões registradas e aceitas:**
+
+- **ADR-013** — modelo Vaga + Candidatura + VagaVersao (snapshot PDR-009).
+- **ADR-014** — algoritmo Match on-demand + `MatchBreakdown` + 4 eventos de telemetria.
+- **IDR-020** — estratégia de instalação PWA (ação, dispensa, microcopy, modal iOS).
+- **IDR-025** — restauração de sessão no boot (deep-link/reload não desloga).
+- **IDR-026** — `TurniDateTime` (política única UTC na API, local na UI, round-trip lossless).
+- **DDR-002** — locale pt-BR + horário 24h transversal em todo o app.
+
+**Subprodutos não previstos no goal mas valiosos:**
+
+- `Support\Geo` (Haversine) extraído como helper compartilhado feed↔detalhe — virá a ser reusado em STORY-061 (geofencing do check-in).
+- `BreakdownRow` publicado como widget público — padrão "reuso nasce na estória anterior" consolidado.
+- Fila `notificacoes:enviar-emails` operante (worker via `queue:work`) — base para STORY-067 (notificações do turno) e qualquer e-mail futuro do MVP.
+- Comentário em `apps/api/routes/console.php:28-30` documentando a gap do `schedule:run` — virou o ponto de partida da STORY-069.
 
 ### O que ficou para trás (e por quê)
-- 
+
+**1 pendência não-bloqueante carregada para SPRINT-2026-W28:**
+
+- **F-NB-1 — `candidaturas:auto-retirar-apos-edicao` não dispara em homolog/prod.** Comando agendado da STORY-052 (passo 4 de PDR-009) executa em test runner (`$this->artisan(...)` nos 444 testes) mas o ambiente implantado só roda `queue:work` — não há ninguém invocando `php artisan schedule:run`. Candidaturas em `pendente_revisao_apos_edicao` ficam em limbo indefinidamente quando candidato ignora notificação. Endereçada por **STORY-069** (bugfix infra — plumbar Cloud Run Job + Cloud Scheduler 1/min para `schedule:run`) já incluída no escopo da SPRINT-2026-W28. Ganho colateral: ativa os outros 2 agendamentos declarados (`lembretes:cadastro` da STORY-021 e o sweeper de e-mail da STORY-053).
+
+**Itens fora do escopo que continuam pendentes (esperado):**
+
+- **`make e2e-webapp-integration` + deploy homolog do código da STORY-052** — follow-up técnico registrado no D+2; não bloqueia a sprint, vai no próximo pacote de PR.
+- **Conflito de horário no card do feed** (follow-up da STORY-050) — fora do MVP do EPIC-002 por custo no p95; wishlist se virar reclamação real.
+- **UX para reativar candidatura `retirada` automaticamente** — wishlist se reclamado depois da STORY-069 ativar a auto-retirada.
 
 ### Aprendizados de produto
-- 
+
+- **A métrica primária do EPIC-002 (vaga → candidatura ≤ 2h) saiu menor que a janela escolhida.** Em cenário seedado, a primeira candidatura caiu em ordem de minutos. A janela de 2h foi deliberadamente folgada e isso deve ser revisto quando houver tráfego real — mas para validação do caminho feliz em sandbox, a métrica binária ("aconteceu? sim") foi suficiente. **Lição:** para épicos seguintes, definir métricas com **distribuição** (p50/p95 esperados) além do limiar binário — facilita comparar épicos depois.
+- **Bug de fuso (15:00 vs 18:00 entre card e edição) virou política transversal (IDR-026) em vez de patch local.** Padrão herdado da W22/W23 ("verdade de corredor vira PDR/ADR/DDR antes do código") se confirma para bugs também: bug que aparece numa estória pode ser sintoma de regra transversal — antes de corrigir local, perguntar se vira IDR/DDR/PDR. **Lição:** incluir essa pergunta explícita no protocolo de bug a partir do EPIC-003.
+- **Selo "Você já se candidatou" no card do feed (extra da STORY-050)** foi sugerido pelo agente e aprovado pelo PO em chat — UX pequena e óbvia que destravou a percepção de continuidade entre feed e detalhe. **Lição:** extras pequenos de UX, aprovados em chat e cobertos por teste, são sinal saudável de agente engajado com o produto.
+- **A F-NB-1 mostra que "teste verde no test runner" ≠ "comportamento real em ambiente implantado".** STORY-052 passa em 444 testes incluindo `$this->artisan('candidaturas:auto-retirar-apos-edicao')->assertSuccessful()`. Mas em homolog, nada chama esse comando. **Lição:** quando uma estória depende de scheduler/cron, exigir CA explícito de "verificar log de execução em homolog na semana seguinte ao deploy" — não confiar só em teste em runner.
 
 ### Aprendizados de processo
-- 
 
-### Ajustes para o próximo sprint
-- 
+- **Spike antes de implementação cobrou (e pagou) — STORY-048 L cabe em 1 sessão.** O gatilho de quebra documentado virou seguro morto, não plano A. A disciplina herdada da W26 (IDR-010/011) + 2 spikes na base (STORY-044/045) explicam o resultado. **Aplicar na W28:** 3 spikes na base (055/056/057) precedem todas as 10 implementação.
+- **EPIC-008 ortogonal rodando em paralelo ao EPIC-002 foi o certo.** Fechou em D+1 sem conflito de merge. Padrão a repetir quando houver épico pequeno com superfície disjunta — não houve um caso natural na W28 (escopo único EPIC-003), mas continua no repertório.
+- **PO como pendência ativa de planejamento (texto-seed) — risco real, mitigado por sessão dedicada.** Texto-seed dos 5 templates da STORY-053 quase virou gargalo no fim do D+1 com 9/13 done. PO em sessão dedicada de PO (sem programar em paralelo) entregou + validou em chat no mesmo D+2. **Aplicar na W28:** texto-seed dos 8 templates da STORY-067 antecipado para sessão dedicada nos primeiros 5 dias.
+- **"Designer + Programador na mesma sessão" entrega bem em telas pequenas.** STORY-049 e STORY-050 fecharam SCREEN + back + front em uma sessão cada — útil quando a tela é pequena e a regra de negócio cabe num spike pré-existente. **Não tentar** quando uma das duas dimensões é grande (cronômetro bilateral STORY-063 é exemplo claro de quando separar).
+- **Snapshot de payload explicável tem que nascer na estória que cria o dado.** STORY-050 só persistia `score_no_momento` (total); STORY-051 precisou voltar e adicionar `score_breakdown jsonb` — dívida pequena com juros baixos, mas evitável. **Aplicar na W28:** CA explícita de "snapshot completo do payload renderizado" nas estórias 058 (AceiteEletronico), 061 (geofencing), 065 (captura+Pix).
+- **Cron `everyMinute` reusando worker da W25 funcionou no teste mas falhou no ambiente** (F-NB-1 da STORY-052). Lição não é "não reusar worker" — lição é "verificar que o cron realmente roda no ambiente implantado". **Aplicar na W28:** STORY-066 (no_show_pro com cron) exige verificação de execução em homolog antes de fechar, não só `travel(Xh+1m)` no test runner.
+- **Reabertura silenciosa de gap documentada** — comentário em `routes/console.php:28-30` admitia a gap por escrito desde a STORY-053. O validador descobriu o impacto comportamental — não a existência da gap (ela estava no código com aviso). **Lição:** quando um comentário no código admite uma limitação ("não funciona em X por causa de Y"), abrir bug ou wishlist no mesmo commit — não deixar para o validador catar depois.
+- **Ritmo agressivo de execução (13 estórias em 2 dias) confirma 4ª sprint consecutiva acima do projetado.** Sequência observada W23→W24→W25→W26→W27 indica que o throughput de implementação está estável em ordem de **5-10 estórias por dia útil** (Alexandro + agentes). Calibragem para W28 (15 estórias / EPIC-003 inteiro + STORY-069) feita com base nesse histórico, mas com soft-cap deliberadamente maior (~31d vs 21d) por ser o épico mais arriscado da onda (Pagar.me sandbox).
+
+### Ajustes para o próximo sprint (já aplicados na abertura da W28)
+
+- **Spike antes de implementação codificado como disciplina herdada (item 6)** — 3 spikes (055/056/057) precedem as 10 estórias de implementação.
+- **Snapshot completo do payload exigido como CA** (item 7 da disciplina herdada da W28) — aplicado em STORY-058/061/065.
+- **Bug que vira regra transversal antes de patch local** codificado como disciplina herdada (item 8).
+- **F-NB-1 endereçada na sprint seguinte** codificada como disciplina herdada (item 9 da W28) — STORY-069 entra com `addressed_by` apontado desde o `index.json` para fechar o ciclo.
+- **Texto-seed do PO antecipado** — sessão dedicada nos primeiros 5 dias da W28 para os 8 templates da STORY-067.
+- **Gap de scheduler endereçada** — STORY-069 é o fix definitivo; ganho colateral ativa STORY-021 lembretes e STORY-053 sweeper.
+- **CA de "cron observado em homolog na semana seguinte ao deploy"** adicionado na STORY-066 (W28).
+- **Distribuição de métrica (p50/p95) além de limiar binário** — aplicado nas métricas do EPIC-003 (validação PIN ≤ 500ms p95, cronômetro ≤ 2s, Pix ≤ 15 min em 95%).
+
+### Estado pós-fechamento
+
+- **EPIC-002**: `done` com pendência F-NB-1 endereçada por STORY-069 na W28. `validation_report.pending_findings[0].addressed_in_sprint = SPRINT-2026-W28`.
+- **EPIC-008**: `done` sem pendências.
+- **EPIC-003**: `ready` (decomposto em 14 estórias em paralelo ao fechamento da W27), aguardando abertura da W28.
+- **SPRINT-2026-W28**: `planned` com 15 estórias (EPIC-003 inteiro + STORY-069 carry-forward), ativa quando agente programador iniciar STORY-055.
+- **Wave-2026-01**: 3 dos 9 épicos `done` (EPIC-000, EPIC-001, EPIC-002 + EPIC-006 LANDING + EPIC-007 Web-only + EPIC-008). Restam EPIC-003 (W28), EPIC-004 (avaliação recíproca — depois do EPIC-003) e EPIC-005 (disputa — depois do EPIC-003).
+- **Próxima ação:** abertura da SPRINT-2026-W28 (`status: planned` → `active`) quando agente programador iniciar STORY-055 ou STORY-069 (ortogonal — pode começar primeiro). PO acompanha sem forçar timing.

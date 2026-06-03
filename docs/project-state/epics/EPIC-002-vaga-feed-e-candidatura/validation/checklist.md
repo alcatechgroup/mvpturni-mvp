@@ -3,7 +3,7 @@ epic_id: EPIC-002
 type: validation-checklist
 created_at: 2026-06-03
 created_by: validador (sessão claude-opus-4-8 — STORY-054 CA-1)
-status: in_progress  # empty → in_progress (validador trabalhando) → filled
+status: filled  # empty → in_progress (validador trabalhando) → filled
 ---
 
 # Checklist de validação — EPIC-002 Vaga, feed e candidatura
