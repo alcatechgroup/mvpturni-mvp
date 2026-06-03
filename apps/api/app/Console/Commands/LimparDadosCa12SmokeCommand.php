@@ -20,9 +20,9 @@ use Illuminate\Support\Facades\DB;
  */
 class LimparDadosCa12SmokeCommand extends Command
 {
-    protected $signature = 'ca12:limpar-smoke {--force : Confirma a remoção}';
+    protected $signature = 'ca12:limpar-smoke {--force : Confirma a remoção} {--like=xandroalmeida+%-homolog@gmail.com : Padrão LIKE do e-mail dos usuários de teste a remover}';
 
-    protected $description = 'Remove os dados de smoke/E2E do CA-12 (usuários xandroalmeida+%@gmail.com e dependências).';
+    protected $description = 'Remove os dados de smoke/E2E do CA-12 (usuários de teste `-homolog` e dependências).';
 
     public function handle(): int
     {
@@ -32,9 +32,12 @@ class LimparDadosCa12SmokeCommand extends Command
             return self::FAILURE;
         }
 
-        $users = DB::table('users')->where('email', 'like', 'xandroalmeida+%@gmail.com')->pluck('email', 'id');
+        // Default: só os aliases que o Ca12EmailSmokeSeeder cria (sufixo `-homolog`). NÃO pega outros
+        // `xandroalmeida+...@gmail.com` de testes alheios (que podem ter aceite e travariam o delete).
+        $like = (string) $this->option('like');
+        $users = DB::table('users')->where('email', 'like', $like)->pluck('email', 'id');
         if ($users->isEmpty()) {
-            $this->info('Nada a limpar (nenhum usuário xandroalmeida+%@gmail.com).');
+            $this->info("Nada a limpar (nenhum usuário like {$like}).");
 
             return self::SUCCESS;
         }
