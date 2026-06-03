@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-06-03T13:50:14Z",
+  "generated_at": "2026-06-03T15:28:37Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W27",
     "last_closed_sprint": "SPRINT-2026-W26",
     "phase": "wave-2026-01-sprint-w27-active-11-of-13-done-d-plus-2-053-destravada-aguarda-agente",
-    "next_action": "SPRINT-2026-W27 ATIVA — snapshot D+2 (2026-06-03): 11/13 done (85%). GARGALO DO PO QUITADO: texto-seed v1 dos 5 templates da STORY-053 escrito e aprovado pelo PO em chat (registrado na STORY-053, seção \"Texto-seed v1 dos 5 templates (aprovado pelo PO — Alexandro, 2026-06-03)\"). Templates: candidatura_recebida_contratante, vaga_editada_material_profissional, vaga_cancelada_profissional, vaga_editada_material_candidatura_mantida_contratante, vaga_editada_material_candidatura_retirada_contratante. STORY-053 (notificações in-app + e-mail) AGORA PRONTA para o agente programador pegar — nenhum bloqueio restante. Dependências (021/020/034/050/052/047) todas done. Próximos passos: (1) agente programador executa STORY-053 (M; listener dos 3 eventos + tabela notificacoes + GET/POST endpoints + cron via Cloud Run Job da STORY-034 + carrega os 5 templates como TemplateVersao ativa no editor da STORY-020); (2) deploy em homolog; (3) STORY-054 (validador) verifica métrica primária do EPIC-002 e fecha o épico. Soft-cap 2026-06-22 não será acionado.",
-    "notes": "Snapshot W27 D+2 (2026-06-03, pós-aprovação texto-seed): 11/13 done (85%). EPIC-002 com 9/9 estórias de implementação fechadas. STORY-053 destravada (texto-seed v1 aprovado pelo PO em chat) — aguarda agente programador. STORY-054 (validador) entra em sequência após deploy de 053 em homolog. Decisões aceitas na sprint: ADR-013, ADR-014, IDR-020, IDR-025, IDR-026, DDR-002. F-NB-1 do EPIC-000 (migrate:rollback) quitado pela STORY-044. Detalhe completo em sprints/SPRINT-2026-W27.md, seção \"Atualização de progresso — 2026-06-03 (D+2, texto-seed v1 aprovado)\"."
+    "next_action": "SPRINT-2026-W27 ATIVA — STORY-053 (notificações in-app + e-mail) CODE-COMPLETE em 2026-06-03: tabela notificacoes + 3 listeners (CA-2/3/4), endpoints (CA-7), UI Flutter sino+painel (CA-8), worker notificacoes:enviar-emails 1/min reusando Cloud Run Job da STORY-034 (CA-5), 5 templates de e-mail editáveis no Backoffice como categoria `email`/TemplateVersao ativa (CA-6, Path A), e wiring dos templates 4/5 (mantida/retirada após edição) nos hooks de RevisarCandidaturaService + AutoRetirarAposEdicaoCommand. Cobertura back ≥95% (worker 97%, renderer 96%, NotificarRevisaoAposEdicao 100%) e widget ≥80%; pint limpo. Verificado local no Mailpit (candidata→e-mail interpolado→enviada_email_em). PENDENTE (exige homolog): CA-9 (SLA ≤60s p95 via log-based metric), CA-12 (E2E 3 cenários no Mailpit de homolog, 0 flake em 3 runs) e deploy de homolog. Próximo: subir 053 em homolog + STORY-054 (validador) fecha o EPIC-002.",
+    "notes": "Snapshot W27 (2026-06-03): STORY-053 code-complete (CA-1..8,10,11 + templates 4/5 wired); só CA-9 (SLA) e CA-12 (E2E) + deploy seguem pendentes por exigirem homolog. EPIC-002: 9/9 implementação fechadas. STORY-054 (validador) entra após deploy de 053 em homolog. Decisões aceitas na sprint: ADR-013, ADR-014, IDR-020, IDR-025, IDR-026, DDR-002."
   },
   "product": {
     "vision": "product/vision.md",
@@ -1618,8 +1618,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-053-notificacoes",
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_progress",
+      "owner_agent": "programador",
       "sprint_id": "SPRINT-2026-W27",
       "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-053-notificacoes-candidatura-in-app-email.md",
       "blocked_by": [
@@ -1636,7 +1636,7 @@
       "estimated_session_size": "M",
       "produces_idr": null,
       "created_at": "2026-06-01",
-      "updated_at": "2026-06-01"
+      "updated_at": "2026-06-03"
     },
     {
       "id": "STORY-054",
@@ -2055,13 +2055,14 @@
         "STORY-051",
         "STORY-052"
       ],
-      "in_progress_story_ids": [],
+      "in_progress_story_ids": [
+        "STORY-053"
+      ],
       "pending_story_ids": [
-        "STORY-053",
         "STORY-054"
       ],
       "last_progress_update": "2026-06-03",
-      "progress_summary": "11/13 done em D+2; STORY-053 destravada (texto-seed v1 aprovado)"
+      "progress_summary": "11/13 done; STORY-053 (notificações) CODE-COMPLETE em D+2 — CA-1..8,10,11 + templates 4/5 wired + worker de e-mail verificado no Mailpit local. Restam só CA-9 (SLA) e CA-12 (E2E) que exigem homolog. STORY-054 (validador) na sequência."
     }
   ],
   "decisions": {

@@ -37,17 +37,17 @@ Fecha a malha do EPIC-002: cada ação relevante chega a quem precisa saber, aut
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Migração cria tabela `notificacoes` com colunas listadas acima; índice em `(destinatario_id, lida_em, criada_em DESC)`.
-- [ ] **CA-2:** Listener `App\Listeners\HandleCandidaturaEnviada` consome `CandidaturaEnviada` → insere 1 linha em `notificacoes` para o contratante dono da vaga com `tipo='candidatura_recebida'`, payload = `{ profissional_nome, profissional_score, vaga_id }`. Audit log `notificacao.criada`.
-- [ ] **CA-3:** Listener `HandleVagaEditadaMaterialmente` consome `VagaEditadaMaterialmente` → insere N linhas em `notificacoes` (1 por candidato pendente) com `tipo='vaga_editada_material'`, payload = `{ vaga_id, diff: { campo: { antes, depois } } }`.
-- [ ] **CA-4:** Listener `HandleVagaCancelada` consome `VagaCancelada` → insere N linhas em `notificacoes` (1 por candidato pendente) com `tipo='vaga_cancelada'`, payload = `{ vaga_id, vaga_funcao, vaga_data_inicio }`.
+- [x] **CA-1:** Migração cria tabela `notificacoes` com colunas listadas acima; índice em `(destinatario_id, lida_em, criada_em DESC)`.
+- [x] **CA-2:** Listener `App\Listeners\HandleCandidaturaEnviada` consome `CandidaturaEnviada` → insere 1 linha em `notificacoes` para o contratante dono da vaga com `tipo='candidatura_recebida'`, payload = `{ profissional_nome, profissional_score, vaga_id }`. Audit log `notificacao.criada`.
+- [x] **CA-3:** Listener `HandleVagaEditadaMaterialmente` consome `VagaEditadaMaterialmente` → insere N linhas em `notificacoes` (1 por candidato pendente) com `tipo='vaga_editada_material'`, payload = `{ vaga_id, diff: { campo: { antes, depois } } }`.
+- [x] **CA-4:** Listener `HandleVagaCancelada` consome `VagaCancelada` → insere N linhas em `notificacoes` (1 por candidato pendente) com `tipo='vaga_cancelada'`, payload = `{ vaga_id, vaga_funcao, vaga_data_inicio }`.
 - [x] **CA-5:** Worker (Cloud Run Job + Scheduler 1/min, reusa STORY-034) pega `notificacoes` não enviadas por e-mail (marca via campo `enviada_email_em`), gera e-mail pelo template ativo correspondente (5 novos: `candidatura_recebida_contratante`, `vaga_editada_material_profissional`, `vaga_cancelada_profissional`, `vaga_editada_material_candidatura_mantida_contratante` — confirma envio, `vaga_editada_material_candidatura_retirada_contratante` — retirada por edição), envia via provedor de STORY-021. Falha de envio: retry com backoff (3 tentativas), depois marca como `falha_envio` e alerta no log.
 - [x] **CA-6:** 5 templates novos criados no editor (STORY-020), texto-seed v1 do PO (Alexandro) carregado como `TemplateVersao` ativa (mesmo padrão do EPIC-001 STORY-015). Variáveis disponíveis em cada template estão documentadas no editor.
-- [ ] **CA-7:** Endpoint `GET /api/notificacoes?lidas=false` retorna últimas 50 notificações não lidas do usuário autenticado, ordem `criada_em DESC`. `POST /api/notificacoes/{id}/marcar-lida` marca; `POST /api/notificacoes/marcar-todas-lidas` atalho.
-- [ ] **CA-8:** WebApp: badge no app shell mostra contagem de não-lidas; clique abre painel lateral com lista; clicar em notificação navega para a vaga relevante e marca como lida.
+- [x] **CA-7:** Endpoint `GET /api/notificacoes?lidas=false` retorna últimas 50 notificações não lidas do usuário autenticado, ordem `criada_em DESC`. `POST /api/notificacoes/{id}/marcar-lida` marca; `POST /api/notificacoes/marcar-todas-lidas` atalho.
+- [x] **CA-8:** WebApp: badge no app shell mostra contagem de não-lidas; clique abre painel lateral com lista; clicar em notificação navega para a vaga relevante e marca como lida.
 - [ ] **CA-9:** SLA: notificação criada → e-mail enviado em ≤ 60s p95 (worker rodando 1/min). Métrica observada em homolog via log-based metric.
-- [ ] **CA-10:** Privacidade: e-mail de candidatura recebida ao contratante mostra nome + score (não CPF, não telefone — esses só aparecem após aceite no EPIC-003). Aliasing/PII conforme `business-rules.md` (não há nada novo para o EPIC-002).
-- [ ] **CA-11:** Cobertura: listeners + worker + endpoints ≥ 95%; widget in-app ≥ 80%. Testes: cada listener com evento mock; worker com 5 notificações pendentes; retry após falha; endpoints com filtros.
+- [x] **CA-10:** Privacidade: e-mail de candidatura recebida ao contratante mostra nome + score (não CPF, não telefone — esses só aparecem após aceite no EPIC-003). Aliasing/PII conforme `business-rules.md` (não há nada novo para o EPIC-002).
+- [x] **CA-11:** Cobertura: listeners + worker + endpoints ≥ 95%; widget in-app ≥ 80%. Testes: cada listener com evento mock; worker com 5 notificações pendentes; retry após falha; endpoints com filtros.
 - [ ] **CA-12:** E2E: profissional candidata → contratante recebe e-mail em inbox de teste (Mailpit em homolog) + notificação aparece no badge ao recarregar. Contratante edita vaga → 2 candidatos recebem e-mail + in-app. Contratante cancela → candidatos recebem e-mail. 0 flake em 3 runs.
 
 ## Fora de escopo
@@ -79,12 +79,12 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
 
 ## DoD
 
-- [ ] CAs checados.
-- [ ] Cobertura + E2E verdes, SLA observado.
-- [ ] 5 templates ativos no editor (TemplateVersao ativa).
+- [ ] CAs checados. *(CA-1..8, 10, 11 ok; faltam CA-9 SLA e CA-12 E2E — ambos exigem homolog.)*
+- [ ] Cobertura + E2E verdes, SLA observado. *(Cobertura back/widget ok; E2E + SLA pendentes em homolog.)*
+- [x] 5 templates ativos no editor (TemplateVersao ativa).
 - [ ] Deploy de homolog: ciclo completo (candidata → e-mail no Mailpit do contratante).
-- [ ] `index.json` atualizado.
-- [ ] "Notas do agente" preenchida com link para os 5 templates carregados.
+- [x] `index.json` atualizado.
+- [x] "Notas do agente" preenchida com link para os 5 templates carregados.
 
 ## Texto-seed v1 dos 5 templates (aprovado pelo PO — Alexandro, 2026-06-03)
 
@@ -230,6 +230,12 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
 - **Verificação manual (Mailpit local):** notificação `candidatura_recebida` pendente → worker →
   e-mail no Mailpit (de `no-reply@mail.turni.com.br`, assunto + corpo interpolados, "Olá, {nome}.")
   + `enviada_email_em` setado. ✓
+- **Templates 4/5 (wiring — feito, verde):** `NotificarRevisaoAposEdicao` cria as notificações ao
+  contratante nos hooks de `RevisarCandidaturaService::manter()` (template 4 `candidatura_mantida`)
+  e `::retirar()` + `AutoRetirarAposEdicaoCommand` (template 5 `candidatura_retirada`, motivo
+  `voluntaria`/`auto_24h`). Síncrono na transação da transição; `motivo_texto` pré-resolvido;
+  idempotência `<tipo>:<candidatura_id>:<vaga.versao_atual>`. 4 testes (serviço 100%, RevisarCandidatura
+  100%); STORY-052 (13 testes) segue verde.
 
 ### Decisões / Descobertas / Bloqueios / IDRs
 - **IDR-053 (a registrar):** assuntos dos 5 e-mails de notificação ficam em `App\Enums\NotificacaoTipo`
@@ -242,14 +248,10 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
   edição" — serão criados via hook nos endpoints `confirmar-apos-edicao`/`retirar-apos-edicao`
   (STORY-052) e na auto-retirada (`auto_24h`). Fora dos 3 listeners da CA-2/3/4.
 
-### Pendente (próxima sessão)
-- **Templates 4/5 (wiring):** os 5 corpos já estão semeados, mas as notificações dos tipos
-  `vaga_editada_material_candidatura_mantida`/`_retirada` ainda não são CRIADAS — faltam os hooks
-  nos endpoints `confirmar/retirar após edição` (STORY-052) + auto-retirada (`auto_24h`). O payload
-  da retirada deve trazer `motivo_texto` pré-resolvido (template usa `{motivo_texto}`, não condicional).
-  O worker (CA-5) já as processa genericamente assim que existirem.
+### Pendente (próxima sessão — só o que exige homolog)
 - **CA-12 / CA-9:** E2E 3 cenários (Mailpit homolog, 0 flake em 3 runs) + SLA ≤60s p95 via log-based
-  metric + deploy homolog (ciclo candidata→e-mail). Exigem ambiente; ficam para o fechamento.
+  metric + deploy homolog (ciclo candidata→e-mail). Exigem ambiente; ficam para o fechamento da
+  estória (junto com STORY-054, o validador do épico).
 
 ### Cobertura final
 - Unitários back: listeners 6 + endpoints 7 + **renderer 6 (EmailTemplateRenderer 96% linhas)** +
