@@ -10,9 +10,13 @@ use Illuminate\Support\Facades\DB;
  * ENTREGÁVEL (`xandroalmeida+<alias>@gmail.com`), suas vagas, versões, candidaturas e notificações.
  *
  * Seguro por construção: só toca usuários cujo e-mail casa `xandroalmeida+%@gmail.com` (aliases de
- * teste) — nunca usuários reais. Requer `--force`. Deleta em ordem FK-safe dentro de uma transação;
- * `vaga_versoes` é append-only (REVOKE DELETE), então concedemos DELETE temporariamente (turni é dono)
- * e revogamos de volta no fim da transação.
+ * teste) — nunca usuários reais. Requer `--force`.
+ *
+ * Lida com a arquitetura append-only: `vaga_versoes` (deletamos linhas), `audit_logs` e
+ * `admin_audit_log` (FK `actor_id` nullOnDelete → o delete de users dispara UPDATE SET NULL) têm
+ * REVOKE + trigger de imutabilidade. turni é DONO → concede o privilégio e desabilita os triggers
+ * de usuário (`DISABLE TRIGGER USER` mantém os triggers de FK/RI) só dentro da transação, e restaura
+ * tudo no fim (rollback também restaura).
  */
 class LimparDadosCa12SmokeCommand extends Command
 {
@@ -28,23 +32,28 @@ class LimparDadosCa12SmokeCommand extends Command
             return self::FAILURE;
         }
 
-        $userIds = DB::table('users')->where('email', 'like', 'xandroalmeida+%@gmail.com')->pluck('id')->all();
-        if ($userIds === []) {
-            $this->info('Nada a limpar (nenhum usuário de teste xandroalmeida+%@gmail.com).');
+        $users = DB::table('users')->where('email', 'like', 'xandroalmeida+%@gmail.com')->pluck('email', 'id');
+        if ($users->isEmpty()) {
+            $this->info('Nada a limpar (nenhum usuário xandroalmeida+%@gmail.com).');
 
             return self::SUCCESS;
         }
 
+        $userIds = $users->keys()->all();
+        $this->info('Usuários de teste a remover ('.count($userIds).'): '.$users->values()->implode(', '));
+
         $vagaIds = DB::table('vagas')->whereIn('contratante_id', $userIds)->pluck('id')->all();
+        $ru = config('database.connections.pgsql.username', 'turni');
 
-        $runtimeUser = config('database.connections.pgsql.username', 'turni');
-
-        DB::transaction(function () use ($userIds, $vagaIds, $runtimeUser) {
-            // vaga_versoes é append-only por DUAS camadas: REVOKE DELETE (privilégio) + trigger
-            // prevent_vaga_versoes_mutation (BEFORE DELETE → RAISE). turni é dono → concede o DELETE e
-            // desabilita o trigger SÓ dentro desta transação; restaura ambos no fim (rollback também).
-            DB::unprepared("GRANT DELETE ON vaga_versoes TO \"{$runtimeUser}\"");
-            DB::statement('ALTER TABLE vaga_versoes DISABLE TRIGGER prevent_vaga_versoes_mutation');
+        DB::transaction(function () use ($userIds, $vagaIds, $ru) {
+            // Levanta a imutabilidade SÓ nesta transação. vaga_versoes: precisamos DELETE.
+            // audit_logs/admin_audit_log: o delete de users dispara UPDATE SET NULL (actor_id).
+            DB::unprepared("GRANT DELETE ON vaga_versoes TO \"{$ru}\"");
+            DB::unprepared("GRANT UPDATE ON audit_logs TO \"{$ru}\"");
+            DB::unprepared("GRANT UPDATE ON admin_audit_log TO \"{$ru}\"");
+            foreach (['vaga_versoes', 'audit_logs', 'admin_audit_log'] as $t) {
+                DB::statement("ALTER TABLE {$t} DISABLE TRIGGER USER");
+            }
 
             $n = DB::table('notificacoes')
                 ->whereIn('destinatario_id', $userIds)
@@ -63,8 +72,12 @@ class LimparDadosCa12SmokeCommand extends Command
             DB::table('profissional_profiles')->whereIn('user_id', $userIds)->delete();
             $u = DB::table('users')->whereIn('id', $userIds)->delete();
 
-            DB::statement('ALTER TABLE vaga_versoes ENABLE TRIGGER prevent_vaga_versoes_mutation');
-            DB::unprepared("REVOKE DELETE ON vaga_versoes FROM \"{$runtimeUser}\"");
+            foreach (['vaga_versoes', 'audit_logs', 'admin_audit_log'] as $t) {
+                DB::statement("ALTER TABLE {$t} ENABLE TRIGGER USER");
+            }
+            DB::unprepared("REVOKE DELETE ON vaga_versoes FROM \"{$ru}\"");
+            DB::unprepared("REVOKE UPDATE ON audit_logs FROM \"{$ru}\"");
+            DB::unprepared("REVOKE UPDATE ON admin_audit_log FROM \"{$ru}\"");
 
             $this->info("Removidos: notificacoes={$n} candidaturas={$c} vaga_versoes={$vv} vagas={$v} users={$u}.");
         });
