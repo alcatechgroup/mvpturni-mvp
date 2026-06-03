@@ -41,8 +41,8 @@ Fecha a malha do EPIC-002: cada ação relevante chega a quem precisa saber, aut
 - [ ] **CA-2:** Listener `App\Listeners\HandleCandidaturaEnviada` consome `CandidaturaEnviada` → insere 1 linha em `notificacoes` para o contratante dono da vaga com `tipo='candidatura_recebida'`, payload = `{ profissional_nome, profissional_score, vaga_id }`. Audit log `notificacao.criada`.
 - [ ] **CA-3:** Listener `HandleVagaEditadaMaterialmente` consome `VagaEditadaMaterialmente` → insere N linhas em `notificacoes` (1 por candidato pendente) com `tipo='vaga_editada_material'`, payload = `{ vaga_id, diff: { campo: { antes, depois } } }`.
 - [ ] **CA-4:** Listener `HandleVagaCancelada` consome `VagaCancelada` → insere N linhas em `notificacoes` (1 por candidato pendente) com `tipo='vaga_cancelada'`, payload = `{ vaga_id, vaga_funcao, vaga_data_inicio }`.
-- [ ] **CA-5:** Worker (Cloud Run Job + Scheduler 1/min, reusa STORY-034) pega `notificacoes` não enviadas por e-mail (marca via campo `enviada_email_em`), gera e-mail pelo template ativo correspondente (5 novos: `candidatura_recebida_contratante`, `vaga_editada_material_profissional`, `vaga_cancelada_profissional`, `vaga_editada_material_candidatura_mantida_contratante` — confirma envio, `vaga_editada_material_candidatura_retirada_contratante` — retirada por edição), envia via provedor de STORY-021. Falha de envio: retry com backoff (3 tentativas), depois marca como `falha_envio` e alerta no log.
-- [ ] **CA-6:** 5 templates novos criados no editor (STORY-020), texto-seed v1 do PO (Alexandro) carregado como `TemplateVersao` ativa (mesmo padrão do EPIC-001 STORY-015). Variáveis disponíveis em cada template estão documentadas no editor.
+- [x] **CA-5:** Worker (Cloud Run Job + Scheduler 1/min, reusa STORY-034) pega `notificacoes` não enviadas por e-mail (marca via campo `enviada_email_em`), gera e-mail pelo template ativo correspondente (5 novos: `candidatura_recebida_contratante`, `vaga_editada_material_profissional`, `vaga_cancelada_profissional`, `vaga_editada_material_candidatura_mantida_contratante` — confirma envio, `vaga_editada_material_candidatura_retirada_contratante` — retirada por edição), envia via provedor de STORY-021. Falha de envio: retry com backoff (3 tentativas), depois marca como `falha_envio` e alerta no log.
+- [x] **CA-6:** 5 templates novos criados no editor (STORY-020), texto-seed v1 do PO (Alexandro) carregado como `TemplateVersao` ativa (mesmo padrão do EPIC-001 STORY-015). Variáveis disponíveis em cada template estão documentadas no editor.
 - [ ] **CA-7:** Endpoint `GET /api/notificacoes?lidas=false` retorna últimas 50 notificações não lidas do usuário autenticado, ordem `criada_em DESC`. `POST /api/notificacoes/{id}/marcar-lida` marca; `POST /api/notificacoes/marcar-todas-lidas` atalho.
 - [ ] **CA-8:** WebApp: badge no app shell mostra contagem de não-lidas; clique abre painel lateral com lista; clicar em notificação navega para a vaga relevante e marca como lida.
 - [ ] **CA-9:** SLA: notificação criada → e-mail enviado em ≤ 60s p95 (worker rodando 1/min). Métrica observada em homolog via log-based metric.
@@ -212,6 +212,25 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
   lista/loading/vazio/erro), `NotificacoesController` (otimista) + serviço. Toque marca lida +
   navega por tipo. 14 testes; suíte WebApp 340 verde; analyze/format limpos.
 
+### Progresso (sessão 2026-06-03 — CA-5/6, e-mail)
+- **CA-6 (feito, verde — Path A):** coluna `categoria` em `templates` (migração nos **dois** apps,
+  api + admin — memória `project-backoffice-db-ownership`); 5 corpos editáveis como `Template`
+  categoria `email` + `TemplateVersao` v1 ativa, slug = `NotificacaoTipo::templateSlug()`
+  (`<tipo>_email`). Conteúdo = **front-matter (`chave: valor`) + `---` + corpo Markdown** (formato
+  escolhido pelo PO), vendorado em `database/seeders/emails/` (api e admin). Editor do Backoffice
+  ficou **categoria-aware**: `TemplateContentValidator::placeholdersDesconhecidosPara($slug,...)`
+  valida `{snake_case}` contra `EmailTemplateCatalogo` (variáveis por slug, documentadas no
+  diálogo do editor); `TemplateRenderer::htmlEmail` faz chips; catálogo/detalhe rotulam a categoria.
+- **CA-5 (feito, verde):** `EmailTemplateRenderer` (parse front-matter + interpola `{snake_case}`
+  com o payload → array do layout de STORY-021; falta de variável = exceção, não envia incompleto),
+  `NotificacaoMail` (reusa `emails.transacional*`), command `notificacoes:enviar-emails` (Schedule
+  `everyMinute` em `routes/console.php`; sucesso→`enviada_email_em`, falha→`tentativas_envio++`,
+  3ª→`falha_envio_em` + log ERROR `notificacao.email.falhou`). Assunto canônico de
+  `NotificacaoTipo::assuntoEmail()` com `{prazo_em}` interpolado no envio.
+- **Verificação manual (Mailpit local):** notificação `candidatura_recebida` pendente → worker →
+  e-mail no Mailpit (de `no-reply@mail.turni.com.br`, assunto + corpo interpolados, "Olá, {nome}.")
+  + `enviada_email_em` setado. ✓
+
 ### Decisões / Descobertas / Bloqueios / IDRs
 - **IDR-053 (a registrar):** assuntos dos 5 e-mails de notificação ficam em `App\Enums\NotificacaoTipo`
   (api), **não** no `Turni\Domain\Email\TipoEmail` compartilhado — o `TipoEmail` é contrato com o
@@ -224,20 +243,28 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
   (STORY-052) e na auto-retirada (`auto_24h`). Fora dos 3 listeners da CA-2/3/4.
 
 ### Pendente (próxima sessão)
-- **CA-5 (worker):** command `notificacoes:enviar-emails` (Scheduler 1/min, reusa Cloud Run Job
-  STORY-034) lê a fila implícita, renderiza corpo do template + assunto `NotificacaoTipo::assuntoEmail`,
-  envia via ACL (`EnviaEmailTransacional`), retry via `tentativas_envio` (3) → `falha_envio_em`.
-- **CA-6 (templates no editor — Path A):** coluna `categoria` em `templates` (migração admin) + seeder
-  dos 5 corpos (texto-seed v1) como `TemplateVersao` ativa + renderer de interpolação na api.
-- **Templates 4/5:** hooks nos endpoints de confirmar/retirar + auto-retirada.
-- **CA-11/12:** fechar cobertura ≥95% back, ≥80% widget (in-app já ~ok); E2E 3 cenários (Mailpit
-  homolog); SLA ≤60s; deploy homolog.
+- **Templates 4/5 (wiring):** os 5 corpos já estão semeados, mas as notificações dos tipos
+  `vaga_editada_material_candidatura_mantida`/`_retirada` ainda não são CRIADAS — faltam os hooks
+  nos endpoints `confirmar/retirar após edição` (STORY-052) + auto-retirada (`auto_24h`). O payload
+  da retirada deve trazer `motivo_texto` pré-resolvido (template usa `{motivo_texto}`, não condicional).
+  O worker (CA-5) já as processa genericamente assim que existirem.
+- **CA-12 / CA-9:** E2E 3 cenários (Mailpit homolog, 0 flake em 3 runs) + SLA ≤60s p95 via log-based
+  metric + deploy homolog (ciclo candidata→e-mail). Exigem ambiente; ficam para o fechamento.
 
 ### Cobertura final
-- Unitários back: listeners 6 testes (100%), endpoints 7 testes. Falta worker/render (CA-5/6).
-- Widget WebApp: 14 testes da feature notificações; suíte 340 verde. Falta E2E.
-- E2E: pendente (CA-12 — Mailpit homolog).
-### Templates carregados
-- Pendente (CA-6 / Path A).
+- Unitários back: listeners 6 + endpoints 7 + **renderer 6 (EmailTemplateRenderer 96% linhas)** +
+  **worker (EnviarEmailsNotificacaoCommand 97% linhas) + NotificacaoMail 100% + seeder 92%**.
+  Suíte `tests/{Feature,Unit}/Notificacao` = 26 verde. `pint --test` limpo (api).
+- Admin: `EmailTemplateValidator` + seeder + editor de e-mail = 9 testes novos; suíte Templates 43
+  verde. `pint --test` limpo (admin).
+- Widget WebApp: 14 testes da feature notificações; suíte 340 verde. Falta E2E (CA-12).
+- E2E/SLA: pendente (CA-12/CA-9 — Mailpit homolog).
+### Templates carregados (CA-6)
+- 5 `Template` categoria `email`, v1 ativa, slug `<tipo>_email`: `candidatura_recebida_email`,
+  `vaga_editada_material_email`, `vaga_cancelada_email`,
+  `vaga_editada_material_candidatura_mantida_email`, `vaga_editada_material_candidatura_retirada_email`.
+  Seed: `apps/api/database/seeders/emails/*.md` (+ cópia no admin). Editáveis no Backoffice
+  (`/templates`), com variáveis documentadas por `EmailTemplateCatalogo`.
 ### Links
-- Commits: `9b00dba` (design+listeners), `248f9d6` (endpoints), `00c8ee7` (Flutter CA-8). PR/Deploy: pendente.
+- Commits: `9b00dba` (design+listeners), `248f9d6` (endpoints), `00c8ee7` (Flutter CA-8); CA-5/6
+  nos commits desta sessão. PR/Deploy: pendente.
