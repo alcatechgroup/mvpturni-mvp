@@ -1,13 +1,13 @@
 {
   "version": 2,
-  "generated_at": "2026-06-03T21:40:00Z",
+  "generated_at": "2026-06-03T23:30:00Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
-    "current_sprint": "SPRINT-2026-W27.5",
-    "last_closed_sprint": "SPRINT-2026-W27",
-    "phase": "wave-2026-01-sprint-w27-5-epic-010-refator-uuid-FECHADO-aguarda-po-ativar-w28",
-    "next_action": "EPIC-010 (refator UUID transversal) FECHADO em 2026-06-03: 4/4 estórias done; STORY-072 (validação) veredito `approved` (validador claude-opus-4-8; 23 passes, 0 fails) confirmado pelo PO em chat. Schema UUIDv7 (ADR-018) íntegro em homolog rc.61, sem regressão nos fluxos do EPIC-001/EPIC-002. Com o EPIC-010 fechado, a closure_rule da SPRINT-2026-W27.5 está satisfeita: destrava a ativação da SPRINT-2026-W28 (EPIC-003 — Pagar.me, 14 estórias). Próxima ação a cargo do PO: fechar formalmente a W27.5 e ativar a W28. HISTÓRICO: SPRINT-2026-W27 encerrada em 2026-06-03 (13/13 done; EPIC-002 + EPIC-008 done; F-NB-1 do EPIC-002 endereçada por STORY-073 na W28); W27.5 (cirúrgica) aberta em paralelo para o refator UUID.",
+    "current_sprint": "SPRINT-2026-W28",
+    "last_closed_sprint": "SPRINT-2026-W27.5",
+    "phase": "wave-2026-01-sprint-w28-ATIVA-epic-003-aceite-pin-pix-pagarme",
+    "next_action": "SPRINT-2026-W27.5 ENCERRADA em 2026-06-03 por goal-atingido (4/4 done; EPIC-010 refator UUID `done`; STORY-072 veredito `approved` confirmado pelo PO). SPRINT-2026-W28 ATIVADA em 2026-06-03 — abre o EPIC-003 (Aceite, PIN bilateral, Pix via Pagar.me sandbox), o épico mais pesado e arriscado da WAVE-2026-01: 15 estórias (3 spikes STORY-055/056/057 + 10 implementação STORY-058..067 + validação STORY-068 + STORY-073 bugfix carry-forward do EPIC-002 `schedule:run`). 3 ADRs novas previstas (ADR-015 modelo Turno, ADR-016 ACL Pagar.me, ADR-017 tempo real + geo). Próxima ação: agente Arquiteto inicia os spikes STORY-055/056/057 (STORY-073 é ortogonal e pode iniciar em paralelo). Soft-cap 2026-07-04; gatilho de reescopo em 2026-06-20 (D+16) se caminho até `ativo` não estiver vivo em homolog.",
     "notes": "Snapshot 2026-06-03 pós-renumeração + revisão de sequência: W27 fechada. W27.5 ATIVA (refator UUID, EPIC-010, 4 estórias). W28 PLANNED (EPIC-003, 15 estórias — STORY-069 da minha intenção renomeada para STORY-073 por colisão com EPIC-010). Estórias do EPIC-003 estão sendo revistas para refletir ADR-018 (PKs UUID, FKs uuid, payloads referenciando IDs como string)."
   },
   "product": {
@@ -227,7 +227,8 @@
       "slug": "aceite-pin-e-pix",
       "title": "Aceite da candidatura, PIN bilateral e Pix via Pagar.me",
       "wave": "WAVE-2026-01",
-      "status": "ready",
+      "status": "in_progress",
+      "activated_at": "2026-06-03",
       "path": "epics/EPIC-003-aceite-pin-e-pix/epic.md",
       "story_ids": [
         "STORY-055",
@@ -2232,13 +2233,17 @@
     {
       "id": "SPRINT-2026-W27.5",
       "wave": "WAVE-2026-01",
-      "status": "active",
+      "status": "closed",
       "start_date": "2026-06-03",
-      "end_date": null,
+      "end_date": "2026-06-03",
       "soft_cap_date": "2026-06-07",
       "opened_at": "2026-06-03",
       "opened_by": "PO (Alexandro / Arquiteto)",
       "activated_at": "2026-06-03",
+      "closed_at": "2026-06-03",
+      "closed_by": "PO (Alexandro / chat)",
+      "goal_outcome": "achieved",
+      "closed_well_before_soft_cap": "Soft-cap era 2026-06-07; fechada em 2026-06-03 (mesmo dia da abertura) — sprint cirúrgica executada de ponta a ponta em um dia: STORY-069 (spike), STORY-070 (backend), STORY-071 (frontend) e STORY-072 (validação) todas done.",
       "closure_rule": "Fechamento por goal-atingido: encerra quando STORY-069, STORY-070, STORY-071 estiverem `done` E STORY-072 (validador) tiver emitido veredito aceitável pelo PO. Soft-cap 2026-06-07 (~4 dias corridos) — sprint cirúrgica. SPRINT-2026-W28 NÃO ativa até esta sprint fechar.",
       "goal": "Refatoração transversal para UUIDv7 nas chaves primárias de todas as 15 entidades de domínio × 2 apps Laravel (api + admin) + 1 webapp Flutter, com ADR-018 `accepted`, schema novo em homolog via `migrate:fresh --seed`, polimórficos coerentes (`uuidMorphs()`), 14 models com `HasVersion7Uuids`, Flutter consumindo IDs como `String`, e validador re-rodando fluxos do EPIC-001 + EPIC-002 sem regressão. Sprint cirúrgica entre W27 (fechada) e W28 (planned, EPIC-003 Pagar.me) para honrar desejo arquitetural original antes da janela fechar no commit da STORY-056 (Pagar.me external_reference).",
       "path": "sprints/SPRINT-2026-W27.5.md",
@@ -2254,27 +2259,29 @@
         "EPIC-010"
       ],
       "scope_changes": [],
-      "delivered_story_ids": [],
-      "in_progress_story_ids": [],
-      "pending_story_ids": [
+      "delivered_story_ids": [
         "STORY-069",
         "STORY-070",
         "STORY-071",
         "STORY-072"
       ],
+      "in_progress_story_ids": [],
+      "pending_story_ids": [],
       "last_progress_update": "2026-06-03",
-      "progress_summary": "Sprint cirúrgica aberta pelo Arquiteto em 2026-06-03 e ATIVADA no mesmo dia (após fechamento da W27). Refator UUID transversal — 15 tabelas × 2 apps Laravel + webapp Flutter. ADR-018 já `accepted`. Bloqueia SPRINT-2026-W28 (closure_rule explícito). Aguarda agente Arquiteto iniciar STORY-069 (spike validação dos 4 pontos finos da ADR-018)."
+      "progress_summary": "FECHADA 2026-06-03 por goal-atingido (4/4 done). Refator UUID transversal entregue: STORY-069 (spike ADR-018 validada empiricamente — HasUuids, passkeys.id bigint, sessions.user_id foreignUuid), STORY-070 (backend api+admin — 14+ tabelas PK UUID, uuidMorphs, migrate:fresh --drop-types/IDR-027, rc.60), STORY-071 (frontend Flutter — IDs como String, rc.61). STORY-072 (validação) re-rodou EPIC-001+EPIC-002 sem regressão: veredito `approved` (23 passes, 0 fails) confirmado pelo PO. closure_rule satisfeita → SPRINT-2026-W28 ativada."
     },
     {
       "id": "SPRINT-2026-W28",
       "wave": "WAVE-2026-01",
-      "status": "planned",
-      "start_date": null,
+      "status": "active",
+      "start_date": "2026-06-03",
       "end_date": null,
       "soft_cap_date": "2026-07-04",
       "opened_at": "2026-06-03",
       "opened_by": "PO (Alexandro / Claude)",
-      "blocked_by_sprint": "SPRINT-2026-W27.5",
+      "activated_at": "2026-06-03",
+      "activated_by": "PO (Alexandro / chat)",
+      "blocked_by_sprint_resolved": "SPRINT-2026-W27.5 fechada em 2026-06-03 (goal-atingido); bloqueio liberado.",
       "closure_rule": "Fechamento por goal-atingido: encerra quando STORY-055..067 + STORY-073 estiverem `done` E STORY-068 (validador) emitir veredito aceitável pelo PO. Soft-cap 2026-07-04 (~31d a partir da ativação ~2026-06-04) — folga deliberadamente maior que W24/W25/W27 (21d) porque é o épico mais pesado da onda. Gatilho de reescopo cedo em 2026-06-20 (D+16): se caminho até `ativo` (STORY-063 cronômetro vivo) não estiver demonstrável em homolog, abrir mini-sprint W29 dedicada a check-out+captura+Pix. STORY-073 (fix `schedule:run`) é ortogonal — quita F-NB-1 do EPIC-002.",
       "goal": "Ciclo do turno vivo em homolog (EPIC-003): aceite → AceiteEletronico imutável → pré-autorização Pagar.me sandbox → PIN check-in (4 dígitos) + geofencing → validação contratante → ativo + cronômetro bilateral ≤2s → PIN check-out → finalizado → captura Pagar.me → Pix sandbox ≤15min na chave do profissional. Habitualidade PDR-002 nos 4 cenários (PF bloqueia 3ª; PJ alerta+override registrado no AceiteEletronico). Geofencing PDR-008 alerta-e-registra. Cancelamento + no_show_pro liberam pré-autorização (PDR-007 mínimo). 3 ADRs novas (015 modelo Turno, 016 ACL Pagar.me, 017 tempo real + geo). Validador (STORY-068, 4ª aparição) fecha EPIC-003. Em paralelo: STORY-073 quita a F-NB-1 do EPIC-002 (plumba `schedule:run` em homolog/prod via Cloud Run Job + Cloud Scheduler 1/min, ativando a auto-retirada de candidatura após edição material e os agendamentos colaterais STORY-021 lembretes + STORY-053 sweeper).",
       "path": "sprints/SPRINT-2026-W28.md",
@@ -2329,7 +2336,7 @@
         "STORY-073"
       ],
       "last_progress_update": "2026-06-03",
-      "progress_summary": "Sprint planejada em 2026-06-03 em paralelo ao fechamento da W27. Aguarda ativação quando STORY-053+054 fecharem. 15 estórias: EPIC-003 inteiro (14 — 3 spikes + 10 implementação + 1 validador) cobrindo o ciclo do turno ponta a ponta em sandbox Pagar.me, mais STORY-073 (bugfix carry-forward do EPIC-002 — plumbar `schedule:run` em homolog/prod). Sprint mais pesada do projeto até hoje (15 vs 13 da W27) — soft-cap deliberadamente maior (~31d vs 21d), gatilho de reescopo cedo em D+16, STORY-073 ortogonal pode iniciar imediatamente."
+      "progress_summary": "ATIVADA 2026-06-03 (após fechamento da W27.5 por goal-atingido — EPIC-010 done). Abre o EPIC-003 (épico mais pesado/arriscado da onda). 15 estórias: EPIC-003 inteiro (14 — 3 spikes + 10 implementação + 1 validador) cobrindo o ciclo do turno ponta a ponta em sandbox Pagar.me, mais STORY-073 (bugfix carry-forward do EPIC-002 — plumbar `schedule:run` em homolog/prod). Nenhuma estória iniciada ainda. Próximo: Arquiteto inicia os spikes STORY-055/056/057; STORY-073 ortogonal pode iniciar em paralelo. Soft-cap ~31d (vs 21d) por ser a sprint mais pesada; gatilho de reescopo cedo em 2026-06-20 (D+16)."
     }
   ],
   "decisions": {

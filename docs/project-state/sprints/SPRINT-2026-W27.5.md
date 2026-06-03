@@ -1,9 +1,11 @@
 ---
 sprint_id: SPRINT-2026-W27.5
 wave: WAVE-2026-01
-status: planned
-start_date: null  # ativa quando SPRINT-2026-W27 fechar (STORY-054 done + veredito aceito)
-end_date: null
+status: closed
+start_date: 2026-06-03
+end_date: 2026-06-03  # fechada por goal-atingido no mesmo dia da abertura — sprint cirúrgica (4 estórias) executada ponta a ponta em 1 dia
+closed_by: "PO (Alexandro / chat)"
+goal_outcome: achieved  # 4/4 done; EPIC-010 done; STORY-072 veredito approved confirmado pelo PO
 soft_cap_date: 2026-06-07  # ~4 dias corridos a partir da provável ativação 2026-06-04; sprint deliberadamente curta — janela cirúrgica
 opened_at: 2026-06-03
 opened_by: "PO (Alexandro / Claude)"

@@ -1,8 +1,9 @@
 ---
 sprint_id: SPRINT-2026-W28
 wave: WAVE-2026-01
-status: planned
-start_date: null  # ativa SOMENTE quando SPRINT-2026-W27.5 fechar (closure_rule explícito da W27.5)
+status: active
+start_date: 2026-06-03  # ativada após SPRINT-2026-W27.5 fechar por goal-atingido (EPIC-010 done, STORY-072 approved)
+activated_by: "PO (Alexandro / chat)"
 end_date: null
 soft_cap_date: 2026-07-04  # ~31 dias corridos a partir da provável ativação; folga maior que W24/W25/W27 (21d) porque é o épico mais pesado da onda
 opened_at: 2026-06-03
