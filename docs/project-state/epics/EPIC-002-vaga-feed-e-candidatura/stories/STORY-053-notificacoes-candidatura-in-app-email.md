@@ -195,12 +195,45 @@ Decide: nome dos listeners, estrutura do worker, estratégia de fila (sugestão:
 
 ## Notas do agente
 
+### Progresso (sessão 2026-06-03)
+- **Design (CA-8 spec):** `SCREEN-STORY-053-notificacoes` criada + protótipo HTML, **aprovado por
+  Alexandro** em chat (sino+badge no AppBar das duas homes; painel `endDrawer`; tema herda o papel;
+  badge em `error`; microcopy reusa o texto-seed dos e-mails). `status: ready`.
+- **CA-1..CA-4 (feito, verde):** migração `notificacoes` (enum nativo, fila implícita de e-mail
+  `enviada_email_em IS NULL`, idempotência por `idempotency_key`), model+factory, 3 listeners
+  (`HandleCandidaturaEnviada`/`HandleVagaEditadaMaterialmente`/`HandleVagaCancelada`) registrados
+  síncronos no `AppServiceProvider` (consistência transacional), `CriarNotificacaoService` (audit
+  `notificacao.criada`), `DiffParaTexto` + `DataHora` (pt-BR 24h). 6 testes (listeners 100%).
+- **CA-7 (feito, verde):** `NotificacaoController` + rotas; `GET /api/notificacoes[?lidas=false]`
+  (50 + `nao_lidas` p/ badge), `marcar-lida` (RBAC destinatario, 404 terceiros), `marcar-todas-lidas`.
+  7 testes.
+
 ### Decisões / Descobertas / Bloqueios / IDRs
-- 
+- **IDR-053 (a registrar):** assuntos dos 5 e-mails de notificação ficam em `App\Enums\NotificacaoTipo`
+  (api), **não** no `Turni\Domain\Email\TipoEmail` compartilhado — o `TipoEmail` é contrato com o
+  `admin` (ADR-011 §d "não reabrir"), `match` exaustivo; a família de notificação é nova e fica na api.
+- **Path A escolhido pelo PO (Alexandro):** os 5 **corpos** de e-mail moram no editor do Backoffice
+  (STORY-020) como `TemplateVersao` ativa, interpolados com o `payload` — exige generalizar o sistema
+  de templates (hoje só contratos) p/ categoria `email` + renderer de interpolação `{snake_case}`.
+- **Templates 4/5 (mantida/retirada):** não há evento de domínio para "confirmar/retirar após
+  edição" — serão criados via hook nos endpoints `confirmar-apos-edicao`/`retirar-apos-edicao`
+  (STORY-052) e na auto-retirada (`auto_24h`). Fora dos 3 listeners da CA-2/3/4.
+
+### Pendente (próxima sessão)
+- **CA-5 (worker):** command `notificacoes:enviar-emails` (Scheduler 1/min, reusa Cloud Run Job
+  STORY-034) lê a fila implícita, renderiza corpo do template + assunto `NotificacaoTipo::assuntoEmail`,
+  envia via ACL (`EnviaEmailTransacional`), retry via `tentativas_envio` (3) → `falha_envio_em`.
+- **CA-6 (templates no editor — Path A):** coluna `categoria` em `templates` (migração admin) + seeder
+  dos 5 corpos (texto-seed v1) como `TemplateVersao` ativa + renderer de interpolação na api.
+- **CA-8 (Flutter):** sino+badge nas `actions:` de `feed_screen`/`minhas_vagas_screen`, painel
+  `endDrawer`, serviço + estados (SCREEN-053) + widget tests (≥80%).
+- **Templates 4/5:** hooks nos endpoints de confirmar/retirar + auto-retirada.
+- **CA-11/12:** fechar cobertura ≥95% back, ≥80% widget; E2E 3 cenários (Mailpit homolog); SLA ≤60s.
+
 ### Cobertura final
-- Unitários: 
-- E2E: 
+- Unitários: parcial — listeners 6 testes (100% nos listeners), endpoints 7 testes. Falta worker/render.
+- E2E: pendente.
 ### Templates carregados
-- 
+- Pendente (CA-6 / Path A).
 ### Links
-- PR / Pipeline / Deploy
+- Commits: `9b00dba` (design+listeners), `248f9d6` (endpoints). PR/Deploy: pendente.
