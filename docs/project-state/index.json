@@ -1757,8 +1757,8 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_review",
+      "owner_agent": "claude-opus-4-8 (sessão 2026-06-03 STORY-070)",
       "sprint_id": "SPRINT-2026-W27.5",
       "path": "epics/EPIC-010-refator-uuid-chaves-primarias/stories/STORY-070-refactor-backend-uuid-api-admin.md",
       "blocked_by": [
@@ -2863,6 +2863,16 @@
         "decided_by": "programador",
         "source_story": "STORY-052",
         "note": "Componente puro lib/core/time/turni_datetime.dart centraliza parse/format/serialização de data/hora: API em UTC (toApi → …Z), UI em local (toLocal num único ponto), invariância lossless exibir→reler (impede deslocamento de 3h e edição material fantasma da STORY-052). 6 telas + 3 serviços delegam; formatos pt-BR/24h (DDR-002) num só lugar. 16 testes do núcleo."
+      },
+      {
+        "id": "IDR-027",
+        "title": "migrate:fresh exige --drop-types por causa dos enums nativos do Postgres",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-027-migrate-fresh-drop-types-enums-nativos.md",
+        "decided_at": "2026-06-03",
+        "decided_by": "programador",
+        "source_story": "STORY-070",
+        "note": "Os enums nativos vaga_estado/candidatura_estado/notificacao_tipo (ADR-013) são criados via DB::statement e NÃO são removidos por migrate:fresh sem --drop-types — um 2º fresh falha em 'type already exists'. make fresh e o reset de homolog da STORY-070 (runbook §5) passam a usar --drop-types. migrate:rollback segue simétrico (down() dropa o tipo) sem a flag."
       }
     ],
     "ddr": [

@@ -8,8 +8,8 @@ type: refactor
 target_role: programador
 requires_design: false
 design_screen_id: null
-status: ready
-owner_agent: null
+status: in_review
+owner_agent: claude-opus-4-8 (sessão 2026-06-03 STORY-070)
 created_at: 2026-06-03
 updated_at: 2026-06-03
 estimated_session_size: L
@@ -181,24 +181,39 @@ Padrão do projeto. Em particular:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões tomadas
-- <data> — <decisão local>
+- 2026-06-03 — Seguido o runbook (não a ADR) onde divergem: trait `HasUuids` (gera v7 no L13.12), sem declarar `$keyType`/`$incrementing`. Passkeys PK fica bigint; só `user_id` muda (auto via `foreignIdFor`).
+- 2026-06-03 — Seeders que inserem via **query builder** (`DB::table()->insert*`) não passam pelo `HasUuids` → gerar o uuid na aplicação com `Str::uuid7()` e passar `id` explícito. Afeta `TemplatesContratuaisSeeder`, `NotificacoesEmailTemplatesSeeder` (api+admin) e `VagasStressSeeder` (api).
+- 2026-06-03 — FormRequests de `funcao_id` trocados de `integer`→`uuid` **com `bail`** na frente: sem `bail`, a regra `exists` rodaria com valor malformado e o Postgres levantaria 22P02 (500) em vez de 422.
+- 2026-06-03 — IDs inexistentes em testes (`999999`) trocados por nil-uuid válido (`00000000-…-0`): número cru vira uuid inválido → 22P02 em vez do 404/422 esperado.
+- 2026-06-03 — Logs de telemetria (`MatchEvents`) agora emitem `vaga_id`/`profissional_id`/`candidatura_id` como **string UUID** (CA-10/ADR-008); asserts dos testes ajustados de `=== <int>` para `=== '<uuid>'`.
 
 ### Descobertas
-- <data> — <gotcha>
+- 2026-06-03 — **`migrate:fresh` não dropa os enums nativos** (`vaga_estado`, `candidatura_estado`, `notificacao_tipo`) sem `--drop-types`; um 2º `fresh` falha em `CREATE TYPE ... already exists`. Material para o reset de homolog (CA-9). → **IDR-027** + `make fresh` e runbook §5 passam a usar `--drop-types`.
+- 2026-06-03 — Casts `(int)` em `funcao_id` espalhados no domínio (`MatchScoring`, `FeedQuery`, `EdicaoMaterial`, `DiffParaTexto`) zeravam o id (uuid→0): bug silencioso que quebrava match/diff. Todos trocados para `(string)`/`strval`.
 
 ### Bloqueios encontrados
-- <data> — <bloqueio>
+- Nenhum. CA-0 reconfirmou zero-produção (EXTERNOS=0).
 
 ### Evidências por CA
-- CA-0: <output da query>
-- CA-1..CA-11: <link de commits / log>
-- CA-12: IDR aberto? <sim — IDR-XXX / não>
+- CA-0: job homolog `turni-migrate-homolog-hdwmf` → `TOTAL=20 EXTERNOS=0` (premissa mantida).
+- CA-1/2/3: migrations (14 api + 6 admin) e models (14 api + 7 admin) reescritos; `sessions.user_id`→`foreignUuid` (api+admin), `uuidMorphs('tokenable')` (Sanctum api), `target_id`→`uuid` (audit_logs/admin_audit_log); passkeys/sanctum/jobs PK seguem bigint (§6 grep verde).
+- CA-4: `migrate:fresh --seed --force --drop-types` verde em api e admin (local).
+- CA-5/CA-6: Pest **api 535 passed**, **admin 100 passed**, sem skip. Type hints `int`→`string` em services/controllers/listeners/jobs/livewire + fixtures de teste.
+- CA-7: `score_breakdown` sem IDs (confirmado pelo spike) — sem mudança.
+- CA-8: `AuditLogTest`/`ImutabilidadeTest`/`AuditLogDominioTest` verdes; `id`/`actor_id`/`target_id` uuid válido; trigger+REVOKE intactos.
+- CA-9: **pendente pós-merge** — reset homolog `migrate:fresh --seed --force --drop-types` via Cloud Run Job (runbook §5).
+- CA-10: telemetria/logs emitem ids como string UUID; sem cast `(int)` remanescente.
+- CA-11: docker-compose/.env sem mudança (Postgres já PG14+, `uuid` nativo).
+- CA-12: **IDR-027** aberto (migrate:fresh exige `--drop-types`).
 
 ### Cobertura final
-- `apps/api`: Pest — <%>
-- `apps/admin`: Pest — <%>
+- `apps/api`: Pest — **93.1%** (`--min=80` verde).
+- `apps/admin`: Pest — 100 testes verdes (suíte sem gate de cobertura no Makefile).
+
+### Smoke F-NB-1
+- `migrate:rollback` (todas) + `migrate:fresh --seed --drop-types` simétricos no api — verde local.
 
 ### Links de evidência
-- PR: <url>
-- Pipeline: <url>
-- Deploy homolog: <url + log>
+- PR: workflow Turni = commit direto na main + push (sem PR).
+- Pipeline: <preencher após push — CI da main>
+- Deploy homolog: <preencher após rodar o job de reset §5>

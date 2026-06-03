@@ -227,16 +227,19 @@ CA-3. **Deixe a migration de passkeys intocada** (PK bigint, FK auto-uuid).
 1. **Mergear STORY-070 na main** (api + admin com migrations/models reescritos, testes verdes
    em CI).
 2. **Reset único em homolog** — rodar via Cloud Run Job (mesmo mecanismo do CA-4), com
-   `migrate:fresh --seed --force` em vez de `migrate --force`:
+   `migrate:fresh --seed --force --drop-types` em vez de `migrate --force`:
    ```bash
    gcloud run jobs execute turni-migrate-homolog --region=southamerica-east1 --project=turni-mvp \
-     --args='-c,php artisan migrate:fresh --seed --force' --wait
+     --args='-c,php artisan migrate:fresh --seed --force --drop-types' --wait
    ```
    (Recria todo o schema em UUID + reaplica o seed. Apaga os 20 usuários descartáveis —
    premissa confirmada no CA-4.)
+   > ⚠️ **`--drop-types` é obrigatório** (descoberto na execução — IDR-027): os enums nativos
+   > `vaga_estado`/`candidatura_estado`/`notificacao_tipo` (ADR-013) NÃO são removidos pelo
+   > `migrate:fresh` sem a flag; sem ela o reset falha em `CREATE TYPE ... already exists`.
 3. **Smoke de simetria** (F-NB-1) contra homolog, logo após:
    ```bash
-   gcloud run jobs execute turni-migrate-homolog … --args='-c,php artisan migrate:rollback --force && php artisan migrate:fresh --seed --force' --wait
+   gcloud run jobs execute turni-migrate-homolog … --args='-c,php artisan migrate:rollback --force && php artisan migrate:fresh --seed --force --drop-types' --wait
    ```
 4. **Reseed invalida sessões** — qualquer aba logada em homolog cairá em 401 (memória
    `reseed-invalida-sessao-browser`); relogar em `/login`. O hook de pré-push também

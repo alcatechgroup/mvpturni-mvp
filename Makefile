@@ -98,7 +98,10 @@ seed: ## Popula dados de seed mínimos (idempotente)
 	$(COMPOSE_RUN) api php artisan db:seed --force
 
 fresh: ## Recria o schema do zero e ressemeia (DEV — destrói dados)
-	$(COMPOSE_RUN) api php artisan migrate:fresh --seed --force
+	# --drop-types: enums nativos (vaga_estado, candidatura_estado, notificacao_tipo) são
+	# criados via DB::statement e NÃO são removidos por migrate:fresh sem esta flag — sem ela,
+	# um segundo fresh falha com "type ... already exists" (STORY-070, ver IDR-027).
+	$(COMPOSE_RUN) api php artisan migrate:fresh --seed --force --drop-types
 
 webapp-build: ## Build do WebApp Flutter (web) no host
 	@if command -v flutter >/dev/null 2>&1; then \
