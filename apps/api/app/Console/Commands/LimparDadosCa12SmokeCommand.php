@@ -56,9 +56,11 @@ class LimparDadosCa12SmokeCommand extends Command
             DB::unprepared("GRANT UPDATE ON admin_audit_log TO \"{$ru}\"");
             // aceites_eletronicos: FK `user_id` é RESTRICT (NO ACTION) e a tabela é append-only
             // (REVOKE UPDATE,DELETE + trigger — ADR-010). Para apagar o usuário de teste é preciso
-            // remover o aceite ANTES do delete de users; e a própria trava `FOR KEY SHARE` do delete
-            // exige privilégio na tabela. Concede DELETE e desabilita o trigger só nesta transação.
-            DB::unprepared("GRANT DELETE ON aceites_eletronicos TO \"{$ru}\"");
+            // (a) remover o aceite ANTES do delete de users — exige DELETE; e (b) a trava
+            // `SELECT ... FOR KEY SHARE` que o delete de users faz na tabela referenciante exige
+            // UPDATE (mesma razão do GRANT UPDATE em vaga_versoes — STORY-053). Concede ambos e
+            // desabilita o trigger só nesta transação.
+            DB::unprepared("GRANT UPDATE, DELETE ON aceites_eletronicos TO \"{$ru}\"");
             foreach (['vaga_versoes', 'audit_logs', 'admin_audit_log', 'aceites_eletronicos'] as $t) {
                 DB::statement("ALTER TABLE {$t} DISABLE TRIGGER USER");
             }
@@ -87,7 +89,7 @@ class LimparDadosCa12SmokeCommand extends Command
             DB::unprepared("REVOKE DELETE ON vaga_versoes FROM \"{$ru}\"");
             DB::unprepared("REVOKE UPDATE ON audit_logs FROM \"{$ru}\"");
             DB::unprepared("REVOKE UPDATE ON admin_audit_log FROM \"{$ru}\"");
-            DB::unprepared("REVOKE DELETE ON aceites_eletronicos FROM \"{$ru}\"");
+            DB::unprepared("REVOKE UPDATE, DELETE ON aceites_eletronicos FROM \"{$ru}\"");
 
             $this->info("Removidos: notificacoes={$n} candidaturas={$c} vaga_versoes={$vv} vagas={$v} aceites={$ae} users={$u}.");
         });
