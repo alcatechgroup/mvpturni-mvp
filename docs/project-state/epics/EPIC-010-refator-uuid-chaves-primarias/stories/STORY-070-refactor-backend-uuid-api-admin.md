@@ -201,7 +201,7 @@ Padrão do projeto. Em particular:
 - CA-5/CA-6: Pest **api 535 passed**, **admin 100 passed**, sem skip. Type hints `int`→`string` em services/controllers/listeners/jobs/livewire + fixtures de teste.
 - CA-7: `score_breakdown` sem IDs (confirmado pelo spike) — sem mudança.
 - CA-8: `AuditLogTest`/`ImutabilidadeTest`/`AuditLogDominioTest` verdes; `id`/`actor_id`/`target_id` uuid válido; trigger+REVOKE intactos.
-- CA-9: **pendente pós-merge** — reset homolog `migrate:fresh --seed --force --drop-types` via Cloud Run Job (runbook §5).
+- CA-9: **done** — Release `v0.1.0-rc.60` (run 26915181160) buildou+deployou api/admin/migrate-job e smoke pós-deploy verde; reset único `migrate:fresh --seed --force --drop-types` (exec `turni-migrate-homolog-6x6w4`) verde; verificado em homolog `users.id=uuid`, `sessions.user_id=uuid`, `audit_logs.target_id=uuid`; smoke F-NB-1 `rollback + fresh` (exec `…-tgp9g`) Completed.
 - CA-10: telemetria/logs emitem ids como string UUID; sem cast `(int)` remanescente.
 - CA-11: docker-compose/.env sem mudança (Postgres já PG14+, `uuid` nativo).
 - CA-12: **IDR-027** aberto (migrate:fresh exige `--drop-types`).
@@ -214,6 +214,6 @@ Padrão do projeto. Em particular:
 - `migrate:rollback` (todas) + `migrate:fresh --seed --drop-types` simétricos no api — verde local.
 
 ### Links de evidência
-- PR: workflow Turni = commit direto na main + push (sem PR).
-- Pipeline: <preencher após push — CI da main>
-- Deploy homolog: <preencher após rodar o job de reset §5>
+- PR: workflow Turni = commit direto na main + push (sem PR). Commits 5707303 (api), 81b7b1f (admin), deab548 (docs).
+- Pipeline: CI run 26914963811 (success) + Release `v0.1.0-rc.60` run 26915181160 (success).
+- Deploy homolog: reset `turni-migrate-homolog-6x6w4` (migrate:fresh --seed --drop-types) + smoke F-NB-1 `turni-migrate-homolog-tgp9g` — ambos Completed.
