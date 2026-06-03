@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
+import '../notificacoes/notificacoes_controller.dart';
+import '../notificacoes/notificacoes_painel.dart';
+import '../notificacoes/notificacoes_sino.dart';
 import 'vaga_service.dart';
 
 /// STORY-047 / SCREEN-STORY-047 — "Minhas vagas" do contratante: lista as próprias
@@ -68,6 +71,8 @@ class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
     }
     _filtro = _filtroSessao;
     _load();
+    // STORY-053 (CA-8) — contagem de não-lidas para o badge do sino.
+    NotificacoesController.instance.carregarContagem();
 
     // Toast de "Vaga publicada" carregado da navegação pós-publicação (STORY-046 CA-7).
     final msg = widget.successMessage;
@@ -151,6 +156,7 @@ class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
       appBar: AppBar(
         title: const Text('Minhas vagas'),
         actions: [
+          const NotificacoesSino(),
           IconButton(
             key: const Key('minhas-vagas-logout-btn'),
             tooltip: 'Sair',
@@ -159,6 +165,7 @@ class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
           ),
         ],
       ),
+      endDrawer: const NotificacoesPainel(),
       floatingActionButton: _phase == _Phase.pronto && _todas.isNotEmpty
           ? FloatingActionButton.extended(
               key: const Key('minhas-vagas-publicar-btn'),

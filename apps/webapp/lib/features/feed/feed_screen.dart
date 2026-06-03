@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
+import '../notificacoes/notificacoes_controller.dart';
+import '../notificacoes/notificacoes_painel.dart';
+import '../notificacoes/notificacoes_sino.dart';
 import 'feed_service.dart';
 
 /// STORY-048 / SCREEN-STORY-048 — feed do profissional: lista ranqueada por match (CA-1/CA-3)
@@ -51,6 +54,8 @@ class _FeedScreenState extends State<FeedScreen> {
     _filtro = FeedFiltro.fromSlug(widget.filtroInicial);
     _scroll.addListener(_onScroll);
     _load();
+    // STORY-053 (CA-8) — contagem de não-lidas para o badge do sino.
+    NotificacoesController.instance.carregarContagem();
   }
 
   @override
@@ -134,6 +139,7 @@ class _FeedScreenState extends State<FeedScreen> {
       appBar: AppBar(
         title: const Text('Vagas para você'),
         actions: [
+          const NotificacoesSino(),
           IconButton(
             key: const Key('feed-logout-btn'),
             tooltip: 'Sair',
@@ -142,6 +148,7 @@ class _FeedScreenState extends State<FeedScreen> {
           ),
         ],
       ),
+      endDrawer: const NotificacoesPainel(),
       body: SafeArea(child: _body(isDark, accent)),
     );
   }
