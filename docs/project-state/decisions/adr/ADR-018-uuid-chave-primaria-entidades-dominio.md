@@ -13,6 +13,7 @@ related_pdrs: []
 related_epics: [EPIC-010]
 created_at: 2026-06-03
 updated_at: 2026-06-03
+validated_by: STORY-069 (spike, 2026-06-03)
 ---
 
 # ADR-018 — UUID como tipo de chave primária das entidades de domínio
@@ -246,6 +247,90 @@ Os trade-offs são reconhecidos: v7 vaza timestamp (já vazamos com `created_at`
 
 ---
 
+## Validação empírica (STORY-069 — executada em 2026-06-03)
+
+Spike executado contra ambiente local (Postgres `turni_test`, Laravel 13.12, PHP 8.5) e
+homolog (Cloud SQL `turni-homolog`, Postgres 17). Evidências: 3 testes Pest no repo
+(`apps/api/tests/Unit/UuidV7GenerationTest.php`, `tests/Feature/SanctumUuidTokenableTest.php`,
+`tests/Feature/PasskeysUuidUserTest.php`) + execução de job read-only em homolog. As decisões
+1–7 **permanecem válidas**; o spike revelou 3 correções de premissa de **execução** (como
+fazer), não de **decisão** (o que fazer). Registradas abaixo e detalhadas nos runbooks
+(`runbook-refactor-backend.md`, `runbook-refactor-flutter.md`).
+
+### ⚠️ Correção material 1 — o trait é `HasUuids`, não `HasVersion7Uuids`
+
+No Laravel 13.12 instalado **não existe** o trait `HasVersion7Uuids`. O trait first-class é
+`Illuminate\…\Concerns\HasUuids`, que **já gera UUIDv7 por padrão** (`newUniqueId()` →
+`(string) Str::uuid7()`). Toda menção a `HasVersion7Uuids` nesta ADR deve ser lida como
+**`HasUuids`**. Não invalida as Decisões 1 (variante v7) nem 6 (geração na aplicação) — só
+corrige o nome do mecanismo. Não é preciso declarar `$keyType`/`$incrementing` manualmente (o
+trait inicializa). **Evidência (CA-1):** 1000 UUIDs gerados — todos versão 7, timestamp de 48
+bits monotônico na ordem de geração, sort lexical preserva a ordem cronológica (ms), zero
+colisão (2004 asserções verdes).
+
+### ✅ Confirmação — Decisão 4 (Sanctum `tokenable_id`)
+
+`uuidMorphs('tokenable')` no lugar de `morphs('tokenable')` funciona: token emitido via
+`createToken()`, `tokenable_id` gravado como `uuid` **nativo** do Postgres, e resolvido de
+volta via `findToken()`/`morphTo` para o User UUID. A PK própria de `personal_access_tokens`
+permanece bigint. **Evidência (CA-2).**
+
+### ⚠️ Correção material 2 — passkeys: pacote real é `laravel/passkeys` (não Spatie) e é 100% compatível
+
+O projeto usa o pacote **oficial `laravel/passkeys` (^0.2.0)** — **não** `spatie/laravel-passkeys`
+como a story/ADR assumiram. Melhor que o pior caso temido (patch na lib): a migration usa
+`foreignIdFor(Passkeys::userModel(), 'user_id')`, e o `Blueprint::foreignIdFor()` do Laravel 13
+**adapta o tipo da coluna automaticamente** para `uuid` quando o User tem `keyType = 'string'`
+(int → bigint; HasUlids → ulid; senão → `foreignUuid`). Decisão do CA-3 = **caminho (a)
+refinado**:
+- `passkeys.user_id` → vira `uuid` **sozinho**, zero edição na migration do pacote.
+- `passkeys.id` (PK própria do model `Passkey`, que estende `Model` puro) → **fica bigint**,
+  análogo a `personal_access_tokens.id`. Nenhuma FK de domínio aponta para `passkeys.id`.
+
+  → **Refinamento da Decisão 3:** `passkeys` **sai** da lista de "PK vira UUID" (eram 15
+  tabelas; passam a ser 14 com PK UUID). Só o FK `user_id` muda, e automaticamente.
+  **Evidência (CA-3).**
+
+### ⚠️ Correção material 3 — `sessions.user_id` é exceção à Decisão 3
+
+A Decisão 3 mantém `sessions` como o framework entrega. Mas `SESSION_DRIVER` é **`database`**
+em homolog, e a coluna `sessions.user_id` (`foreignId`, bigint) recebe `Auth::id()` — que passa
+a ser uma string UUID. Bigint recebendo UUID → **erro de INSERT e login quebra**. Portanto
+`sessions.user_id` **deve** virar `foreignUuid` (a única exceção dentro de uma tabela de
+framework). O resto de `sessions` (PK string, payload, etc.) não muda. Aplica a **api e admin**.
+Detalhado no runbook backend §2.3 (item CRÍTICO).
+
+### ✅ Confirmação — Decisão 5 (reset) e premissa "zero produção" (CA-4)
+
+Query read-only em homolog (`users`): **20 registros** — 14 de seed (`@turni.local` +
+`…turni-homolog@gmail.com`) e 6 não-seed, **todos** rastreáveis ao próprio PO
+(`xandroalmeida+N@gmail.com`, conta base `xandroalmeida@gmail.com`) ou a fixture E2E
+(`teste.full.<epoch>@homolog.local`). **Zero usuários externos.** PO confirmou descartável em
+chat (2026-06-03). Reset liberado. **Nuance operacional:** o CD atual (`release.yml`) roda
+`migrate --force && db:seed --force` (aditivo) — como a STORY-070 reescreve migrations já
+aplicadas no banco persistente de homolog, o reset exige **`migrate:fresh --seed` uma vez**
+(runbook backend §5).
+
+### ✅ CA-7 — `score_breakdown` sem IDs (sem impacto)
+
+`MatchScore::toArray()` produz `{total, componentes{4 inteiros}, breakdown{4× {pontos, pontos_max,
+estado, descricao}}}`. As `descricao` são prosa com km/estrelas/contagem — **nenhum ID de
+entidade embutido**. STORY-070 e STORY-071 **não** tocam o formato do `score_breakdown`.
+
+### Estimativa final (CA-9)
+
+- **STORY-070 (backend api + admin): `L`** (mantido). Escopo mecânico e fechado: 14 models api +
+  7 admin recebem `use HasUuids`; ~20 FKs `foreignId`→`foreignUuid`; 2 polimórficos manuais
+  (`audit_logs`/`admin_audit_log.target_id` → `uuid`) + 1 `uuidMorphs` (Sanctum); `sessions.user_id`
+  → `foreignUuid`. **Passkeys não adiciona custo** (auto-adapta) — o risco que poderia subir a
+  estimativa (patch na lib) não existe. Pontos de atenção: `sessions.user_id` e o `migrate:fresh`
+  único em homolog.
+- **STORY-071 (Flutter webapp): `M`** (mantido). ~25 retipagens `int`→`String` em DTOs/services,
+  ~7 dropdowns `<int>`→`<String>`, 3 rotas no router; sem lógica nova, sem impacto de
+  `score_breakdown`.
+
+---
+
 ## Aprovação humana
 
 > Esta seção é o registro formal do aceite. Não preencher sozinho — preencher quando o humano aprovar no chat ou via PR.
@@ -270,3 +355,4 @@ Os trade-offs são reconhecidos: v7 vaza timestamp (já vazamos com `created_at`
 
 - 2026-06-03 — criada como `proposed` por Arquiteto (rascunho PO), a partir da análise feita em paralelo ao fechamento da SPRINT-2026-W27. Spike de validação dos 4 pontos finos atribuído à STORY-069 da SPRINT-2026-W27.5.
 - 2026-06-03 — `accepted` por Alexandro (aprovação em chat). STORY-069 destravada para execução assim que SPRINT-2026-W27 fechar (STORY-053 + STORY-054 `done` + veredito aceito).
+- 2026-06-03 — STORY-069 (spike) executada. Validação empírica registrada na seção "Validação empírica (STORY-069)". 3 correções de execução (sem reabrir decisões): (1) trait é `HasUuids`, não `HasVersion7Uuids`; (2) passkeys é `laravel/passkeys` e auto-compatível — `passkeys.id` sai do escopo UUID (Decisão 3 refinada: 14 tabelas com PK UUID, não 15); (3) `sessions.user_id` vira `foreignUuid` (exceção à Decisão 3). Premissa "zero produção" confirmada (CA-4, 20 usuários descartáveis, PO ok). Estimativas mantidas (070=L, 071=M). Runbooks de backend e Flutter produzidos no épico. Decisão permanece `accepted`.

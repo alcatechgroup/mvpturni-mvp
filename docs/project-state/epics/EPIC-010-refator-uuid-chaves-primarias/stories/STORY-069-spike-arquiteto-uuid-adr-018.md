@@ -8,8 +8,8 @@ type: spike
 target_role: arquiteto
 requires_design: false
 design_screen_id: null
-status: ready
-owner_agent: null
+status: done
+owner_agent: claude-opus-4-8 (sessão 2026-06-03 STORY-069)
 created_at: 2026-06-03
 updated_at: 2026-06-03
 estimated_session_size: M
@@ -49,23 +49,23 @@ Sem ADR aceita, nenhuma mudança estrutural pode acontecer (disciplina herdada �
 
 Cada item é uma asserção testável. O agente DEVE registrar evidência (link de commit/log/output) para cada CA na seção "Notas do agente".
 
-- [ ] **CA-1 — `HasVersion7Uuids` produz UUIDs válidos e ordenados em PHP.** Em uma sessão `php artisan tinker` ou script standalone em `apps/api`, criar 1000 instâncias de um model temporário com `HasVersion7Uuids`, coletar os UUIDs gerados em ordem, e verificar: (a) todos têm versão 7 (4 bits altos do 7º byte = `7`); (b) `usort($ids)` resulta na mesma ordem cronológica de geração (tolerância: empates dentro do mesmo ms); (c) zero colisões em 1000 IDs. Registrar o script usado no diretório `apps/api/database/scripts/uuid_v7_validation.php` (apagar ao fim do spike ou mover para `tests/Unit/UuidV7GenerationTest.php`).
+- [x] **CA-1 — `HasVersion7Uuids` produz UUIDs válidos e ordenados em PHP.** Em uma sessão `php artisan tinker` ou script standalone em `apps/api`, criar 1000 instâncias de um model temporário com `HasVersion7Uuids`, coletar os UUIDs gerados em ordem, e verificar: (a) todos têm versão 7 (4 bits altos do 7º byte = `7`); (b) `usort($ids)` resulta na mesma ordem cronológica de geração (tolerância: empates dentro do mesmo ms); (c) zero colisões em 1000 IDs. Registrar o script usado no diretório `apps/api/database/scripts/uuid_v7_validation.php` (apagar ao fim do spike ou mover para `tests/Unit/UuidV7GenerationTest.php`).
 
-- [ ] **CA-2 — Override de `personal_access_tokens.tokenable_id` (Sanctum) funciona.** Criar uma migration de teste local que substitui `morphs('tokenable')` por `uuidMorphs('tokenable')` na tabela `personal_access_tokens` (rebuild da tabela em ambiente local, ou nova migration que faz `DROP COLUMN tokenable_id, tokenable_type; ADD uuidMorphs('tokenable')`). Executar fluxo de login de teste contra a tabela alterada com um User com PK UUID temporário; verificar que Sanctum emite token e autentica corretamente. Documentar o caminho exato na ADR (seção Decisão 4 expandida com snippet).
+- [x] **CA-2 — Override de `personal_access_tokens.tokenable_id` (Sanctum) funciona.** Criar uma migration de teste local que substitui `morphs('tokenable')` por `uuidMorphs('tokenable')` na tabela `personal_access_tokens` (rebuild da tabela em ambiente local, ou nova migration que faz `DROP COLUMN tokenable_id, tokenable_type; ADD uuidMorphs('tokenable')`). Executar fluxo de login de teste contra a tabela alterada com um User com PK UUID temporário; verificar que Sanctum emite token e autentica corretamente. Documentar o caminho exato na ADR (seção Decisão 4 expandida com snippet).
 
-- [ ] **CA-3 — Spatie/Laravel-Passkeys suporta User com PK UUID OU caminho alternativo identificado.** Inspecionar o código do pacote em `apps/api/vendor/spatie/laravel-passkeys/` para verificar se `Passkeys::userModel()` e `foreignIdFor` funcionam quando o User tem `$keyType = 'string'`. Se sim, documentar. Se não, propor um dos caminhos: (a) override da migration que cria `passkeys.user_id` para `uuid`; (b) coluna `users.uuid` separada usada apenas pelo Passkeys; (c) substituição da lib. **Decidir e registrar na ADR-018** (atualizando Decisão 4 ou criando Decisão 4-bis).
+- [x] **CA-3 — Spatie/Laravel-Passkeys suporta User com PK UUID OU caminho alternativo identificado.** Inspecionar o código do pacote em `apps/api/vendor/spatie/laravel-passkeys/` para verificar se `Passkeys::userModel()` e `foreignIdFor` funcionam quando o User tem `$keyType = 'string'`. Se sim, documentar. Se não, propor um dos caminhos: (a) override da migration que cria `passkeys.user_id` para `uuid`; (b) coluna `users.uuid` separada usada apenas pelo Passkeys; (c) substituição da lib. **Decidir e registrar na ADR-018** (atualizando Decisão 4 ou criando Decisão 4-bis).
 
-- [ ] **CA-4 — Migration de conversão proposta vs. reset: confirmar reset é viável.** Confirmar que o banco de homolog está com **dados descartáveis** (sem cadastros reais de usuários externos). Documentar o estado em texto na ADR (Decisão 5). Se houver qualquer dado material, **parar e escalar ao PO** — Decisão 5 pode precisar virar 5B. Registrar evidência: `SELECT COUNT(*) FROM users WHERE email NOT LIKE '%@turni.local' AND email NOT LIKE '%@example.%' AND email NOT LIKE '%@seed.%'` em homolog deve retornar 0 (ou lista revisada e marcada como descartável pelo PO).
+- [x] **CA-4 — Migration de conversão proposta vs. reset: confirmar reset é viável.** Confirmar que o banco de homolog está com **dados descartáveis** (sem cadastros reais de usuários externos). Documentar o estado em texto na ADR (Decisão 5). Se houver qualquer dado material, **parar e escalar ao PO** — Decisão 5 pode precisar virar 5B. Registrar evidência: `SELECT COUNT(*) FROM users WHERE email NOT LIKE '%@turni.local' AND email NOT LIKE '%@example.%' AND email NOT LIKE '%@seed.%'` em homolog deve retornar 0 (ou lista revisada e marcada como descartável pelo PO).
 
-- [ ] **CA-5 — Runbook de execução pronto para STORY-070.** Arquivo `epics/EPIC-010-refator-uuid-chaves-primarias/runbook-refactor-backend.md` criado com o passo-a-passo mecânico que STORY-070 vai seguir: (1) ordem de reescrita das migrations, (2) lista de models que recebem `HasVersion7Uuids` e `$keyType = 'string'`, (3) lista de FKs (de → para) que viram `foreignUuid`, (4) lista de polimórficas (override de Sanctum + uuidMorphs em audit_logs), (5) lista de seeders a auditar (referência a `->id` pode quebrar), (6) lista de tests a auditar e re-rodar, (7) comando exato de deploy em homolog (`migrate:fresh --seed` + smoke de `migrate:rollback` + `migrate:fresh` de novo). O runbook é a interface entre o spike e a execução; precisa ser sem ambiguidade.
+- [x] **CA-5 — Runbook de execução pronto para STORY-070.** Arquivo `epics/EPIC-010-refator-uuid-chaves-primarias/runbook-refactor-backend.md` criado com o passo-a-passo mecânico que STORY-070 vai seguir: (1) ordem de reescrita das migrations, (2) lista de models que recebem `HasVersion7Uuids` e `$keyType = 'string'`, (3) lista de FKs (de → para) que viram `foreignUuid`, (4) lista de polimórficas (override de Sanctum + uuidMorphs em audit_logs), (5) lista de seeders a auditar (referência a `->id` pode quebrar), (6) lista de tests a auditar e re-rodar, (7) comando exato de deploy em homolog (`migrate:fresh --seed` + smoke de `migrate:rollback` + `migrate:fresh` de novo). O runbook é a interface entre o spike e a execução; precisa ser sem ambiguidade.
 
-- [ ] **CA-6 — Runbook de execução pronto para STORY-071 (Flutter).** Arquivo `epics/EPIC-010-refator-uuid-chaves-primarias/runbook-refactor-flutter.md` criado com: (1) lista de DTOs/services com `int? id` ou `int? *_id` que viram `String?`/`String`, (2) lista de widgets que tipam value de dropdown como `int` (esp. `CadastroDropdownField<int>` em `pre_cadastro_profissional_screen.dart`), (3) lista de testes (`tests/e2e/*.spec.ts` + `integration_test/*.dart`) que asseram tipo de ID, (4) padrão para `score_breakdown` JSON se contiver IDs.
+- [x] **CA-6 — Runbook de execução pronto para STORY-071 (Flutter).** Arquivo `epics/EPIC-010-refator-uuid-chaves-primarias/runbook-refactor-flutter.md` criado com: (1) lista de DTOs/services com `int? id` ou `int? *_id` que viram `String?`/`String`, (2) lista de widgets que tipam value de dropdown como `int` (esp. `CadastroDropdownField<int>` em `pre_cadastro_profissional_screen.dart`), (3) lista de testes (`tests/e2e/*.spec.ts` + `integration_test/*.dart`) que asseram tipo de ID, (4) padrão para `score_breakdown` JSON se contiver IDs.
 
-- [ ] **CA-7 — Análise de impacto no `score_breakdown` JSON de `candidaturas`.** Auditar o shape gerado pela STORY-045 (Match) e a forma que STORY-049/051 consomem o breakdown. Se IDs estiverem embutidos no JSON, registrar na ADR como item de cuidado da STORY-070 (varrer e ajustar formato). Se não estiverem (apenas valores numéricos do score), registrar como "sem impacto" e seguir.
+- [x] **CA-7 — Análise de impacto no `score_breakdown` JSON de `candidaturas`.** Auditar o shape gerado pela STORY-045 (Match) e a forma que STORY-049/051 consomem o breakdown. Se IDs estiverem embutidos no JSON, registrar na ADR como item de cuidado da STORY-070 (varrer e ajustar formato). Se não estiverem (apenas valores numéricos do score), registrar como "sem impacto" e seguir.
 
-- [ ] **CA-8 — ADR-018 termina em `status: accepted`** após revisão do PO em chat ou via PR. Sem aceitação, a estória fica `in_review`. Atualizar frontmatter da ADR (`status`, `decided_at`, `approved_by`, `forma do aceite`) e registrar no histórico.
+- [x] **CA-8 — ADR-018 termina em `status: accepted`** após revisão do PO em chat ou via PR. Sem aceitação, a estória fica `in_review`. Atualizar frontmatter da ADR (`status`, `decided_at`, `approved_by`, `forma do aceite`) e registrar no histórico.
 
-- [ ] **CA-9 — Estimativa final de esforço para STORY-070 e STORY-071 atualizada na ADR.** Spike é a oportunidade de calibrar: se descobrir que o trabalho é maior (ex: Spatie passkeys exigir patch), atualizar a tabela de "Custo de refactor agora" na ADR e avisar PO. Se for menor, idem.
+- [x] **CA-9 — Estimativa final de esforço para STORY-070 e STORY-071 atualizada na ADR.** Spike é a oportunidade de calibrar: se descobrir que o trabalho é maior (ex: Spatie passkeys exigir patch), atualizar a tabela de "Custo de refactor agora" na ADR e avisar PO. Se for menor, idem.
 
 ## Fora de escopo
 
@@ -110,12 +110,12 @@ Se durante a execução empírica você descobrir bloqueador real (ex: Sanctum o
 
 ## Definição de Pronto (DoD)
 
-- [ ] Todos os CAs (1 a 9) marcados com evidência.
-- [ ] ADR-018 em `status: accepted` (CA-8).
-- [ ] Runbooks de backend e Flutter criados em `epics/EPIC-010-.../runbook-refactor-*.md`.
-- [ ] Scripts de validação temporários apagados ou movidos para `tests/Unit/`.
-- [ ] `index.json` atualizado: STORY-069 status `done`, ADR-018 status `accepted`.
-- [ ] Notas do agente preenchidas.
+- [x] Todos os CAs (1 a 9) marcados com evidência.
+- [x] ADR-018 em `status: accepted` (CA-8).
+- [x] Runbooks de backend e Flutter criados em `epics/EPIC-010-.../runbook-refactor-*.md`.
+- [x] Scripts de validação temporários apagados ou movidos para `tests/Unit/`.
+- [x] `index.json` atualizado: STORY-069 status `done`, ADR-018 status `accepted`.
+- [x] Notas do agente preenchidas.
 
 ## Protocolo do agente (obrigatório)
 
@@ -129,29 +129,37 @@ Siga `docs/skills/po/references/agent-task-format.md`. Em resumo:
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões tomadas
-- <data> — <decisão local>
+- 2026-06-03 — **Trait**: usar `HasUuids` (gera UUIDv7 por padrão no Laravel 13.12). `HasVersion7Uuids` NÃO existe nesta versão — referências na ADR corrigidas.
+- 2026-06-03 — **CA-3 caminho (a) refinado**: `passkeys.user_id` auto-adapta para `uuid` via `foreignIdFor`; `passkeys.id` (PK própria) **fica bigint** (como `personal_access_tokens.id`). Refina a Decisão 3 da ADR: 14 tabelas com PK UUID, não 15.
+- 2026-06-03 — **`sessions.user_id` vira `foreignUuid`** (exceção à Decisão 3) — `SESSION_DRIVER=database` grava `Auth::id()` string; bigint quebraria o login.
+- 2026-06-03 — Testes do spike mantidos no repo como regressão (3 arquivos Pest, auto-contidos).
 
 ### Descobertas
-- <data> — <surpresa, gotcha, item de cuidado para STORY-070/071>
+- 2026-06-03 — Laravel 13.12 / PHP 8.5: `HasUuids::newUniqueId()` = `Str::uuid7()`; `HasVersion4Uuids` = `Str::orderedUuid()` (v4). Não declarar `$keyType` manualmente.
+- 2026-06-03 — Pacote de passkeys é `laravel/passkeys` (^0.2.0), **não** `spatie/laravel-passkeys`. Totalmente compatível com User UUID, sem patch.
+- 2026-06-03 — Polimórficos (`audit_logs`/`admin_audit_log`) usam colunas manuais (`unsignedBigInteger target_id`), não `morphs()`. Trocar para `uuid('target_id')`.
+- 2026-06-03 — Gotcha de deploy: CD roda `migrate --force` (aditivo); reset exige `migrate:fresh --seed` uma vez em homolog (runbook backend §5).
+- 2026-06-03 — `score_breakdown` (CA-7) não tem IDs — sem impacto em 070/071.
 
 ### Bloqueios encontrados
-- <data> — <bloqueio> — <como foi resolvido ou está aberto>
+- 2026-06-03 — Cloud SQL de homolog é só IP privado (sem acesso direto do laptop). Resolvido executando query read-only via override de args no Cloud Run Job `turni-migrate-homolog` (mesmo mecanismo do CD, sem mutar a definição). Não foi bloqueio real.
 
 ### Evidências por CA
-- CA-1: <link/output>
-- CA-2: <link/output>
-- CA-3: <link/output> — caminho escolhido: <a/b/c>
-- CA-4: <link/output> — premissa "zero produção" confirmada? <sim/não>
-- CA-5: `runbook-refactor-backend.md` — <link>
-- CA-6: `runbook-refactor-flutter.md` — <link>
-- CA-7: impacto em `score_breakdown` — <sim/não> + caminho proposto
-- CA-8: ADR-018 `accepted` em <data> por <quem>, forma do aceite: <chat/PR>
-- CA-9: estimativa atualizada — STORY-070: <M/L>, STORY-071: <M/L>
+- CA-1: `apps/api/tests/Unit/UuidV7GenerationTest.php` — PASS, 2004 asserções (versão 7, ordenação por ms, zero colisão em 1000).
+- CA-2: `apps/api/tests/Feature/SanctumUuidTokenableTest.php` — PASS (10 asserções). `uuidMorphs('tokenable')`; `tokenable_id` gravado como `uuid` nativo; token emitido e resolvido.
+- CA-3: `apps/api/tests/Feature/PasskeysUuidUserTest.php` — PASS (8 asserções). **Caminho (a) refinado**: `foreignIdFor` gera `user_id` uuid automaticamente; `passkeys.id` fica bigint.
+- CA-4: job `turni-migrate-homolog-flg5p` (read-only) — TOTAL=20, SEED=14, não-seed=6 (todos do PO / E2E). Premissa "zero produção" confirmada? **Sim** — PO marcou descartável em chat (2026-06-03).
+- CA-5: `epics/EPIC-010-refator-uuid-chaves-primarias/runbook-refactor-backend.md`.
+- CA-6: `epics/EPIC-010-refator-uuid-chaves-primarias/runbook-refactor-flutter.md`.
+- CA-7: impacto em `score_breakdown` — **não** (sem IDs no JSON). Caminho: nenhum ajuste necessário.
+- CA-8: ADR-018 `accepted` em 2026-06-03 por Alexandro, forma do aceite: chat. Validação empírica registrada na seção "Validação empírica (STORY-069)" da ADR; decisões 1–7 mantidas (3 correções de execução, nenhuma reabertura).
+- CA-9: estimativa atualizada — STORY-070: **L** (mantido; passkeys não adiciona custo), STORY-071: **M** (mantido).
 
 ### Cobertura final
-- Unitários: <%> (apenas se script de UUIDv7 virou test)
-- E2E: N/A (esta é spike)
+- Unitários: +1 teste durável de UUIDv7 (`UuidV7GenerationTest`, 2004 asserções) + 2 testes de feature (Sanctum/passkeys uuid). Pint limpo nos 3.
+- E2E: N/A (esta é spike).
 
 ### Links de evidência
-- PR: <url>
-- ADR-018 atualizada: <commit>
+- Testes (api): `tests/Unit/UuidV7GenerationTest.php`, `tests/Feature/SanctumUuidTokenableTest.php`, `tests/Feature/PasskeysUuidUserTest.php` — 4 testes / 2022 asserções verdes.
+- ADR-018 atualizada: seção "Validação empírica (STORY-069)" + histórico 2026-06-03.
+- Runbooks: `runbook-refactor-backend.md`, `runbook-refactor-flutter.md`.
