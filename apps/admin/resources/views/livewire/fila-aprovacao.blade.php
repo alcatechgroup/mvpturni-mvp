@@ -136,7 +136,7 @@
                                     </span>
                                 </td>
                                 <td class="right">
-                                    <button type="button" class="btn btn-outline" wire:click="verDetalhes({{ $u->id }})" data-testid="aprovacoes-item-{{ $u->id }}-ver">
+                                    <button type="button" class="btn btn-outline" wire:click="verDetalhes('{{ $u->id }}')" data-testid="aprovacoes-item-{{ $u->id }}-ver">
                                         Ver detalhes
                                     </button>
                                 </td>

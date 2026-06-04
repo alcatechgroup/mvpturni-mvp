@@ -41,12 +41,12 @@
                 @endif
                 <div class="hist-meta"><span class="v">{{ $versao->created_at->format('d/m/Y H:i') }}</span> · {{ $versao->autor?->name ?? '—' }}</div>
 
-                <button type="button" class="btn btn-ghost" wire:click="verCompleta({{ $versao->id }})" data-testid="template-versao-{{ $versao->versao }}-ver">
+                <button type="button" class="btn btn-ghost" wire:click="verCompleta('{{ $versao->id }}')" data-testid="template-versao-{{ $versao->versao }}-ver">
                     {{ $expandidaId === $versao->id ? 'Recolher' : 'Ver completa' }}
                 </button>
 
                 @unless ($versao->ativa)
-                    <button type="button" class="btn btn-outline" wire:click="pedirAtivacao({{ $versao->id }})" data-testid="template-versao-{{ $versao->versao }}-ativar">Ativar esta versão</button>
+                    <button type="button" class="btn btn-outline" wire:click="pedirAtivacao('{{ $versao->id }}')" data-testid="template-versao-{{ $versao->versao }}-ativar">Ativar esta versão</button>
                 @endunless
 
                 @if ($expandidaId === $versao->id)
