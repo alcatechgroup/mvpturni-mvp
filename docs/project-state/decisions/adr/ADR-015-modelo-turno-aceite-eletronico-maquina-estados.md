@@ -280,7 +280,8 @@ A escolha honra o princípio #4 (frameworks opinativos) usando só mecanismos na
   Execution Time: 0.050 ms
   ```
   **Index Only Scan** — o índice cobre o shape inteiro da query. Precedente empírico coerente: ADR-006/STORY-044 mediu 0,042 ms sobre 1.000 linhas com a mesma estratégia de índice composto.
-- **Cobertura (CA-8) — VERIFICADO:** suíte completa da `api` **597 testes verdes**, cobertura global **93,4%** (gate ≥80%); núcleo da máquina de estados (`TurnoStatus`) e `Turno`/`TurnosSeeder` em **100%** (gate ≥98% do núcleo). `pint --test` verde.
+- **Cobertura (CA-8) — VERIFICADO:** suíte completa da `api` **598 testes verdes**, cobertura global **93,5%** (gate ≥80%); núcleo da máquina de estados (`TurnoStatus`) e `Turno` em **100%** (gate ≥98% do núcleo). `pint --test` verde.
+- **Deploy de homolog — VERIFICADO:** release `v0.1.0-rc.63` verde; smoke pós-deploy `✓ API/Admin/WebApp version=v0.1.0-rc.63`; migrações aplicadas e `TurnosSeeder` criou 11 turnos + aceites em homolog (Cloud Run Job `turni-migrate-homolog`). Nota de execução: seeders registrados no `DatabaseSeeder` rodam com `APP_ENV=production` no job de migração — **não podem usar `fake()`/factory** (devem construir via `Model::create`); o `TurnosSeeder` foi reescrito production-safe.
 - **Sinais de revisão (quando reabrir):**
   - Se a disputa (EPIC-005) exigir sub-estados ou transições novas → estender o enum + a matriz do trigger (ADR nova ou emenda).
   - Se multi-estabelecimento (rede) virar requisito → `estabelecimento_id` passa a referenciar uma entidade `Estabelecimento` própria; o índice já está pronto.

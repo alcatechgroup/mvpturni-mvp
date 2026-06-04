@@ -8,10 +8,10 @@ type: spike
 target_role: arquiteto
 requires_design: false
 design_screen_id: null
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-arquiteto-2026-06-03
 created_at: 2026-06-03
-updated_at: 2026-06-03
+updated_at: 2026-06-04
 estimated_session_size: M
 produces_idr: null  # produz ADR-015 (modelo de dados é arquitetural)
 ---
@@ -100,7 +100,7 @@ Você (arquiteto) NÃO decide:
 ## Definição de Pronto (DoD)
 
 - [x] ADR-015 escrita, revisada em chat com Alexandro, status `accepted`.
-- [ ] Migrações rodando em homolog (deploy verificado).
+- [x] Migrações rodando em homolog (deploy verificado — release `v0.1.0-rc.63`; smoke `✓ API/Admin/WebApp version=rc.63`; TurnosSeeder criou 11 turnos + aceites em homolog).
 - [x] Rollback de migrações exercido (turni_test; procedimento de homolog em `docs/operacao/runbook-homolog.md` §rollback-turnos).
 - [x] Pipeline verde com cobertura ≥ 80% / 98% no núcleo (597 testes, 93,4% global, núcleo 100%).
 - [x] `index.json` atualizado: STORY-055 `in_review`→`done` no merge, ADR-015 `accepted`, EPIC-003 `in_progress`.
@@ -124,7 +124,13 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo: editar frontmatte
 - **Gotcha de FK + REVOKE (herdado da migration 2026_06_03_140000):** REVOKE em tabela-pai de FK quebra INSERT em Cloud SQL (lock de validação exige UPDATE). `aceites_eletronicos_turno` não é tabela-pai → REVOKE seguro. `turnos` é tabela-pai mas é mutável (runtime mantém UPDATE) → ok. Documentado na ADR-015 Decisão 4.
 
 ### Bloqueios encontrados
-- Nenhum bloqueio técnico. **Gate pendente:** aprovação do Alexandro para a ADR-015 passar de `proposed` → `accepted` (DoD). Implementação 100% verde aguardando o aceite.
+- Nenhum bloqueio técnico. ADR-015 aprovada pelo Alexandro (chat 2026-06-03). Deploy de homolog feito (rc.63).
+
+### Descobertas no deploy (2 regressões UUID herdadas + 1 do próprio seeder)
+- **`wire:click` com UUID sem aspas (regressão ADR-018/STORY-070 no Backoffice).** Após o refator UUID, `wire:click="verDetalhes({{ $u->id }})"` renderizava o UUID sem aspas → o Livewire parseava como expressão JS inválida e a ação não disparava (fila "Ver detalhes" e templates "Ativar" mortos). Pego pelo E2E do Backoffice (invisível aos testes Livewire de unidade, que chamam o método direto). Corrigido nas 3 chamadas (commit `fix(admin)`).
+- **Seeder de produção não pode usar `fake()`/factory.** O job de migração de homolog roda `APP_ENV=production`, onde `fake()` não existe — o `TurnosSeeder` original (via `Turno::factory()`) quebrava o `db:seed`. Reescrito production-safe com `Model::create` (padrão VagasSeeder). Factories seguem só para testes.
+- **`TurnosSeeder` poluía o catálogo de templates** (factory criava 1 template por aceite) — agora reusa a versão ativa do `pf_autonomo_eventual`.
+- **Infra:** Cloud SQL homolog estava `STOPPED` (scheduler de economia); o primeiro deploy correu a frio e a 1ª conexão caiu (`08006`) — resolveu sozinho após a instância estabilizar.
 
 ### ADRs/IDRs criados
 - **ADR-015** — Modelo Turno + AceiteEletronicoTurno imutável + máquina de estados — `decisions/adr/ADR-015-modelo-turno-aceite-eletronico-maquina-estados.md` (status `proposed`).
@@ -140,5 +146,5 @@ Siga `docs/skills/po/references/agent-task-format.md`. Resumo: editar frontmatte
 - Modelos/enum: `app/Models/Turno.php`, `app/Models/AceiteEletronicoTurno.php`, `app/Enums/TurnoStatus.php`
 - Seeder: `database/seeders/TurnosSeeder.php` (registrado no `DatabaseSeeder`)
 - Testes: `tests/Unit/Turno/`, `tests/Feature/Turno/`
-- PR/commit: _(commit direto na main após aprovação da ADR — git workflow Turni)_
-- Deploy de homologação: _(via CD no push; rollback exercido conforme runbook)_
+- Commits na main: `feat(STORY-055)` (modelo/migração/testes), `fix(admin)` (wire:click UUID), `fix(STORY-055)` (seeder reusa template + production-safe).
+- Deploy de homologação: release `v0.1.0-rc.63` verde. Smoke pós-deploy: `✓ API/Admin/WebApp version=v0.1.0-rc.63`. Migrações aplicadas; TurnosSeeder criou 11 turnos + aceites em homolog (Cloud Run Job `turni-migrate-homolog`).
