@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "generated_at": "2026-06-03T23:30:00Z",
+  "generated_at": "2026-06-04T06:30:00Z",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
@@ -1845,6 +1845,50 @@
       "produces_idr": null,
       "created_at": "2026-06-03",
       "updated_at": "2026-06-04"
+    },
+    {
+      "id": "STORY-056",
+      "epic_id": "EPIC-003",
+      "title": "Spike Arquiteto — ACL Pagar.me + adapter sandbox/mock + idempotência + webhook (056-A: ACL+adapter+mock+idempotência+webhook+observabilidade)",
+      "type": "spike",
+      "target_role": "arquiteto",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "in_review",
+      "owner_agent": "claude-opus-4-8-arquiteto-2026-06-04",
+      "sprint_id": "SPRINT-2026-W28",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-056-spike-acl-pagarme-sandbox-idempotencia-webhook.md",
+      "blocked_by": [],
+      "blocks": [
+        "STORY-058",
+        "STORY-065",
+        "STORY-066"
+      ],
+      "estimated_session_size": "L",
+      "produces_idr": null,
+      "created_at": "2026-06-03",
+      "updated_at": "2026-06-04"
+    },
+    {
+      "id": "STORY-056-B",
+      "epic_id": "EPIC-003",
+      "title": "Contract test consumer-driven Pagar.me sandbox no CI noturno + alerta de divergência (quebra de STORY-056)",
+      "type": "spike",
+      "target_role": "arquiteto",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W28",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-056-B-contract-test-pagarme-sandbox-ci-noturno.md",
+      "blocked_by": [
+        "STORY-056"
+      ],
+      "blocks": [],
+      "estimated_session_size": "S",
+      "produces_idr": null,
+      "created_at": "2026-06-04",
+      "updated_at": "2026-06-04"
     }
   ],
   "sprints": [
@@ -2311,6 +2355,7 @@
       "story_ids": [
         "STORY-055",
         "STORY-056",
+        "STORY-056-B",
         "STORY-057",
         "STORY-058",
         "STORY-059",
@@ -2326,7 +2371,7 @@
         "STORY-073"
       ],
       "stretch_story_ids": [],
-      "sizing_total": "1 S + 12 M + 2 L (15 estórias; STORY-056 Pagar.me + STORY-063 cronômetro com gatilhos de quebra; STORY-073 bugfix carry-forward do EPIC-002)",
+      "sizing_total": "1 S + 12 M + 2 L + (STORY-056 quebrada em 056-A M + 056-B S) — 16 estórias após a quebra",
       "epics": [
         "EPIC-003",
         "EPIC-002"
@@ -2339,11 +2384,14 @@
           "cost": "+1 estória M; sizing total subiu de 14 (1S+11M+2L) para 15 (1S+12M+2L). Sem impacto no soft-cap ou no gatilho de reescopo cedo (STORY-073 não depende de nenhuma do EPIC-003)."
         }
       ],
-      "delivered_story_ids": [],
-      "in_progress_story_ids": [],
+      "delivered_story_ids": [
+        "STORY-055"
+      ],
+      "in_progress_story_ids": [
+        "STORY-056"
+      ],
       "pending_story_ids": [
-        "STORY-055",
-        "STORY-056",
+        "STORY-056-B",
         "STORY-057",
         "STORY-058",
         "STORY-059",
@@ -2358,8 +2406,8 @@
         "STORY-068",
         "STORY-073"
       ],
-      "last_progress_update": "2026-06-03",
-      "progress_summary": "ATIVADA 2026-06-03 (após fechamento da W27.5 por goal-atingido — EPIC-010 done). Abre o EPIC-003 (épico mais pesado/arriscado da onda). 15 estórias: EPIC-003 inteiro (14 — 3 spikes + 10 implementação + 1 validador) cobrindo o ciclo do turno ponta a ponta em sandbox Pagar.me, mais STORY-073 (bugfix carry-forward do EPIC-002 — plumbar `schedule:run` em homolog/prod). Nenhuma estória iniciada ainda. Próximo: Arquiteto inicia os spikes STORY-055/056/057; STORY-073 ortogonal pode iniciar em paralelo. Soft-cap ~31d (vs 21d) por ser a sprint mais pesada; gatilho de reescopo cedo em 2026-06-20 (D+16)."
+      "last_progress_update": "2026-06-04",
+      "progress_summary": "D+1 (2026-06-04): STORY-055 DONE (modelo Turno + ADR-015). STORY-056 (Pagar.me, L) QUEBRADA no gatilho documentado: 056-A (ACL completa — interface GatewayPagamento, adapter, mock em container devolvendo webhook, idempotência em pagamento_operacoes, webhook HMAC, observabilidade; ADR-016 proposed; núcleo+adapter 100% cobertura; 648 testes verdes; smoke em container real) em `in_review`; 056-B (contract test sandbox no CI noturno) `ready`, bloqueada por credenciais sandbox que Alexandro provê. Próximo: aprovar ADR-016 + deploy rc.N; seguir STORY-057 (spike tempo real) e STORY-058 (consome preAutorizar)."
     }
   ],
   "decisions": {
@@ -2666,6 +2714,18 @@
         "related_epic": "EPIC-010",
         "spike_story": "STORY-069",
         "note": "Spike de validação dos 4 pontos finos (STORY-069) ainda destrava o aceite operacional; descobertas empíricas podem reabrir Decisões 4, 5 ou 6 antes de STORY-070 começar."
+      },
+      {
+        "id": "ADR-016",
+        "title": "Implementação concreta da ACL Pagar.me — interface GatewayPagamento, adapter HTTP, mock em container que devolve o webhook, idempotência sobre Postgres e webhook entrante HMAC",
+        "status": "proposed",
+        "path": "decisions/adr/ADR-016-acl-pagarme-sandbox-idempotencia-webhook.md",
+        "decided_at": null,
+        "decided_by": "arquiteto",
+        "approved_by": null,
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-056"
       }
     ],
     "idr": [
@@ -3339,5 +3399,5 @@
       "path": "reports/status-2026-05-27-sprint-w23-aberto.md"
     }
   ],
-  "next_action": "STORY-069 (spike UUID) DONE (2026-06-03, aceita pelo PO em chat). ADR-018 `accepted` e validada empiricamente. Runbooks de backend e Flutter prontos no EPIC-010. 3 correções de execução registradas: HasUuids (não HasVersion7Uuids); passkeys=laravel/passkeys auto-compatível, passkeys.id fica bigint (14 tabelas PK UUID); sessions.user_id vira foreignUuid. Premissa zero-produção confirmada. STORY-070 (backend api+admin, L) e STORY-071 (Flutter, M) LIBERADAS para execução em paralelo; STORY-072 valida no fim. SPRINT-2026-W28 (EPIC-003) só ativa quando W27.5 fechar."
+  "next_action": "STORY-056-A (ACL Pagar.me) em in_review: ADR-016 proposed aguardando aprovação do Alexandro; deploy rc.N pendente para fechar o webhook em homolog. STORY-056-B (contract test sandbox CI noturno) ready, bloqueada por credenciais Pagar.me sandbox (Alexandro provê). Caminho crítico segue: STORY-057 (spike tempo real) e STORY-058 (aceite + pré-autorização, consome GatewayPagamento::preAutorizar)."
 }

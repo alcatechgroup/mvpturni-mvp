@@ -8,11 +8,11 @@ type: spike
 target_role: arquiteto
 requires_design: false
 design_screen_id: null
-status: ready
-owner_agent: null
+status: in_review
+owner_agent: claude-opus-4-8-arquiteto-2026-06-04
 created_at: 2026-06-03
-updated_at: 2026-06-03
-estimated_session_size: L  # gatilho de quebra documentado abaixo
+updated_at: 2026-06-04
+estimated_session_size: L  # QUEBRADA em 2026-06-04: este arquivo = STORY-056-A (CA-1..7, 9-10, tamanho M); CA-8 → STORY-056-B (contract test no CI noturno, tamanho S). Ver "Gatilho de quebra" + SPRINT-2026-W28 §"Mudanças no escopo".
 produces_idr: null  # produz ADR-016 (detalha ADR-005)
 ---
 
@@ -45,16 +45,21 @@ Sem ACL bem desenhada, o domínio do Turni vira refém do Pagar.me (princípio #
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** ADR-016 escrita seguindo o padrão de ADR-005/ADR-009/ADR-013, status `accepted`, aprovação do Alexandro registrada. Inclui esquema concreto de: nome e operações de `GatewayPagamento`, estrutura do adapter Pagar.me, estrutura do mock em container, tabela de correlação (turno_id ↔ order_id/charge_id), tabela de idempotência (chave + status + payload), endpoint do webhook.
-- [ ] **CA-2:** Interface `GatewayPagamento` definida no domínio (`app/Domain/Pagamento/`) com 5 operações: `preAutorizar`, `capturar`, `capturarParcial` (para EPIC-005), `liberar`, `transferirPix`. Vocabulário do domínio Turni — não vaza `order_id`/`charge_id` do Pagar.me.
-- [ ] **CA-3:** Adapter Pagar.me implementado contra a interface; usa `Http` do Laravel; segredos do Secret Manager (ADR-004); nunca em código.
-- [ ] **CA-4:** Mock em container adicionado ao `docker-compose.yml` (`pagarme-mock`), expondo os mesmos endpoints (pré-auth, capture, Pix, release) que o Pagar.me real. Mock **emite o webhook de volta** para o `api` local quando uma operação completa. Switching via env var `PAGARME_DRIVER=mock|sandbox|live` (default `mock` em local, `sandbox` em homolog, `live` em produção — produção fora do MVP).
-- [ ] **CA-5:** Idempotência sobre Postgres: tabela `pagamento_operacoes` com **`id` UUIDv7 (ADR-018)**, **`turno_id` foreignUuid**, chave composta (turno_id + tipo_operacao), guarda status + payload da requisição + payload da resposta. Repetir a mesma operação com a mesma chave retorna o resultado guardado em vez de chamar o Pagar.me de novo. Teste de "clique duplo no aceite" garante zero duplicação. **`external_reference` enviado ao Pagar.me sandbox carrega o UUID do turno como string** (consistente em formato com a base nova do EPIC-010); contract test do CA-8 valida o ida-e-volta.
-- [ ] **CA-6:** Endpoint de webhook entrante `POST /api/webhooks/pagarme` no `api` (Cloud Run público, `southamerica-east1`, ADR-004). Validação de assinatura HMAC do Pagar.me; payload deserializado pela ACL; eventos `pre_autorizacao.criada`, `captura.confirmada`, `pix.enviado`, `pix.falhou`, `pre_autorizacao.liberada` emitidos como eventos de domínio para os listeners da STORY-067 (notificações) e da STORY-065 (captura + Pix).
-- [ ] **CA-7:** `make setup` continua funcionando 100% local sem internet (princípio #6 herdado de STORY-006). Mock sobe junto no `docker compose up`. Teste E2E local exercita o ciclo pré-auth → captura → Pix → webhook sem tocar Pagar.me real.
-- [ ] **CA-8:** Contract test consumer-driven em job dedicado no CI: roda contra o **sandbox real do Pagar.me** em `cron noturno` (não em PR). Divergência entre mock e sandbox notifica via canal do ADR-008. Job documentado em `infra/` + `runbook-homolog.md`.
-- [ ] **CA-9:** Log JSON estruturado em todas as operações da ACL: `request_id` propagado `api`→fila→`worker`; campos `operacao`, `turno_id`, `idempotencia_chave`, `pagarme_id`, `latencia_ms`, `resultado`. Log-based metrics de Cloud Monitoring (ADR-008) definidas para: taxa de erro de operações financeiras (SLO ≤ 1%), latência p95 de captura, latência p95 do webhook.
-- [ ] **CA-10:** Cobertura ≥ 98% no núcleo da ACL (idempotência, parsing do webhook, mapeamento de erro); ≥ 80% no adapter Pagar.me.
+> **Quebra (2026-06-04):** este arquivo é **STORY-056-A**. CA-1..7, 9-10 entregues aqui;
+> **CA-8** (contract test no CI noturno contra o sandbox real) movido para **STORY-056-B**
+> (`ready`, bloqueada por credenciais sandbox que Alexandro provê). Ver SPRINT-2026-W28
+> §"Mudanças no escopo". ADR-016 está `proposed` — vira `accepted` na aprovação do Alexandro.
+
+- [x] **CA-1:** ADR-016 escrita seguindo o padrão de ADR-005/ADR-009/ADR-013 (status `proposed`, aguardando aprovação do Alexandro p/ `accepted` — o Arquiteto não marca `accepted` sozinho). Inclui esquema concreto de: operações de `GatewayPagamento`, estrutura do adapter, mock em container, correlação (desnormalizada em `pagamento_operacoes`, Decisão 1A), idempotência (chave + status + payload), endpoint do webhook.
+- [x] **CA-2:** Interface `GatewayPagamento` em `app/Domain/Pagamento/GatewayPagamento.php` com 5 operações: `preAutorizar`, `capturar`, `capturarParcial`, `liberar`, `transferirPix`. Vocabulário Turni; retorno `ResultadoOperacao` com ids opacos — não vaza `order_id`/`charge_id`.
+- [x] **CA-3:** Adapter `PagarmeGateway` (`app/Domain/Pagamento/Pagarme/`) contra a interface; usa `Http` do Laravel; segredos via `config('services.pagarme')`/env/Secret Manager (ADR-004), nunca em código.
+- [x] **CA-4:** Mock funcional no `pagarme-mock` (orders/capture/cancel/transfers) **emitindo o webhook assinado de volta** ao `api` (verificado em container real). Seleção por `PAGARME_DRIVER=mock|sandbox|live` via `config/services.php` (um adapter, sem ramificação por driver — Decisão 2A).
+- [x] **CA-5:** Idempotência sobre Postgres: `pagamento_operacoes` (`id` UUIDv7, `turno_id` foreignUuid), índice único `(turno_id, tipo_operacao)`, guarda status + request/response payload. Curto-circuito em `concluida`; teste de "clique-duplo" garante 1 chamada ao provedor. `external_reference` carrega o UUID do turno (string) — ida verificada; volta verificada via contract test em **STORY-056-B**.
+- [x] **CA-6:** `POST /api/webhooks/pagarme` no `api` (público, fora de auth). HMAC validado (401 se inválido); dedup por `event_id` (200 sem reprocessar); 5 eventos de domínio (`PreAutorizacaoCriada`, `CapturaConfirmada`, `PixEnviado`, `PixFalhou`, `PreAutorizacaoLiberada`) para STORY-065/067.
+- [x] **CA-7:** Mock sobe no `docker compose up`; E2E local (`CicloPagamentoLocalTest`) exercita pré-auth → captura → Pix → webhook com `Http::preventStrayRequests` (0 rede). *DoD §`make setup` sem internet: verificação manual final pelo Alexandro.*
+- [ ] **CA-8:** → **STORY-056-B** (contract test consumer-driven no CI noturno contra o sandbox real + alerta de divergência). Bloqueada por credenciais sandbox.
+- [x] **CA-9:** Log JSON (`PagamentoEvents`) por operação: `event`, `operacao`, `turno_id`, `idempotencia_chave`, `pagarme_id`, `latencia_ms`, `resultado`; `request_id` propagado pelo mecanismo do ADR-008. Chave Pix **nunca** logada (verificado em teste). Log-based metrics (erro ≤ 1%, p95 captura, p95 webhook) definidas em `docs/operacao/` para o Terraform da STORY-007 wirar.
+- [x] **CA-10:** Cobertura do núcleo (idempotência, parsing/validação de webhook, mapeamento de erro) = **100%**; adapter `PagarmeGateway` = **100%** (≥ 98% / ≥ 80% exigidos). 50 testes do módulo; suíte `api` 648 verdes.
 
 ## Fora de escopo
 
@@ -99,13 +104,15 @@ Você NÃO decide: estratégia de alto nível (vive em ADR-005, não reabrir); d
 
 ## Definição de Pronto (DoD)
 
-- [ ] ADR-016 escrita, revisada, `accepted`.
-- [ ] `make setup` + ambiente local com mock funcionando sem internet (verificado pelo Alexandro em chat).
-- [ ] Job de contract test rodando no CI noturno; primeiro run verde contra sandbox.
-- [ ] Webhook validado funcionando em homolog (deploy verificado).
-- [ ] Pipeline verde com cobertura exigida.
-- [ ] `index.json` atualizado.
-- [ ] "Notas do agente" preenchida.
+> DoD desta estória (056-A). Itens de CI noturno/sandbox migraram para STORY-056-B.
+
+- [x] ADR-016 escrita e revisada — `proposed` (vira `accepted` na aprovação do Alexandro; o Arquiteto não marca `accepted` sozinho).
+- [~] `make setup` + ambiente local com mock sem internet: **mock + webhook verificados em container real** (POST /orders → webhook assinado → api valida HMAC → worker processa). *Falta a verificação manual final do `make setup` ponta-a-ponta pelo Alexandro em chat.*
+- [ ] Job de contract test rodando no CI noturno; primeiro run verde contra sandbox → **STORY-056-B** (bloqueada por credenciais).
+- [ ] Webhook validado funcionando em homolog (deploy verificado) → após merge + deploy rc.N (mesmo gate de STORY-055).
+- [x] Suíte `api` verde com cobertura exigida (648 testes; núcleo 100%, adapter 100%; gate `--min=80` EXIT=0).
+- [x] `index.json` atualizado.
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo do agente (obrigatório)
 
@@ -114,20 +121,33 @@ Você NÃO decide: estratégia de alto nível (vive em ADR-005, não reabrir); d
 ## Notas do agente
 
 ### Decisões tomadas
-- 
+- **Quebra da estória L** (gatilho da própria estória): 056-A (CA-1..7, 9-10, esta) + 056-B (CA-8). Decisão do PO em chat (2026-06-04); credenciais sandbox ainda não disponíveis. Registrada em SPRINT-2026-W28 §"Mudanças no escopo".
+- **Decisão 1A (ADR-016): uma tabela `pagamento_operacoes`** (log + idempotência + correlação desnormalizada) em vez de duas — relação ~1:1 com os ids do provedor, ≤ 5 operações/turno; CA-1/CA-5 atendidos numa tabela só (princípio #1). Índice único `(turno_id, tipo_operacao)` = barreira de não-duplicação.
+- **Decisão 2A: um único adapter `PagarmeGateway`**; driver (`mock|sandbox|live`) só troca `base_url`+credencial em config — sem ramificação de código, o que mantém o contract test (056-B) guardando o caminho real.
+- **Decisão 3A: erro por exceção de domínio tipada** (espelha o idioma dos outros módulos do `api`); `mapearErro()` testável (5xx/rede → `GatewayIndisponivel` recuperável; 4xx → fatal por operação).
+- **Refinamento sobre a ADR-005:** interface recebe `string $turnoId` + valores primitivos (não o modelo Eloquent `Turno`) — não acopla a ACL à persistência e mantém o núcleo testável sem banco. Valores como **string decimal** (coerente com `decimal:2` do Turno); adapter converte p/ centavos por parsing de string (sem bcmath — ausente na imagem — e sem float).
 
 ### Descobertas
-- 
+- **`api` em `php artisan serve` é single-thread** → o mock devolvendo o webhook enquanto o `api` aguarda a resposta da operação (re-entrância) daria **deadlock**. Resolvido com `PHP_CLI_SERVER_WORKERS=8` no serviço `api` do `docker-compose` (mesmo padrão já usado no `webapp`).
+- **`bcmath` não está na imagem PHP** → conversão para centavos feita por parsing de string ("123.45" → 12345), sem float nem bcmath.
+- O `pagarme-mock` já existia "de pé" desde STORY-006; esta estória implementou as rotas funcionais + emissão do webhook assinado (HMAC compartilhado).
+- O `worker` de longa duração precisa de `restart` para autoload de classes de Job novas (gotcha de dev — não afeta homolog, onde o worker sobe por deploy).
 
 ### Bloqueios encontrados
-- 
+- **CA-8 / DoD do contract test:** credenciais Pagar.me sandbox no Secret Manager ainda não disponíveis (Alexandro provê). Movido para STORY-056-B; não bloqueia 056-A.
 
 ### ADRs/IDRs criados
-- ADR-016 — ACL Pagar.me sandbox + idempotência + webhook — `decisions/adr/ADR-016-<slug>.md`
+- **ADR-016** — Implementação concreta da ACL Pagar.me — `decisions/adr/ADR-016-acl-pagarme-sandbox-idempotencia-webhook.md` (`proposed`).
+- Contrato versionado: `docs/project-state/integrations/pagarme/contract.md`.
 
 ### Cobertura final
-- Unitários: <%>
-- E2E: <quantos cenários>
+- Núcleo (OperacaoIdempotente, PagarmeWebhookValidator, mapearErro) e adapter `PagarmeGateway`: **100%** (exigido ≥ 98% núcleo / ≥ 80% adapter). Suíte `api`: **648** verdes, gate `--min=80` EXIT=0.
+- Cenários do módulo: **50** testes (validador HMAC/parsing puro; idempotência/clique-duplo; adapter Http::fake + mapa de erro; webhook endpoint 401/422/200/dup; job mapeamento+idempotência; schema/constraints; **E2E local do ciclo completo sem internet** com asserção de não-vazamento da chave Pix).
+
+### Links de evidência
+- Commit(s): na `main` (workflow Turni — sem PR).
+- Suíte verde: `make test-api` (648 testes, cobertura ≥ 80%; núcleo + adapter 100%).
+- Smoke em container real: `POST localhost:8090/orders` → webhook `charge.pending` assinado → `webhook_eventos_pagarme.processado_em` preenchido pelo worker.
 
 ### Links de evidência
 - PR:

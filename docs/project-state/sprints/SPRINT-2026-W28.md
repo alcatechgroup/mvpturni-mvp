@@ -42,23 +42,23 @@ A sprint **NÃO** abre frente nova fora do EPIC-003. EPIC-004 (avaliação recí
 
 ## Estórias incluídas
 
-| ID | Título | Épico | Tipo | Papel | Tamanho | Status atual |
-|---|---|---|---|---|---|---|
-| STORY-055 | Spike Arquiteto — modelo Turno + AceiteEletronico imutável + máquina de estados | EPIC-003 | spike | arquiteto | M | ready |
-| STORY-056 | Spike Arquiteto — ACL Pagar.me + adapter sandbox/mock + idempotência + webhook | EPIC-003 | spike | arquiteto | **L** | ready |
-| STORY-057 | Spike Arquiteto — tempo real cronômetro bilateral + geolocalização Haversine | EPIC-003 | spike | arquiteto | M | ready |
-| STORY-058 | Aceitar candidatura no Backoffice + AceiteEletronico imutável + pré-autorização Pagar.me | EPIC-003 | implementation | programador | M | ready |
-| STORY-059 | Lista "Meus turnos" (profissional) + "Vagas confirmadas" (contratante) no WebApp | EPIC-003 | implementation | programador (+ designer) | S | ready |
-| STORY-060 | Detalhe do turno (ambos os lados) + timeline + trilha de auditoria visível | EPIC-003 | implementation | programador (+ designer) | M | ready |
-| STORY-061 | PIN de check-in — geração pelo profissional + captura de geofencing (PDR-008) | EPIC-003 | implementation | programador (+ designer) | M | ready |
-| STORY-062 | Validação do PIN de check-in pelo contratante + transição para `ativo` | EPIC-003 | implementation | programador (+ designer) | M | ready |
-| STORY-063 | Cronômetro bilateral vivo em tempo real (latência ≤ 2s) | EPIC-003 | implementation | programador (+ designer) | **L** | ready |
-| STORY-064 | PIN de check-out — geração + validação + transição para `finalizado` | EPIC-003 | implementation | programador (+ designer) | M | ready |
-| STORY-065 | Captura Pagar.me + Pix sandbox + alerta admin em falha (PDR-010) | EPIC-003 | implementation | programador | M | ready |
-| STORY-066 | Cancelamento antes do check-in + `no_show_pro` + liberação da pré-autorização | EPIC-003 | implementation | programador (+ designer) | M | ready |
-| STORY-067 | Notificações in-app + e-mail dos eventos do turno (8 templates via STORY-020) | EPIC-003 | implementation | programador | M | ready |
-| STORY-068 | Validação final do EPIC-003 | EPIC-003 | validation | validador | M | ready |
-| STORY-073 | Fix — `php artisan schedule:run` em homolog/prod (quita F-NB-1 do EPIC-002) | EPIC-002 | bugfix | programador | M | ready |
+| ID        | Título                                                                                   | Épico    | Tipo           | Papel                    | Tamanho | Status atual |
+| --------- | ---------------------------------------------------------------------------------------- | -------- | -------------- | ------------------------ | ------- | ------------ |
+| STORY-055 | Spike Arquiteto — modelo Turno + AceiteEletronico imutável + máquina de estados          | EPIC-003 | spike          | arquiteto                | M       | ready        |
+| STORY-056 | Spike Arquiteto — ACL Pagar.me + adapter sandbox/mock + idempotência + webhook           | EPIC-003 | spike          | arquiteto                | **L**   | ready        |
+| STORY-057 | Spike Arquiteto — tempo real cronômetro bilateral + geolocalização Haversine             | EPIC-003 | spike          | arquiteto                | M       | ready        |
+| STORY-058 | Aceitar candidatura no Backoffice + AceiteEletronico imutável + pré-autorização Pagar.me | EPIC-003 | implementation | programador              | M       | ready        |
+| STORY-059 | Lista "Meus turnos" (profissional) + "Vagas confirmadas" (contratante) no WebApp         | EPIC-003 | implementation | programador (+ designer) | S       | ready        |
+| STORY-060 | Detalhe do turno (ambos os lados) + timeline + trilha de auditoria visível               | EPIC-003 | implementation | programador (+ designer) | M       | ready        |
+| STORY-061 | PIN de check-in — geração pelo profissional + captura de geofencing (PDR-008)            | EPIC-003 | implementation | programador (+ designer) | M       | ready        |
+| STORY-062 | Validação do PIN de check-in pelo contratante + transição para `ativo`                   | EPIC-003 | implementation | programador (+ designer) | M       | ready        |
+| STORY-063 | Cronômetro bilateral vivo em tempo real (latência ≤ 2s)                                  | EPIC-003 | implementation | programador (+ designer) | **L**   | ready        |
+| STORY-064 | PIN de check-out — geração + validação + transição para `finalizado`                     | EPIC-003 | implementation | programador (+ designer) | M       | ready        |
+| STORY-065 | Captura Pagar.me + Pix sandbox + alerta admin em falha (PDR-010)                         | EPIC-003 | implementation | programador              | M       | ready        |
+| STORY-066 | Cancelamento antes do check-in + `no_show_pro` + liberação da pré-autorização            | EPIC-003 | implementation | programador (+ designer) | M       | ready        |
+| STORY-067 | Notificações in-app + e-mail dos eventos do turno (8 templates via STORY-020)            | EPIC-003 | implementation | programador              | M       | ready        |
+| STORY-068 | Validação final do EPIC-003                                                              | EPIC-003 | validation     | validador                | M       | ready        |
+| STORY-073 | Fix — `php artisan schedule:run` em homolog/prod (quita F-NB-1 do EPIC-002)              | EPIC-002 | bugfix         | programador              | M       | ready        |
 
 **Sizing total**: 1 S + 12 M + 2 L (15 estórias). Mais pesada que W27 (2 S + 10 M + 1 L) por **4 estórias-medidas**: 1 spike a mais (3 vs 2 da W27), 1 L a mais (2 vs 1), e 1 bugfix carry-forward (STORY-073). A STORY-073 é ortogonal ao EPIC-003 e cabe em qualquer janela da sprint.
 
@@ -206,6 +206,7 @@ Agente programador, arquiteto e designer carregam suas próprias skills + as dec
 | 2026-06-03 | **Sprint deixou de ativar imediatamente após W27 fechar.** Status voltou de `active` para `planned` e ganhou `blocked_by_sprint: SPRINT-2026-W27.5`. | Arquiteto abriu em paralelo a SPRINT-2026-W27.5 (cirúrgica, EPIC-010 refator UUID) com closure_rule explícita "SPRINT-2026-W28 NÃO ativa até esta sprint fechar". ADR-018 já `accepted`. Janela cirúrgica para virar tipo da PK a baixo custo fecha no commit da STORY-056 (Pagar.me `external_reference`). | Zero — W28 não tinha começado nenhuma estória; só o status pulou. |
 | 2026-06-03 | **STORY-069 renumerada para STORY-073** (colisão com EPIC-010). | EPIC-010 reservou STORY-069..072 antes (mesmo dia, mas com ADR-018 já em proposed → accepted). | Zero — só renumeração de arquivo + frontmatter + referências. |
 | 2026-06-03 | **14 estórias do EPIC-003 (055..068) revisadas** para refletir ADR-018: STORY-055 e STORY-056 com edições materiais (schema PK uuid, FKs foreignUuid, `external_reference` UUID string); STORY-057..068 com ADR-018 adicionada em "Decisões já tomadas" com nota específica sobre o impacto local (URL/DTO/canal/payload/idempotência). | ADR-018 `accepted` por Alexandro implica que toda escrita nova de schema/payload/URL no EPIC-003 deve usar UUID. Revisão preventiva evita retrabalho do agente programador. | Zero — só atualização das instruções; nenhuma estória adicionada/removida. |
+| 2026-06-04 | **STORY-056 (Pagar.me, L) QUEBRADA** no gatilho documentado: **056-A** (CA-1..7, 9-10 — ACL completa: interface `GatewayPagamento`, adapter, mock em container devolvendo webhook, idempotência `pagamento_operacoes`, webhook HMAC, observabilidade; ADR-016 `proposed`; núcleo+adapter 100% cobertura; 648 testes verdes; smoke em container real) e **056-B** (CA-8 — contract test consumer-driven contra o sandbox no CI noturno + alerta de divergência). | Decisão do PO em chat (2026-06-04): o adapter+mock+idempotência+webhook cabem numa sessão M, mas o **contract test exige credenciais Pagar.me sandbox que Alexandro ainda não proveu** — separar destrava 056-A agora sem inflar a sessão (exatamente o caminho de exceção previsto no risco "STORY-056 estoura sessão única"). | +1 estória (056-B, S) e bloqueio explícito por credencial; zero retrabalho — 056-A já entrega o desenho inteiro em ADR-016. |
 
 ## Fechamento do sprint (preencher no encerramento)
 

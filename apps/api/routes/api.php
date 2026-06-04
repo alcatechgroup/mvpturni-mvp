@@ -18,6 +18,7 @@ use App\Http\Controllers\Notificacao\NotificacaoController;
 use App\Http\Controllers\Usuario\WelcomeController;
 use App\Http\Controllers\Vaga\CandidatosController;
 use App\Http\Controllers\Vaga\VagaController;
+use App\Http\Controllers\Webhook\PagarmeWebhookController;
 use App\Http\Middleware\FunnelGuard;
 use App\Http\Middleware\WebAppOnly;
 use Illuminate\Session\Middleware\StartSession;
@@ -40,6 +41,11 @@ Route::middleware([StartSession::class])->group(function () {
 
 // Lista pública de funções para o select do pré-cadastro (STORY-017). GET sem estado.
 Route::get('/funcoes', [FuncaoController::class, 'index']);
+
+// Webhook entrante do Pagar.me (STORY-056 / ADR-016 CA-6). PÚBLICO — é o provedor que chama,
+// não o WebApp: FORA de auth/sessão/CSRF/FunnelGuard. A autenticidade vem da assinatura HMAC
+// validada no controller (401 se inválida); dedup por event_id; processamento async no worker.
+Route::post('/webhooks/pagarme', PagarmeWebhookController::class);
 
 // Welcome pós-aprovação (STORY-022). Protegida por sessão + WebApp-only, mas FORA do
 // FunnelGuard: o usuário que marca welcome está em `await_welcome` (o guard o bloquearia
