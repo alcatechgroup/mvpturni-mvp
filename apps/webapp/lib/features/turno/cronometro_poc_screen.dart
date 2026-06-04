@@ -39,6 +39,7 @@ class _CronometroPocScreenState extends State<CronometroPocScreen> {
   GeoResultado? _geo;
   String? _geoRazaoCliente; // razão da falha de captura no navegador
   bool _capturando = false;
+  bool _falhouEnvio = false; // POST não voltou 200 (rede/sessão)
 
   @override
   void initState() {
@@ -73,7 +74,10 @@ class _CronometroPocScreenState extends State<CronometroPocScreen> {
   }
 
   Future<void> _capturarCheckin() async {
-    setState(() => _capturando = true);
+    setState(() {
+      _capturando = true;
+      _falhouEnvio = false;
+    });
     final pos = await capturarPosicao();
     final res = await _service.checkinGeo(
       widget.turnoId,
@@ -83,8 +87,10 @@ class _CronometroPocScreenState extends State<CronometroPocScreen> {
     );
     if (!mounted) return;
     setState(() {
-      _geo = res;
+      if (res != null) _geo = res;
       _geoRazaoCliente = pos.ok ? null : pos.razao;
+      _falhouEnvio =
+          res == null; // POST falhou (rede/sessão) — feedback explícito
       _capturando = false;
     });
   }
@@ -158,6 +164,15 @@ class _CronometroPocScreenState extends State<CronometroPocScreen> {
   }
 
   Widget _geoView(ThemeData theme) {
+    if (_falhouEnvio) {
+      return Text(
+        'Não foi possível enviar ao backend (rede/sessão). Tente de novo.',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.error,
+        ),
+        textAlign: TextAlign.center,
+      );
+    }
     final geo = _geo;
     if (geo == null) {
       return Text(
