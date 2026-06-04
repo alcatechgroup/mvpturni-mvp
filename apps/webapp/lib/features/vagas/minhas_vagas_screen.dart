@@ -7,7 +7,7 @@ import '../auth/auth_service.dart';
 import '../notificacoes/notificacoes_controller.dart';
 import '../notificacoes/notificacoes_painel.dart';
 import '../notificacoes/notificacoes_sino.dart';
-import '../turno/turno_ativo_banner.dart';
+import '../turno/turno_ativo_acao.dart';
 import 'vaga_service.dart';
 
 /// STORY-047 / SCREEN-STORY-047 — "Minhas vagas" do contratante: lista as próprias
@@ -157,6 +157,7 @@ class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
       appBar: AppBar(
         title: const Text('Minhas vagas'),
         actions: [
+          const TurnoAtivoAcao(),
           const NotificacoesSino(),
           IconButton(
             key: const Key('minhas-vagas-logout-btn'),
@@ -177,15 +178,7 @@ class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
               label: const Text('Publicar vaga'),
             )
           : null,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Atalho ao cronômetro do turno em andamento (STORY-057).
-            const TurnoAtivoBanner(),
-            Expanded(child: _body(isDark, accent)),
-          ],
-        ),
-      ),
+      body: SafeArea(child: _body(isDark, accent)),
     );
   }
 
