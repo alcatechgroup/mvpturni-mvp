@@ -1,0 +1,8 @@
+# Fake genérico de pagamento em homolog (PDR-017 / ADR-016 d) — mesma imagem do mock
+# local, buildada pelo release.yml com contexto na RAIZ do repo (padrão da matrix de build).
+# Não é deployado em prod: prod só entra com o PSP real (próxima wave).
+FROM php:8.5-cli-alpine
+WORKDIR /srv
+COPY infra/docker/pagarme-mock/public /srv/public
+EXPOSE 8080
+CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]

@@ -30,9 +30,19 @@ error_log(sprintf('[MOCK] %s %s contrato=%s', $method, $path, CONTRATO_VERSAO));
 
 header('Content-Type: application/json');
 
-// Health check (STORY-006) preservado.
-if ($method === 'GET' && $path === '/') {
+// Health check (STORY-006) preservado; /health para o liveness probe do Cloud Run
+// (fake deployado em homolog — PDR-017 / ADR-016 d).
+if ($method === 'GET' && ($path === '/' || $path === '/health')) {
     responder(200, ['mock' => true, 'provider' => 'pagarme', 'status' => 'up', 'contrato' => CONTRATO_VERSAO]);
+}
+
+// Autenticação Bearer (contract.md §auth): igual ao provedor real. Em homolog o fake é
+// público (Cloud Run allUsers) — o Bearer impede POST anônimo disparando webhooks
+// assinados contra o api (poluição). Local: default sk_mock, mesmo do apps/api/.env.
+$secretKey = getenv('PAGARME_SECRET_KEY') ?: 'sk_mock';
+$authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+if (! hash_equals('Bearer '.$secretKey, $authHeader)) {
+    responder(401, ['mock' => true, 'erro' => 'credencial inválida (Authorization: Bearer esperado)']);
 }
 
 // POST /orders — pré-autorização (capture=false).

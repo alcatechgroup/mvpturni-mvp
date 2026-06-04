@@ -151,12 +151,18 @@ module "cloud_run_api" {
     # sessão por cookie. BACKOFFICE_URL alimenta o banner "Ir para o Backoffice".
     SANCTUM_STATEFUL_DOMAINS = local.webapp_host
     BACKOFFICE_URL           = "https://turni-admin-homolog-dnj2tcr2xa-rj.a.run.app"
+    # Gateway de pagamento = fake genérico (PDR-017 / ADR-016 d): driver `mock` é o
+    # único do MVP; base_url aponta para o Cloud Run do fake (ver bloco no fim do arquivo).
+    PAGARME_DRIVER   = "mock"
+    PAGARME_BASE_URL = google_cloud_run_v2_service.pagarme_mock.uri
   }
 
   secret_env_vars = {
-    APP_KEY        = { secret = module.secrets.app_key_api_secret_id, version = "latest" }
-    DB_PASSWORD    = { secret = module.secrets.db_password_secret_id, version = "latest" }
-    RESEND_API_KEY = { secret = module.secrets.resend_api_key_secret_id, version = "latest" }
+    APP_KEY                = { secret = module.secrets.app_key_api_secret_id, version = "latest" }
+    DB_PASSWORD            = { secret = module.secrets.db_password_secret_id, version = "latest" }
+    RESEND_API_KEY         = { secret = module.secrets.resend_api_key_secret_id, version = "latest" }
+    PAGARME_SECRET_KEY     = { secret = google_secret_manager_secret.pagarme_secret_key.secret_id, version = "latest" }
+    PAGARME_WEBHOOK_SECRET = { secret = google_secret_manager_secret.pagarme_webhook_secret.secret_id, version = "latest" }
   }
 
   depends_on = [module.cloud_sql, module.secrets]
@@ -239,15 +245,145 @@ module "worker_job" {
     # alimenta a métrica/alerta de falha de e-mail crítico (STORY-021 CA-8/CA-9) e as
     # log-based metrics. Sem rebuild: o canal `stderr` lê o formatter desta env.
     LOG_STDERR_FORMATTER = "Monolog\\Formatter\\JsonFormatter"
+    # Gateway de pagamento = fake genérico (PDR-017 / ADR-016 d). É o worker quem executa
+    # as chamadas da ACL (jobs PreAutorizar/Capturar/etc — ADR-002), daí a paridade.
+    PAGARME_DRIVER   = "mock"
+    PAGARME_BASE_URL = google_cloud_run_v2_service.pagarme_mock.uri
   }
 
   secret_env_vars = {
-    APP_KEY        = { secret = module.secrets.app_key_api_secret_id, version = "latest" }
-    DB_PASSWORD    = { secret = module.secrets.db_password_secret_id, version = "latest" }
-    RESEND_API_KEY = { secret = module.secrets.resend_api_key_secret_id, version = "latest" }
+    APP_KEY                = { secret = module.secrets.app_key_api_secret_id, version = "latest" }
+    DB_PASSWORD            = { secret = module.secrets.db_password_secret_id, version = "latest" }
+    RESEND_API_KEY         = { secret = module.secrets.resend_api_key_secret_id, version = "latest" }
+    PAGARME_SECRET_KEY     = { secret = google_secret_manager_secret.pagarme_secret_key.secret_id, version = "latest" }
+    PAGARME_WEBHOOK_SECRET = { secret = google_secret_manager_secret.pagarme_webhook_secret.secret_id, version = "latest" }
   }
 
   depends_on = [module.cloud_sql, module.secrets]
+}
+
+# ── Fake de pagamento (PDR-017 / ADR-016 d) — SÓ homolog, nunca prod ─────────
+# O fake genérico (pagarme-mock) é o gateway de pagamento EFETIVO do MVP em homolog:
+# processa pré-auth/captura/Pix no contrato Pagar.me e devolve o webhook assinado ao
+# api. Não usa Cloud SQL nem VPC (por isso resource direto, não o módulo cloud-run).
+# Secrets próprios (Bearer + HMAC) compartilhados com api/worker via Secret Manager
+# (ADR-004); o SA das apps já tem secretAccessor no projeto (módulo iam). Este bloco
+# inteiro SAI quando o PSP real entrar (épico da próxima wave).
+
+resource "google_secret_manager_secret" "pagarme_secret_key" {
+  project   = var.project_id
+  secret_id = "turni-${local.env}-pagarme-secret-key"
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "pagarme_secret_key" {
+  secret      = google_secret_manager_secret.pagarme_secret_key.id
+  secret_data = var.pagarme_secret_key
+}
+
+resource "google_secret_manager_secret" "pagarme_webhook_secret" {
+  project   = var.project_id
+  secret_id = "turni-${local.env}-pagarme-webhook-secret"
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "pagarme_webhook_secret" {
+  secret      = google_secret_manager_secret.pagarme_webhook_secret.id
+  secret_data = var.pagarme_webhook_secret
+}
+
+resource "google_cloud_run_v2_service" "pagarme_mock" {
+  project  = var.project_id
+  name     = "turni-pagarme-mock-${local.env}"
+  location = var.region
+  ingress  = "INGRESS_TRAFFIC_ALL" # público; o Bearer (PAGARME_SECRET_KEY) barra POST anônimo
+
+  # Fake descartável de homolog (sai com o PSP real na próxima wave) — sem proteção de delete.
+  deletion_protection = false
+
+  template {
+    service_account = module.iam.apps_service_account_email
+
+    scaling {
+      min_instance_count = 0
+      max_instance_count = 1
+    }
+
+    containers {
+      image = var.pagarme_mock_image
+
+      ports {
+        container_port = 8080
+      }
+
+      env {
+        # URL direta do Cloud Run api (hardcoded como o BACKOFFICE_URL acima: referenciar
+        # module.cloud_run_api aqui criaria ciclo, pois o api referencia a uri deste serviço).
+        name  = "PAGARME_WEBHOOK_TARGET"
+        value = "https://turni-api-homolog-dnj2tcr2xa-rj.a.run.app/api/webhooks/pagarme"
+      }
+      env {
+        name = "PAGARME_SECRET_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.pagarme_secret_key.secret_id
+            version = "latest"
+          }
+        }
+      }
+      env {
+        name = "PAGARME_WEBHOOK_SECRET"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.pagarme_webhook_secret.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      resources {
+        limits = {
+          cpu    = "1"
+          memory = "512Mi" # < 512Mi não é aceito pelo Cloud Run v2 com CPU always-allocated
+        }
+      }
+
+      liveness_probe {
+        http_get {
+          path = "/health"
+          port = 8080
+        }
+        initial_delay_seconds = 10
+        period_seconds        = 30
+        timeout_seconds       = 5
+        failure_threshold     = 3
+      }
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      # O pipeline gerencia a imagem; o Terraform não sobrescreve deploys do CI
+      template[0].containers[0].image,
+    ]
+  }
+
+  depends_on = [
+    google_secret_manager_secret_version.pagarme_secret_key,
+    google_secret_manager_secret_version.pagarme_webhook_secret,
+  ]
+}
+
+resource "google_cloud_run_v2_service_iam_member" "pagarme_mock_public" {
+  project  = var.project_id
+  location = var.region
+  name     = google_cloud_run_v2_service.pagarme_mock.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
 }
 
 # ── Firebase Hosting (WebApp Flutter + landing institucional) ────────────────

@@ -60,3 +60,21 @@ variable "resend_api_key" {
   type        = string
   sensitive   = true
 }
+
+variable "pagarme_mock_image" {
+  description = "Imagem inicial do Cloud Run do fake de pagamento (PDR-017 / ADR-016 d; atualizada pelo CI em cada deploy)"
+  type        = string
+  default     = "southamerica-east1-docker.pkg.dev/PROJECT_ID/turni/pagarme-mock:latest"
+}
+
+variable "pagarme_secret_key" {
+  description = "Bearer do fake de pagamento (contract.md §auth) — compartilhado entre fake e api/worker. SEGREDO — gerar valor aleatório; nunca em git versionado."
+  type        = string
+  sensitive   = true
+}
+
+variable "pagarme_webhook_secret" {
+  description = "Segredo HMAC do webhook do fake de pagamento (ADR-016 e) — compartilhado entre fake e api/worker. SEGREDO — gerar valor aleatório; nunca em git versionado."
+  type        = string
+  sensitive   = true
+}

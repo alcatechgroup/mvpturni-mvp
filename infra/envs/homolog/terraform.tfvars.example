@@ -11,3 +11,7 @@ app_key_admin = "base64:GERE_COM_PHP_ARTISAN"
 
 # Senha forte para o banco PostgreSQL de homologação
 db_password = "SENHA_FORTE_AQUI"
+
+# Fake de pagamento em homolog (PDR-017 / ADR-016 d) — gerar com: openssl rand -hex 24
+pagarme_secret_key     = "sk_homolog_GERE_ALEATORIO"
+pagarme_webhook_secret = "whsec_homolog_GERE_ALEATORIO"
