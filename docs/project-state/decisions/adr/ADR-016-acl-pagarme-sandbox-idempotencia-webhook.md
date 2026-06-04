@@ -2,10 +2,10 @@
 adr_id: ADR-016
 slug: acl-pagamento-fake-generico-idempotencia-webhook
 title: Implementação concreta da ACL de pagamento — interface GatewayPagamento, adapter HTTP único, fake genérico em container que devolve o webhook, idempotência sobre Postgres e webhook entrante validado por HMAC
-status: proposed  # proposed | accepted | superseded | rejected | deferred
-decided_at: null
+status: accepted  # proposed | accepted | superseded | rejected | deferred
+decided_at: 2026-06-04
 decided_by: arquiteto
-approved_by: null
+approved_by: Alexandro
 supersedes: null
 superseded_by: null
 related_adrs: [ADR-002, ADR-004, ADR-005, ADR-008, ADR-015, ADR-018]
@@ -236,11 +236,11 @@ flowchart TB
 
 > Esta seção é o registro formal do aceite. Não preencher sozinho — preencher quando o humano aprovar no chat ou via PR.
 
-- **Status final:** ⬜ pendente | ✅ aceita | ❌ rejeitada | 🔄 superseded
-- **Aprovado por:** <Alexandro>
-- **Data:** YYYY-MM-DD
-- **Forma do aceite:** <ex: "aprovado em chat (sessão de YYYY-MM-DD)" | "PR #N mergeado">
-- **Condicionantes do aceite:** <se houver>
+- **Status final:** ✅ aceita
+- **Aprovado por:** Alexandro
+- **Data:** 2026-06-04
+- **Forma do aceite:** aprovado em chat (sessão de 2026-06-04), já sobre a versão revisada pós-PDR-017; commit direto na `main`
+- **Condicionantes do aceite:** nenhuma.
 
 ### Em caso de rejeição
 - **Motivo:** ...
@@ -256,3 +256,4 @@ flowchart TB
 
 - 2026-06-04 — criada como `proposed` por Arquiteto (STORY-056-A). Detalha a ADR-005: interface `GatewayPagamento` (valores como string decimal, ids opacos no `ResultadoOperacao`), tabela única `pagamento_operacoes` com correlação desnormalizada e índice único `(turno_id, tipo_operacao)` (Decisão 1A), adapter único com driver por config (Decisão 2A), erro por exceção de domínio tipada (Decisão 3A), mock em container devolvendo webhook, webhook entrante HMAC + dedup por `event_id` + processamento assíncrono, 5 eventos de domínio canônicos, observabilidade com chave Pix mascarada. Contract test no CI noturno delegado à STORY-056-B (quebra da estória L).
 - 2026-06-04 — **revisada pelo Arquiteto pós-PDR-017** (Pagar.me sai do MVP; fake genérico atrás da mesma ACL). Título/slug: "ACL Pagar.me" → "ACL de pagamento + fake genérico" (history no frontmatter). O desenho técnico não mudou (Decisões 1A/2A/3A intactas — a 2A é o que tornou o pivô trivial); mudou o papel do `pagarme-mock`: de mock de dev local a **fake genérico, driver único do MVP, deployado também em homolog**. Seção (h) (contract test sandbox) marcada como adiada para a próxima wave (STORY-056-B abandonada); credenciais sandbox deixam de ser pré-requisito; consequências e sinais de revisão atualizados. Permanece `proposed` aguardando aprovação do Alexandro.
+- 2026-06-04 — **`accepted` por Alexandro** (aprovação em chat sobre a versão revisada pós-PDR-017; commit direto na `main`).

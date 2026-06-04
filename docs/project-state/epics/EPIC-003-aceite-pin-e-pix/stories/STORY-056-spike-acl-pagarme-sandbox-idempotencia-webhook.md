@@ -117,7 +117,7 @@ Você NÃO decide: estratégia de alto nível (vive em ADR-005, não reabrir); d
 
 > DoD desta estória pós-PDR-017. Itens de CI noturno/sandbox **removidos** (STORY-056-B abandonada).
 
-- [~] **ADR-016 revisada pelo Arquiteto** para refletir PDR-017 — **revisão feita em 2026-06-04** (título/slug → "ACL de pagamento + fake genérico" com `*_history`; driver `mock` mantido como nome do fake — alias estável do container/testes; fake também em homolog; seção h/contract test adiada para a próxima wave; index.json sincronizado). Falta só a aprovação do Alexandro para fechar `proposed → accepted`.
+- [x] **ADR-016 revisada pelo Arquiteto** para refletir PDR-017 — revisão feita em 2026-06-04 (título/slug → "ACL de pagamento + fake genérico" com `*_history`; driver `mock` mantido como nome do fake; fake também em homolog; seção h/contract test adiada para a próxima wave; index.json sincronizado) — e **`accepted` por Alexandro em chat no mesmo dia**, sobre a versão revisada.
 - [~] `make setup` + ambiente local com fake sem internet: **fake + webhook verificados em container real** (POST /orders → webhook assinado → api valida HMAC → worker processa). *Falta a verificação manual final do `make setup` ponta-a-ponta pelo Alexandro em chat.*
 - [~] ~~Job de contract test rodando no CI noturno~~ **REMOVIDO por PDR-017** (sem sandbox real).
 - [ ] Fake validado funcionando em homolog (deploy verificado) → após merge + deploy rc.N (mesmo gate de STORY-055).
