@@ -136,6 +136,13 @@ Decisão do PO (2026-06-04): construir tela PoC + deploy. Após o deploy de `api
 - **Suíte api completa:** 673 testes verdes, cobertura total 91,8% (gate ≥ 80).
 
 ### Links de evidência
-- PR:
-- Pipeline:
-- Deploy de homologação (PoC):
+- Commit: `a6a99db` (main) · CI verde · Release `v0.1.0-rc.64` (deploy homolog `success`).
+- **Deploy homolog rc.64 verificado:**
+  - WebApp `app.homolog.turni.com.br/version.json` → `v0.1.0-rc.64`.
+  - `GET /api/turnos/{id}/cronometro` (same-origin via app.homolog) → **401** (rota viva + RBAC); rota fake → **404** (controle). Endpoint do cronômetro e do checkin-geo deployados e protegidos.
+- **Turno PoC semeado em homolog** (`CronometroPocSeeder` via Cloud Run Job override):
+  - `turno_id`: `019e917d-16ea-7198-8b34-5ae889f256fc` (estado `ativo`, check-in há ~1h)
+  - URL: `https://app.homolog.turni.com.br/turno/019e917d-16ea-7198-8b34-5ae889f256fc/cronometro-poc`
+  - Login profissional: `profissional.poc@turni.local` / `password`
+  - Login contratante: `contratante.poc@turni.local` / `password`
+- **Pendente (decisão do PO: Alexandro captura):** vídeo/screenshot dos 2 navegadores mostrando o cronômetro sincronizado ≤ 2s + a distância de geofencing calculada (permissão de geolocalização concedida no navegador). Anexar aqui.
