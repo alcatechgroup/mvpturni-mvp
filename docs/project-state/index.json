@@ -2793,7 +2793,7 @@
       },
       {
         "id": "ADR-016",
-        "title": "Implementação concreta da ACL Pagar.me — interface GatewayPagamento, adapter HTTP, mock em container que devolve o webhook, idempotência sobre Postgres e webhook entrante HMAC",
+        "title": "Implementação concreta da ACL de pagamento — interface GatewayPagamento, adapter HTTP único, fake genérico em container que devolve o webhook, idempotência sobre Postgres e webhook entrante HMAC",
         "status": "proposed",
         "path": "decisions/adr/ADR-016-acl-pagarme-sandbox-idempotencia-webhook.md",
         "decided_at": null,
@@ -2801,7 +2801,8 @@
         "approved_by": null,
         "supersedes": null,
         "superseded_by": null,
-        "source_story": "STORY-056"
+        "source_story": "STORY-056",
+        "note": "Revisada pelo Arquiteto em 2026-06-04 pós-PDR-017: 'ACL Pagar.me sandbox' → 'ACL de pagamento + fake genérico' (driver mock único no MVP, fake também em homolog; contract test sandbox adiado para a próxima wave). Slug/título antigos preservados em *_history no frontmatter; filename mantido. Aguarda aprovação do Alexandro para proposed → accepted."
       },
       {
         "id": "ADR-017",
