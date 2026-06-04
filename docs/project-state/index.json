@@ -56,7 +56,8 @@
         "EPIC-006",
         "EPIC-007",
         "EPIC-009",
-        "EPIC-010"
+        "EPIC-010",
+        "EPIC-011"
       ],
       "path": "roadmap/current-wave.md"
     }
@@ -392,6 +393,32 @@
       "updated_at": "2026-06-03",
       "sprint": "SPRINT-2026-W27.5",
       "next_action": "FECHADO 2026-06-03. 4/4 estórias done (STORY-069 spike, STORY-070 backend api+admin, STORY-071 frontend Flutter, STORY-072 validação). STORY-072 = veredito `approved` (validador claude-opus-4-8; 23 passes, 0 fails), confirmado pelo PO (Alexandro) em chat. Schema UUIDv7 (ADR-018) íntegro em homolog (rc.61) sem regressão nos fluxos do EPIC-001/EPIC-002. Com o EPIC-010 fechado, a closure_rule da SPRINT-2026-W27.5 é satisfeita — destrava a ativação da SPRINT-2026-W28 (EPIC-003 — Pagar.me), decisão de ativação a cargo do PO. HISTÓRICO: EPIC-010 (refator UUID transversal) decomposto em 4 estórias pelo Arquiteto em 2026-06-03 em paralelo ao fechamento da W27. Janela cirúrgica entre W27 (closed) e W28 (planned, EPIC-003 — Pagar.me): a STORY-056 da W28 implementa adapter Pagar.me sandbox com `external_reference` apontando para IDs do Turni, depois desse commit a janela para virar o tipo a baixo custo se fecha. ADR-018 (UUIDv7 em PKs) já `accepted` por Alexandro. SPRINT-W27.5 ATIVA — aguarda Arquiteto iniciar STORY-069 (spike valida 4 pontos finos da ADR-018 + plano de execução); destrava STORY-070 (backend api+admin, L) + STORY-071 (frontend Flutter) em paralelo; STORY-072 valida re-run dos fluxos do EPIC-001 + EPIC-002 sem regressão."
+    },
+    {
+      "id": "EPIC-011",
+      "slug": "geolocalizacao-estabelecimento",
+      "title": "Geolocalização do estabelecimento (geocoding do endereço → coordenadas)",
+      "wave": "WAVE-2026-01",
+      "status": "ready",
+      "path": "epics/EPIC-011-geolocalizacao-estabelecimento/epic.md",
+      "story_ids": [
+        "STORY-074"
+      ],
+      "related_adrs": [
+        "ADR-013",
+        "ADR-017"
+      ],
+      "related_pdrs": [
+        "PDR-008"
+      ],
+      "related_epics": [
+        "EPIC-002",
+        "EPIC-003"
+      ],
+      "validation_report": null,
+      "created_at": "2026-06-04",
+      "updated_at": "2026-06-04",
+      "next_action": "Criado 2026-06-04 pelo PO após a STORY-057 (spike geofencing) revelar que o estabelecimento não tem coordenada geocodificada — só endereço em texto (CepLookup não geocodifica; contratante_profiles não tinha lat/lng; PublicarVagaService lia $profile->lat sempre nulo → vagas reais sem geo). Cross-cutting: alimenta a distância do feed (EPIC-002) e o geofencing do check-in (EPIC-003). Colunas lat/lng JÁ adicionadas a contratante_profiles (migração 2026_06_04_160000) na sessão da STORY-057. Próximo: Arquiteto propõe ADR-019 (estratégia de geocoding — provedor + ACL + mock local + idempotência) antes de a STORY-074 implementar. PO define o sprint da STORY-074 (candidata a entrar antes de STORY-061 ser 'real')."
     }
   ],
   "stories": [
@@ -1889,6 +1916,26 @@
       "produces_idr": null,
       "created_at": "2026-06-04",
       "updated_at": "2026-06-04"
+    },
+    {
+      "id": "STORY-074",
+      "epic_id": "EPIC-011",
+      "title": "Geocodificar o endereço do estabelecimento → lat/lng (cadastro + backfill + ACL + mock)",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": null,
+      "path": "epics/EPIC-011-geolocalizacao-estabelecimento/stories/STORY-074-geocoding-endereco-estabelecimento.md",
+      "blocked_by": [],
+      "blocks": [],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-04",
+      "updated_at": "2026-06-04",
+      "note": "Bloqueada por ADR-019 (estratégia de geocoding — a propor pelo Arquiteto); dependência registrada no corpo da estória (não em blocked_by, que referencia story_ids). Bloqueia funcionalmente STORY-061 (geofencing real), sem bloqueio duro (PDR-008 alerta-e-registra). Colunas lat/lng em contratante_profiles JÁ criadas (migração 2026_06_04_160000). PO define o sprint."
     }
   ],
   "sprints": [
