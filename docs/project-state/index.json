@@ -1822,6 +1822,29 @@
       "po_confirmed_at": "2026-06-03",
       "created_at": "2026-06-03",
       "updated_at": "2026-06-03"
+    },
+    {
+      "id": "STORY-055",
+      "epic_id": "EPIC-003",
+      "title": "Spike Arquiteto — modelo Turno + AceiteEletronico imutável + máquina de estados",
+      "type": "spike",
+      "target_role": "arquiteto",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "in_review",
+      "owner_agent": "claude-opus-4-8-arquiteto-2026-06-03",
+      "sprint_id": "SPRINT-2026-W28",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-055-spike-modelo-turno-aceite-eletronico-maquina-estados.md",
+      "blocked_by": [],
+      "blocks": [
+        "STORY-058",
+        "STORY-066",
+        "STORY-067"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-03",
+      "updated_at": "2026-06-03"
     }
   ],
   "sprints": [
@@ -2622,6 +2645,13 @@
         "supersedes": null,
         "superseded_by": null,
         "source_story": "STORY-045"
+      },
+      {
+        "id": "ADR-015",
+        "title": "Modelo Turno + AceiteEletronicoTurno imutável + máquina de estados como invariante de banco",
+        "status": "accepted",
+        "path": "decisions/adr/ADR-015-modelo-turno-aceite-eletronico-maquina-estados.md",
+        "decided_at": "2026-06-03"
       },
       {
         "id": "ADR-018",

@@ -267,6 +267,32 @@ constraint e abortava o rollback (commit `806ce03`).
 
 Comando: `php artisan migrate:reset --force && php artisan migrate --force && php artisan db:seed --force` (via Cloud Run Job). `down()` reversível e replay sem erro confirmados.
 
+### Rollback das migrações do Turno — evidência STORY-055 / ADR-015 (CA-6) {#rollback-turnos}
+
+As duas migrações do EPIC-003 (`2026_06_03_150000_create_turnos_table`,
+`2026_06_03_150001_create_aceites_eletronicos_turno_table`) carregam lógica de negócio real
+(CHECK financeiro, trigger `enforce_turno_transition` da máquina de estados, trigger de
+imutabilidade do aceite + REVOKE). `down()` simétrico: drop trigger → drop function → drop
+table → drop type (`turno_status`).
+
+**Evidência local (Postgres 18, `turni_test`) — 2026-06-03:**
+
+```
+>>> migrate:rollback --step=2
+  2026_06_03_150001_create_aceites_eletronicos_turno_table … DONE
+  2026_06_03_150000_create_turnos_table … DONE
+>>> migrate (replay)
+  2026_06_03_150000_create_turnos_table … DONE
+  2026_06_03_150001_create_aceites_eletronicos_turno_table … DONE
+```
+
+**Procedimento em homolog (no deploy do EPIC-003):** o CD roda `migrate --force` (forward-only,
+ADR-004). Para exercer o rollback como evidência F-NB-1, executar pelo Cloud Run Job de
+migração: `php artisan migrate:rollback --step=2 --force && php artisan migrate --force`.
+Como `turno_status` é um tipo nativo, em `migrate:fresh` use `--drop-types` (mesma nota da
+STORY-070). Nenhuma FK externa aponta para `aceites_eletronicos_turno`; o REVOKE de UPDATE/
+DELETE nela é seguro (não é tabela-pai — ver ADR-015 Decisão 4).
+
 ### Imutabilidade do audit log — evidência CA-15
 
 `admin_audit_log` é append-only (trigger `prevent_admin_audit_log_mutation` BEFORE
