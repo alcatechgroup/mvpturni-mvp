@@ -29,15 +29,15 @@ Esta estória é **ortogonal ao caminho feliz** — pode iniciar a partir de qua
 
 ## O quê
 
-Botão "Cancelar turno" no detalhe do turno (STORY-060) para profissional e contratante quando estado é `confirmado`. Modal de confirmação com textarea opcional de motivo. Sucesso: transita para `cancelado_pro` ou `cancelado_emp` conforme o lado, grava `cancelamento: { lado, motivo, antecedencia_horas, em }`, dispara `liberar` via ACL Pagar.me. Cron job (reusa worker da STORY-034 — `everyMinute`) detecta turnos `confirmado` ou `aguardando_checkin` cujo `data_inicio + X horas < now()` e transita para `no_show_pro`, também liberando a pré-autorização.
+Botão "Cancelar turno" no detalhe do turno (STORY-060) para profissional e contratante quando estado é `confirmado`. Modal de confirmação com textarea opcional de motivo. Sucesso: transita para `cancelado_pro` ou `cancelado_emp` conforme o lado, grava `cancelamento: { lado, motivo, antecedencia_horas, em }`, dispara `liberar` via ACL de pagamento (fake genérico — PDR-017). Cron job (reusa worker da STORY-034 — `everyMinute`) detecta turnos `confirmado` ou `aguardando_checkin` cujo `data_inicio + X horas < now()` e transita para `no_show_pro`, também liberando a pré-autorização.
 
 ## Por quê
 
-Sem cancelamento, contratante e profissional ficam presos com pré-autorização ativa no Pagar.me consumindo limite. Sem `no_show_pro`, turno em que profissional sumiu fica em `confirmado` para sempre, distorcendo métricas e poluindo listas.
+Sem cancelamento, a pré-autorização do contratante fica ativa consumindo limite reservado no gateway (no MVP: registro de operação `concluida` em `pagamento_operacoes` sem liberar; comportamento mantido para quando Pagar.me real entrar). Sem `no_show_pro`, turno em que profissional sumiu fica em `confirmado` para sempre, distorcendo métricas e poluindo listas.
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Botão "Cancelar turno" no detalhe quando estado é `confirmado`. Modal de confirmação com mensagem clara ("Cancelar este turno libera a pré-autorização Pagar.me e notifica o outro lado") + textarea opcional de motivo.
+- [ ] **CA-1:** Botão "Cancelar turno" no detalhe quando estado é `confirmado`. Modal de confirmação com mensagem clara ("Cancelar este turno libera a pré-autorização do pagamento e notifica o outro lado") + textarea opcional de motivo.
 - [ ] **CA-2:** `POST /api/turnos/{id}/cancelar` recebe `{ motivo?: string }`, valida estado `confirmado` (outros 422), transita para `cancelado_pro` ou `cancelado_emp` conforme RBAC, grava `cancelamento`, dispara `liberar(turno_id)` via ACL com idempotência `liberar:{turno_id}`.
 - [ ] **CA-3:** Sucesso da liberação: audit log `pagamento.liberado`; emissão de evento `TurnoCancelado` (consumido por STORY-067 notificação).
 - [ ] **CA-4:** Falha da liberação: audit log `pagamento.liberacao_falhou` com motivo; alerta destacado na fila operacional do admin (mesma fila da STORY-065).
@@ -64,7 +64,7 @@ Sem cancelamento, contratante e profissional ficam presos com pré-autorização
 
 ## Decisões já tomadas
 
-ADR-015 / ADR-016 / **ADR-018 (UUIDv7 em PKs — URL `/turnos/{uuid}/cancelar` aceita UUID; chave de idempotência da liberação usa UUID; evento `TurnoCancelado`/`TurnoNoShow` carrega `turno_id` UUID string)**, PDR-007.
+ADR-015 / ADR-016 / **ADR-018 (UUIDv7 em PKs — URL `/turnos/{uuid}/cancelar` aceita UUID; chave de idempotência da liberação usa UUID; evento `TurnoCancelado`/`TurnoNoShow` carrega `turno_id` UUID string)** / **PDR-017 (gateway é fake genérico — `liberar` é chamada via ACL e o fake responde sem efeito externo)**, PDR-007.
 
 ## Liberdade técnica
 

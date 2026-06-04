@@ -8,16 +8,25 @@ type: spike
 target_role: arquiteto
 requires_design: false
 design_screen_id: null
-status: ready
+status: abandoned
 owner_agent: null
 created_at: 2026-06-04
 updated_at: 2026-06-04
+abandoned_at: 2026-06-04
+abandoned_by: PO (Alexandro / Claude)
+abandoned_reason: "PDR-017 — Pagar.me sandbox sai do MVP; sem sandbox real, contract test consumer-driven perde objeto. Trabalho será retomado na próxima wave dentro de épico dedicado à integração Pagar.me real (sandbox + adapter + contract test + setup operacional + go-live). Esta estória NÃO renasce na próxima wave porque o desenho atual presume o adapter `PagarmeGateway` atual; o épico futuro vai reescrever do zero a partir do estado da arte do Pagar.me na época."
 estimated_session_size: S
 produces_idr: null  # opera sob ADR-016 (já decide o desenho do contract test)
 blocked_by: [STORY-056]  # consome a ACL + o contrato versionado da 056-A
 ---
 
 # STORY-056-B — Contract test Pagar.me sandbox no CI noturno
+
+> **⚠️ ABANDONADA em 2026-06-04 por PDR-017.** Pagar.me sandbox sai do MVP; sem sandbox real para baterem, o contract test consumer-driven não tem o que validar. **Não reabra esta estória sem novo PDR.** Integração real Pagar.me + sandbox + contract test voltam em um épico dedicado na **próxima wave**, partindo do estado da arte da plataforma na época (não desta estória).
+>
+> O texto histórico abaixo é preservado como contexto do desenho original — útil de referência para a wave seguinte, mas **não acionável agora**.
+
+---
 
 > **Origem:** quebra da estória L **STORY-056** em 2026-06-04 (gatilho documentado na própria
 > estória + SPRINT-2026-W28 §"Mudanças no escopo"). A STORY-056-A entregou a ACL inteira

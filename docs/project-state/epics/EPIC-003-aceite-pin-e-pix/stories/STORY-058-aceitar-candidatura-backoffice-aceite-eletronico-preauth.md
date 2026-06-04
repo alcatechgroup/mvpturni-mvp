@@ -1,7 +1,7 @@
 ---
 story_id: STORY-058
 slug: aceitar-candidatura-backoffice-aceite-eletronico-preauth
-title: Aceitar candidatura no Backoffice + AceiteEletronico imutável + pré-autorização Pagar.me
+title: Aceitar candidatura no Backoffice + AceiteEletronico imutável + pré-autorização via gateway (fake genérico — PDR-017)
 epic_id: EPIC-003
 sprint_id: SPRINT-2026-W28
 type: implementation
@@ -16,11 +16,13 @@ estimated_session_size: M
 produces_idr: null
 ---
 
-# STORY-058 — Aceitar candidatura: criar Turno + AceiteEletronico + pré-autorização Pagar.me
+# STORY-058 — Aceitar candidatura: criar Turno + AceiteEletronico + pré-autorização via gateway
+
+> **Nota PDR-017 (2026-06-04):** "pré-autorização" continua sendo o conceito do domínio; o que muda é que o gateway implementador é o **fake genérico** (STORY-056), não o Pagar.me real. O contrato da ACL (`preAutorizar`) e o comportamento esperado (idempotência, emissão de evento `PagamentoPreAutorizado`, audit log) são os mesmos. Quando Pagar.me real entrar na próxima wave, esta estória **não precisa ser tocada** — só o adapter muda.
 
 ## Contexto
 
-EPIC-002 entregou painel de candidatos ranqueados (STORY-051). Esta estória pega o **botão "Aprovar" desse painel** e o transforma na ação que **abre o turno** — cria Turno em `confirmado`, emite AceiteEletronico imutável (com cláusula de override de habitualidade PJ se aplicável), aplica gate PDR-002 (bloqueia 3ª alocação PF; alerta+override 3ª PJ), e dispara pré-autorização Pagar.me sandbox de forma idempotente.
+EPIC-002 entregou painel de candidatos ranqueados (STORY-051). Esta estória pega o **botão "Aprovar" desse painel** e o transforma na ação que **abre o turno** — cria Turno em `confirmado`, emite AceiteEletronico imutável (com cláusula de override de habitualidade PJ se aplicável), aplica gate PDR-002 (bloqueia 3ª alocação PF; alerta+override 3ª PJ), e dispara pré-autorização via `preAutorizar` da ACL de pagamento (STORY-056) de forma idempotente.
 
 É a **primeira escrita** sobre o modelo da STORY-055 e o **primeiro consumo real** da ACL da STORY-056.
 
@@ -29,12 +31,12 @@ EPIC-002 entregou painel de candidatos ranqueados (STORY-051). Esta estória peg
   - `docs/especificacao/domain/turno.md` (atributos do turno, transição inicial)
   - `docs/especificacao/domain/compliance.md` (AceiteEletronico do turno, placeholders)
   - `docs/especificacao/domain/pagamento.md` (pré-autorização do total_contratante)
-  - PDR-002 (habitualidade PF/PJ), PDR-004 (taxa Turni), PDR-012 (templates editáveis)
-  - ADR-006 (consulta de habitualidade), ADR-010 (padrão de imutabilidade), ADR-015 (modelo Turno), ADR-016 (ACL Pagar.me)
+  - PDR-002 (habitualidade PF/PJ), PDR-004 (taxa Turni), PDR-012 (templates editáveis), **PDR-017 (pagamento via fake genérico no MVP)**
+  - ADR-006 (consulta de habitualidade), ADR-010 (padrão de imutabilidade), ADR-015 (modelo Turno), ADR-016 (ACL de pagamento — revisada pós-PDR-017)
 
 ## O quê
 
-Implementar a ação de aceitar candidatura no Backoffice de modo que: (a) consulta habitualidade do par profissional×estabelecimento na semana do turno; (b) se PF e 3ª, bloqueia com mensagem clara em ambos os lados; (c) se PJ e 3ª, mostra alerta com botão "Assumo o risco e aceito"; (d) ao aceitar, cria Turno em `confirmado`, gera AceiteEletronico renderizando o `TemplateVersao` ativa (PF ou MEI/PJ), e dispara pré-autorização Pagar.me sandbox via `preAutorizar` da ACL (idempotente — clique duplo não cobra dobrado).
+Implementar a ação de aceitar candidatura no Backoffice de modo que: (a) consulta habitualidade do par profissional×estabelecimento na semana do turno; (b) se PF e 3ª, bloqueia com mensagem clara em ambos os lados; (c) se PJ e 3ª, mostra alerta com botão "Assumo o risco e aceito"; (d) ao aceitar, cria Turno em `confirmado`, gera AceiteEletronico renderizando o `TemplateVersao` ativa (PF ou MEI/PJ), e dispara `preAutorizar` da ACL (fake genérico — PDR-017) com idempotência (clique duplo não cobra dobrado).
 
 ## Por quê
 
@@ -43,11 +45,11 @@ Sem essa ação, o produto não tem Turno. Sem o AceiteEletronico imutável anex
 ## Critérios de aceite
 
 - [ ] **CA-1:** Botão "Aprovar" do painel de candidatos (STORY-051) chama endpoint backend `POST /admin/candidaturas/{id}/aprovar` (RBAC admin).
-- [ ] **CA-2:** Endpoint executa em transação Postgres: consulta habitualidade (ADR-006), aplica regra PDR-002, e — se aprovado — cria Turno (`status: confirmado`), AceiteEletronico imutável (placeholders renderizados a partir de Turno + Profissional + Contratante + flag `habitualidade.override_aceito`), e dispara `preAutorizar` da ACL Pagar.me com chave de idempotência `aceite:{candidatura_id}`.
+- [ ] **CA-2:** Endpoint executa em transação Postgres: consulta habitualidade (ADR-006), aplica regra PDR-002, e — se aprovado — cria Turno (`status: confirmado`), AceiteEletronico imutável (placeholders renderizados a partir de Turno + Profissional + Contratante + flag `habitualidade.override_aceito`), e dispara `preAutorizar` da ACL de pagamento (fake — PDR-017) com chave de idempotência `aceite:{candidatura_id}`.
 - [ ] **CA-3:** Habitualidade — PF 3ª: endpoint retorna 422 com mensagem "este profissional é PF e já tem 2 alocações nesta semana neste estabelecimento; bloqueado por PDR-002"; UI mostra modal específico. Profissional vê mesma razão em "Minhas candidaturas".
 - [ ] **CA-4:** Habitualidade — PJ 3ª: UI mostra modal "este profissional já tem 2 alocações nesta semana; clique 'Assumo o risco e aceito' para continuar (registrado no AceiteEletronico)". O clique chama endpoint com `override: true`; AceiteEletronico carimba `habitualidade_override: true` e renderiza cláusula adicional (PDR-002).
 - [ ] **CA-5:** Idempotência — duas requisições de aprovação para a mesma candidatura geram **um único** Turno + AceiteEletronico + pré-autorização. Teste cobre clique duplo no botão e double-submit do formulário.
-- [ ] **CA-6:** Pré-autorização Pagar.me dispara via worker (assíncrona — ADR-002) com idempotência da STORY-056. Sucesso emite evento de domínio `PagamentoPreAutorizado` → audit log captura; falha emite `PagamentoPreAutorizacaoFalhou` → admin vê na fila.
+- [ ] **CA-6:** Pré-autorização dispara via worker (assíncrona — ADR-002) com idempotência da STORY-056. Sucesso emite evento de domínio `PagamentoPreAutorizado` → audit log captura; falha emite `PagamentoPreAutorizacaoFalhou` → admin vê na fila. **Fake genérico (PDR-017) responde com sucesso por padrão; falha pode ser simulada por configuração do fake para testar o caminho de exceção.**
 - [ ] **CA-7:** Audit log captura `turno.criado`, `aceite_eletronico.emitido`, `pagamento.pre_autorizado` (ou `.pre_autorizacao_falhou`) — imutável por trigger Postgres herdado.
 - [ ] **CA-8:** Template-seed v1 dos 2 templates de turno (PF + MEI/PJ) — espelha texto já em `docs/especificacao/contratos/template-pf-autonomo-eventual-v1.md` e `template-mei-pj-b2b-v1.md`; SHA-256 do conteúdo registrado. PO entrega + valida em chat antes de a estória fechar.
 - [ ] **CA-9:** E2E cobre os 4 cenários PDR-002: PF 1ª/2ª libera (turno criado); PF 3ª bloqueia (sem turno); PJ 3ª com override cria turno com cláusula; transição de semana reseta.
@@ -66,9 +68,9 @@ Sem essa ação, o produto não tem Turno. Sem o AceiteEletronico imutável anex
 
 ## Dependências
 
-- **Bloqueada por:** STORY-055 (modelo Turno), STORY-056 (ACL Pagar.me + idempotência). PDR-002 já implementado em EPIC-002 — apenas adapta para o aceite do turno.
+- **Bloqueada por:** STORY-055 (modelo Turno), STORY-056 (ACL de pagamento + fake + idempotência). PDR-002 já implementado em EPIC-002 — apenas adapta para o aceite do turno.
 - **Bloqueia:** STORY-059, STORY-060, STORY-066, STORY-067.
-- **Pré-requisitos:** Pagar.me sandbox credentials no Secret Manager (Alexandro).
+- **Pré-requisitos:** ~~Pagar.me sandbox credentials no Secret Manager~~ **REMOVIDO por PDR-017** — fake genérico não precisa de credenciais externas.
 
 ## Decisões já tomadas
 
@@ -83,7 +85,7 @@ NÃO decide: regra de habitualidade (PDR-002); valor da taxa Turni (PDR-004 = 15
 ## Definição de Pronto
 
 - [ ] CAs marcados, todos os testes verdes, cobertura exigida.
-- [ ] Deploy em homolog verificado por Alexandro (botão "Aprovar" cria turno + pré-autorização visível no painel sandbox Pagar.me).
+- [ ] Deploy em homolog verificado por Alexandro (botão "Aprovar" cria turno + pré-autorização registrada em `pagamento_operacoes` com status `concluida` + audit log `pagamento.pre_autorizado` + evento `PagamentoPreAutorizado` emitido — verificável via GET na fila do admin ou inspeção direta do Postgres).
 - [ ] Templates carregados como `TemplateVersao` ativa (categoria `contrato_turno`).
 - [ ] `index.json` atualizado.
 - [ ] "Notas do agente" preenchida.

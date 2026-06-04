@@ -1,57 +1,67 @@
 ---
 epic_id: EPIC-003
 slug: aceite-pin-e-pix
-title: Aceite da candidatura, PIN bilateral e Pix via Pagar.me
+title: Aceite da candidatura, PIN bilateral e Pix (via fake genérico atrás de ACL — PDR-017)
 wave: WAVE-2026-01
 status: ready
 owner_role: po
 created_at: 2026-05-26
-updated_at: 2026-06-03
+updated_at: 2026-06-04
 target_completion: 2026-08-18  # estimativa orientativa
 sprint_id: SPRINT-2026-W28  # primeira (e potencialmente única) sprint do épico
+pivoted_by: PDR-017  # 2026-06-04 — Pagar.me real adiado para a próxima wave; MVP usa fake genérico atrás da mesma ACL
+title_history:
+  - "[até 2026-06-04] Aceite da candidatura, PIN bilateral e Pix via Pagar.me"
 ---
 
-# EPIC-003 — Aceite, PIN bilateral e Pix
+# EPIC-003 — Aceite, PIN bilateral e Pix (via fake genérico — PDR-017)
+
+> **⚠️ Mudança de escopo (2026-06-04) — PDR-017 aplicada.** A integração real com Pagar.me **não chega a tempo** do MVP. Este épico passa a usar um **fake genérico** atrás da mesma ACL desenhada em ADR-005. A camada de abstração — o ativo arquitetural durável — fica preservada para troca futura. Banner global "Ambiente de teste — pagamentos simulados" em homolog (STORY-075). Promessa "Pix em 15 min" mantida como simulação (fake confirma em ~30s, configurável). Quando Pagar.me real entrar na próxima wave, **este épico não muda** — só o adapter.
 
 ## Por que existimos (problema do usuário)
 
-Este é o coração da promessa do Turni. Sem PIN bilateral, sem Pix em 15 min, sem captura Pagar.me — o produto vira "publicar vaga em app". Este épico **demonstra os dois pilares principais** restantes da promessa central (PIN Bilateral + Pix em 15 min) e fecha o ciclo do turno em sandbox.
+Este é o coração da promessa do Turni. Sem PIN bilateral, sem Pix em 15 min, sem ciclo financeiro fim a fim — o produto vira "publicar vaga em app". Este épico **demonstra os dois pilares principais** restantes da promessa central (PIN Bilateral + Pix em 15 min) e fecha o ciclo do turno **em homolog com pagamento via fake genérico** (PDR-017). A integração real Pagar.me entra na próxima wave atrás da mesma ACL.
 
-É o mais arriscado da onda: depende de Pagar.me sandbox, da regra de habitualidade (PDR-002) já estar implementada, e do geofencing (PDR-008) funcionar minimamente.
+É o mais arriscado da onda em termos de domínio: depende da regra de habitualidade (PDR-002) já estar implementada, do geofencing (PDR-008) funcionar minimamente, da máquina de estados do turno (ADR-015) ser sólida, e do contrato da ACL (ADR-005 / ADR-016) ser provider-agnóstico de verdade — pré-requisito para a troca futura ser barata.
 
 ## Resultado esperado (outcome)
 
-Ao fim deste épico, contratante aceita candidatura (Pagar.me pré-autoriza valor + taxa Turni; turno entra em `confirmado`); profissional faz check-in com PIN bilateral de 4 dígitos + flag de geofencing; cronômetro bilateral roda; profissional faz check-out com PIN; contratante valida; Pagar.me captura; Pix sandbox cai na chave do profissional em ≤ 15 min.
+Ao fim deste épico, contratante aceita candidatura (fake genérico pré-autoriza valor + taxa Turni via `preAutorizar` da ACL; turno entra em `confirmado`); profissional faz check-in com PIN bilateral de 4 dígitos + flag de geofencing; cronômetro bilateral roda; profissional faz check-out com PIN; contratante valida; fake captura via `capturar`; **Pix simulado** confirma em SLA configurado (≤ 15 min como promessa pública; default ~30s em testes) com audit log `pix.enviado` + detalhe do turno mostrando "Pix enviado em HH:MM".
 
-Os dois lados conseguem ver o estado do turno em tempo real (cronômetro vivo, eventos de match, notificações).
+Os dois lados conseguem ver o estado do turno em tempo real (cronômetro vivo, eventos de match, notificações). Banner global em homolog deixa explícito que pagamento é simulado.
 
 ## Métrica de sucesso (como saberemos que funcionou)
 
-- **Primária**: turno executado ponta a ponta em sandbox em ≥ 95% das tentativas no caminho feliz. Pix sandbox cai em ≤ 15 min em 95% dos turnos.
+- **Primária**: turno executado ponta a ponta em **100%** das tentativas no caminho feliz com fake em modo `success` (era 95% com sandbox — PDR-017 troca por simulação determinística). Pix simulado dentro do SLA configurado em 100% dos turnos.
+- **Demonstração da promessa pública "Pix em 15 min"**: fake configurado com SLA 15min, 100% dos turnos confirmam dentro da janela. Resultado documentado pelo validador.
 - **Validação de PIN**: ≤ 500ms p95 (operação crítica em pé, contexto de rua).
 - **Habitualidade**: regra de 2x/semana (PDR-002) testada nos 4 cenários (PF 0-1-2 alocações libera; PF 3ª bloqueia; PJ 3ª alerta + override; transição de semana reseta).
 - **Cronômetro bilateral**: latência de sincronização entre os dois lados ≤ 2s.
+- **Caminho de exceção PDR-010** (alerta admin em falha de Pix): exercitado em homolog com fake em modo `fail_pix`.
 
 ## Entregável visível no fim do épico
 
-- [ ] Contratante aceita candidatura; Pagar.me sandbox registra pré-autorização (visível em log/painel sandbox).
+- [ ] Contratante aceita candidatura; fake genérico registra pré-autorização (visível em `pagamento_operacoes` no Postgres + audit log `pagamento.pre_autorizado` + evento `PagamentoPreAutorizado` no log JSON).
 - [ ] Turno aparece em `confirmado` para ambos os lados.
 - [ ] Profissional, no horário de início, abre o turno e gera PIN de check-in (4 dígitos visíveis em tela).
 - [ ] Contratante recebe alerta "profissional chegou — valide o PIN", digita o PIN, confirma; turno transita para `ativo`; cronômetro bilateral inicia.
 - [ ] Ambos os lados veem o cronômetro vivo na mesma tela do turno.
 - [ ] Geofencing: distância e flag `geofencing_ok` registradas no evento de check-in; se fora do raio de 100m, contratante vê aviso destacado (PDR-008).
 - [ ] Profissional, ao fim do turno, gera PIN de check-out; contratante valida; turno transita para `finalizado`.
-- [ ] Pagar.me sandbox captura valor + taxa Turni; Pix sandbox cai na chave do profissional em ≤ 15 min.
+- [ ] Fake genérico captura valor + taxa Turni via `capturar`; **Pix simulado** confirma dentro do SLA configurado; detalhe do turno mostra "Pix enviado em HH:MM" no card de valor.
 - [ ] Habitualidade aplicada no momento do aceite (PDR-002): PF bloqueado na 3ª; PJ alerta + override registrado no aceite eletrônico.
+- [ ] **Banner global em homolog visível** em WebApp + Backoffice: "Ambiente de teste — pagamentos simulados" (STORY-075).
 
 ## Fora de escopo (explicitamente)
 
 - Avaliação recíproca → vira EPIC-004.
 - Disputa de check-out → vira EPIC-005.
-- Pagar.me em **produção** — sandbox apenas no MVP (produção é EPIC-006 da próxima onda).
+- **Integração real com Pagar.me sandbox (PDR-017 — adiada para a próxima wave, em épico dedicado: sandbox + adapter real + contract test + setup operacional + go-live em produção).**
+- **Contract test consumer-driven contra sandbox real (STORY-056-B abandonada por PDR-017).**
+- Pagar.me em **produção** — fora MVP independente de PDR-017.
 - Push notifications (mobile) — apenas in-app + e-mail no MVP.
-- Tratamento sofisticado de falha de Pix > 15 min (PDR-010 — apenas alerta no admin, sem retry automático).
-- Captura parcial / estorno parcial (vira EPIC-005 e EPIC-007).
+- Tratamento sofisticado de falha de Pix > 15 min (PDR-010 — apenas alerta no admin, sem retry automático). Cenário exercitado com fake em modo `fail_pix`.
+- Captura parcial / estorno parcial (vira EPIC-005 — também via fake configurável).
 - Cronograma de turno antecipado (plano Turnificado).
 - Cancelamento com motor de penalidade (PDR-007 — apenas placeholder no modelo de dados).
 
@@ -69,21 +79,22 @@ Os dois lados conseguem ver o estado do turno em tempo real (cronômetro vivo, e
 - `docs/project-state/decisions/pdr/PDR-004-modelo-financeiro-taxa-do-contratante.md` — base do modelo de pagamento.
 - `docs/project-state/decisions/pdr/PDR-008-geofencing-alerta-e-registra.md` — comportamento do geofencing.
 - `docs/project-state/decisions/pdr/PDR-010-refresh-pix-fora-de-escopo-mvp.md` — falha de Pix tratada manualmente.
+- **`docs/project-state/decisions/pdr/PDR-017-pagamento-via-fake-generico-no-mvp.md`** — pivô do MVP: fake genérico no lugar de Pagar.me real; ACL preservada; banner global em homolog.
 
 ## Dependências
 
 - **Bloqueia**: EPIC-004 (avaliação só após turno finalizado), EPIC-005 (disputa precisa de aceite + check-out funcionando).
-- **Bloqueado por**: EPIC-002 (sem candidatura, não há aceite).
+- **Bloqueado por**: EPIC-002 (sem candidatura, não há aceite); EPIC-010 / SPRINT-2026-W27.5 (refator UUID antes do EPIC-003 começar — ADR-018).
 - **Decisões arquiteturais necessárias**:
-  - ADR-005 (integração Pagar.me alto nível) detalhado em ADR de implementação específica.
-  - Estratégia de tempo real para cronômetro bilateral (WebSocket vs SSE vs polling).
-  - Estratégia de geolocalização no check-in (browser API + cálculo Haversine vs PostGIS).
-  - Estratégia de ACL para Pagar.me com idempotência (clique duplo no aceite não cobra dobrado).
-  - Notificação ao profissional após captura (e-mail + in-app no MVP).
+  - ADR-005 (integração Pagar.me alto nível) **precisa ser revisada pelo Arquiteto pós-PDR-017** — desenho da ACL continua válido; escolha de PSP no MVP muda.
+  - ADR-016 (ACL — em rascunho via STORY-056) **precisa ser revisada pelo Arquiteto pós-PDR-017** — vira "ACL de pagamento (provider-agnóstico) + fake genérico".
+  - Estratégia de tempo real para cronômetro bilateral (WebSocket vs SSE vs polling) — ADR-017.
+  - Estratégia de geolocalização no check-in (browser API + cálculo Haversine vs PostGIS) — ADR-017.
+  - Notificação ao profissional após captura (e-mail + in-app no MVP) — STORY-067.
 
 ## Estórias
 
-Decompostas via Fluxo B em **2026-06-03** (PO Alexandro/Claude), em paralelo ao fechamento da SPRINT-2026-W27. Total **14 estórias** (3 spikes + 10 implementação + 1 validação) — escopo do EPIC-003 inteiro alocado à **SPRINT-2026-W28**. Mix de sizing: 1 S + 11 M + 2 L. As duas L (STORY-056 Pagar.me e STORY-063 cronômetro bilateral) carregam gatilho de quebra documentado na própria estória.
+Decompostas via Fluxo B em **2026-06-03** (PO Alexandro/Claude), em paralelo ao fechamento da SPRINT-2026-W27. Total **15 estórias** (3 spikes + 11 implementação + 1 validação — STORY-075 adicionada em 2026-06-04 por PDR-017) — escopo do EPIC-003 inteiro alocado à **SPRINT-2026-W28**. Mix de sizing: 2 S + 11 M + 2 L. As duas L (STORY-056 ACL + fake e STORY-063 cronômetro bilateral) carregam gatilho de quebra documentado na própria estória. **STORY-056-B (contract test contra sandbox real) foi abandonada em 2026-06-04 por PDR-017.**
 
 Ordem de execução obrigatória (dependências):
 
@@ -131,6 +142,7 @@ STORY-057 (spike tempo real cronômetro + geolocalização Haversine)
 | STORY-066 | Cancelamento antes do check-in + `no_show_pro` + liberação da pré-autorização | implementation | programador (+ designer) | M |
 | STORY-067 | Notificações in-app + e-mail dos eventos do turno (8 templates via STORY-020) | implementation | programador | M |
 | STORY-068 | Validação final do EPIC-003 | validation | validador | M |
+| STORY-075 | Banner global em homolog "Ambiente de teste — pagamentos simulados" (PDR-017) | implementation | programador | S |
 
 ## Validação final
 

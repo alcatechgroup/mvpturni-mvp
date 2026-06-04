@@ -6,9 +6,9 @@
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W28",
     "last_closed_sprint": "SPRINT-2026-W27.5",
-    "phase": "wave-2026-01-sprint-w28-ATIVA-epic-003-aceite-pin-pix-pagarme",
-    "next_action": "SPRINT-2026-W27.5 ENCERRADA em 2026-06-03 por goal-atingido (4/4 done; EPIC-010 refator UUID `done`; STORY-072 veredito `approved` confirmado pelo PO). SPRINT-2026-W28 ATIVADA em 2026-06-03 — abre o EPIC-003 (Aceite, PIN bilateral, Pix via Pagar.me sandbox), o épico mais pesado e arriscado da WAVE-2026-01: 15 estórias (3 spikes STORY-055/056/057 + 10 implementação STORY-058..067 + validação STORY-068 + STORY-073 bugfix carry-forward do EPIC-002 `schedule:run`). 3 ADRs novas previstas (ADR-015 modelo Turno, ADR-016 ACL Pagar.me, ADR-017 tempo real + geo). Próxima ação: agente Arquiteto inicia os spikes STORY-055/056/057 (STORY-073 é ortogonal e pode iniciar em paralelo). Soft-cap 2026-07-04; gatilho de reescopo em 2026-06-20 (D+16) se caminho até `ativo` não estiver vivo em homolog.",
-    "notes": "Snapshot 2026-06-03 pós-renumeração + revisão de sequência: W27 fechada. W27.5 ATIVA (refator UUID, EPIC-010, 4 estórias). W28 PLANNED (EPIC-003, 15 estórias — STORY-069 da minha intenção renomeada para STORY-073 por colisão com EPIC-010). Estórias do EPIC-003 estão sendo revistas para refletir ADR-018 (PKs UUID, FKs uuid, payloads referenciando IDs como string)."
+    "phase": "wave-2026-01-sprint-w28-ATIVA-epic-003-pivotado-por-pdr-017-fake-generico-aguarda-revisao-adr-005-adr-016-pelo-arquiteto",
+    "next_action": "SPRINT-2026-W28 ATIVA com **pivô PDR-017 aplicado em 2026-06-04** (decisão do PO): MVP usa fake genérico atrás da mesma ACL desenhada em ADR-005; integração Pagar.me real adiada para a próxima wave atrás do mesmo contrato. Progresso real: STORY-055 + STORY-057 DONE; STORY-056 in_review (ACL completa: interface GatewayPagamento + mock em container que agora vira o fake genérico + idempotência + webhook HMAC + 648 testes verdes + núcleo 100% cobertura). STORY-056-B (contract test sandbox CI noturno) ABANDONADA (sem sandbox real, perde objeto). STORY-075 criada (banner global homolog 'Ambiente de teste — pagamentos simulados', S — renumerada de STORY-074 por colisão com EPIC-011/geocoding). STORY-058/065/066/068 + checklist do validador revisados para refletir gateway via fake. EPIC-003 epic.md atualizado. Sizing W28: 2 S + 12 M + 2 L = 16 estórias. Risco técnico nº 1 da onda (Pagar.me sandbox) NEUTRALIZADO. **Pendente do Arquiteto (escopo dele, não do PO):** revisar ADR-005 (alto nível) e ADR-016 (implementação concreta) pós-PDR-017 — desenho da ACL continua válido; escolha de PSP no MVP muda. Próxima ação do programador: aprovar ADR-016 revisada + deploy rc.N + iniciar STORY-058 (consome preAutorizar via fake). Em paralelo: STORY-075 (banner, ortogonal frontend) e STORY-073 (fix schedule:run, ortogonal carry-forward EPIC-002).",
+    "notes": "Snapshot 2026-06-04 pós-pivô PDR-017: W27 + W27.5 fechadas. W28 ATIVA (EPIC-003 + STORY-073 EPIC-002, 16 estórias). Pivô do dia: PDR-017 troca integração Pagar.me sandbox por fake genérico atrás da mesma ACL (ADR-005 preservada; ACL é o ativo arquitetural durável). 2 colisões de numeração resolvidas: STORY-069→073 (EPIC-010 reservou 069) e STORY-074→075 (EPIC-011/geocoding reservou 074). PDR-016 (formatação de entradas) também indexado retroativamente (gap pré-existente). Estado do índice consistente; ADR-005 + ADR-016 aguardam revisão pelo Arquiteto. EPIC-011 (geolocalização-estabelecimento, fast-follow spin-off da STORY-057) presente no índice e ready para sprint futura."
   },
   "product": {
     "vision": "product/vision.md",
@@ -226,7 +226,7 @@
     {
       "id": "EPIC-003",
       "slug": "aceite-pin-e-pix",
-      "title": "Aceite da candidatura, PIN bilateral e Pix via Pagar.me",
+      "title": "Aceite da candidatura, PIN bilateral e Pix (via fake genérico atrás de ACL — PDR-017)",
       "wave": "WAVE-2026-01",
       "status": "in_progress",
       "activated_at": "2026-06-03",
@@ -245,13 +245,16 @@
         "STORY-065",
         "STORY-066",
         "STORY-067",
-        "STORY-068"
+        "STORY-068",
+        "STORY-075"
       ],
+      "abandoned_story_ids": ["STORY-056-B"],
       "validation_report": null,
       "created_at": "2026-05-26",
-      "updated_at": "2026-06-03",
+      "updated_at": "2026-06-04",
       "sprint": "SPRINT-2026-W28",
-      "next_action": "EPIC-003 decomposto em 14 estórias (Fluxo B) em 2026-06-03 pelo PO, em paralelo ao fechamento da SPRINT-2026-W27. Escopo do épico inteiro alocado à SPRINT-2026-W28 (planned). Composição: 3 spikes (STORY-055 modelo Turno + AceiteEletronico + máquina de estados; STORY-056 ACL Pagar.me + mock em container + idempotência + webhook — L; STORY-057 tempo real cronômetro + geolocalização Haversine) + 10 implementação (STORY-058..067, incluindo STORY-063 cronômetro bilateral L) + 1 validação (STORY-068). Mix: 1 S + 11 M + 2 L. 3 ADRs novas previstas: ADR-015, ADR-016 (detalha ADR-005), ADR-017. Métricas primárias: ciclo do turno ≥95% em sandbox; Pix sandbox ≤15min em 95% dos turnos; validação de PIN ≤500ms p95; cronômetro sincronizado ≤2s; habitualidade PDR-002 nos 4 cenários."
+      "pivoted_by": "PDR-017",
+      "next_action": "EPIC-003 REESCOPADO em 2026-06-04 por PDR-017 — Pagar.me real adiado para a próxima wave; MVP usa fake genérico atrás da mesma ACL (ADR-005 preservada). STORY-056 reescopada (in_review; ACL provider-agnóstica + fake genérico; trabalho técnico já feito preservado — interface, mock em container, idempotência, webhook HMAC, cobertura 100% no núcleo, 648 testes verdes). STORY-056-B abandonada (sem sandbox real, contract test perde objeto). STORY-075 criada (banner global em homolog 'Ambiente de teste — pagamentos simulados', S, frontend — originalmente STORY-074, renumerada por colisão com EPIC-011/geocoding). STORY-058/065/066/068 + checklist do validador revisados para refletir gateway via fake. ADR-005 + ADR-016 marcadas para revisão pelo Arquiteto (escopo de ADR — PO só aponta). Métricas primárias ajustadas: 100% do ciclo com fake em modo `success` em vez de ≥95% sandbox; promessa Pix 15min mantida como simulação. Composição final: 3 spikes + 11 implementação + 1 validação = 15 estórias do EPIC-003; mix 2 S + 11 M + 2 L. Risco técnico nº 1 da onda (Pagar.me sandbox) neutralizado. Sprint W28 ainda aguarda fechamento da W27.5 (refator UUID — ADR-018) para ativar."
     },
     {
       "id": "EPIC-004",
@@ -2402,7 +2405,6 @@
       "story_ids": [
         "STORY-055",
         "STORY-056",
-        "STORY-056-B",
         "STORY-057",
         "STORY-058",
         "STORY-059",
@@ -2415,10 +2417,12 @@
         "STORY-066",
         "STORY-067",
         "STORY-068",
-        "STORY-073"
+        "STORY-073",
+        "STORY-075"
       ],
+      "abandoned_story_ids": ["STORY-056-B"],
       "stretch_story_ids": [],
-      "sizing_total": "1 S + 12 M + 2 L + (STORY-056 quebrada em 056-A M + 056-B S) — 16 estórias após a quebra",
+      "sizing_total": "2 S + 12 M + 2 L (16 estórias) — STORY-056 quebrada em 056-A (M, in_review) + 056-B (abandonada por PDR-017); STORY-073 carry-forward EPIC-002 (M); STORY-075 banner global PDR-017 (S, renumerada de 074 por colisão com EPIC-011).",
       "epics": [
         "EPIC-003",
         "EPIC-002"
@@ -2429,6 +2433,12 @@
           "change": "STORY-073 adicionada ao escopo",
           "reason": "F-NB-1 do EPIC-002 (validador STORY-054 em 2026-06-03): `candidaturas:auto-retirar-apos-edicao` não dispara em homolog/prod porque o ambiente implantado só roda `queue:work` — não há `schedule:run`. Fix de infra (Cloud Run Job + Cloud Scheduler 1/min) para plumbar o Scheduler do Laravel. Ortogonal ao EPIC-003.",
           "cost": "+1 estória M; sizing total subiu de 14 (1S+11M+2L) para 15 (1S+12M+2L). Sem impacto no soft-cap ou no gatilho de reescopo cedo (STORY-073 não depende de nenhuma do EPIC-003)."
+        },
+        {
+          "date": "2026-06-04",
+          "change": "PIVÔ MAIOR — PDR-017 aplicada: Pagar.me real adiado para próxima wave; MVP usa fake genérico atrás da mesma ACL. STORY-056 reescopada (in_review mantido; mock em container vira o fake; trabalho técnico preservado); STORY-056-B abandonada (sem sandbox, contract test perde objeto); STORY-075 criada (banner global em homolog, S, frontend — originalmente STORY-074, renumerada por colisão com EPIC-011/geocoding). STORY-058/065/066/068 + checklist do validador revisados. EPIC-003 epic.md atualizado. ADR-005 + ADR-016 marcadas para revisão pelo Arquiteto.",
+          "reason": "Integração Pagar.me real não chega a tempo do MVP — setup operacional do fornecedor (credenciais, conta sandbox aprovada, chave Pix, webhook URL) tem janela própria que não cabe na W28. PDR-017 troca por fake genérico atrás da mesma ACL para destravar a sprint sem perder a hipótese central da onda. ACL é o ativo arquitetural durável de ADR-005 — esta sprint exercita o propósito real dela já no MVP.",
+          "cost": "+1 estória (STORY-075 S); −1 estória (STORY-056-B abandonada); STORY-056 escopo reduzido. Sizing total: 15 → 16 estórias (2 S + 12 M + 2 L). Risco técnico nº 1 da onda (Pagar.me sandbox) neutralizado. Promessa pública 'Pix em 15 min' mantida como simulação."
         }
       ],
       "delivered_story_ids": [
@@ -2439,7 +2449,6 @@
         "STORY-056"
       ],
       "pending_story_ids": [
-        "STORY-056-B",
         "STORY-058",
         "STORY-059",
         "STORY-060",
@@ -2451,10 +2460,11 @@
         "STORY-066",
         "STORY-067",
         "STORY-068",
-        "STORY-073"
+        "STORY-073",
+        "STORY-075"
       ],
       "last_progress_update": "2026-06-04",
-      "progress_summary": "D+1 (2026-06-04): STORY-055 DONE (modelo Turno + ADR-015). STORY-057 DONE (spike tempo real + geo — ADR-017 accepted; cronômetro por âncora-de-timestamp+polling, geofencing por Geolocation API+Haversine; PoC viva validada em 2 dispositivos em homolog rc.64→rc.67, sincronia ≤2s; 100% cobertura no núcleo novo; destrava STORY-061 e STORY-063). Descoberta da 057 virou EPIC-011/STORY-074 (geocoding do estabelecimento, fast-follow) + colunas lat/lng já criadas em contratante_profiles. STORY-056 (Pagar.me, L) QUEBRADA no gatilho: 056-A (ACL completa; ADR-016 proposed; 648 testes verdes) em `in_review`; 056-B (contract test sandbox CI noturno) `ready`, bloqueada por credenciais sandbox. Próximo: aprovar ADR-016 + deploy rc.N; seguir STORY-058 (consome preAutorizar)."
+      "progress_summary": "D+1 (2026-06-04): STORY-055 DONE (modelo Turno + ADR-015). STORY-057 DONE (spike tempo real + geo — ADR-017 accepted; cronômetro por âncora-de-timestamp+polling, geofencing por Geolocation API+Haversine; PoC viva validada em 2 dispositivos em homolog rc.64→rc.67, sincronia ≤2s; 100% cobertura no núcleo novo; destrava STORY-061 e STORY-063). Descoberta da 057 virou EPIC-011/STORY-074 (geocoding do estabelecimento, fast-follow) + colunas lat/lng já criadas em contratante_profiles. STORY-056 (ACL+fake, L) em `in_review` — pivô PDR-017 aplicado: mock em container vira fake genérico (driver único MVP); STORY-056-B (contract test sandbox) ABANDONADA. STORY-075 (banner global PDR-017) adicionada. STORY-058/065/066/068 + checklist do validador revisados para refletir fake. ADR-005 + ADR-016 marcadas para revisão pelo Arquiteto. Próximo: aprovar ADR-016 revisada + deploy rc.N; seguir STORY-058 (consome preAutorizar)."
     }
   ],
   "decisions": {
@@ -2556,6 +2566,25 @@
         "status": "accepted",
         "path": "decisions/pdr/PDR-015-fronteira-marketing-engenharia-comercial-landing.md",
         "decided_at": "2026-05-28"
+      },
+      {
+        "id": "PDR-016",
+        "title": "Formatação de entradas (regras de UI/parsing para campos como telefone, CPF/CNPJ, valor, data/hora)",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-016-formatacao-de-entradas.md",
+        "decided_at": "2026-06-01",
+        "note": "Entry adicionada ao índice em 2026-06-04 — gap pré-existente identificado durante revisão pós-PDR-017."
+      },
+      {
+        "id": "PDR-017",
+        "title": "Pagamento via fake genérico no MVP — integração Pagar.me adiada para a próxima wave; ACL preservada",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-017-pagamento-via-fake-generico-no-mvp.md",
+        "decided_at": "2026-06-04",
+        "related_epics": ["EPIC-003", "EPIC-005"],
+        "related_adrs": ["ADR-005", "ADR-016"],
+        "related_stories": ["STORY-056", "STORY-056-B", "STORY-058", "STORY-065", "STORY-066", "STORY-068", "STORY-075"],
+        "consequences": "STORY-056 reescopada (ACL provider-agnóstica + fake; trabalho técnico já feito preservado); STORY-056-B abandonada (sem sandbox real, contract test perde objeto); STORY-075 criada (banner global em homolog — renumerada de STORY-074 por colisão com EPIC-011/geocoding); ADR-005 + ADR-016 marcadas para revisão pelo Arquiteto; métrica primária do EPIC-003 ajustada (100% com fake em modo success em vez de ≥95% sandbox); promessa Pix em 15 min mantida como simulação; risco técnico nº 1 da onda neutralizado; próxima wave terá épico dedicado à integração Pagar.me real."
       }
     ],
     "adr": [

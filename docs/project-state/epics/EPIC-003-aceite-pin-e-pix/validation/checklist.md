@@ -21,12 +21,13 @@ created_at: 2026-06-03
 - [ ] AceiteEletronico aponta para `TemplateVersao` específica vigente no momento da aprovação; mudança posterior do template **não** altera aceite existente.
 - [ ] Índice `(estabelecimento_id, profissional_id, data_inicio)` existe e é usado pela consulta de habitualidade (anexar `EXPLAIN ANALYZE`).
 
-## 3. ACL Pagar.me (STORY-056 / ADR-016)
+## 3. ACL de pagamento + fake genérico (STORY-056 / ADR-016 revisada pós-PDR-017)
 
-- [ ] Mock em container roda localmente (`docker compose up`) sem internet — confirmar que `make setup` continua 100% offline.
-- [ ] Contract test consumer-driven contra sandbox real verde no último run noturno do CI (anexar link).
+- [ ] Fake genérico em container roda localmente (`docker compose up`) sem internet — confirmar que `make setup` continua 100% offline.
+- [ ] ~~Contract test consumer-driven contra sandbox real~~ — **REMOVIDO por PDR-017** (Pagar.me sandbox sai do MVP; STORY-056-B abandonada).
 - [ ] Idempotência: 2 chamadas de `preAutorizar` com mesma chave geram 1 pré-autorização (teste rodado em homolog ou local).
-- [ ] Webhook entrante valida assinatura HMAC; payload com assinatura inválida retorna 401 (teste explícito).
+- [ ] Webhook entrante valida assinatura HMAC; payload com assinatura inválida retorna 401 (teste explícito). **Webhook é emitido pelo fake** (HMAC compartilhado), contrato Pagar.me-compatível.
+- [ ] Fake configurável: modos `success`, `fail_capture`, `fail_pix`, `delay_pix` exercitados em testes — caminho de exceção do PDR-010 demonstrado deterministicamente.
 
 ## 4. Tempo real + geolocalização (STORY-057 / ADR-017)
 
@@ -35,7 +36,7 @@ created_at: 2026-06-03
 
 ## 5. Caminho feliz ponta a ponta — métrica primária
 
-- [ ] **Seedar 20 turnos** percorrendo o caminho `confirmado → aguardando_checkin → ativo → aguardando_checkout → finalizado → Pix sandbox` em homolog.
+- [ ] **Seedar 20 turnos** percorrendo o caminho `confirmado → aguardando_checkin → ativo → aguardando_checkout → finalizado → Pix simulado` em homolog (fake em modo `success`).
 - [ ] **≥ 95% completam** o ciclo (≥ 19 de 20). Documentar resultado.
 - [ ] **≥ 95% dos Pix em ≤ 15 min** após captura. Documentar com timestamps reais (criação → captura → Pix).
 - [ ] Validação de PIN ≤ 500ms p95 — extrair do log JSON estruturado da última semana de homolog.
@@ -57,15 +58,15 @@ created_at: 2026-06-03
 
 ## 8. Cancelamento + no_show (STORY-066 / PDR-007 / PDR-010)
 
-- [ ] Cancelamento por profissional em `confirmado` → `cancelado_pro` + pré-autorização liberada (verificar no painel sandbox Pagar.me).
+- [ ] Cancelamento por profissional em `confirmado` → `cancelado_pro` + pré-autorização liberada (verificar via `pagamento_operacoes` no Postgres: registro de `liberar` com status `concluida`; audit log `pagamento.liberado`).
 - [ ] Cancelamento por contratante em `confirmado` → `cancelado_emp` + liberação.
 - [ ] `no_show_pro` automático após X horas (decisão registrada) — cron exercitado com `travel(Xh + 1m)` em homolog ou via teste de integração; pré-autorização liberada.
 - [ ] Tentativa de cancelar em `ativo`/`aguardando_checkin`/`aguardando_checkout`/`finalizado` → 422 (não permitido por `domain/turno.md`).
 
 ## 9. Captura + Pix + alerta de falha (STORY-065 / PDR-010)
 
-- [ ] Captura observada no painel sandbox Pagar.me (anexar screenshot).
-- [ ] Pix observado na chave do profissional no painel sandbox (anexar screenshot).
+- [ ] Captura observada via `pagamento_operacoes` no Postgres + audit log `pagamento.capturado` + evento `PagamentoCapturado` emitido (extrair do log JSON).
+- [ ] Pix observado via `pagamento_operacoes` + audit log `pix.enviado` + evento `PixEnviado` emitido. **Fake genérico — Pix não cai em chave real** (PDR-017). Detalhe do turno mostra "Pix enviado em HH:MM" no card de valor (visível ao profissional).
 - [ ] Falha simulada de Pix (mock retorna erro) → audit log `pix.falhou` + fila do admin destaca turno + nenhum retry automático (PDR-010).
 - [ ] Admin marca "Resolvido manualmente" → audit log registra com nota.
 
@@ -79,7 +80,7 @@ created_at: 2026-06-03
 
 ## 11. Cobertura de testes
 
-- [ ] api ≥ 80% no código novo; ≥ 98% no núcleo (modelo Turno, máquina de estados, ACL Pagar.me, PIN, geofencing, habitualidade).
+- [ ] api ≥ 80% no código novo; ≥ 98% no núcleo (modelo Turno, máquina de estados, ACL de pagamento + fake, PIN, geofencing, habitualidade).
 - [ ] admin ≥ 80%.
 - [ ] webapp ≥ 80%; 98% nas regras críticas (geração de PIN, cálculo de duração).
 - [ ] E2E `integration_test` cobre ciclo completo do turno em pelo menos 1 cenário em Chrome headless.
@@ -87,7 +88,7 @@ created_at: 2026-06-03
 
 ## 12. Automação + deploy
 
-- [ ] `make setup` continua funcionando em máquina limpa, 100% offline (mock Pagar.me em container — princípio #6).
+- [ ] `make setup` continua funcionando em máquina limpa, 100% offline (fake genérico em container — princípio #6; PDR-017 mantém o offline-first ao remover sandbox externo).
 - [ ] Pipeline CI verde no branch principal nos últimos 5 deploys.
 - [ ] Deploy automático em homolog disparado pela tag — testado pelo menos 3 vezes durante o sprint.
 - [ ] Provisionamento por Terraform — sem clique manual no Console GCP.
@@ -125,7 +126,8 @@ created_at: 2026-06-03
 - [ ] 3 ADRs (015, 016, 017) `accepted` no `index.json`.
 - [ ] IDRs eventuais (se algum surgiu) indexados.
 - [ ] Notas do agente preenchidas em cada estória.
-- [ ] `runbook-homolog.md` atualizado com seção sobre Pagar.me sandbox + reset de cronômetro travado + tratamento manual de Pix com falha.
+- [ ] `runbook-homolog.md` atualizado com seção sobre **fake de pagamento em homolog** (deploy + modos configuráveis + segredo HMAC) + reset de cronômetro travado + tratamento manual de Pix com falha (com fake em modo `fail_pix`).
+- [ ] **Banner global em homolog "Ambiente de teste — pagamentos simulados" visível** no WebApp e no Backoffice (verificação visual — STORY-075).
 
 ## 18. Veredito
 

@@ -22,7 +22,7 @@ produces_idr: null
 
 ## Contexto
 
-EPIC-003 entrega o **ciclo do turno** ponta a ponta em homolog com Pagar.me sandbox: aceite + AceiteEletronico imutável + pré-autorização → PIN check-in + geofencing → cronômetro bilateral vivo → PIN check-out → captura + Pix sandbox em ≤ 15 min. Cancelamento + `no_show_pro` liberam pré-autorização. Habitualidade (PDR-002) aplicada nos 4 cenários. Notificações in-app + e-mail nos 8 eventos.
+EPIC-003 entrega o **ciclo do turno** ponta a ponta em homolog com **pagamento via fake genérico (PDR-017)** atrás de ACL provider-agnóstica: aceite + AceiteEletronico imutável + pré-autorização → PIN check-in + geofencing → cronômetro bilateral vivo → PIN check-out → captura + Pix simulado dentro do SLA configurado (promessa pública "Pix em ≤ 15 min" demonstrada como simulação). Cancelamento + `no_show_pro` liberam pré-autorização. Habitualidade (PDR-002) aplicada nos 4 cenários. Notificações in-app + e-mail nos 8 eventos. **Banner global em homolog "Ambiente de teste — pagamentos simulados" (STORY-075)** deixa explícito que pagamento não é real.
 
 Esta estória é o portão final antes de fechar o épico e abrir EPIC-004 (Avaliação recíproca).
 
@@ -40,9 +40,9 @@ Sem validação independente, não há prova confiável de que o épico mais arr
 ## Critérios de aceite
 
 - [ ] **CA-1:** Checklist completo de `validation/checklist.md` percorrido — cada item marcado `[x]` com link para evidência ou `[ ]` com motivo.
-- [ ] **CA-2:** Suíte completa de testes rodada em CI: api ≥ 80% / ≥ 98% no núcleo (modelo Turno, máquina de estados, ACL Pagar.me, PIN, geofencing, habitualidade), admin ≥ 80%, webapp ≥ 80%.
-- [ ] **CA-3:** Métrica primária do EPIC-003 observada em homolog: ≥ 95% dos turnos seedados completam ciclo `confirmado → finalizado → Pix sandbox`. Resultado documentado.
-- [ ] **CA-4:** SLA Pix observado: ≥ 95% dos Pix sandbox em ≤ 15 min no conjunto seedado. Resultado documentado com timestamps reais.
+- [ ] **CA-2:** Suíte completa de testes rodada em CI: api ≥ 80% / ≥ 98% no núcleo (modelo Turno, máquina de estados, ACL de pagamento, PIN, geofencing, habitualidade), admin ≥ 80%, webapp ≥ 80%.
+- [ ] **CA-3:** Métrica primária do EPIC-003 observada em homolog: **100%** dos turnos seedados completam ciclo `confirmado → finalizado → Pix enviado` com fake em modo `success` (PDR-017). Resultado documentado.
+- [ ] **CA-4:** SLA Pix observado como simulação: **100%** dos Pix simulados confirmam dentro do SLA configurado do fake (default ~30s; teste de promessa pública com SLA configurado para 15min também passa 100%). Resultado documentado com timestamps reais. **NÃO** verificar contra Pagar.me sandbox (PDR-017 removeu).
 - [ ] **CA-5:** Validação de PIN ≤ 500ms p95 observada em log JSON estruturado de homolog. Resultado documentado.
 - [ ] **CA-6:** Cronômetro bilateral sincronizado em ≤ 2s observado em 2 navegadores abertos no mesmo turno. Screenshot ou vídeo anexado.
 - [ ] **CA-7:** Habitualidade nos 4 cenários PDR-002 testada em homolog: PF 1ª/2ª libera; PF 3ª bloqueia (mensagem clara em ambos os lados); PJ 3ª com override registra cláusula no AceiteEletronico; transição de semana reseta. Cada um com evidência.
@@ -70,7 +70,7 @@ Sem validação independente, não há prova confiável de que o épico mais arr
 
 - **Bloqueada por:** STORY-055..067 — **todas** em `done` e deployadas em homolog.
 - **Bloqueia:** abertura do EPIC-004.
-- **Pré-requisitos:** ambiente homolog operante com seed; credenciais Pagar.me sandbox disponíveis.
+- **Pré-requisitos:** ambiente homolog operante com seed; fake genérico (STORY-056) deployado em homolog; banner global da STORY-075 visível. ~~Credenciais Pagar.me sandbox~~ **REMOVIDO por PDR-017**.
 
 ## Decisões já tomadas
 
