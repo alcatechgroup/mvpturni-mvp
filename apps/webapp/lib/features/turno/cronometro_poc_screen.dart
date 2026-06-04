@@ -32,6 +32,8 @@ class _CronometroPocScreenState extends State<CronometroPocScreen> {
   CronometroAncora _ancora = CronometroAncora.vazio;
   String _estado = '—';
   bool _sincronizou = false;
+  bool _souProfissional =
+      false; // só o profissional captura o geofencing (PDR-008)
 
   Timer? _tick; // re-render a cada 1s
   Timer? _poll; // reconciliação a cada 5s
@@ -69,6 +71,7 @@ class _CronometroPocScreenState extends State<CronometroPocScreen> {
         agoraCliente: DateTime.now().toUtc(),
       );
       _estado = snap.estado;
+      _souProfissional = snap.souProfissional;
       _sincronizou = true;
     });
   }
@@ -146,15 +149,24 @@ class _CronometroPocScreenState extends State<CronometroPocScreen> {
                   style: theme.textTheme.labelMedium,
                 ),
                 const SizedBox(height: 12),
-                FilledButton.icon(
-                  onPressed: _capturando ? null : _capturarCheckin,
-                  icon: const Icon(Icons.my_location),
-                  label: Text(
-                    _capturando ? 'Capturando…' : 'Capturar localização',
+                // O geofencing é a captura do PROFISSIONAL no check-in; o contratante valida o PIN.
+                if (_souProfissional) ...[
+                  FilledButton.icon(
+                    onPressed: _capturando ? null : _capturarCheckin,
+                    icon: const Icon(Icons.my_location),
+                    label: Text(
+                      _capturando ? 'Capturando…' : 'Capturar localização',
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                _geoView(theme),
+                  const SizedBox(height: 16),
+                  _geoView(theme),
+                ] else
+                  Text(
+                    'A captura de localização é feita pelo profissional no check-in. '
+                    'Você (contratante) valida o PIN.',
+                    style: theme.textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
               ],
             ),
           ),

@@ -17,12 +17,16 @@ class CronometroSnapshot {
     required this.iniciadoEm,
     required this.encerradoEm,
     required this.servidorAgora,
+    required this.souProfissional,
   });
 
   final String estado;
   final DateTime? iniciadoEm;
   final DateTime? encerradoEm;
   final DateTime servidorAgora;
+
+  /// O usuário logado é o profissional do turno? Só ele captura o geofencing de check-in (PDR-008).
+  final bool souProfissional;
 
   factory CronometroSnapshot.fromJson(Map<String, dynamic> json) {
     return CronometroSnapshot(
@@ -32,6 +36,7 @@ class CronometroSnapshot {
       servidorAgora:
           TurniDateTime.parse(json['servidor_agora'] as String?) ??
           DateTime.now().toUtc(),
+      souProfissional: json['sou_profissional'] as bool? ?? false,
     );
   }
 }

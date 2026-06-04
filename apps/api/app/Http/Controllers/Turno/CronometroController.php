@@ -37,6 +37,9 @@ class CronometroController extends Controller
             'iniciado_em' => $turno->check_in_at?->toIso8601String(),
             'encerrado_em' => $turno->check_out_at?->toIso8601String(),
             'servidor_agora' => now()->toIso8601String(),
+            // Geofencing de check-in é ação do PROFISSIONAL (PDR-008); o contratante valida o PIN.
+            // A PoC usa isto para só oferecer a captura ao lado certo.
+            'sou_profissional' => $user->id === $turno->profissional_id,
         ]);
     }
 }

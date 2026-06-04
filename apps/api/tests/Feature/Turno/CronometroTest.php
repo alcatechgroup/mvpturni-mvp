@@ -26,10 +26,11 @@ test('profissional lê o cronômetro com a âncora e a hora do servidor (CA-4)',
     $res = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}/cronometro");
 
     $res->assertStatus(200)
-        ->assertJsonStructure(['estado', 'iniciado_em', 'encerrado_em', 'servidor_agora'])
+        ->assertJsonStructure(['estado', 'iniciado_em', 'encerrado_em', 'servidor_agora', 'sou_profissional'])
         ->assertJsonPath('estado', 'ativo')
         ->assertJsonPath('iniciado_em', $turno->check_in_at->toIso8601String())
-        ->assertJsonPath('encerrado_em', null);
+        ->assertJsonPath('encerrado_em', null)
+        ->assertJsonPath('sou_profissional', true);
 
     // servidor_agora é um instante coerente (não nulo, parseável).
     expect($res->json('servidor_agora'))->not->toBeNull();
@@ -41,7 +42,9 @@ test('contratante lê o mesmo cronômetro (sincronia bilateral ancora no mesmo i
     $res = $this->actingAs($turno->contratante)->getJson("/api/turnos/{$turno->id}/cronometro");
 
     $res->assertStatus(200)
-        ->assertJsonPath('iniciado_em', $turno->check_in_at->toIso8601String());
+        ->assertJsonPath('iniciado_em', $turno->check_in_at->toIso8601String())
+        // Contratante NÃO é o profissional → não captura o geofencing (PDR-008).
+        ->assertJsonPath('sou_profissional', false);
 });
 
 test('turno finalizado expõe encerrado_em (cronômetro parou)', function () {
