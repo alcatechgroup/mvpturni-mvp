@@ -26,6 +26,10 @@ class ContratanteProfile extends Model
         'uf',
         'cep',
         'complemento',
+        // Coordenadas do estabelecimento (referência do geofencing — PDR-008). Populadas pela
+        // STORY-074 (geocoding do endereço); nulas por ora.
+        'lat',
+        'lng',
         'apelido_estabelecimento',
         'segmento',
         'ano_fundacao',
@@ -47,6 +51,8 @@ class ContratanteProfile extends Model
             // Criptografia em repouso do CNPJ (ADR-009 Decisão 5A) — query direta no
             // Postgres não retorna texto claro (CA-6). Unicidade via cnpj_hash (IDR-022 d).
             'cnpj_encrypted' => 'encrypted',
+            'lat' => 'decimal:7',
+            'lng' => 'decimal:7',
             'ano_fundacao' => 'integer',
             'redes_sociais' => 'array',
             'contatos_adicionais' => 'array',

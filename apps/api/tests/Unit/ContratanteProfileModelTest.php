@@ -81,3 +81,18 @@ test('campos estruturados do contratante fazem round-trip (endereço, contatos, 
     ]);
     expect($reloaded->uf)->toBe('SP');
 });
+
+test('lat/lng do estabelecimento existem, são nulos por padrão e fazem round-trip (STORY-074)', function () {
+    $user = User::factory()->contratante()->create();
+
+    // Por padrão (sem geocoding ainda) as coordenadas são nulas — comportamento atual preservado.
+    $semGeo = ContratanteProfile::create(['user_id' => $user->id]);
+    expect($semGeo->fresh()->lat)->toBeNull();
+    expect($semGeo->fresh()->lng)->toBeNull();
+
+    // Quando populadas (futuro), persistem com a precisão da geo (decimal:7).
+    $semGeo->update(['lat' => -23.5505199, 'lng' => -46.6333094]);
+    $reloaded = $semGeo->fresh();
+    expect((float) $reloaded->lat)->toBe(-23.5505199);
+    expect((float) $reloaded->lng)->toBe(-46.6333094);
+});
