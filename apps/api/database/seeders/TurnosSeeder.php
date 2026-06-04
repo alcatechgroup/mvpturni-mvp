@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\TurnoStatus;
 use App\Models\AceiteEletronicoTurno;
+use App\Models\TemplateVersao;
 use App\Models\Turno;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -53,6 +54,13 @@ class TurnosSeeder extends Seeder
             return;
         }
 
+        // Reusa a versão ativa do template contratual PF (TemplatesContratuaisSeeder) — NÃO
+        // cria template novo, para não poluir o catálogo que o Backoffice (STORY-020) lista.
+        $templateVersaoId = TemplateVersao::query()
+            ->whereHas('template', fn ($q) => $q->where('slug', 'pf_autonomo_eventual'))
+            ->where('ativa', true)
+            ->value('id');
+
         foreach (TurnoStatus::cases() as $status) {
             $turno = Turno::factory()->status($status)->create([
                 'contratante_id' => $contratante->id,
@@ -65,7 +73,11 @@ class TurnosSeeder extends Seeder
             if ($status === TurnoStatus::Confirmado) {
                 $aceite = $aceite->comOverrideHabitualidade();
             }
-            $aceite->create(['turno_id' => $turno->id]);
+            $atributos = ['turno_id' => $turno->id];
+            if ($templateVersaoId !== null) {
+                $atributos['template_versao_id'] = $templateVersaoId; // reusa; sem template novo
+            }
+            $aceite->create($atributos);
         }
 
         $this->command?->info('TurnosSeeder: 11 turnos (um por estado) + aceites criados.');
