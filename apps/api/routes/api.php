@@ -17,6 +17,7 @@ use App\Http\Controllers\Feed\VagaDetalheController;
 use App\Http\Controllers\Notificacao\NotificacaoController;
 use App\Http\Controllers\Turno\CheckinGeoController;
 use App\Http\Controllers\Turno\CronometroController;
+use App\Http\Controllers\Turno\TurnoAtivoController;
 use App\Http\Controllers\Usuario\WelcomeController;
 use App\Http\Controllers\Vaga\CandidatosController;
 use App\Http\Controllers\Vaga\VagaController;
@@ -147,6 +148,8 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     //     os dois lados do turno (404 p/ terceiros).
     // (b) Geofencing de check-in: POST recebe a posição do navegador e calcula a distância em
     //     metros via Haversine (reuso STORY-049). RBAC: só o profissional do turno.
+    // Atalho de navegação: turno ativo do usuário (path estático antes de `{turno}` por clareza).
+    Route::get('/turnos/meu-ativo', [TurnoAtivoController::class, 'show']);
     Route::get('/turnos/{turno}/cronometro', [CronometroController::class, 'show']);
     Route::post('/turnos/{turno}/checkin-geo', [CheckinGeoController::class, 'store']);
 });

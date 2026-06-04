@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'cronometro_ancora.dart';
 import 'geolocalizacao.dart';
@@ -94,7 +95,16 @@ class _CronometroPocScreenState extends State<CronometroPocScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('PoC — Cronômetro + Geofencing')),
+      appBar: AppBar(
+        // Botão explícito de volta — no PWA instalado (standalone) não há barra de URL nem,
+        // após `go()`, botão de voltar automático.
+        leading: IconButton(
+          icon: const Icon(Icons.home_outlined),
+          tooltip: 'Início',
+          onPressed: () => context.go('/'),
+        ),
+        title: const Text('PoC — Cronômetro + Geofencing'),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),

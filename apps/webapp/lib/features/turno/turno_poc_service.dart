@@ -64,6 +64,23 @@ class TurnoPocService {
 
   String get _base => '$cadastroApiBase/api';
 
+  /// GET /api/turnos/meu-ativo — id do turno em andamento do usuário (qualquer lado), p/ navegar
+  /// até o cronômetro sem digitar URL. `null` quando não há turno ativo ou em erro.
+  Future<String?> meuTurnoAtivo() async {
+    http.Response res;
+    try {
+      res = await _client.get(
+        Uri.parse('$_base/turnos/meu-ativo'),
+        headers: {'Accept': 'application/json'},
+      );
+    } catch (_) {
+      return null;
+    }
+    if (res.statusCode != 200) return null;
+
+    return _json(res.body)['turno_id'] as String?;
+  }
+
   /// GET /api/turnos/{id}/cronometro — a âncora do cronômetro. `null` em erro de rede/RBAC.
   Future<CronometroSnapshot?> cronometro(String turnoId) async {
     http.Response res;

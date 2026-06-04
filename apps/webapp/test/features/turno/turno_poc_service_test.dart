@@ -72,6 +72,38 @@ void main() {
     });
   });
 
+  group('meuTurnoAtivo (GET)', () {
+    test('200 com turno_id → devolve o id', () async {
+      late Uri url;
+      final svc = TurnoPocService(
+        client: MockClient((req) async {
+          url = req.url;
+          return http.Response(jsonEncode({'turno_id': 'abc-123'}), 200);
+        }),
+      );
+
+      final id = await svc.meuTurnoAtivo();
+      expect(url.path, contains('/api/turnos/meu-ativo'));
+      expect(id, 'abc-123');
+    });
+
+    test('200 com turno_id null → null', () async {
+      final svc = TurnoPocService(
+        client: MockClient(
+          (_) async => http.Response(jsonEncode({'turno_id': null}), 200),
+        ),
+      );
+      expect(await svc.meuTurnoAtivo(), isNull);
+    });
+
+    test('erro de rede → null', () async {
+      final svc = TurnoPocService(
+        client: MockClient((_) async => throw http.ClientException('x')),
+      );
+      expect(await svc.meuTurnoAtivo(), isNull);
+    });
+  });
+
   group('checkinGeo (POST)', () {
     test(
       '200 dentro do raio → ok:true + distância; body carrega lat/lng',

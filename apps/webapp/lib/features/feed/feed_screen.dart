@@ -8,6 +8,7 @@ import '../auth/auth_service.dart';
 import '../notificacoes/notificacoes_controller.dart';
 import '../notificacoes/notificacoes_painel.dart';
 import '../notificacoes/notificacoes_sino.dart';
+import '../turno/turno_ativo_banner.dart';
 import 'feed_service.dart';
 
 /// STORY-048 / SCREEN-STORY-048 — feed do profissional: lista ranqueada por match (CA-1/CA-3)
@@ -149,7 +150,16 @@ class _FeedScreenState extends State<FeedScreen> {
         ],
       ),
       endDrawer: const NotificacoesPainel(),
-      body: SafeArea(child: _body(isDark, accent)),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Atalho ao cronômetro do turno em andamento (STORY-057) — visível em qualquer fase
+            // do feed; some quando não há turno ativo.
+            const TurnoAtivoBanner(),
+            Expanded(child: _body(isDark, accent)),
+          ],
+        ),
+      ),
     );
   }
 
