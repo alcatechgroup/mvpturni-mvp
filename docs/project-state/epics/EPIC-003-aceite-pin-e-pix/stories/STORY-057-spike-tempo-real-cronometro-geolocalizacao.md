@@ -8,10 +8,12 @@ type: spike
 target_role: arquiteto
 requires_design: false
 design_screen_id: null
-status: in_progress
+status: done
 owner_agent: claude-opus-4-8
 created_at: 2026-06-03
 updated_at: 2026-06-04
+closed_at: 2026-06-04
+closed_by: "PO (Alexandro / chat)"
 estimated_session_size: M
 produces_idr: null  # produz ADR-017
 ---
@@ -44,12 +46,12 @@ Cronômetro fora de sincronia entre os 2 lados quebra a confiança no produto (c
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** ADR-017 escrita, status `accepted`, aprovação do Alexandro registrada.
-- [ ] **CA-2:** Decisão de canal de tempo real fundamentada — comparar pelo menos WebSocket (Laravel Reverb/Pusher), SSE e polling com janela curta. Considerar: latência (≤ 2s requerida), custo em homolog/produção, complexidade de operação, fit com ADR-001/002. Princípio #1 (simplicidade) e princípio #7 (não-antecipação) ponderados explicitamente.
-- [ ] **CA-3:** Decisão de geolocalização fundamentada — browser Geolocation API + cálculo Haversine no backend usando o helper `Support\Geo` (criado em STORY-049 EPIC-002, reuso) vs PostGIS. Mesma análise de complexidade × benefício.
-- [ ] **CA-4:** Servidor é fonte de verdade do tempo decorrido — clientes só consomem (mitiga risco de clocks divergentes do sprint). ADR-017 fixa essa invariante.
-- [ ] **CA-5:** Prova de conceito mínima em homolog: turno seedado em `ativo` mostra cronômetro avançando em 2 navegadores abertos simultaneamente (profissional e contratante), sincronizado em ≤ 2s. Geolocalização do navegador chega ao backend e o backend calcula distância em metros via Haversine.
-- [ ] **CA-6:** Cobertura ≥ 80% no código novo, ≥ 98% no cálculo de Haversine (núcleo de regra) — reuso do código já testado em STORY-049 é aceitável e desejável.
+- [x] **CA-1:** ADR-017 escrita, status `accepted`, aprovação do Alexandro registrada (2026-06-04).
+- [x] **CA-2:** Decisão de canal de tempo real fundamentada — WebSocket (Reverb), SSE e polling de janela curta comparados na ADR-017; polling+âncora escolhido (fit Cloud Run stateless/ADR-004, princípios #1/#7/#11). Latência ≤ 2s estrutural.
+- [x] **CA-3:** Decisão de geolocalização fundamentada — Geolocation API + `Support\Geo\Haversine` (reuso STORY-049) vs PostGIS; Haversine escolhido (sem extensão nova).
+- [x] **CA-4:** Servidor é fonte de verdade do tempo — invariante fixada na ADR-017 e implementada (`CronometroController` devolve `iniciado_em`+`servidor_agora`; cliente só consome).
+- [x] **CA-5:** PoC viva em homolog (rc.64→rc.67): cronômetro `ativo` sincronizado ≤ 2s em 2 dispositivos (Android profissional + iPhone contratante); geolocalização do navegador → backend → distância em metros via Haversine (`Fora do raio: 71798.3 m`). Evidência: screenshots Android/iPhone (Alexandro, chat 2026-06-04).
+- [x] **CA-6:** Cobertura — `Geofencing`/`Haversine`/`CronometroController`/`CheckinGeoController` 100%; núcleo cliente `CronometroAncora` testado; suíte api 673 verdes / 91,8%.
 
 ## Fora de escopo
 
@@ -82,11 +84,11 @@ Você NÃO decide: comportamento de geofencing (PDR-008 fixa); comportamento de 
 
 ## Definição de Pronto (DoD)
 
-- [ ] ADR-017 escrita, revisada, `accepted`.
-- [ ] Prova de conceito rodando em homolog (evidência anexada à estória).
-- [ ] Pipeline verde com cobertura exigida.
-- [ ] `index.json` atualizado.
-- [ ] "Notas do agente" preenchida.
+- [x] ADR-017 escrita, revisada, `accepted`.
+- [x] Prova de conceito rodando em homolog (evidência: screenshots Android/iPhone, chat 2026-06-04).
+- [x] Pipeline verde com cobertura exigida (CI + gate E2E local).
+- [x] `index.json` atualizado.
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo do agente
 

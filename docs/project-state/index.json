@@ -2432,11 +2432,11 @@
         }
       ],
       "delivered_story_ids": [
-        "STORY-055"
+        "STORY-055",
+        "STORY-057"
       ],
       "in_progress_story_ids": [
-        "STORY-056",
-        "STORY-057"
+        "STORY-056"
       ],
       "pending_story_ids": [
         "STORY-056-B",
@@ -2454,7 +2454,7 @@
         "STORY-073"
       ],
       "last_progress_update": "2026-06-04",
-      "progress_summary": "D+1 (2026-06-04): STORY-055 DONE (modelo Turno + ADR-015). STORY-056 (Pagar.me, L) QUEBRADA no gatilho documentado: 056-A (ACL completa — interface GatewayPagamento, adapter, mock em container devolvendo webhook, idempotência em pagamento_operacoes, webhook HMAC, observabilidade; ADR-016 proposed; núcleo+adapter 100% cobertura; 648 testes verdes; smoke em container real) em `in_review`; 056-B (contract test sandbox no CI noturno) `ready`, bloqueada por credenciais sandbox que Alexandro provê. Próximo: aprovar ADR-016 + deploy rc.N; seguir STORY-057 (spike tempo real) e STORY-058 (consome preAutorizar)."
+      "progress_summary": "D+1 (2026-06-04): STORY-055 DONE (modelo Turno + ADR-015). STORY-057 DONE (spike tempo real + geo — ADR-017 accepted; cronômetro por âncora-de-timestamp+polling, geofencing por Geolocation API+Haversine; PoC viva validada em 2 dispositivos em homolog rc.64→rc.67, sincronia ≤2s; 100% cobertura no núcleo novo; destrava STORY-061 e STORY-063). Descoberta da 057 virou EPIC-011/STORY-074 (geocoding do estabelecimento, fast-follow) + colunas lat/lng já criadas em contratante_profiles. STORY-056 (Pagar.me, L) QUEBRADA no gatilho: 056-A (ACL completa; ADR-016 proposed; 648 testes verdes) em `in_review`; 056-B (contract test sandbox CI noturno) `ready`, bloqueada por credenciais sandbox. Próximo: aprovar ADR-016 + deploy rc.N; seguir STORY-058 (consome preAutorizar)."
     }
   ],
   "decisions": {
