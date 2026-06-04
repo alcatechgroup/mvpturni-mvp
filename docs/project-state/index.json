@@ -418,7 +418,7 @@
       "validation_report": null,
       "created_at": "2026-06-04",
       "updated_at": "2026-06-04",
-      "next_action": "Criado 2026-06-04 pelo PO após a STORY-057 (spike geofencing) revelar que o estabelecimento não tem coordenada geocodificada — só endereço em texto (CepLookup não geocodifica; contratante_profiles não tinha lat/lng; PublicarVagaService lia $profile->lat sempre nulo → vagas reais sem geo). Cross-cutting: alimenta a distância do feed (EPIC-002) e o geofencing do check-in (EPIC-003). Colunas lat/lng JÁ adicionadas a contratante_profiles (migração 2026_06_04_160000) na sessão da STORY-057. Próximo: Arquiteto propõe ADR-019 (estratégia de geocoding — provedor + ACL + mock local + idempotência) antes de a STORY-074 implementar. PO define o sprint da STORY-074 (candidata a entrar antes de STORY-061 ser 'real')."
+      "next_action": "Criado 2026-06-04 pelo PO após a STORY-057 (spike geofencing) revelar que o estabelecimento não tem coordenada geocodificada — só endereço em texto (CepLookup não geocodifica; contratante_profiles não tinha lat/lng; PublicarVagaService lia $profile->lat sempre nulo → vagas reais sem geo). Cross-cutting: alimenta a distância do feed (EPIC-002) e o geofencing do check-in (EPIC-003). Colunas lat/lng JÁ adicionadas a contratante_profiles (migração 2026_06_04_160000) na sessão da STORY-057. DECISÃO DO PO (2026-06-04): EPIC-011 é FAST-FOLLOW — não entra na W28; a STORY-074 será sprintada depois e a ADR-019 (estratégia de geocoding) será proposta pelo Arquiteto só quando a estória entrar em sprint. EPIC-011 fica `ready` no backlog até lá."
     }
   ],
   "stories": [
@@ -1935,7 +1935,7 @@
       "produces_idr": null,
       "created_at": "2026-06-04",
       "updated_at": "2026-06-04",
-      "note": "Bloqueada por ADR-019 (estratégia de geocoding — a propor pelo Arquiteto); dependência registrada no corpo da estória (não em blocked_by, que referencia story_ids). Bloqueia funcionalmente STORY-061 (geofencing real), sem bloqueio duro (PDR-008 alerta-e-registra). Colunas lat/lng em contratante_profiles JÁ criadas (migração 2026_06_04_160000). PO define o sprint."
+      "note": "PO decidiu (2026-06-04): FAST-FOLLOW — fora da SPRINT-2026-W28; não puxar antes da STORY-061 (PDR-008 alerta-e-registra: a 061 roda sem coordenada, só registra `sem_coordenada`). ADR-019 (estratégia de geocoding) será proposta pelo Arquiteto QUANDO a estória entrar em sprint, não agora. Dependência da ADR registrada no corpo da estória (não em blocked_by, que referencia story_ids). Colunas lat/lng em contratante_profiles JÁ criadas (migração 2026_06_04_160000)."
     }
   ],
   "sprints": [

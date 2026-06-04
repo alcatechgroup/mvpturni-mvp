@@ -98,6 +98,7 @@ Você decide a estrutura local do código dentro da ADR-019. Você **não** deci
 
 ### Decisões tomadas
 - 2026-06-04 — (PO/preparação) colunas `lat/lng` adicionadas a `contratante_profiles` (migração `2026_06_04_160000`, nullable, `decimal:7`) + model fillable/cast + teste de round-trip, durante a STORY-057. Só o schema; nenhum dado geocodificado.
+- 2026-06-04 — (PO) **fast-follow**: fora da SPRINT-2026-W28; sprintada depois. A **ADR-019 (geocoding)** será proposta pelo Arquiteto **quando esta estória entrar em sprint**, não antes.
 
 ### Descobertas
 - 2026-06-04 — (origem, STORY-057) `CepLookup` devolve só endereço, sem coordenada; `contratante_profiles` não tinha lat/lng; `PublicarVagaService` lia `$profile->lat` que era sempre nulo → vagas reais sem geo. Seeders mascaravam isso cravando coordenadas.
