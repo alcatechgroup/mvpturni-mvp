@@ -17,6 +17,11 @@ declare(strict_types=1);
 
 const CONTRATO_VERSAO = 'pagarme-core-v5@2026-06-04'; // ADR-016 h / integration-architecture §mock
 
+// Estado mínimo entre requests (charge_id → external_reference/amount), em arquivo com flock.
+// Necessário porque o webhook de capture/cancel precisa do external_reference que só passou
+// no /orders — sem isso o ProcessarWebhookPagarmeJob não emite o evento de domínio (turnoId null).
+const CHARGES_ARQUIVO = '/tmp/pagarme-mock-charges.json';
+
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $body = json_decode(file_get_contents('php://input') ?: '{}', true) ?: [];
@@ -36,6 +41,10 @@ if ($method === 'POST' && $path === '/orders') {
     $chargeId = 'ch_'.bin2hex(random_bytes(8));
     $externalRef = (string) ($body['external_reference'] ?? '');
 
+    // O provedor real é stateful: capture/cancel não recebem external_reference no body,
+    // mas o webhook deles o carrega (contract.md §webhook). O fake guarda o mínimo p/ ecoar.
+    chargeGravar($chargeId, ['external_reference' => $externalRef, 'amount' => $body['amount'] ?? null]);
+
     emitirWebhook('charge.pending', $externalRef, ['charge_id' => $chargeId, 'order_id' => $orderId, 'amount' => $body['amount'] ?? null]);
 
     responder(200, [
@@ -46,18 +55,23 @@ if ($method === 'POST' && $path === '/orders') {
     ]);
 }
 
-// POST /charges/{id}/capture — captura total ou parcial.
+// POST /charges/{id}/capture — captura total (amount da charge) ou parcial (amount do body).
 if ($method === 'POST' && preg_match('#^/charges/([^/]+)/capture$#', $path, $m)) {
     $chargeId = $m[1];
-    emitirWebhook('charge.paid', null, ['charge_id' => $chargeId, 'amount' => $body['amount'] ?? null]);
+    $charge = chargeLer($chargeId);
+    $amount = $body['amount'] ?? $charge['amount'] ?? null;
 
-    responder(200, ['id' => $chargeId, 'status' => 'paid', 'amount' => $body['amount'] ?? null]);
+    emitirWebhook('charge.paid', $charge['external_reference'] ?? null, ['charge_id' => $chargeId, 'amount' => $amount]);
+
+    responder(200, ['id' => $chargeId, 'status' => 'paid', 'amount' => $amount]);
 }
 
 // POST /charges/{id}/cancel — libera/estorna a pré-autorização.
 if ($method === 'POST' && preg_match('#^/charges/([^/]+)/cancel$#', $path, $m)) {
     $chargeId = $m[1];
-    emitirWebhook('charge.canceled', null, ['charge_id' => $chargeId]);
+    $charge = chargeLer($chargeId);
+
+    emitirWebhook('charge.canceled', $charge['external_reference'] ?? null, ['charge_id' => $chargeId]);
 
     responder(200, ['id' => $chargeId, 'status' => 'canceled']);
 }
@@ -81,6 +95,29 @@ function responder(int $status, array $payload): never
     http_response_code($status);
     echo json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     exit;
+}
+
+function chargeGravar(string $chargeId, array $dados): void
+{
+    $fp = fopen(CHARGES_ARQUIVO, 'c+');
+    flock($fp, LOCK_EX);
+    $tudo = json_decode(stream_get_contents($fp) ?: '{}', true) ?: [];
+    $tudo[$chargeId] = $dados;
+    ftruncate($fp, 0);
+    rewind($fp);
+    fwrite($fp, json_encode($tudo));
+    flock($fp, LOCK_UN);
+    fclose($fp);
+}
+
+function chargeLer(string $chargeId): array
+{
+    if (! is_file(CHARGES_ARQUIVO)) {
+        return [];
+    }
+    $tudo = json_decode(file_get_contents(CHARGES_ARQUIVO) ?: '{}', true) ?: [];
+
+    return $tudo[$chargeId] ?? [];
 }
 
 /**
