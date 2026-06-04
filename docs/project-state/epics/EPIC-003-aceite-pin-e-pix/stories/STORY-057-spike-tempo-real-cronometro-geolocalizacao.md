@@ -145,4 +145,6 @@ Decisão do PO (2026-06-04): construir tela PoC + deploy. Após o deploy de `api
   - URL: `https://app.homolog.turni.com.br/turno/019e917d-16ea-7198-8b34-5ae889f256fc/cronometro-poc`
   - Login profissional: `profissional.poc@turni.local` / `password`
   - Login contratante: `contratante.poc@turni.local` / `password`
+- **Navegação sem URL (rc.65):** no PWA instalado não há barra de URL e a home não lista turnos. Adicionada **ação na AppBar** (ícone de cronômetro) no feed (profissional) e no "Minhas vagas" (contratante): ao tocar, busca `GET /turnos/meu-ativo` e navega ao cronômetro; sem turno → snackbar. Fetch só no toque (zero rede no mount — não desestabiliza o E2E). Botão "Início" na AppBar do cronômetro para voltar. Deploy `v0.1.0-rc.65` (`success`); endpoint `meu-ativo` vivo (401 RBAC). **Para ver a atualização, o PWA instalado precisa pegar a rc.65** (aviso de nova versão / reabrir o app).
+- **Fix CI (junto):** smoke do workflow agendado `scheduled-setup-test` passou a aceitar 2xx/3xx — o `/` do Backoffice responde 302 (redirect para /login do guard AdminOnly), que é serviço no ar.
 - **Pendente (decisão do PO: Alexandro captura):** vídeo/screenshot dos 2 navegadores mostrando o cronômetro sincronizado ≤ 2s + a distância de geofencing calculada (permissão de geolocalização concedida no navegador). Anexar aqui.
