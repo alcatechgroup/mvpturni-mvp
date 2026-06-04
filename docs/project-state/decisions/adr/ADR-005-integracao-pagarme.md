@@ -8,14 +8,20 @@ decided_by: arquiteto
 approved_by: Alexandro
 supersedes: null
 superseded_by: null
-related_adrs: [ADR-001, ADR-002, ADR-004, ADR-008]
-related_pdrs: [PDR-004, PDR-006, PDR-010]
+related_adrs: [ADR-001, ADR-002, ADR-004, ADR-008, ADR-016]
+related_pdrs: [PDR-004, PDR-006, PDR-010, PDR-017]
 related_epics: [EPIC-000, EPIC-003, EPIC-005]
 created_at: 2026-05-27
-updated_at: 2026-05-27
+updated_at: 2026-06-04  # nota PDR-017 adicionada; decisão não reaberta
 ---
 
 # ADR-005 — Estratégia de integração Pagar.me em alto nível
+
+> **📌 Nota do Arquiteto (2026-06-04) — PDR-017 muda o calendário, não a estratégia.** A **PDR-017** (`accepted`) adiou a integração Pagar.me real (sandbox e live) para a **próxima wave**: o MVP roda 100% sobre o **fake genérico** — o próprio `pagarme-mock` desta ADR, promovido a gateway efetivo em **todos** os ambientes (dev local e homolog), com banner global "Ambiente de teste — pagamentos simulados" em homolog (STORY-075). Consequências sobre esta ADR:
+>
+> - **A decisão permanece `accepted` e não é superseded.** A Opção A — ACL + interface `GatewayPagamento` + mock em container falando o mesmo contrato HTTP — é exatamente o que tornou o pivô barato (só configuração de driver; o domínio do Turno não mudou). A PDR-017 **validou** o ativo central desta ADR na primeira oportunidade.
+> - **O que fica suspenso até a próxima wave:** o item **(c) contract testing** contra o sandbox real no CI noturno (sem sandbox no MVP, perde objeto — STORY-056-B abandonada) e os drivers `sandbox|live` (permanecem mapeados em config, sem uso no MVP).
+> - **Onde está o estado atual:** a implementação concreta — e a leitura pós-PDR-017 — vive na **ADR-016** ("ACL de pagamento + fake genérico"); a decisão de produto, na **PDR-017**. O épico de integração Pagar.me real da próxima wave reativa o item (c) e produzirá ADR própria.
 
 ## Contexto
 
@@ -205,3 +211,4 @@ sequenceDiagram
 
 - 2026-05-27 — criada como `proposed` por Arquiteto (STORY-003). ACL no módulo Pagamento + mock dedicado em container + contract test contra sandbox no CI noturno; idempotência por chave determinística; webhook entrante no `api` validado e enfileirado; falha de Pix conforme PDR-010 (uma tentativa + alerta backoffice); eventos financeiros sobre o mecanismo do ADR-008. Schema, lib cliente e contratos exatos delegados ao EPIC-003.
 - 2026-05-27 — `accepted` por Alexandro (aprovação em chat, junto de ADR-006; commit direto na `main`).
+- 2026-06-04 — **nota PDR-017 adicionada pelo Arquiteto** (status `accepted` mantido; decisão não reaberta nem superseded). Pagar.me real (sandbox/live) adiado para a próxima wave; o `pagarme-mock` desta ADR vira o fake genérico, gateway efetivo do MVP em todos os ambientes; item (c)/contract test suspenso (STORY-056-B abandonada). Implementação e leitura pós-pivô na ADR-016 revisada; decisão de produto na PDR-017.

@@ -2684,7 +2684,8 @@
         "approved_by": "Alexandro",
         "supersedes": null,
         "superseded_by": null,
-        "source_story": "STORY-003"
+        "source_story": "STORY-003",
+        "note": "Nota PDR-017 adicionada pelo Arquiteto em 2026-06-04 (accepted mantido, não superseded): Pagar.me real adiado para a próxima wave; pagarme-mock vira fake genérico em todos os ambientes do MVP; item (c)/contract test suspenso. Estado atual da implementação na ADR-016 revisada."
       },
       {
         "id": "ADR-006",
