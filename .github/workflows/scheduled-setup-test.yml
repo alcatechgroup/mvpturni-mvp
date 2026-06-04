@@ -35,10 +35,13 @@ jobs:
       - name: Verificar portas com curl
         run: |
           fail=0
+          # Sucesso = serviço no ar respondendo HTTP (2xx ou 3xx). O `/` do Backoffice redireciona
+          # para /login (302) sem sessão — comportamento correto do guard AdminOnly (STORY-016); um
+          # redirect prova que o serviço subiu e está roteando. 4xx/5xx/000 (conexão) seguem falha.
           check() {
             local name=$1 url=$2
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$url" || echo "000")
-            if [ "$STATUS" = "200" ]; then
+            if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
               echo "✓ $name ($url) → $STATUS"
             else
               echo "✗ $name ($url) → $STATUS"
