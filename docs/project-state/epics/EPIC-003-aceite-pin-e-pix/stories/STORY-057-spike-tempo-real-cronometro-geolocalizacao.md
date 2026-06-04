@@ -8,10 +8,10 @@ type: spike
 target_role: arquiteto
 requires_design: false
 design_screen_id: null
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8
 created_at: 2026-06-03
-updated_at: 2026-06-03
+updated_at: 2026-06-04
 estimated_session_size: M
 produces_idr: null  # produz ADR-017
 ---
@@ -94,20 +94,46 @@ Você NÃO decide: comportamento de geofencing (PDR-008 fixa); comportamento de 
 
 ## Notas do agente
 
-### Decisões tomadas
-- 
+### Decisões tomadas (2026-06-04, Arquiteto — direção confirmada por Alexandro antes de formalizar)
+- **(a) Canal de tempo real → âncora-de-timestamp + polling de janela curta.** O cronômetro é uma **duração derivada**, não um fluxo empurrado: o servidor grava `iniciado_em` (UTC) na transição `→ ativo` e expõe `{ estado, iniciado_em, servidor_agora, encerrado_em? }` num endpoint REST leve. O WebApp calcula offset de relógio contra `servidor_agora`, **tica localmente** (consumindo `TurniDateTime`/IDR-026) e faz polling ~5s só para reconciliar e detectar saída de `ativo`. **Zero infra nova** — descartados WebSocket (Reverb) e SSE por brigarem com Cloud Run stateless/scale-to-zero (ADR-004) e exigirem processo always-on + Redis (fere princípios #1/#3/#7/#11). Sincronia ≤ 2s vira **estrutural** (âncora comum + cancelamento de skew), não dependente de latência de canal.
+- **(b) Geolocalização → Geolocation API do navegador + `App\Support\Geo\Haversine` (reuso STORY-049), sem PostGIS.** Backend calcula distância em metros e grava `geofencing_check_in = { ok, distancia_metros, capturado_em }`; falha de captura vira `ok:false`, `distancia_metros:null` + razão. PostGIS descartado — extensão inteira para uma única distância ponto-a-ponto é complexidade sem dor real (princípio #1); PostGIS só se justifica com busca espacial em massa (sinal de revisão).
+- **Invariante fixada (CA-4):** servidor é a fonte de verdade do tempo decorrido; clientes só consomem.
 
 ### Descobertas
-- 
+- A topologia Cloud Run stateless + scale-to-zero (ADR-004) é o fator que mais empurra a decisão (a) — qualquer canal de conexão persistente exige peça always-on + fan-out (Redis), exatamente o tipo de custo/operação que um time minúsculo não justifica sem dor real.
+- O requisito "tempo real" **colapsa num único timestamp**: com servidor como fonte de verdade, o cronômetro é uma duração derivada de `iniciado_em` que o cliente computa sozinho — empurrar tiques por WS/SSE empurraria pela rede um número que o cliente já sabe calcular.
+- `App\Support\Geo\Haversine` já existe e está testado (STORY-049) — CA-3/CA-6 pedem reuso explícito; só falta a conversão km→m e a regra de raio/razão de falha.
+
+### Implementação (PoC — 2026-06-04, programador)
+Slice vertical entregue e verde (semente direta de STORY-063/061):
+- **Backend (api):**
+  - `App\Support\Geo\Geofencing` — núcleo puro do geofencing (reusa `Haversine` da STORY-049): `avaliar()` → `{ ok, distancia_metros, razao }`, raio padrão 100m, falha de captura vira `ok:false`/`distancia null`/razão.
+  - `GET /api/turnos/{turno}/cronometro` (`CronometroController`) — âncora `{ estado, iniciado_em (=check_in_at), encerrado_em (=check_out_at), servidor_agora }`. RBAC bilateral (404 p/ terceiros). **Sem coluna nova** — `check_in_at`/`check_out_at` já existem (ADR-015).
+  - `POST /api/turnos/{turno}/checkin-geo` (`CheckinGeoController`) — recebe posição do navegador, calcula metros via Haversine, grava snapshot `geofencing_check_in`. RBAC: só o profissional.
+- **Cliente (WebApp Flutter):**
+  - `lib/features/turno/cronometro_ancora.dart` — núcleo PURO `CronometroAncora`: `sincronizar()` calcula offset de relógio, `decorrido()` tica local cancelando skew, `formatar()` HH:MM:SS. Prova determinística da sincronia ≤ 2s (teste com 73s de skew bruto entre os lados → diferença residual ≤ 2s).
+  - `lib/features/turno/geolocalizacao.dart` (+ `_stub`/`_web`) — ponte de Geolocation API do navegador no padrão de import condicional do repo (stub no-op em VM; `package:web`+`js_interop` no browser). Falha vira razão (`permissao_negada`/`timeout`/`indisponivel`), nunca lança.
+  - `lib/features/turno/turno_poc_service.dart` — `cronometro()` (GET) + `checkinGeo()` (POST), sessão same-origin sem csrf-cookie (IDR-019). Parsing via `TurniDateTime` (IDR-026).
+  - `lib/features/turno/cronometro_poc_screen.dart` + rota `/turno/:id/cronometro-poc` (`router.dart`) — tela de PoC: polling 5s + tique local 1s + botão de captura de geolocalização.
+
+### PoC viva em homolog (CA-5) — runbook
+Decisão do PO (2026-06-04): construir tela PoC + deploy. Após o deploy de `api`+`webapp` em homolog:
+1. Semear o turno ativo (check-in no passado): `php artisan db:seed --class=Database\Seeders\CronometroPocSeeder --force` no ambiente da `api` (o seeder imprime o `turno_id`).
+2. Navegador 1 — login `profissional.poc@turni.local` / `password` → abrir `app.homolog.turni.com.br/turno/{turno_id}/cronometro-poc`.
+3. Navegador 2 — login `contratante.poc@turni.local` / `password` → mesma URL.
+4. Observar: o cronômetro avança nos dois lados sincronizado em ≤ 2s (mesmo `iniciado_em`). No navegador do profissional, "Capturar localização" → permitir geolocalização → ver a distância em metros calculada pelo backend (Haversine). Permissão negada → "sem coordenada (não bloqueia)".
+5. Anexar evidência (vídeo/screenshot dos 2 navegadores) em "Links de evidência".
 
 ### Bloqueios encontrados
-- 
+- Nenhum bloqueador técnico. ADR-017 `accepted` por Alexandro (2026-06-04). Código completo, testado e buildando (`flutter build web` ok). **Pendente:** captura da evidência viva dos 2 navegadores em homolog (CA-5) após o deploy — runbook acima pronto.
 
 ### ADRs/IDRs criados
-- ADR-017 — Tempo real cronômetro + geolocalização Haversine — `decisions/adr/ADR-017-<slug>.md`
+- ADR-017 — Tempo real cronômetro (polling+âncora) + geolocalização Haversine — `decisions/adr/ADR-017-tempo-real-cronometro-polling-e-geolocalizacao-haversine.md` (status `accepted`).
 
 ### Cobertura final
-- Unitários: <%>
+- **api (novo código):** `Geofencing` 100%, `Haversine` 100% (reuso), `CronometroController` 100%, `CheckinGeoController` 100% — 25 testes (Unit `GeofencingTest` + Feature `CronometroTest`/`CheckinGeoTest`). Atende CA-6 (≥ 98% Haversine, ≥ 80% novo).
+- **webapp:** 16 testes (`CronometroAncora` 9 + `TurnoPocService` 7), `flutter analyze` limpo nos arquivos novos, `flutter build web` ok (interop js da geolocalização compila).
+- **Suíte api completa:** 673 testes verdes, cobertura total 91,8% (gate ≥ 80).
 
 ### Links de evidência
 - PR:

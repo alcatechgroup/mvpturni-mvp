@@ -12,6 +12,7 @@ import 'features/cadastro/pre_cadastro_contratante_screen.dart';
 import 'features/cadastro/pre_cadastro_profissional_screen.dart';
 import 'features/feed/feed_screen.dart';
 import 'features/funnel/welcome_screen.dart' as funnel;
+import 'features/turno/cronometro_poc_screen.dart';
 import 'features/vagas/editar_vaga_screen.dart';
 import 'features/vagas/minhas_vagas_screen.dart';
 import 'features/vagas/painel_candidatos_screen.dart';
@@ -213,6 +214,20 @@ final router = GoRouter(
           funcao: ctx?.funcao,
           dataInicio: ctx?.dataInicio,
           dataFim: ctx?.dataFim,
+        );
+      },
+    ),
+
+    // PoC do cronômetro bilateral + geofencing (STORY-057 / ADR-017 — CA-5). Rota não-pública
+    // (funnel guard exige sessão ativa); os dois lados do turno abrem a MESMA URL em navegadores
+    // distintos para demonstrar a sincronia ≤ 2s. RBAC bilateral é do backend (404 p/ terceiros).
+    GoRoute(
+      path: '/turno/:id/cronometro-poc',
+      pageBuilder: (context, state) {
+        final id = state.pathParameters['id'] ?? '';
+        return MaterialPage(
+          key: ValueKey('cronometro-poc-$id'),
+          child: CronometroPocScreen(turnoId: id),
         );
       },
     ),

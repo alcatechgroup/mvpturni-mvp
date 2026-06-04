@@ -15,6 +15,8 @@ use App\Http\Controllers\Candidatura\CandidaturaController;
 use App\Http\Controllers\Feed\FeedController;
 use App\Http\Controllers\Feed\VagaDetalheController;
 use App\Http\Controllers\Notificacao\NotificacaoController;
+use App\Http\Controllers\Turno\CheckinGeoController;
+use App\Http\Controllers\Turno\CronometroController;
 use App\Http\Controllers\Usuario\WelcomeController;
 use App\Http\Controllers\Vaga\CandidatosController;
 use App\Http\Controllers\Vaga\VagaController;
@@ -138,4 +140,13 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     Route::get('/notificacoes', [NotificacaoController::class, 'index']);
     Route::post('/notificacoes/marcar-todas-lidas', [NotificacaoController::class, 'marcarTodasLidas']);
     Route::post('/notificacoes/{notificacao}/marcar-lida', [NotificacaoController::class, 'marcarLida']);
+
+    // Cronômetro bilateral + geofencing de check-in (STORY-057 / ADR-017 — PoC do spike).
+    // (a) Âncora do cronômetro: GET devolve iniciado_em (check_in_at) + servidor_agora; o cliente
+    //     tica local e faz polling curto. Servidor é a fonte de verdade do tempo (CA-4). RBAC: só
+    //     os dois lados do turno (404 p/ terceiros).
+    // (b) Geofencing de check-in: POST recebe a posição do navegador e calcula a distância em
+    //     metros via Haversine (reuso STORY-049). RBAC: só o profissional do turno.
+    Route::get('/turnos/{turno}/cronometro', [CronometroController::class, 'show']);
+    Route::post('/turnos/{turno}/checkin-geo', [CheckinGeoController::class, 'store']);
 });

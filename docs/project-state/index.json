@@ -2388,11 +2388,11 @@
         "STORY-055"
       ],
       "in_progress_story_ids": [
-        "STORY-056"
+        "STORY-056",
+        "STORY-057"
       ],
       "pending_story_ids": [
         "STORY-056-B",
-        "STORY-057",
         "STORY-058",
         "STORY-059",
         "STORY-060",
@@ -2726,6 +2726,18 @@
         "supersedes": null,
         "superseded_by": null,
         "source_story": "STORY-056"
+      },
+      {
+        "id": "ADR-017",
+        "title": "Tempo real do cronômetro bilateral por âncora-de-timestamp + polling curto, e geolocalização no check-in por Geolocation API + Haversine (reuso) — sem WebSocket nem PostGIS",
+        "status": "accepted",
+        "path": "decisions/adr/ADR-017-tempo-real-cronometro-polling-e-geolocalizacao-haversine.md",
+        "decided_at": "2026-06-04",
+        "decided_by": "arquiteto",
+        "approved_by": "Alexandro",
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-057"
       }
     ],
     "idr": [
