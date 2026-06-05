@@ -177,5 +177,46 @@ void main() {
         '26:10:05',
       );
     });
+
+    // STORY-063 (CA-2) — MM:SS para turnos curtos; promove ao cruzar 1h.
+    test('curto: MM:SS abaixo de 1h', () {
+      expect(
+        CronometroAncora.formatar(const Duration(seconds: 5), curto: true),
+        '00:05',
+      );
+      expect(
+        CronometroAncora.formatar(
+          const Duration(minutes: 45, seconds: 30),
+          curto: true,
+        ),
+        '45:30',
+      );
+      expect(
+        CronometroAncora.formatar(
+          const Duration(minutes: 59, seconds: 59),
+          curto: true,
+        ),
+        '59:59',
+      );
+    });
+
+    test('curto: promove para HH:MM:SS ao cruzar 1h (nunca "75:30")', () {
+      expect(
+        CronometroAncora.formatar(const Duration(hours: 1), curto: true),
+        '01:00:00',
+      );
+      expect(
+        CronometroAncora.formatar(
+          const Duration(hours: 1, minutes: 15, seconds: 30),
+          curto: true,
+        ),
+        '01:15:30',
+      );
+    });
+
+    test('placeholder espelha a silhueta do formato final', () {
+      expect(CronometroAncora.placeholder(), '--:--:--');
+      expect(CronometroAncora.placeholder(curto: true), '--:--');
+    });
   });
 }

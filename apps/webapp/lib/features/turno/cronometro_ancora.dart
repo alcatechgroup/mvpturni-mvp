@@ -71,11 +71,19 @@ class CronometroAncora {
 
   /// `HH:MM:SS` para o display do cronômetro (a ticar a cada segundo). Horas não saturam em 24h —
   /// um turno longo mostra `26:10:05` se preciso.
-  static String formatar(Duration d) {
+  ///
+  /// STORY-063 (CA-2): [curto] usa `MM:SS` para turnos de duração prevista < 1h — mas **promove**
+  /// para `HH:MM:SS` quando o decorrido cruza 1h e não regride (nunca exibir "75:30").
+  static String formatar(Duration d, {bool curto = false}) {
     String dois(int n) => n.toString().padLeft(2, '0');
     final h = d.inHours;
     final m = d.inMinutes % 60;
     final s = d.inSeconds % 60;
+    if (curto && h == 0) return '${dois(m)}:${dois(s)}';
     return '${dois(h)}:${dois(m)}:${dois(s)}';
   }
+
+  /// Placeholder do display antes da primeira sincronização (mesma silhueta do formato final).
+  static String placeholder({bool curto = false}) =>
+      curto ? '--:--' : '--:--:--';
 }

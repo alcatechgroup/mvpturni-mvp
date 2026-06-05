@@ -11,4 +11,10 @@ return [
     // (proteção de borda contra força bruta; o limite de domínio — 3 erros expiram o
     // PIN — é fixo no ValidarCheckinService).
     'checkin_validacao_max_por_minuto' => (int) env('TURNI_CHECKIN_VALIDACAO_MAX_POR_MINUTO', 5),
+
+    // STORY-063 (CA-1) — janela de reconciliação do cronômetro bilateral (ADR-017): o
+    // cliente tica LOCALMENTE a cada 1s e faz polling nesta janela só para corrigir o
+    // offset de relógio e detectar a saída de `ativo`. Configurável por env sem deploy
+    // (ajuste de carga: aumentar a janela reduz requests por turno ativo).
+    'cronometro_polling_segundos' => (int) env('TURNI_CRONOMETRO_POLLING_SEGUNDOS', 5),
 ];

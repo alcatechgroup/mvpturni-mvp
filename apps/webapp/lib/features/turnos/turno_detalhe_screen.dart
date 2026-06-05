@@ -7,6 +7,8 @@ import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
+import 'cronometro_card.dart';
+import 'cronometro_service.dart';
 import 'geofencing_copy.dart';
 import 'pin_checkin_screen.dart';
 import 'pin_checkin_service.dart';
@@ -29,14 +31,17 @@ class TurnoDetalheScreen extends StatefulWidget {
     TurnoDetalheService? service,
     PinCheckinService? pinService,
     ValidarCheckinService? validarService,
+    CronometroService? cronometroService,
   }) : _service = service,
        _pinService = pinService,
-       _validarService = validarService;
+       _validarService = validarService,
+       _cronometroService = cronometroService;
 
   final String turnoId;
   final TurnoDetalheService? _service;
   final PinCheckinService? _pinService;
   final ValidarCheckinService? _validarService;
+  final CronometroService? _cronometroService;
 
   @override
   State<TurnoDetalheScreen> createState() => _TurnoDetalheScreenState();
@@ -51,6 +56,8 @@ class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
       widget._pinService ?? PinCheckinService();
   late final ValidarCheckinService _validarService =
       widget._validarService ?? ValidarCheckinService();
+  late final CronometroService _cronometroService =
+      widget._cronometroService ?? CronometroService();
 
   _Phase _phase = _Phase.loading;
   TurnoDetalhe? _turno;
@@ -138,6 +145,7 @@ class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
           accent: _accent(isDark),
           pinService: _pinService,
           validarService: _validarService,
+          cronometroService: _cronometroService,
           avisoCheckin: _avisoCheckin,
           onAvisoCheckin: (msg) => setState(() => _avisoCheckin = msg),
           onRecarregar: _load,
@@ -194,6 +202,7 @@ class _DetalheView extends StatelessWidget {
     required this.accent,
     required this.pinService,
     required this.validarService,
+    required this.cronometroService,
     required this.avisoCheckin,
     required this.onAvisoCheckin,
     required this.onRecarregar,
@@ -204,6 +213,7 @@ class _DetalheView extends StatelessWidget {
   final Color accent;
   final PinCheckinService pinService;
   final ValidarCheckinService validarService;
+  final CronometroService cronometroService;
   final String? avisoCheckin;
   final ValueChanged<String> onAvisoCheckin;
   final Future<void> Function() onRecarregar;
@@ -227,6 +237,23 @@ class _DetalheView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _HeaderCard(turno: turno, isDark: isDark),
+        // STORY-063 / SCREEN-063 §3.1 — em `ativo` o tempo é a informação mais quente
+        // da tela: o cronômetro entra logo abaixo do header (congelado em
+        // `aguardando_checkout` — CA-5).
+        if (turno.estadoRaw == 'ativo' ||
+            turno.estadoRaw == 'aguardando_checkout') ...[
+          const SizedBox(height: TurniSpacing.md),
+          CronometroCard(
+            turnoId: turno.id,
+            estadoRaw: turno.estadoRaw,
+            dataInicio: turno.dataInicio,
+            dataFim: turno.dataFim,
+            isDark: isDark,
+            accent: accent,
+            onEstadoMudou: onRecarregar,
+            service: cronometroService,
+          ),
+        ],
         const SizedBox(height: TurniSpacing.md),
         _ValorCard(turno: turno, isDark: isDark),
         const SizedBox(height: TurniSpacing.sm),

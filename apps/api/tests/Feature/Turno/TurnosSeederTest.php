@@ -49,15 +49,15 @@ test('seeder cria exatamente um turno em cada um dos 11 estados', function () {
 
 test('seeder anexa um aceite imutável a cada turno', function () {
     seedTurnosComDependencias();
-    // 11 do universo turnos.seed + turno PIN (STORY-061) + turno validar (STORY-062).
-    expect(AceiteEletronicoTurno::count())->toBe(13);
+    // 11 do universo turnos.seed + turno PIN (061) + turno validar (062) + turno cronômetro (063).
+    expect(AceiteEletronicoTurno::count())->toBe(14);
 });
 
 test('seeder é idempotente (rodar 2x não duplica)', function () {
     seedTurnosComDependencias();
     test()->seed(TurnosSeeder::class);
     expect(turnosDoSeedPrincipal()->count())->toBe(11)
-        ->and(Turno::count())->toBe(13); // + turno PIN (061) + turno validar (062)
+        ->and(Turno::count())->toBe(14); // + turno PIN (061) + validar (062) + cronômetro (063)
 });
 
 test('o turno confirmado do seed demonstra o override de habitualidade (PJ)', function () {
@@ -196,6 +196,43 @@ test('STORY-062: turno validar consumido (ativo) → reseed cria um NOVO confirm
     // Reseed seguinte só renova a janela do novo (não duplica de novo).
     test()->seed(TurnosSeeder::class);
     expect(Turno::where('profissional_id', $pro->id)->count())->toBe(2);
+});
+
+test('STORY-063: seeder cria o turno cronômetro (ativo, ~35min decorridos) com usuários exclusivos', function () {
+    seedTurnosComDependencias();
+
+    $pro = User::where('email', 'profissional.cronometro.seed@turni.local')->first();
+    expect($pro)->not->toBeNull();
+
+    $turno = Turno::where('profissional_id', $pro->id)->first();
+    expect($turno)->not->toBeNull()
+        ->and($turno->status)->toBe(TurnoStatus::Ativo)
+        ->and($turno->check_in_at->isBefore(now()->subMinutes(30)))->toBeTrue()
+        ->and($turno->check_in_at->isAfter(now()->subMinutes(40)))->toBeTrue()
+        ->and($turno->data_fim->isAfter(now()))->toBeTrue() // formato HH:MM:SS (turno longo)
+        ->and($turno->aceite)->not->toBeNull();
+});
+
+test('STORY-063: reseed renova o check_in_at do turno cronômetro sem duplicar (leitura pura)', function () {
+    seedTurnosComDependencias();
+
+    $pro = User::where('email', 'profissional.cronometro.seed@turni.local')->first();
+    $turno = Turno::where('profissional_id', $pro->id)->first();
+
+    // Envelhece o cenário (homolog dias depois) e re-seeda.
+    $turno->forceFill([
+        'data_inicio' => now()->subDays(3),
+        'data_fim' => now()->subDays(3)->addHours(6),
+        'check_in_at' => now()->subDays(3),
+    ])->save();
+
+    test()->seed(TurnosSeeder::class);
+
+    expect(Turno::where('profissional_id', $pro->id)->count())->toBe(1);
+    $fresh = $turno->fresh();
+    expect($fresh->status)->toBe(TurnoStatus::Ativo)
+        ->and($fresh->check_in_at->isAfter(now()->subMinutes(40)))->toBeTrue()
+        ->and($fresh->data_fim->isAfter(now()))->toBeTrue();
 });
 
 test('STORY-062: turno PIN (061) consumido NÃO é recriado (recriação é só do validar)', function () {

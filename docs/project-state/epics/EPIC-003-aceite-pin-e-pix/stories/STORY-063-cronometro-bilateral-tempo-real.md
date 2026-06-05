@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-063-cronometro
-status: ready
-owner_agent: null
+status: in_review
+owner_agent: claude-opus-4-8
 created_at: 2026-06-03
-updated_at: 2026-06-03
+updated_at: 2026-06-05
 estimated_session_size: L  # gatilho de quebra documentado abaixo
 produces_idr: null
 ---
@@ -37,14 +37,14 @@ Cronômetro vivo é a peça que faz o turno **parecer vivo** para os dois lados 
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Backend emite tick com tempo decorrido por canal de ADR-017 (1 emissão a cada 1s, configurável; OK começar em 2s e reduzir se a carga permitir).
-- [ ] **CA-2:** Componente Flutter consome o canal e renderiza tempo decorrido (HH:MM:SS para turnos > 1h; MM:SS para curtos). Microcopy mostra também "Início previsto: HH:MM" e "Duração prevista: Xh".
-- [ ] **CA-3:** Sincronia bilateral verificada: em 2 navegadores abertos no mesmo turno em `ativo`, a diferença entre os 2 cronômetros não passa de **2s** em janela contínua de 5min (teste E2E em CI roda essa verificação).
-- [ ] **CA-4:** Servidor é fonte de verdade — clientes nunca calculam tempo decorrido localmente (mitiga clocks divergentes; aprendizado da W27 STORY-052 / IDR-026).
-- [ ] **CA-5:** Quando turno sai de `ativo` (transita para `aguardando_checkout` em STORY-064), componente para de receber tick e mostra "Aguardando check-out — duração final: HH:MM:SS".
-- [ ] **CA-6:** Reconexão básica — se o cliente perde a conexão por < 30s, reconecta automático sem perder a contagem (servidor é fonte de verdade; a UI só re-sincroniza). > 30s: mostra "Reconectando..." e retoma quando voltar.
-- [ ] **CA-7:** Performance — canal aguenta pelo menos **50 turnos `ativo` simultâneos** em homolog sem latência > 2s (teste de carga no CI; ajustar tick rate se necessário).
-- [ ] **CA-8:** Cobertura ≥ 80% no código novo, ≥ 98% no cálculo de tempo (helper compartilhado entre tela e teste — reuso de `TurniDateTime`).
+- [x] **CA-1:** Backend emite tick com tempo decorrido por canal de ADR-017 (1 emissão a cada 1s, configurável; OK começar em 2s e reduzir se a carga permitir). *Pela ADR-017 o "tick" é LOCAL (1s, sem rede): o canal é o endpoint de âncora `GET /turnos/{id}/cronometro`, com janela de reconciliação configurável pelo servidor (`polling_segundos`, default 5s, env `TURNI_CRONOMETRO_POLLING_SEGUNDOS`).*
+- [x] **CA-2:** Componente Flutter consome o canal e renderiza tempo decorrido (HH:MM:SS para turnos > 1h; MM:SS para curtos — promove ao cruzar 1h, nunca regride). Microcopy mostra também "Início previsto: HH:MM" e "Duração prevista: Xh".
+- [x] **CA-3:** Sincronia bilateral verificada: E2E sobre o mesmo turno `ativo` amostra os 2 papéis contra a âncora do servidor (≥ 12 amostras em ≥ 60s, ≤ 1s por lado ⇒ ≤ 2s entre os lados por transitividade). *Janela ajustada de 5min → ~60s com aprovação do PO (2026-06-05): com âncora comum a sincronia é estrutural; 60s cobrem vários ciclos de polling sem inflar o gate.*
+- [x] **CA-4:** Servidor é fonte de verdade — clientes nunca calculam tempo decorrido localmente (derivam de `iniciado_em` + offset contra `servidor_agora`; `CronometroAncora` puro, IDR-026).
+- [x] **CA-5:** Quando turno sai de `ativo`, componente para o polling e mostra "Aguardando check-out — duração final: HH:MM:SS" (a duração final vem de `encerrado_em`, derivado do evento `checkout_solicitado` do audit log — bilateralmente idêntica; premissa p/ STORY-064 documentada na SCREEN-063 §10).
+- [x] **CA-6:** Reconexão básica — falha de polling < 30s é silêncio (tick local segue, âncora válida); ≥ 30s mostra "Reconectando… O tempo continua valendo." e a linha some no primeiro polling que volta. O display nunca congela em `ativo`.
+- [x] **CA-7:** Performance — teste de carga no CI: 50 turnos `ativo` simultâneos, 100 leituras (2 lados), nenhuma > 2s e p95 < 500ms (`CronometroCargaTest`).
+- [x] **CA-8:** Cobertura: núcleo de cálculo `CronometroAncora` **100%** (≥ 98% ✓); `cronometro_card.dart` 94,2% e `cronometro_service.dart` 93,8% (≥ 80% ✓); `CronometroController` 100%; API total 93,5%.
 
 ## Gatilho de quebra (estória L)
 
@@ -97,13 +97,29 @@ NÃO decide: canal de tempo real (vive em ADR-017); que servidor é fonte de ver
 ## Notas do agente
 
 ### Decisões tomadas
+- **A estória NÃO precisou de quebra (gatilho L não disparou):** a PoC da STORY-057 já tinha entregue o backend de âncora (`CronometroController`) e o núcleo puro (`CronometroAncora`) testados — sobrou integrar a UI final + estados + E2E, que coube na sessão.
+- **Janela do E2E do CA-3:** 5min → ~60s (≥ 12 amostras), aprovado pelo PO em chat (2026-06-05). Justificativa: com âncora comum (ADR-017) a sincronia é estrutural; 60s cobrem >10 ciclos de polling.
+- **Formato (liberdade técnica):** decisão pelo turno (duração prevista < 1h → MM:SS) com promoção irreversível ao cruzar 1h — nunca "75:30".
+- **`encerrado_em` em `aguardando_checkout`:** `check_out_at` só nasce na transição → `finalizado` (ADR-015); o endpoint deriva o encerramento EXIBIDO do evento `turno.checkout_solicitado` do audit log, para a duração final congelar idêntica nos 2 lados. **Premissa para a STORY-064**: gravar esse evento na transição (o seed da 060 já o grava). Degrade sem evento: congela no último decorrido conhecido.
+- **Pulso do dot sem `AnimationController.repeat`:** animação contínua nunca aquieta o frame scheduler e travaria os `pumpAndSettle` do harness E2E (a 062 termina com o turno `ativo`, onde o card monta). O pulso é `AnimatedOpacity` dirigida pelo próprio tick de 1s.
+- **Aba em background pausa timers** (`AppLifecycleState.hidden/paused` ↔ visibilitychange no Web — ADR-017); o resume re-sincroniza imediatamente.
+- **Relógio injetável no card** (`now`): a janela de 30s do CA-6 compara `DateTime.now()` real, que não avança no tempo fake dos widget tests.
+
 ### Descobertas
+- O par de seed do E2E (`*.cronometro.seed`) pode ser **estável entre execuções** (leitura pura — o cronômetro não muta estado); o reseed só renova `check_in_at` (~35min decorridos) para o cenário não envelhecer em homolog.
+- Família visual "número grande em mono" atingiu o 3º uso (pin.display 061, input.pin 062, cronometro.display 063) → registrada como `mono.display` no `components.md` (com a regra de `tabularFigures` obrigatório em display vivo).
+
 ### Bloqueios encontrados
+- Nenhum.
+
 ### IDRs criados
+- Nenhum (mecanismo já fixado por ADR-017; nenhuma decisão transversal nova).
+
 ### Cobertura final
-- Unitários:
-- E2E:
+- Unitários: `CronometroAncora` (núcleo de cálculo) **100%** (CA-8 ≥ 98% ✓); `cronometro_card.dart` 94,2%; `cronometro_service.dart` 93,8%; `CronometroController` 100% (methods+lines); API total 93,5% (840 testes); WebApp 490 testes.
+- E2E: `integration_test/turnos/cronometro_test.dart` — fluxo bilateral real (profissional → contratante no MESMO turno `ativo`), ≥ 12 amostras em ≥ 60s, cada lado ≤ 1s da âncora do servidor ⇒ ≤ 2s entre os lados (CA-3); gate completo verde (auth/cadastro/vagas/feed/turnos sem regressão). Carga: `CronometroCargaTest` (50 turnos, 100 leituras, max < 2s, p95 < 500ms) no CI.
+
 ### Links de evidência
-- PR:
-- Pipeline:
-- Deploy de homologação:
+- PR: commit direto na main (workflow do projeto).
+- Pipeline: release.yml dispara na tag `v0.1.0-rc.75`.
+- Deploy de homologação: rc.75 — verificação manual do PO (2 navegadores) pendente no DoD.
