@@ -19,6 +19,7 @@ use App\Http\Controllers\Notificacao\NotificacaoController;
 use App\Http\Controllers\Turno\CheckinGeoController;
 use App\Http\Controllers\Turno\CronometroController;
 use App\Http\Controllers\Turno\TurnoAtivoController;
+use App\Http\Controllers\Turno\TurnosController;
 use App\Http\Controllers\Usuario\WelcomeController;
 use App\Http\Controllers\Vaga\CandidatosController;
 use App\Http\Controllers\Vaga\VagaController;
@@ -157,6 +158,13 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     //     metros via Haversine (reuso STORY-049). RBAC: só o profissional do turno.
     // Atalho de navegação: turno ativo do usuário (path estático antes de `{turno}` por clareza).
     Route::get('/turnos/meu-ativo', [TurnoAtivoController::class, 'show']);
+
+    // Listas de turnos por papel (STORY-059). Agrupadas por estado na ordem do ciclo de vida
+    // (SCREEN-059 §4.1; em_disputa é seção própria — decisão PO 2026-06-05). RBAC fail-secure
+    // no controller: 403 para o papel errado (CA-5). Profissional vê `valor`; contratante vê
+    // `total_contratante` (PDR-004).
+    Route::get('/profissional/turnos', [TurnosController::class, 'doProfissional']);
+    Route::get('/contratante/turnos', [TurnosController::class, 'doContratante']);
     Route::get('/turnos/{turno}/cronometro', [CronometroController::class, 'show']);
     Route::post('/turnos/{turno}/checkin-geo', [CheckinGeoController::class, 'store']);
 });

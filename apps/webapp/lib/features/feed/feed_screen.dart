@@ -141,6 +141,13 @@ class _FeedScreenState extends State<FeedScreen> {
       appBar: AppBar(
         title: const Text('Vagas para você'),
         actions: [
+          // Porta de entrada de "Meus turnos" (STORY-059 / SCREEN-059 §2).
+          IconButton(
+            key: const Key('feed-meus-turnos-btn'),
+            tooltip: 'Meus turnos',
+            icon: const Icon(Icons.event_note),
+            onPressed: () => context.go('/profissional/turnos'),
+          ),
           const TurnoAtivoAcao(),
           const NotificacoesSino(),
           IconButton(

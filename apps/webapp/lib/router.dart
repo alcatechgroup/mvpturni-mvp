@@ -13,6 +13,7 @@ import 'features/cadastro/pre_cadastro_profissional_screen.dart';
 import 'features/feed/feed_screen.dart';
 import 'features/funnel/welcome_screen.dart' as funnel;
 import 'features/turno/cronometro_poc_screen.dart';
+import 'features/turnos/turnos_lista_screen.dart';
 import 'features/vagas/editar_vaga_screen.dart';
 import 'features/vagas/minhas_vagas_screen.dart';
 import 'features/vagas/painel_candidatos_screen.dart';
@@ -216,6 +217,20 @@ final router = GoRouter(
           dataFim: ctx?.dataFim,
         );
       },
+    ),
+
+    // Listas de turnos por papel (STORY-059 / SCREEN-059). RBAC (CA-5) tratado dentro da
+    // tela: papel cruzado (403 do back) cai em "sem permissão" fail-secure. Entrada pelos
+    // ícones na AppBar do feed e de Minhas vagas; deep-link sobrevive a reload.
+    GoRoute(
+      path: '/profissional/turnos',
+      builder: (context, state) =>
+          const TurnosListaScreen(papel: TurnosPapel.profissional),
+    ),
+    GoRoute(
+      path: '/contratante/turnos',
+      builder: (context, state) =>
+          const TurnosListaScreen(papel: TurnosPapel.contratante),
     ),
 
     // PoC do cronômetro bilateral + geofencing (STORY-057 / ADR-017 — CA-5). Rota não-pública

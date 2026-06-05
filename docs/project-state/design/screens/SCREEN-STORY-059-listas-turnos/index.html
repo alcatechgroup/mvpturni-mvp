@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<!--
+  PROTÓTIPO DE VALIDAÇÃO — NÃO É CÓDIGO DE PRODUÇÃO.
+  SCREEN-STORY-059 — "Meus turnos" (profissional) + "Turnos" (contratante).
+  HTML/CSS/JS vanilla, sem rede, sem build. Abra clicando no arquivo.
+  Tokens reais dos temas profissional (verde-sage) e contratante (mostarda) — DDR-001.
+  Locale pt-BR / 24h (DDR-002). Microcopy = §5 do spec, palavra por palavra. data-testid = §7.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCREEN-STORY-059 — Listas de turnos</title>
+<style>
+  :root {
+    --page: #F7F4EC; --surface: #FFFFFF;
+    --border-subtle: #E0DDD3; --border-strong: #C8C5BB;
+    --text-strong: #0F1B2D; --text-muted: #42504A;
+    --brand: #00A868;
+    --error: #B83A3A; --error-soft: #FBE2E2;
+    --warn-ink: #6E4E12; --warn-soft: #FBEED1; --warn-border: #DCB96A;
+    --success: #2D7A4F; --success-soft: #E2F0E5; --success-border: #9cc7ad;
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-full: 999px;
+    --s-xs: 4px; --s-sm: 8px; --s-md: 16px; --s-lg: 24px; --s-xl: 32px;
+  }
+  /* Tema por papel (DDR-001) */
+  body.papel-profissional { --accent: #2D5F3F; --accent-ink: #2D5F3F; --on-accent: #FFFFFF; }
+  body.papel-contratante  { --accent: #9A6E25; --accent-ink: #6E4E12; --on-accent: #FFFFFF; }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #EAE6DA; color: var(--text-strong);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Barra de controle do protótipo (não faz parte da tela) */
+  .proto-bar {
+    position: sticky; top: 0; z-index: 50; background: #1A2018; color: #ECEDE5;
+    padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    font-size: 13px;
+  }
+  .proto-bar strong { color: #fff; }
+  .proto-bar .chip {
+    border: 1px solid #3a4a3f; background: #232b25; color: #d8ded6;
+    border-radius: var(--r-full); padding: 4px 12px; cursor: pointer; font-size: 12px;
+  }
+  .proto-bar .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .proto-bar .group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .proto-bar .sep { width: 1px; height: 20px; background: #3a4a3f; }
+
+  .stage { display: flex; justify-content: center; padding: 28px 16px 60px; }
+  .frame {
+    background: var(--page); width: 100%; max-width: 412px;
+    min-height: 760px; border-radius: var(--r-lg);
+    box-shadow: 0 8px 30px rgba(0,0,0,.18); overflow: hidden; position: relative;
+    display: flex; flex-direction: column;
+  }
+  body.desktop .frame { max-width: 980px; }
+
+  /* AppBar (mobile) */
+  .appbar {
+    display: flex; align-items: center; gap: var(--s-sm);
+    padding: 10px var(--s-sm) 10px var(--s-xs); background: var(--surface);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .appbar .back, .appbar .bell {
+    background: none; border: none; cursor: pointer; font-size: 20px;
+    min-width: 48px; min-height: 48px; border-radius: var(--r-full);
+    display: inline-flex; align-items: center; justify-content: center; color: var(--text-strong);
+  }
+  .appbar .title { font-size: 18px; font-weight: 700; flex: 1; }
+  body.desktop .appbar { display: none; }
+
+  .brand {
+    font-family: "Bebas Neue", Impact, "Arial Narrow Bold", sans-serif;
+    color: var(--brand); font-size: 30px; letter-spacing: 1px; text-align: center;
+    padding: 10px 0 0; display: none;
+  }
+  body.desktop .brand { display: block; }
+
+  .header-row { display: none; }
+  body.desktop .header-row {
+    display: flex; align-items: center; gap: var(--s-sm); margin-bottom: var(--s-md);
+  }
+  body.desktop .header-row .back { background:none; border:none; cursor:pointer; font-size:20px;
+    min-width:44px; min-height:44px; border-radius: var(--r-full); }
+  body.desktop .header-row .title { font-size: 22px; font-weight: 700; flex: 1; }
+  body.desktop .header-row .bell { background:none; border:none; cursor:pointer; font-size:20px;
+    min-width:44px; min-height:44px; border-radius: var(--r-full); }
+
+  .scroll { flex: 1; overflow-y: auto; padding: var(--s-md); position: relative; }
+  body.desktop .scroll { padding: var(--s-lg) var(--s-xl) 60px; }
+
+  /* section.group-header — cabeçalho de seção (§8) */
+  .group-header {
+    font-size: 12px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--text-muted); margin: var(--s-lg) 2px var(--s-sm);
+  }
+  .group-header:first-of-type { margin-top: var(--s-xs); }
+
+  /* Cards por seção */
+  .group-cards { display: flex; flex-direction: column; gap: var(--s-md); }
+  body.desktop .group-cards { display: grid; grid-template-columns: repeat(2, 1fr); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md); padding: var(--s-md); cursor: default;
+  }
+  .card .top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-sm); }
+  .card .funcao { font-size: 17px; font-weight: 700; }
+  .card .quem { color: var(--text-muted); font-size: 14px; margin-top: 2px; }
+  .card .when { color: var(--text-muted); font-size: 14px; margin-top: 2px; }
+  .card .valor { margin-top: var(--s-sm); font-size: 15px; font-weight: 600; }
+  .card .valor .sufixo { color: var(--text-muted); font-weight: 400; }
+
+  /* badge.status — variantes de estado de Turno (§4.1/§8) */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700;
+    padding: 4px 10px; border-radius: var(--r-full); border: 1px solid; white-space: nowrap;
+    flex: 0 0 auto;
+  }
+  .badge.confirmado { background: var(--success-soft); color: #1d5235; border-color: var(--success-border); }
+  .badge.aguardando { background: var(--warn-soft); color: var(--warn-ink); border-color: var(--warn-border); }
+  .badge.ativo      { background: var(--success); color: #fff; border-color: var(--success); }
+  .badge.disputa    { background: var(--error-soft); color: #8a2b2b; border-color: #e0a3a3; }
+  .badge.finalizado { background: #ECEAE2; color: var(--text-muted); border-color: var(--border-strong); }
+  .badge.encerrado  { background: #F4E9E9; color: #9c5454; border-color: #d8b8b8; }
+
+  /* Skeleton */
+  .sk { background: var(--surface); border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md); padding: var(--s-md); }
+  .sk .bar { height: 12px; border-radius: 6px; margin: 8px 0;
+    background: linear-gradient(90deg,#eceae2 25%,#f6f4ec 37%,#eceae2 63%);
+    background-size: 400% 100%; animation: shimmer 1.3s ease infinite; }
+  .sk-header { height: 12px; width: 130px; border-radius: 6px; margin: var(--s-xs) 2px var(--s-sm);
+    background: linear-gradient(90deg,#e3e0d6 25%,#efece2 37%,#e3e0d6 63%);
+    background-size: 400% 100%; animation: shimmer 1.3s ease infinite; }
+  @keyframes shimmer { 0%{background-position:100% 0} 100%{background-position:0 0} }
+
+  /* Estados centrais */
+  .center-state { text-align: center; padding: var(--s-xl) var(--s-md); display: flex;
+    flex-direction: column; align-items: center; gap: var(--s-sm); }
+  .center-state .ico { font-size: 44px; }
+  .center-state h2 { font-size: 19px; margin: var(--s-sm) 0 0; }
+  .center-state p { color: var(--text-muted); font-size: 15px; margin: 0; max-width: 320px; line-height: 1.45; }
+  .center-state .btn-primary { margin-top: var(--s-md); }
+
+  .btn-primary {
+    background: var(--accent); color: var(--on-accent); border: none; cursor: pointer;
+    border-radius: var(--r-full); padding: 14px 24px; font-size: 16px; font-weight: 700;
+    font-family: inherit; min-height: 48px; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary:hover { filter: brightness(.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+
+  .banner {
+    display: flex; align-items: center; gap: var(--s-sm); justify-content: space-between;
+    background: var(--error-soft); border: 1px solid #e0a3a3; color: #8a2b2b;
+    border-radius: var(--r-md); padding: 12px var(--s-md); font-size: 14px; margin-bottom: var(--s-md);
+  }
+  .banner .retry { color: #8a2b2b; font-weight: 700; cursor: pointer; text-decoration: underline; white-space: nowrap; background:none; border:none; font-family:inherit; font-size:14px; min-height:44px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body class="mobile papel-profissional">
+
+  <div class="proto-bar">
+    <strong>SCREEN-059 · Listas de turnos</strong>
+    <div class="sep"></div>
+    <div class="group">
+      <span>Papel:</span>
+      <span class="chip active" data-papel="profissional" onclick="setPapel('profissional')">Profissional</span>
+      <span class="chip" data-papel="contratante" onclick="setPapel('contratante')">Contratante</span>
+    </div>
+    <div class="sep"></div>
+    <div class="group">
+      <span>Viewport:</span>
+      <span class="chip active" data-vp="mobile" onclick="setVp('mobile')">Mobile</span>
+      <span class="chip" data-vp="desktop" onclick="setVp('desktop')">Desktop</span>
+    </div>
+    <div class="sep"></div>
+    <div class="group">
+      <span>Estado:</span>
+      <span class="chip active" data-st="lista" onclick="setState('lista')">Lista completa</span>
+      <span class="chip" data-st="lista-curta" onclick="setState('lista-curta')">Lista curta (pós-058)</span>
+      <span class="chip" data-st="loading" onclick="setState('loading')">Loading</span>
+      <span class="chip" data-st="vazio" onclick="setState('vazio')">Vazio</span>
+      <span class="chip" data-st="erro" onclick="setState('erro')">Erro fetch</span>
+      <span class="chip" data-st="sem-permissao" onclick="setState('sem-permissao')">Sem permissão</span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="frame" id="screen-root" data-testid="meus-turnos-screen">
+      <div class="brand">TURN<span>I</span>.</div>
+
+      <!-- AppBar (mobile) -->
+      <div class="appbar">
+        <button class="back" aria-label="Voltar">←</button>
+        <span class="title" id="titulo-mobile">Meus turnos</span>
+        <button class="bell" aria-label="Notificações">🔔</button>
+      </div>
+
+      <div class="scroll">
+        <!-- Header desktop -->
+        <div class="header-row">
+          <button class="back" aria-label="Voltar">←</button>
+          <span class="title" id="titulo-desktop">Meus turnos</span>
+          <button class="bell" aria-label="Notificações">🔔</button>
+        </div>
+
+        <!-- Banner de erro -->
+        <div class="banner hidden" id="erro-banner" data-testid="turnos-erro-banner" aria-live="polite">
+          <span>⚠ Não foi possível carregar seus turnos. Verifique sua conexão.</span>
+          <button class="retry" data-testid="turnos-retry-btn" onclick="setState('lista')">Tentar de novo</button>
+        </div>
+
+        <!-- Skeleton -->
+        <div id="skeleton" class="hidden" data-testid="turnos-skeleton">
+          <div class="sk-header"></div>
+          <div class="group-cards">
+            <div class="sk"><div class="bar" style="width:55%"></div><div class="bar" style="width:70%"></div><div class="bar" style="width:40%"></div></div>
+            <div class="sk"><div class="bar" style="width:50%"></div><div class="bar" style="width:75%"></div><div class="bar" style="width:35%"></div></div>
+            <div class="sk"><div class="bar" style="width:60%"></div><div class="bar" style="width:65%"></div></div>
+          </div>
+        </div>
+
+        <!-- Lista agrupada -->
+        <div id="lista" data-testid="turnos-lista"></div>
+
+        <!-- Vazio (CA-6) -->
+        <div id="vazio" class="center-state hidden" data-testid="turnos-vazio">
+          <div class="ico">📅</div>
+          <h2>Ainda não há turnos</h2>
+          <p id="vazio-msg">Quando o contratante aceitar sua candidatura, o turno aparece aqui.</p>
+          <button class="btn-primary" id="vazio-cta" data-testid="turnos-vazio-cta">Ver vagas disponíveis</button>
+        </div>
+
+        <!-- Sem permissão (CA-5) -->
+        <div id="sem-permissao" class="center-state hidden" data-testid="turnos-sem-permissao">
+          <div class="ico">🔒</div>
+          <h2 id="perm-titulo">Esta área é do profissional</h2>
+          <p id="perm-msg">Meus turnos mostra os turnos de quem trabalha. Sua conta é de contratante.</p>
+          <button class="btn-primary">Voltar ao início</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  // ---- Mock de dados (inline, sem rede). UUIDs encurtados só para o protótipo. ----
+  // Profissional vê: estabelecimento + valor que recebe. Contratante vê: profissional + total (PDR-004).
+  const TURNOS = [
+    { id: 'u01', grupo: 'confirmado',         funcao: 'Garçom',        estab: 'Bar do Zé',       prof: 'Júlia Santos',   when: 'Sex, 12/06 · 18:00–23:00', valor: '200,00', total: '230,00', selo: ['confirmado','● Confirmado'] },
+    { id: 'u02', grupo: 'confirmado',         funcao: 'Cozinheira',    estab: 'Hotel Aurora',    prof: 'Marcos Lima',    when: 'Dom, 14/06 · 08:00–16:00', valor: '240,00', total: '276,00', selo: ['confirmado','● Confirmado'] },
+    { id: 'u03', grupo: 'aguardando-checkin', funcao: 'Auxiliar de cozinha', estab: 'Bar do Zé', prof: 'Ana Beatriz',    when: 'Qui, 05/06 · 16:00–22:00', valor: '140,00', total: '161,00', selo: ['aguardando','⧖ Aguardando check-in'] },
+    { id: 'u04', grupo: 'ativo',              funcao: 'Recepcionista', estab: 'Pousada Mar Alto', prof: 'Carlos Souza',  when: 'Qui, 05/06 · 14:00–22:00', valor: '160,00', total: '184,00', selo: ['ativo','▶ Em andamento'] },
+    { id: 'u05', grupo: 'aguardando-checkout', funcao: 'Garçom',       estab: 'Restaurante Vela', prof: 'Pedro Alves',   when: 'Qui, 05/06 · 06:00–14:00', valor: '180,00', total: '207,00', selo: ['aguardando','⧖ Aguardando check-out'] },
+    { id: 'u06', grupo: 'em-disputa',         funcao: 'Bartender',     estab: 'Bar do Zé',       prof: 'Luana Costa',    when: 'Qua, 04/06 · 19:00–01:00', valor: '210,00', total: '241,50', selo: ['disputa','⚠ Em disputa'] },
+    { id: 'u07', grupo: 'finalizado',         funcao: 'Bartender',     estab: 'Bar do Zé',       prof: 'Luana Costa',    when: 'Sáb, 31/05 · 20:00–02:00', valor: '220,00', total: '253,00', selo: ['finalizado','✓ Finalizado'] },
+    { id: 'u08', grupo: 'finalizado',         funcao: 'Camareira',     estab: 'Hotel Aurora',    prof: 'Rita Nogueira',  when: 'Qui, 29/05 · 08:00–16:00', valor: '150,00', total: '172,50', selo: ['finalizado','✓ Finalizado com ajuste'] },
+    { id: 'u09', grupo: 'encerrado',          funcao: 'Garçom',        estab: 'Restaurante Vela', prof: 'Pedro Alves',   when: 'Dom, 25/05 · 11:00–17:00', valor: '170,00', total: '195,50', selo: ['encerrado','⊘ Cancelado'] },
+    { id: 'u10', grupo: 'encerrado',          funcao: 'Recepcionista', estab: 'Pousada Mar Alto', prof: 'Carlos Souza',  when: 'Sex, 23/05 · 14:00–22:00', valor: '160,00', total: '184,00', selo: ['encerrado','⊘ Não realizado'] },
+    { id: 'u11', grupo: 'encerrado',          funcao: 'Cozinheira',    estab: 'Hotel Aurora',    prof: 'Marcos Lima',    when: 'Ter, 20/05 · 08:00–16:00', valor: '240,00', total: '276,00', selo: ['encerrado','⊘ Encerrado sem pagamento'] },
+  ];
+
+  // Ordem fixa do ciclo de vida (CA-1 + nota §4.1 sobre em_disputa)
+  const GRUPOS = [
+    ['confirmado', 'Confirmados'],
+    ['aguardando-checkin', 'Aguardando check-in'],
+    ['ativo', 'Em andamento'],
+    ['aguardando-checkout', 'Aguardando check-out'],
+    ['em-disputa', 'Em disputa'],
+    ['finalizado', 'Finalizados'],
+    ['encerrado', 'Encerrados'],
+  ];
+
+  let papel = 'profissional';
+  let estadoAtual = 'lista';
+
+  function cardHtml(t) {
+    const quem = papel === 'profissional' ? t.estab : t.prof;
+    const valor = papel === 'profissional'
+      ? `R$ ${t.valor}`
+      : `R$ ${t.total} <span class="sufixo">· total</span>`;
+    return `
+      <div class="card" data-testid="turno-card-${t.id}">
+        <div class="top">
+          <div>
+            <div class="funcao">${t.funcao}</div>
+            <div class="quem">${quem}</div>
+            <div class="when">${t.when}</div>
+          </div>
+          <span class="badge ${t.selo[0]}" data-testid="turno-card-${t.id}-estado">${t.selo[1]}</span>
+        </div>
+        <div class="valor" data-testid="turno-card-${t.id}-valor">${valor}</div>
+      </div>`;
+  }
+
+  function renderLista(turnos) {
+    const lista = document.getElementById('lista');
+    let html = '';
+    for (const [slug, label] of GRUPOS) {
+      const doGrupo = turnos.filter(t => t.grupo === slug);
+      if (doGrupo.length === 0) continue; // seção vazia é omitida (§4.1)
+      html += `<h2 class="group-header" data-testid="turnos-grupo-${slug}" aria-label="${label}, ${doGrupo.length} turno${doGrupo.length > 1 ? 's' : ''}">${label} (${doGrupo.length})</h2>`;
+      html += `<div class="group-cards">${doGrupo.map(cardHtml).join('')}</div>`;
+    }
+    lista.innerHTML = html;
+  }
+
+  // ---- Microcopy por papel (§5) ----
+  function aplicarPapel() {
+    document.body.classList.toggle('papel-profissional', papel === 'profissional');
+    document.body.classList.toggle('papel-contratante', papel === 'contratante');
+    const titulo = papel === 'profissional' ? 'Meus turnos' : 'Turnos';
+    document.getElementById('titulo-mobile').textContent = titulo;
+    document.getElementById('titulo-desktop').textContent = titulo;
+    document.getElementById('screen-root').dataset.testid =
+      papel === 'profissional' ? 'meus-turnos-screen' : 'contratante-turnos-screen';
+    document.getElementById('vazio-msg').textContent = papel === 'profissional'
+      ? 'Quando o contratante aceitar sua candidatura, o turno aparece aqui.'
+      : 'Quando você aceitar uma candidatura, o turno aparece aqui.';
+    document.getElementById('vazio-cta').textContent = papel === 'profissional'
+      ? 'Ver vagas disponíveis' : 'Ver minhas vagas';
+    // Sem permissão: mostra o que o OUTRO papel veria ao invadir esta rota
+    document.getElementById('perm-titulo').textContent = papel === 'profissional'
+      ? 'Esta área é do profissional' : 'Esta área é do contratante';
+    document.getElementById('perm-msg').textContent = papel === 'profissional'
+      ? 'Meus turnos mostra os turnos de quem trabalha. Sua conta é de contratante.'
+      : 'Acompanhar os turnos das vagas é uma ação de quem contrata. Sua conta é de profissional.';
+  }
+
+  function setPapel(p) {
+    papel = p;
+    document.querySelectorAll('[data-papel]').forEach(c => c.classList.toggle('active', c.dataset.papel === p));
+    aplicarPapel();
+    setState(estadoAtual);
+  }
+
+  function setVp(vp) {
+    document.body.classList.remove('mobile', 'desktop');
+    document.body.classList.add(vp);
+    document.querySelectorAll('[data-vp]').forEach(c => c.classList.toggle('active', c.dataset.vp === vp));
+  }
+
+  function hideAll() {
+    ['skeleton','lista','vazio','sem-permissao'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    document.getElementById('erro-banner').classList.add('hidden');
+  }
+
+  function setState(st) {
+    estadoAtual = st;
+    document.querySelectorAll('[data-st]').forEach(c => c.classList.toggle('active', c.dataset.st === st));
+    hideAll();
+    switch (st) {
+      case 'lista':
+        renderLista(TURNOS);
+        document.getElementById('lista').classList.remove('hidden');
+        break;
+      case 'lista-curta': // caso típico logo após a 058: só confirmados
+        renderLista(TURNOS.filter(t => t.grupo === 'confirmado'));
+        document.getElementById('lista').classList.remove('hidden');
+        break;
+      case 'loading':
+        document.getElementById('skeleton').classList.remove('hidden');
+        break;
+      case 'vazio':
+        document.getElementById('vazio').classList.remove('hidden');
+        break;
+      case 'erro':
+        document.getElementById('erro-banner').classList.remove('hidden');
+        break;
+      case 'sem-permissao':
+        document.getElementById('sem-permissao').classList.remove('hidden');
+        break;
+    }
+  }
+
+  // init (query string opcional: ?papel=contratante&vp=desktop&state=vazio)
+  const qs = new URLSearchParams(location.search);
+  if (['profissional','contratante'].includes(qs.get('papel'))) papel = qs.get('papel');
+  document.querySelectorAll('[data-papel]').forEach(c => c.classList.toggle('active', c.dataset.papel === papel));
+  if (['mobile','desktop'].includes(qs.get('vp'))) setVp(qs.get('vp'));
+  aplicarPapel();
+  const st0 = qs.get('state');
+  setState(['lista','lista-curta','loading','vazio','erro','sem-permissao'].includes(st0) ? st0 : 'lista');
+</script>
+</body>
+</html>

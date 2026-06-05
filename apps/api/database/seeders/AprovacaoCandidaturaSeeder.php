@@ -11,6 +11,7 @@ use App\Models\Turno;
 use App\Models\User;
 use App\Models\Vaga;
 use App\Models\VagaVersao;
+use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -197,7 +198,7 @@ class AprovacaoCandidaturaSeeder extends Seeder
     }
 
     /** Vaga aberta (1 posição) na semana-alvo, marcada para idempotência/limpeza. */
-    private function vagaAberta(User $contratante, string $funcaoId, \Carbon\Carbon $inicio, string $marcador): Vaga
+    private function vagaAberta(User $contratante, string $funcaoId, Carbon $inicio, string $marcador): Vaga
     {
         $vaga = Vaga::create([
             'contratante_id' => $contratante->id,
@@ -240,7 +241,7 @@ class AprovacaoCandidaturaSeeder extends Seeder
      * é o que faz a vaga-alvo ser a 3ª alocação (PDR-002). Vaga fechada + candidatura
      * aprovada próprias (UNIQUE candidatura_id — padrão do TurnosSeeder, production-safe).
      */
-    private function turnoDoPar(User $contratante, User $prof, string $funcaoId, \Carbon\Carbon $inicio, string $marcador): void
+    private function turnoDoPar(User $contratante, User $prof, string $funcaoId, Carbon $inicio, string $marcador): void
     {
         $vaga = Vaga::create([
             'contratante_id' => $contratante->id,

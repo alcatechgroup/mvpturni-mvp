@@ -14,6 +14,7 @@
 import 'auth_test.dart' as auth;
 import 'cadastro_test.dart' as cadastro;
 import 'feed_test.dart' as feed;
+import 'turnos_test.dart' as turnos;
 import 'vagas_test.dart' as vagas;
 
 void main() {
@@ -21,4 +22,7 @@ void main() {
   cadastro.main();
   vagas.main();
   feed.main();
+  // turnos usa usuários EXCLUSIVOS do TurnosSeeder (*.turnos.seed@turni.local) — não
+  // disputa estado com nenhuma suíte acima; roda por último por ser o mais novo.
+  turnos.main();
 }

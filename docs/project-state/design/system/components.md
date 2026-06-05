@@ -72,6 +72,41 @@ A versão 0.1 cobre **apenas** o necessário para o EPIC-000 (página de boas-vi
 
 ---
 
+## `badge.status`
+
+**Descrição:** selo compacto de estado de uma entidade (Vaga, Turno) no canto do card. **Cor é
+semântica, nunca de perfil**, e nunca é o único canal: rótulo textual + ícone + borda ≥3:1
+(tokens §4). Nasceu como exceção na SCREEN-047; estendido com as variantes de Turno na
+SCREEN-059 (registro deste uso).
+
+**Flutter:** `Container` com `radius.full` + `Row(Icon, Text)`; borda `fg @ 40%`.
+
+| Variante | Uso | Cor |
+|---|---|---|
+| success soft | vaga `aberta`, turno `confirmado` | `success.soft` + ink verde |
+| success preenchido | turno `ativo` ("vivo agora") | `success` + branco |
+| warning soft | turno `aguardando_checkin/checkout` | `warn.soft` + `accent.ink` mostarda |
+| error soft | turno `em_disputa` | `error.soft` + ink vermelho |
+| neutro | vaga `fechada`, turno `finalizado*` | cinza-quente + `text.muted` |
+| error esmaecido | `cancelad*`, `no_show`, sem pagamento | rosa-acinzentado + ink esmaecido |
+
+**Acessibilidade:** o rótulo é lido pelo leitor de tela; o ícone é decorativo (sem semantics própria).
+
+---
+
+## `section.group-header`
+
+**Descrição:** cabeçalho de seção para lista agrupada (overline caps + contador) — 1º uso na
+SCREEN-059 (listas de turnos por estado). Candidato a promoção definitiva quando STORY-060/066
+reusarem. Seção vazia é **omitida** (sem header órfão).
+
+**Flutter:** `Text` 12px w800 `letterSpacing 1.2` em `text.muted`, envolto em
+`Semantics(header: true, label: '<Título>, N turnos')`.
+
+**Anatomia:** `"{Título} ({N})"`; margem `space.lg` acima / `space.sm` abaixo.
+
+---
+
 ## Roadmap (entram por DDR/uso a partir do EPIC-001)
 
 `button.secondary` (`OutlinedButton`), `button.danger`, `input.text` (`TextFormField`), `input.select` (`DropdownMenu`), `input.checkbox`, `input.switch`, `chip` (`FilterChip`/`InputChip`), `segmented` (`SegmentedButton`), `card.vaga`, `card.turno`, `list.tile` (`ListTile`), `empty-state`, `snackbar`, `bottom-sheet`, `dialog`, `nav.bar` (`NavigationBar`) + `nav.rail` (`NavigationRail`), `app.bar`, `stepper`, `skeleton`, `badge`.

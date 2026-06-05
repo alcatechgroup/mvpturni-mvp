@@ -158,6 +158,13 @@ class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
       appBar: AppBar(
         title: const Text('Minhas vagas'),
         actions: [
+          // Porta de entrada de "Turnos" do contratante (STORY-059 / SCREEN-059 §2).
+          IconButton(
+            key: const Key('minhas-vagas-turnos-btn'),
+            tooltip: 'Turnos',
+            icon: const Icon(Icons.event_note),
+            onPressed: () => context.go('/contratante/turnos'),
+          ),
           const TurnoAtivoAcao(),
           const NotificacoesSino(),
           IconButton(
