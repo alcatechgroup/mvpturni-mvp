@@ -131,6 +131,9 @@ NÃO decide: visibilidade financeira (fixada em `domain/pagamento.md`).
 
 ### Links de evidência
 
-- PR: commit direto na main (workflow do projeto).
-- Pipeline: CI da main no commit da estória.
-- Deploy de homologação: rc.N (preencher no deploy).
+- PR: n/a (commit direto na main — fluxo combinado). Commit `892d43b`.
+- Pipeline: Release run 27020009553 (verde; migrate+seed executados — backfill da trilha
+  aplicado nos turnos do seed antigos).
+- Deploy de homologação: **v0.1.0-rc.72** no ar (2026-06-05; `version.json` confere;
+  `GET /api/turnos/{uuid}` sem auth → 401, rota viva). Verificação manual de Alexandro:
+  pendente (roteiro entregue em chat).
