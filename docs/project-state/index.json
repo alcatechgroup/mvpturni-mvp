@@ -1879,12 +1879,12 @@
     {
       "id": "STORY-056",
       "epic_id": "EPIC-003",
-      "title": "Spike Arquiteto — ACL Pagar.me + adapter sandbox/mock + idempotência + webhook (056-A: ACL+adapter+mock+idempotência+webhook+observabilidade)",
+      "title": "Spike Arquiteto — ACL de pagamento (provider-agnóstico) + fake genérico + idempotência + webhook (056-A; reescopada por PDR-017)",
       "type": "spike",
       "target_role": "arquiteto",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-opus-4-8-arquiteto-2026-06-04",
       "sprint_id": "SPRINT-2026-W28",
       "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-056-spike-acl-pagarme-sandbox-idempotencia-webhook.md",
@@ -3489,5 +3489,5 @@
       "path": "reports/status-2026-05-27-sprint-w23-aberto.md"
     }
   ],
-  "next_action": "STORY-056-A (ACL Pagar.me) em in_review: ADR-016 proposed aguardando aprovação do Alexandro; deploy rc.N pendente para fechar o webhook em homolog. STORY-056-B (contract test sandbox CI noturno) ready, bloqueada por credenciais Pagar.me sandbox (Alexandro provê). Caminho crítico segue: STORY-057 (spike tempo real) e STORY-058 (aceite + pré-autorização, consome GatewayPagamento::preAutorizar)."
+  "next_action": "STORY-056 DONE em 2026-06-04 (rc.68): ADR-016 accepted (revisada pós-PDR-017 e aprovada pelo Alexandro); ADR-005 anotada (accepted mantido); make setup verificado ponta-a-ponta (achado corrigido: fake stateless não ecoava external_reference em capture/cancel → eventos de domínio não emitidos; fix com estado mínimo); fake deployado em homolog (Cloud Run turni-pagarme-mock-homolog via Terraform + matrix do release.yml) e ciclo pré-auth→captura→Pix→webhook verificado no Cloud Logging (PreAutorizacaoCriada/CapturaConfirmada/PixEnviado correlacionados). STORY-056-B abandonada (PDR-017). Caminho crítico: STORY-058 (aceite + pré-autorização, consome GatewayPagamento::preAutorizar via fake). Ortogonais prontas para iniciar: STORY-075 (banner homolog) e STORY-073 (schedule:run)."
 }

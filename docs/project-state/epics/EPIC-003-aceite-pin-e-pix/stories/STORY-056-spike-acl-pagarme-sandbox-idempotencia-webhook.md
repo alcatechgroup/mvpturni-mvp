@@ -8,7 +8,7 @@ type: spike
 target_role: arquiteto
 requires_design: false
 design_screen_id: null
-status: in_review
+status: done  # fechada em 2026-06-04: ADR-016 accepted; make setup verificado; fake deployado e ciclo verificado em homolog (rc.68)
 owner_agent: claude-opus-4-8-arquiteto-2026-06-04
 created_at: 2026-06-03
 updated_at: 2026-06-04
@@ -120,7 +120,7 @@ Você NÃO decide: estratégia de alto nível (vive em ADR-005, não reabrir); d
 - [x] **ADR-016 revisada pelo Arquiteto** para refletir PDR-017 — revisão feita em 2026-06-04 (título/slug → "ACL de pagamento + fake genérico" com `*_history`; driver `mock` mantido como nome do fake; fake também em homolog; seção h/contract test adiada para a próxima wave; index.json sincronizado) — e **`accepted` por Alexandro em chat no mesmo dia**, sobre a versão revisada.
 - [x] `make setup` + ambiente local com fake sem internet — **verificado ponta-a-ponta em 2026-06-04** (delegado pelo Alexandro em chat ao agente): `make clean` + `make setup` do zero (exit 0; 7 containers de pé; api/admin/webapp/fake respondendo 200). Ciclo feliz **pré-auth → captura → Pix** e ciclo de **cancelamento** exercitados contra o fake em container real: 5 webhooks assinados recebidos, HMAC validado, dedup ok, worker emitiu `PreAutorizacaoCriada`/`CapturaConfirmada`/`PixEnviado`/`PreAutorizacaoLiberada` com `turno_id` correlacionado; HMAC inválido → 401 sem persistir; `event_id` duplicado → 200 com 1 linha só. **Achado corrigido na verificação:** o fake era stateless e emitia `charge.paid`/`charge.canceled` sem `external_reference` → `ProcessarWebhookPagarmeJob` marcava processado **sem emitir o evento de domínio** (`turnoId null` — teria quebrado STORY-065/066 silenciosamente); fix: estado mínimo charge_id→external_reference/amount no fake (flock em /tmp), alinhando-o ao `contract.md`.
 - [~] ~~Job de contract test rodando no CI noturno~~ **REMOVIDO por PDR-017** (sem sandbox real).
-- [ ] Fake validado funcionando em homolog (deploy verificado) → após merge + deploy rc.N (mesmo gate de STORY-055).
+- [x] Fake validado funcionando em homolog — **verificado em 2026-06-04, rc.68**: Cloud Run `turni-pagarme-mock-homolog` provisionado por Terraform (resource direto, sem Cloud SQL/VPC; secrets Bearer+HMAC no Secret Manager compartilhados com api/worker; `PAGARME_DRIVER=mock` + `PAGARME_BASE_URL` no api e no worker_job); imagem na matrix do release.yml com job de deploy próprio + health check. Smoke ponta-a-ponta em homolog: pré-auth → captura → Pix no fake → 3 webhooks assinados → api validou HMAC → worker (Cloud Run Job) emitiu `PreAutorizacaoCriada`/`CapturaConfirmada`/`PixEnviado` com `turno_id` correlacionado (Cloud Logging, `pagamento.webhook_processado` resultado=ok). POST anônimo no fake → 401 (Bearer do contract.md ativo).
 - [x] Suíte `api` verde com cobertura exigida (648 testes; núcleo 100%, adapter 100%; gate `--min=80` EXIT=0).
 - [x] `index.json` atualizado.
 - [x] "Notas do agente" preenchida + acrescentar bloco "Pivô PDR-017 — o que foi removido/preservado".
@@ -162,9 +162,9 @@ Você NÃO decide: estratégia de alto nível (vive em ADR-005, não reabrir); d
 - Smoke em container real: `POST localhost:8090/orders` → webhook `charge.pending` assinado → `webhook_eventos_pagarme.processado_em` preenchido pelo worker.
 
 ### Links de evidência
-- PR:
-- Pipeline:
-- Deploy de homologação:
+- PR: n/a (workflow Turni — commit direto na `main`; commits 3bbb5cb/136347d/6f32de6 docs ADRs, ed9e8dd fix do fake, 1c041f0 infra homolog)
+- Pipeline: release.yml run 26986919217 (tag `v0.1.0-rc.68`) — build api/admin/pagarme-mock + migrate + deploys + smoke pós-deploy, tudo verde
+- Deploy de homologação: rc.68 — fake `turni-pagarme-mock-homolog` no ar; ciclo pré-auth→captura→Pix→webhook verificado (eventos `PreAutorizacaoCriada`/`CapturaConfirmada`/`PixEnviado` no Cloud Logging com turno correlacionado)
 
 ## Mudanças desta estória pós-PDR-017 (2026-06-04)
 
