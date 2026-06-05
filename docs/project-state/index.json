@@ -248,7 +248,9 @@
         "STORY-068",
         "STORY-075"
       ],
-      "abandoned_story_ids": ["STORY-056-B"],
+      "abandoned_story_ids": [
+        "STORY-056-B"
+      ],
       "validation_report": null,
       "created_at": "2026-05-26",
       "updated_at": "2026-06-04",
@@ -1921,6 +1923,33 @@
       "updated_at": "2026-06-04"
     },
     {
+      "id": "STORY-058",
+      "epic_id": "EPIC-003",
+      "title": "Aceitar candidatura no WebApp (contratante) + AceiteEletronico imutável + pré-autorização via gateway (fake genérico — PDR-017; CA-1 corrigido pelo PO 2026-06-04)",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-058-aprovar-candidatura",
+      "status": "in_review",
+      "owner_agent": "claude-opus-4-8",
+      "sprint_id": "SPRINT-2026-W28",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-058-aceitar-candidatura-backoffice-aceite-eletronico-preauth.md",
+      "blocked_by": [
+        "STORY-055",
+        "STORY-056"
+      ],
+      "blocks": [
+        "STORY-059",
+        "STORY-060",
+        "STORY-066",
+        "STORY-067"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-03",
+      "updated_at": "2026-06-04"
+    },
+    {
       "id": "STORY-074",
       "epic_id": "EPIC-011",
       "title": "Geocodificar o endereço do estabelecimento → lat/lng (cadastro + backfill + ACL + mock)",
@@ -2420,7 +2449,9 @@
         "STORY-073",
         "STORY-075"
       ],
-      "abandoned_story_ids": ["STORY-056-B"],
+      "abandoned_story_ids": [
+        "STORY-056-B"
+      ],
       "stretch_story_ids": [],
       "sizing_total": "2 S + 12 M + 2 L (16 estórias) — STORY-056 quebrada em 056-A (M, in_review) + 056-B (abandonada por PDR-017); STORY-073 carry-forward EPIC-002 (M); STORY-075 banner global PDR-017 (S, renumerada de 074 por colisão com EPIC-011).",
       "epics": [
@@ -2581,9 +2612,23 @@
         "status": "accepted",
         "path": "decisions/pdr/PDR-017-pagamento-via-fake-generico-no-mvp.md",
         "decided_at": "2026-06-04",
-        "related_epics": ["EPIC-003", "EPIC-005"],
-        "related_adrs": ["ADR-005", "ADR-016"],
-        "related_stories": ["STORY-056", "STORY-056-B", "STORY-058", "STORY-065", "STORY-066", "STORY-068", "STORY-075"],
+        "related_epics": [
+          "EPIC-003",
+          "EPIC-005"
+        ],
+        "related_adrs": [
+          "ADR-005",
+          "ADR-016"
+        ],
+        "related_stories": [
+          "STORY-056",
+          "STORY-056-B",
+          "STORY-058",
+          "STORY-065",
+          "STORY-066",
+          "STORY-068",
+          "STORY-075"
+        ],
         "consequences": "STORY-056 reescopada (ACL provider-agnóstica + fake; trabalho técnico já feito preservado); STORY-056-B abandonada (sem sandbox real, contract test perde objeto); STORY-075 criada (banner global em homolog — renumerada de STORY-074 por colisão com EPIC-011/geocoding); ADR-005 + ADR-016 marcadas para revisão pelo Arquiteto; métrica primária do EPIC-003 ajustada (100% com fake em modo success em vez de ≥95% sandbox); promessa Pix em 15 min mantida como simulação; risco técnico nº 1 da onda neutralizado; próxima wave terá épico dedicado à integração Pagar.me real."
       }
     ],
@@ -3456,6 +3501,36 @@
         "owner_designer": "claude-opus-4-8",
         "created_at": "2026-06-02",
         "updated_at": "2026-06-03"
+      },
+      {
+        "id": "SCREEN-STORY-058-aprovar-candidatura",
+        "story": "STORY-058",
+        "epic": "EPIC-003",
+        "status": "in_implementation",
+        "path": "design/screens/SCREEN-STORY-058-aprovar-candidatura.md",
+        "viewports": [
+          "mobile",
+          "desktop"
+        ],
+        "related_ddrs": [
+          "DDR-001",
+          "DDR-002"
+        ],
+        "related_idrs": [],
+        "ds_components_used": [
+          "surface.card",
+          "dialog",
+          "snackbar",
+          "button.primary",
+          "button.secondary",
+          "button.text",
+          "badge.status",
+          "habitualidade.badge",
+          "match.scorechip"
+        ],
+        "owner_designer": "claude-opus-4-8",
+        "created_at": "2026-06-04",
+        "updated_at": "2026-06-04"
       }
     ],
     "system": {

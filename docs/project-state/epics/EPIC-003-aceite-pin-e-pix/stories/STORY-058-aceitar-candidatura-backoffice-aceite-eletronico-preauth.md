@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true  # 2026-06-04 (PO em chat): aprovação é do CONTRATANTE no WebApp; designer especifica os modais (bloqueio PF / override PJ / confirmação)
 design_screen_id: SCREEN-STORY-058-aprovar-candidatura
-status: in_progress
+status: in_review
 owner_agent: claude-opus-4-8
 created_at: 2026-06-03
 updated_at: 2026-06-04
@@ -127,13 +127,52 @@ NÃO decide: regra de habitualidade (PDR-002); valor da taxa Turni (PDR-004 = 15
 - Bordas extras: renderização com placeholder ausente falha duro (sem aceite incompleto); vaga fechada/cancelada → 422; candidatura `retirada` → 422; última posição fecha a vaga.
 
 ### Decisões tomadas
+
+1. **Habitualidade do aceite conta TURNOS, não candidaturas** (`GateHabitualidadeAceite`): a tabela-alvo é `turnos` (índice de ADR-006/ADR-015), excluindo `cancelado_pro`/`cancelado_emp`/`no_show_pro` (alocação desfeita — PDR-007). O gate da candidatura (STORY-050) continua contando candidaturas vivas — são réguas diferentes para momentos diferentes.
+2. **Chave de idempotência da pré-autorização**: o CA-2 citava `aceite:{candidatura_id}`, mas ADR-016 (aceita, implementada) fixou `{tipo}:{turno_id}` no runner `OperacaoIdempotente`. ADR vence. O efeito do CA-5 está garantido em três camadas: UNIQUE(candidatura_id) em turnos (ADR-015) + UNIQUE(turno_id, tipo_operacao) em pagamento_operacoes + curto-circuito do runner.
+3. **Eventos do desfecho da pré-autorização**: `PagamentoPreAutorizado` / `PagamentoPreAutorizacaoFalhou` (CA-6) são emitidos pelo `PreAutorizarTurnoJob` (desfecho síncrono da chamada à ACL), distintos do `PreAutorizacaoCriada` da ADR-016 (que nasce do webhook do fake). Falha fatal (recusa) NÃO relança — registra audit + evento + operação `falhou` (sem retry, espelha PDR-010); `GatewayIndisponivel` relança (worker retenta com backoff; `failed()` registra o desfecho).
+4. **`meioPagamentoToken` stub** (`tok_mvp_{contratante_id}`): tokenização real é da wave de integração Pagar.me (ADR-016 §consequências); o fake (PDR-017) honra qualquer token.
+5. **Financeiro em centavos inteiros** (`AprovarCandidaturaService::financeiro`): 15% (PDR-004) com meio-arredondamento para cima, sem float/bcmath — espelha `PagarmeGateway::centavos()`. O CHECK do banco (total = valor + taxa) é satisfeito por construção. Mesma conta serve o preview no payload do painel (SCREEN-058 D1).
+6. **`AceiteTurnoRenderer` separado do de adesão**: renderiza Seção 1+2+Assinatura (adesão corta a 2); a cláusula 10 condicional entra só com override real (3ª PJ + clique), e a linha-diretiva do template (instrução ao motor) nunca aparece no documento. Reusa `substituir()` do renderer de adesão (composição, não herança).
+7. **Override só carimba onde há risco**: `override: true` sem 3ª alocação NÃO marca `habitualidade_override` nem renderiza cláusula — o registro jurídico reflete a realidade, não o payload.
+8. **Aprovação preenche posição da vaga** (fecha na última — `domain/vaga.md` + `domain/candidatura.md` §aprovação dispara decremento). Notificação ao profissional fica para STORY-067.
+9. **`formatBRL` promovido a `core/format/brl.dart`** no WebApp (4º uso — regra de três; feed/minhas vagas/detalhe migrados).
+10. **Seeder E2E em semana virgem** (`AprovacaoCandidaturaSeeder`): turno/aceite são imutáveis (não dá para "desfazer" no reseed), então cada cenário consumido leva o próximo a uma semana ainda não usada pelo par — PDR-002 nunca acumula e o caminho feliz é determinístico. Production-safe (sem fake()/factory).
+
 ### Descobertas
+
+- **Locale pt-BR muda o default de `startOfWeek()` para domingo** (Carbon). PDR-002 fixa segunda→domingo; o gate usa `CarbonInterface::MONDAY` explícito e os helpers de teste idem. Pegadinha real: testes de borda de semana passavam "por sorte" dependendo do dia da execução.
+- O CA-6 da STORY-051 (botões desabilitados) foi atualizado conscientemente no widget test do painel — aceitar agora habilitado (este é o EPIC-003 chegando), remover segue desabilitado (Lacuna MVP).
+- `GET /api/vagas/{vaga}/candidatos` ganhou o bloco `vaga: { valor, taxa_turni, total_contratante }` (aditivo — não quebra consumidores).
+
 ### Bloqueios encontrados
+
+Nenhum técnico. Três ambiguidades de produto escaladas e decididas pelo PO em chat (2026-06-04) — ver "Entrada inicial": quem aprova (contratante/WebApp), CA-3 lado do profissional (adiado p/ STORY-059/060), CA-8 (reusa templates da STORY-020).
+
 ### IDRs criados
+
+Nenhum — nenhuma lib nova, nenhum padrão transversal novo (tudo dentro de ADR-015/016/018 e PDR-002/004/017).
+
 ### Cobertura final
-- Unitários: <%>
-- E2E: 
+
+- **api** (suíte completa, 734+ testes verdes, global **92,4%**, gate ≥80% ✓). Núcleo da estória (gate ≥98%):
+  - `GateHabitualidadeAceite` **100%** · `AceiteTurnoRenderer` **100%** · `AprovarCandidaturaService` **99,3%** · `PreAutorizarTurnoJob` **100%** · `AprovarCandidaturaController` **100%** · `AprovarCandidaturaResultado` **100%**.
+- **webapp**: suíte completa **376 testes verdes** (17 novos em `aprovar_candidatura_test.dart`: service 201/409/422/403/rede + D1/D2/D3 + desfechos + anti clique-duplo). `flutter analyze` limpo (2 infos pré-existentes em telas de cadastro intocadas); `dart format` limpo; `pint` api+admin verdes.
+
+### Mapeamento CA → teste (final)
+
+- CA-1 → `AprovarCandidaturaTest`: "contratante dono aprova → 201", "NÃO-dono → 403", "profissional → 403", "sem sessão → 401 / inexistente → 404".
+- CA-2 → `AprovarCandidaturaTest`: "cria Turno confirmado com financeiro congelado", "candidatura aprovada + vaga preenche posição", "múltiplas posições continua aberta", "aceite referencia versão ativa do tipo", "PF usa pf_autonomo_eventual", "despacha o job", "rollback: template sem versão ativa → nada persiste".
+- CA-3 → `AprovarCandidaturaTest` "PF 3ª → 422 mensagem PDR-002" + `HabitualidadeAceiteTest` (12 cenários: liberações, bloqueio, default PF, exclusões, bordas seg/dom).
+- CA-4 → `AprovarCandidaturaTest`: "PJ 3ª sem override → 422", "com override → cláusula no aceite", "override sem risco não carimba", "PF não aceita override"; renderer: cláusula condicional (4 testes).
+- CA-5 → `AprovarCandidaturaTest` "aprovar duas vezes → 1 turno + 409" + `PreAutorizarTurnoJobTest` "duas execuções → 1 chamada ao provedor" + UI anti clique-duplo (CTA travado).
+- CA-6 → `PreAutorizarTurnoJobTest` (8 testes: sucesso/evento/audit, curto-circuito, recusa fatal sem relançar, indisponível relança, failed() esgotado, defensivos, fila database).
+- CA-7 → `AprovarCandidaturaTest` "grava turno.criado e aceite_eletronico.emitido" + `PreAutorizarTurnoJobTest` (pagamento.pre_autorizado / .pre_autorizacao_falhou). Imutabilidade da trilha herdada (testes de ADR-013/015 vigentes).
+- CA-8 → `TemplatesTurnoFidelidadeTest` (SHA-256 da v1 ativa == texto-seed vendorado; placeholders da Seção 2; cláusula condicional só no MEI/PJ). Fidelidade docs↔vendored conferida no host (FIEL nos 2). **Validação do PO em chat: pendente no fechamento.**
+- CA-9 → E2E backend: 4 cenários PDR-002 em `AprovarCandidaturaTest`+`HabitualidadeAceiteTest` (PF 1ª/2ª libera; PF 3ª bloqueia sem turno; PJ 3ª override com cláusula; virada de semana reseta) contra Postgres real. UI: `integration_test/vagas/aprovar_candidatura_test.dart` same-origin (IDR-021, gate local IDR-004) — caminho feliz ponta a ponta com POST real.
+- CA-10 → cobertura acima.
+
 ### Links de evidência
-- PR:
-- Pipeline:
-- Deploy de homologação:
+- PR: n/a — commit direto na `main` (git workflow Turni). Commits: 89028f5 (red), ff80f29 (backend), 030f307 (UI+seeder), + pint/format.
+- Pipeline: CI pós-push na main (preencher após push).
+- Deploy de homologação: (preencher após rc + verificação do Alexandro)

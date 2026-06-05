@@ -152,6 +152,24 @@ test('CA-6: GatewayIndisponivel relança (worker retenta com backoff)', function
     Event::assertNotDispatched(PagamentoPreAutorizacaoFalhou::class);
 });
 
+test('CA-6: tentativas esgotadas (failed) registram a falha + evento + audit', function () {
+    Event::fake([PagamentoPreAutorizacaoFalhou::class]);
+    $turno = Turno::factory()->create();
+
+    (new PreAutorizarTurnoJob($turno->id))->failed(new GatewayIndisponivel('timeout final'));
+
+    Event::assertDispatched(PagamentoPreAutorizacaoFalhou::class, fn ($e) => $e->turnoId === $turno->id && str_contains($e->motivo, 'timeout final'));
+    expect(AuditLog::where('action', 'pagamento.pre_autorizacao_falhou')->where('target_id', $turno->id)->exists())->toBeTrue();
+});
+
+test('failed() com turno inexistente não explode (defensivo)', function () {
+    Event::fake([PagamentoPreAutorizacaoFalhou::class]);
+
+    (new PreAutorizarTurnoJob('0197a000-0000-7000-8000-000000000000'))->failed(null);
+
+    Event::assertNotDispatched(PagamentoPreAutorizacaoFalhou::class);
+});
+
 // ─── (d) bordas ───────────────────────────────────────────────────────────────
 
 test('turno inexistente: job retorna sem erro (defensivo)', function () {
