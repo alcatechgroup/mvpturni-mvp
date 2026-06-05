@@ -2,7 +2,7 @@
 id: SCREEN-STORY-063-cronometro
 story: STORY-063-cronometro-bilateral-tempo-real
 epic: EPIC-003-aceite-pin-e-pix
-status: in_implementation    # draft | ready | in_implementation | shipped | superseded
+status: shipped              # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-05
 updated_at: 2026-06-05
 owner_designer: claude-opus-4-8
@@ -315,3 +315,4 @@ semânticos auditados.
 | 2026-06-05 | criação (spec completo + protótipo v1) | claude-opus-4-8 (designer) | STORY-063; spec + protótipo entregues juntos para validação humana |
 | 2026-06-05 | validação humana — aprovado sem ajustes | Alexandro | inclui posição do card (abaixo do header), formato MM:SS/HH:MM:SS, reconexão sem congelar o display; PO também aprovou amostragem de ~60s (≥10 amostras) no E2E do CA-3 em vez de 5min literais; `status: ready` |
 | 2026-06-05 | implementação | claude-opus-4-8 (programador) | `status: in_implementation` |
+| 2026-06-05 | implementado + PO aprovou em homolog | claude-opus-4-8 / Alexandro | STORY-063 entregue (núcleo 100% / card 94,2% / controller 100%, webapp 490 testes, E2E bilateral ≥12 amostras ≤2s, carga 50 turnos, rc.75) e aprovada em chat após verificação em 2 navegadores; `mono.display` registrado no DS; `status: shipped` |

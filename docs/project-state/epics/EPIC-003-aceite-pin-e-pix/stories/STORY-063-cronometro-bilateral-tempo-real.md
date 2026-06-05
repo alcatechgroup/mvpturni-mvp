@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-063-cronometro
-status: in_review
+status: done
 owner_agent: claude-opus-4-8
 created_at: 2026-06-03
 updated_at: 2026-06-05
@@ -83,12 +83,12 @@ NÃO decide: canal de tempo real (vive em ADR-017); que servidor é fonte de ver
 
 ## Definição de Pronto
 
-- [ ] CAs marcados; deploy verificado.
-- [ ] SCREEN-STORY-063 `shipped`.
-- [ ] Alexandro testa em homolog (2 navegadores, cronômetro sincronizado).
-- [ ] Teste de carga 50 turnos passou em CI.
-- [ ] `index.json` atualizado.
-- [ ] "Notas do agente" preenchida.
+- [x] CAs marcados; deploy verificado (v0.1.0-rc.75 em homolog, pipeline verde).
+- [x] SCREEN-STORY-063 `shipped`.
+- [x] Alexandro testa em homolog (2 navegadores, cronômetro sincronizado) — aprovado em chat (2026-06-05).
+- [x] Teste de carga 50 turnos passou em CI (`CronometroCargaTest`).
+- [x] `index.json` atualizado.
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo
 
@@ -122,4 +122,4 @@ NÃO decide: canal de tempo real (vive em ADR-017); que servidor é fonte de ver
 ### Links de evidência
 - PR: commit direto na main (workflow do projeto).
 - Pipeline: release.yml dispara na tag `v0.1.0-rc.75`.
-- Deploy de homologação: rc.75 — verificação manual do PO (2 navegadores) pendente no DoD.
+- Deploy de homologação: rc.75 — verificado manualmente pelo PO em 2 navegadores e **aprovado em chat (2026-06-05)**.
