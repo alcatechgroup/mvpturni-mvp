@@ -55,7 +55,9 @@ test('gerar estoura após esgotar as tentativas se a fonte só devolve triviais'
 
 test('gerar re-sorteia quando a fonte devolve trivial e aceita o próximo válido', function () {
     $valores = [1234, 0, 4702]; // 1234 (sequência) e 0000 (repetido) caem; 4702 passa
-    $pin = PinCheckin::gerar(fn () => array_shift($valores));
+    $pin = PinCheckin::gerar(function () use (&$valores) {
+        return array_shift($valores);
+    });
 
     expect($pin)->toBe('4702');
 });
