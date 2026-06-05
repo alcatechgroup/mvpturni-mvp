@@ -1,5 +1,10 @@
 # Inventário de Recursos GCP — Turni MVP
 
+> **⚠️ SUPERSEDED (2026-06-04):** este inventário foi substituído por
+> [`gcp-inventory-2026-06-04.md`](gcp-inventory-2026-06-04.md). Principais mudanças:
+> worker GCE → Cloud Run Job (IDR-016), fake de pagamento em homolog (PDR-017),
+> +3 secrets, monitoring expandido. Custo total revisado: ~$13–18 → ~$20–29/mês.
+
 **Ambiente provisionado:** Homologação (`homolog`)
 **Região:** `southamerica-east1` (São Paulo)
 **Produção:** scaffolded em código mas **NÃO aplicada** — sem custo.
