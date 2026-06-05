@@ -2,16 +2,16 @@
 id: SCREEN-STORY-058-aprovar-candidatura
 story: STORY-058-aceitar-candidatura-backoffice-aceite-eletronico-preauth
 epic: EPIC-003-aceite-pin-e-pix
-status: ready                # draft | ready | in_implementation | shipped | superseded
+status: shipped              # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-04
-updated_at: 2026-06-04
+updated_at: 2026-06-05
 owner_designer: claude-opus-4-8
 related_ddrs: [DDR-001, DDR-002]
 ds_components_used: [surface.card, dialog, snackbar, button.primary, button.secondary, button.text, badge.status, habitualidade.badge, match.scorechip]
 exceptions_to_ds: [dialog.destaque-financeiro (tabela valor/taxa/total dentro do dialog de confirmação — 1º uso; candidata a promoção quando STORY-060 reusar no detalhe do turno)]
 viewports: [mobile, desktop]
 prototype_path: SCREEN-STORY-058-aprovar-candidatura/index.html
-prototype_last_validated_at: null
+prototype_last_validated_at: 2026-06-05   # validado em homolog (rc.70) + aprovado por Alexandro em chat
 ---
 
 # Spec de tela — SCREEN-STORY-058 — Aceitar candidatura (painel de candidatos)
@@ -277,3 +277,4 @@ usuário; o termo técnico vive no domínio. O nome do provedor de pagamento **n
 | Data | Mudança | Quem | Motivo |
 |---|---|---|---|
 | 2026-06-04 | criação (delta sobre SCREEN-051: D1 confirmação c/ financeiro PDR-004, D2 bloqueio PF, D3 override PJ, snackbars de desfecho, anti clique-duplo) | claude-opus-4-8 (designer) | STORY-058; decisão PO em chat moveu a aprovação para o contratante no WebApp |
+| 2026-06-05 | validação humana — Alexandro percorreu os 3 cenários em homolog (rc.70) e aprovou em chat; `status: shipped` | Alexandro | D1/D2/D3 + snackbars conferidos no app real |

@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true  # 2026-06-04 (PO em chat): aprovação é do CONTRATANTE no WebApp; designer especifica os modais (bloqueio PF / override PJ / confirmação)
 design_screen_id: SCREEN-STORY-058-aprovar-candidatura
-status: in_review
+status: done
 owner_agent: claude-opus-4-8
 created_at: 2026-06-03
-updated_at: 2026-06-04
+updated_at: 2026-06-05
 estimated_session_size: M
 produces_idr: null
 ---
@@ -44,16 +44,16 @@ Sem essa ação, o produto não tem Turno. Sem o AceiteEletronico imutável anex
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Botão "Aceitar candidatura" do painel de candidatos (STORY-051, WebApp do contratante) chama endpoint backend `POST /api/candidaturas/{id}/aprovar` (RBAC **contratante dono da vaga**; não-dono/profissional → 403). *(Corrigido em 2026-06-04 por decisão do PO em chat: o título original dizia "Backoffice"/RBAC admin, mas épico + `domain/candidatura.md` §"Aprovação pelo contratante" fixam que quem aprova é o contratante no WebApp.)*
-- [ ] **CA-2:** Endpoint executa em transação Postgres: consulta habitualidade (ADR-006), aplica regra PDR-002, e — se aprovado — cria Turno (`status: confirmado`), AceiteEletronico imutável (placeholders renderizados a partir de Turno + Profissional + Contratante + flag `habitualidade.override_aceito`), e dispara `preAutorizar` da ACL de pagamento (fake — PDR-017) com chave de idempotência `aceite:{candidatura_id}`.
-- [ ] **CA-3:** Habitualidade — PF 3ª: endpoint retorna 422 com mensagem "este profissional é PF e já tem 2 alocações nesta semana neste estabelecimento; bloqueado por PDR-002"; UI mostra modal específico. ~~Profissional vê mesma razão em "Minhas candidaturas"~~ *(ajustado 2026-06-04 por decisão do PO em chat: a tela "Minhas candidaturas" não existe no MVP; o lado do profissional entra com as listas da STORY-059/060).*
-- [ ] **CA-4:** Habitualidade — PJ 3ª: UI mostra modal "este profissional já tem 2 alocações nesta semana; clique 'Assumo o risco e aceito' para continuar (registrado no AceiteEletronico)". O clique chama endpoint com `override: true`; AceiteEletronico carimba `habitualidade_override: true` e renderiza cláusula adicional (PDR-002).
-- [ ] **CA-5:** Idempotência — duas requisições de aprovação para a mesma candidatura geram **um único** Turno + AceiteEletronico + pré-autorização. Teste cobre clique duplo no botão e double-submit do formulário.
-- [ ] **CA-6:** Pré-autorização dispara via worker (assíncrona — ADR-002) com idempotência da STORY-056. Sucesso emite evento de domínio `PagamentoPreAutorizado` → audit log captura; falha emite `PagamentoPreAutorizacaoFalhou` → admin vê na fila. **Fake genérico (PDR-017) responde com sucesso por padrão; falha pode ser simulada por configuração do fake para testar o caminho de exceção.**
-- [ ] **CA-7:** Audit log captura `turno.criado`, `aceite_eletronico.emitido`, `pagamento.pre_autorizado` (ou `.pre_autorizacao_falhou`) — imutável por trigger Postgres herdado.
-- [ ] **CA-8:** Template-seed v1 dos 2 templates de turno (PF + MEI/PJ) — espelha texto já em `docs/especificacao/contratos/template-pf-autonomo-eventual-v1.md` e `template-mei-pj-b2b-v1.md`; SHA-256 do conteúdo registrado. PO entrega + valida em chat antes de a estória fechar. *(Ajustado 2026-06-04 por decisão do PO em chat: os 2 templates JÁ existem como `TemplateVersao` v1 ativa desde a STORY-020 — categoria `contrato`, SHA-256 logado no seed. O aceite por turno REUSA esses templates (Seção 1+2); não há seed novo nem categoria `contrato_turno`. O CA vira: validar fidelidade da v1 ativa aos docs canônicos.)*
-- [ ] **CA-9:** E2E cobre os 4 cenários PDR-002: PF 1ª/2ª libera (turno criado); PF 3ª bloqueia (sem turno); PJ 3ª com override cria turno com cláusula; transição de semana reseta.
-- [ ] **CA-10:** Cobertura ≥ 98% no núcleo (regra PDR-002, idempotência, emissão de AceiteEletronico); ≥ 80% no resto.
+- [x] **CA-1:** Botão "Aceitar candidatura" do painel de candidatos (STORY-051, WebApp do contratante) chama endpoint backend `POST /api/candidaturas/{id}/aprovar` (RBAC **contratante dono da vaga**; não-dono/profissional → 403). *(Corrigido em 2026-06-04 por decisão do PO em chat: o título original dizia "Backoffice"/RBAC admin, mas épico + `domain/candidatura.md` §"Aprovação pelo contratante" fixam que quem aprova é o contratante no WebApp.)*
+- [x] **CA-2:** Endpoint executa em transação Postgres: consulta habitualidade (ADR-006), aplica regra PDR-002, e — se aprovado — cria Turno (`status: confirmado`), AceiteEletronico imutável (placeholders renderizados a partir de Turno + Profissional + Contratante + flag `habitualidade.override_aceito`), e dispara `preAutorizar` da ACL de pagamento (fake — PDR-017) com chave de idempotência `aceite:{candidatura_id}`.
+- [x] **CA-3:** Habitualidade — PF 3ª: endpoint retorna 422 com mensagem "este profissional é PF e já tem 2 alocações nesta semana neste estabelecimento; bloqueado por PDR-002"; UI mostra modal específico. ~~Profissional vê mesma razão em "Minhas candidaturas"~~ *(ajustado 2026-06-04 por decisão do PO em chat: a tela "Minhas candidaturas" não existe no MVP; o lado do profissional entra com as listas da STORY-059/060).*
+- [x] **CA-4:** Habitualidade — PJ 3ª: UI mostra modal "este profissional já tem 2 alocações nesta semana; clique 'Assumo o risco e aceito' para continuar (registrado no AceiteEletronico)". O clique chama endpoint com `override: true`; AceiteEletronico carimba `habitualidade_override: true` e renderiza cláusula adicional (PDR-002).
+- [x] **CA-5:** Idempotência — duas requisições de aprovação para a mesma candidatura geram **um único** Turno + AceiteEletronico + pré-autorização. Teste cobre clique duplo no botão e double-submit do formulário.
+- [x] **CA-6:** Pré-autorização dispara via worker (assíncrona — ADR-002) com idempotência da STORY-056. Sucesso emite evento de domínio `PagamentoPreAutorizado` → audit log captura; falha emite `PagamentoPreAutorizacaoFalhou` → admin vê na fila. **Fake genérico (PDR-017) responde com sucesso por padrão; falha pode ser simulada por configuração do fake para testar o caminho de exceção.**
+- [x] **CA-7:** Audit log captura `turno.criado`, `aceite_eletronico.emitido`, `pagamento.pre_autorizado` (ou `.pre_autorizacao_falhou`) — imutável por trigger Postgres herdado.
+- [x] **CA-8:** Template-seed v1 dos 2 templates de turno (PF + MEI/PJ) — espelha texto já em `docs/especificacao/contratos/template-pf-autonomo-eventual-v1.md` e `template-mei-pj-b2b-v1.md`; SHA-256 do conteúdo registrado. PO entrega + valida em chat antes de a estória fechar. *(Ajustado 2026-06-04 por decisão do PO em chat: os 2 templates JÁ existem como `TemplateVersao` v1 ativa desde a STORY-020 — categoria `contrato`, SHA-256 logado no seed. O aceite por turno REUSA esses templates (Seção 1+2); não há seed novo nem categoria `contrato_turno`. O CA vira: validar fidelidade da v1 ativa aos docs canônicos.)*
+- [x] **CA-9:** E2E cobre os 4 cenários PDR-002: PF 1ª/2ª libera (turno criado); PF 3ª bloqueia (sem turno); PJ 3ª com override cria turno com cláusula; transição de semana reseta.
+- [x] **CA-10:** Cobertura ≥ 98% no núcleo (regra PDR-002, idempotência, emissão de AceiteEletronico); ≥ 80% no resto.
 
 ## Fora de escopo
 
@@ -84,11 +84,11 @@ NÃO decide: regra de habitualidade (PDR-002); valor da taxa Turni (PDR-004 = 15
 
 ## Definição de Pronto
 
-- [ ] CAs marcados, todos os testes verdes, cobertura exigida.
-- [ ] Deploy em homolog verificado por Alexandro (botão "Aprovar" cria turno + pré-autorização registrada em `pagamento_operacoes` com status `concluida` + audit log `pagamento.pre_autorizado` + evento `PagamentoPreAutorizado` emitido — verificável via GET na fila do admin ou inspeção direta do Postgres).
-- [ ] Templates carregados como `TemplateVersao` ativa (categoria `contrato_turno`).
-- [ ] `index.json` atualizado.
-- [ ] "Notas do agente" preenchida.
+- [x] CAs marcados, todos os testes verdes, cobertura exigida.
+- [x] Deploy em homolog verificado por Alexandro (botão "Aprovar" cria turno + pré-autorização registrada em `pagamento_operacoes` com status `concluida` + audit log `pagamento.pre_autorizado` + evento `PagamentoPreAutorizado` emitido — verificável via GET na fila do admin ou inspeção direta do Postgres).
+- [x] Templates carregados como `TemplateVersao` ativa (reuso STORY-020, categoria `contrato` — decisão PO 2026-06-04).
+- [x] `index.json` atualizado.
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo
 
