@@ -85,6 +85,62 @@ NÃO decide: comportamento de geofencing (PDR-008 fixa); imutabilidade do snapsh
 
 ## Notas do agente
 
+### Entrada inicial (2026-06-05, claude-opus-4-8)
+
+**Documentos lidos:** estória inteira; SCREEN-STORY-061 (ready, aprovado); PDR-008; ADR-015/017/018;
+`domain/turno.md`; código existente: `Turno`/`TurnoStatus` (transitionTo + trigger), `Support\Geo\{Haversine,Geofencing}`
+(STORY-057 — núcleo pronto e testado), `CheckinGeoController` (PoC — semente desta estória),
+`TurnoDetalheController` (EVENTOS já mapeia `turno.checkin_solicitado`), `AprovarCandidaturaService`
+(padrão de AuditLog::create em transação), webapp: `geolocalizacao.dart` (captura com guarda de
+timeout, razões `permissao_negada|timeout|indisponivel`), `turno_detalhe_screen/service`, harness E2E
+(pumpApp + seeds exclusivos por suíte), `TurnosSeeder` (production-safe, sem fake()).
+
+**Entendimento:** botão na área de ações do detalhe (confirmado + janela [-30min,+2h] configurável);
+clique captura geo (nunca bloqueia — PDR-008) e POST gera PIN 4 dígitos (hash server-side, plaintext
+só na resposta), transita `confirmado→aguardando_checkin` em transação com snapshot
+`geofencing_check_in` (Geofencing::avaliar, raio 100m) + audit `turno.checkin_solicitado`; re-geração
+em `aguardando_checkin` invalida hash anterior (sem transição); cancelar volta a `confirmado`
+(+ audit `turno.checkin_cancelado` — premissa da SCREEN-061 §4.10); tela do PIN ≥64pt efêmera.
+
+**Dúvidas:** nenhuma bloqueante. Ajuste consciente vs. spec: razões de geo seguem o conjunto já
+existente do código (`permissao_negada|timeout|indisponivel` — STORY-057) em vez do
+`erro_browser` exemplificado no CA-2; microcopy "indisponível" cobre o terceiro caso.
+
+**Plano:**
+1. API (TDD): unit `Domain\Turno\PinCheckin` (geração uniforme + anti-trivial) → migration
+   `pin_checkin_hash` + `config/turno.php` (janela via env) → feature `gerar-pin-checkin`
+   (janela, transição, hash, geofencing, audit, RBAC 403, re-geração) → feature
+   `cancelar-pin-checkin` → detalhe: `checkin_janela` no payload do profissional +
+   `checkin_cancelado` no EVENTOS + geofencing exposto no item `checkin_solicitado`.
+2. WebApp (TDD): service `PinCheckinService` (captura injetável p/ teste) → área de ações
+   (janela aberta/antes/depois, loading "um gesto só", erro, aguardando c/ regen+cancelar) →
+   `PinCheckinScreen` (PIN mono 72/96pt, nota geo, cancelar) → timeline (nota geofencing +
+   evento cancelado).
+3. Seeder: turno `confirmado` dentro da janela com usuários exclusivos `*.pin.seed@turni.local`
+   (E2E muta estado; não contaminar a suíte da 059/060); refresh de `data_inicio` a cada seed.
+4. E2E browser real: 3 caminhos de geo (concedida/negada/timeout) via override de captura
+   (`debugCapturarPosicaoOverride`, padrão `debugSetSession`) contra backend real — browser real
+   não permite conceder permissão de geo programaticamente no harness; a ponte JS real foi
+   validada na PoC da STORY-057. Cada cenário restaura `confirmado` (cancelar) → idempotente.
+
+**Mapeamento CA → testes planejados:**
+- CA-1 (janela): feature `gerar pin fora da janela (antes) → 422`, `(depois) → 422`, bordas
+  exatas (abre/fecha inclusive), janela via env; widget `botão desabilitado antes/depois com microcopy`.
+- CA-2 (geo): feature `geo concedida → snapshot ok`, `negada → razao preservada`,
+  `timeout → razao timeout`; widget `loading durante captura`; E2E 3 caminhos.
+- CA-3 (PIN+transição): unit `PinCheckin gera 4 dígitos uniformes`, `rejeita triviais
+  (repetidos/sequências asc/desc)`; feature `gera → aguardando_checkin + hash bcrypt persistido
+  (≠ plaintext)`, `transação: falha não deixa estado parcial`, `estado inválido → 422`.
+- CA-4 (plaintext única vez): feature `resposta traz pin 4 dígitos`, `audit payload não contém pin`,
+  `re-geração invalida hash anterior`.
+- CA-5 (tela + cancelar): widget `PIN ≥64pt + microcopy fixa`, `cancelar volta confirmado`;
+  feature `cancelar-pin: aguardando→confirmado + hash limpo + audit`, `cancelar em estado errado → 422`.
+- CA-6 (raio/não bloqueia): coberto por GeofencingTest (STORY-057, ≥98%) + feature `fora do raio
+  → ok:false e PIN gerado mesmo assim`.
+- CA-7 (audit): feature `checkin_solicitado com geofencing_check_in completo no payload`.
+- CA-8 (RBAC): feature `contratante → 403`, `terceiro → 403`, `não autenticado → 401`.
+- CA-9 (cobertura/E2E): pest --coverage ≥80/≥98 núcleo; E2E `pin_checkin_test.dart` 3 cenários.
+
 ### Decisões tomadas
 ### Descobertas
 ### Bloqueios encontrados
