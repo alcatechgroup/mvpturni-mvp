@@ -33,6 +33,11 @@ test('a consulta de habitualidade usa idx_turnos_habitualidade', function () {
     // pequeno demais para o custo-baseado escolher índice sozinho — o que importa aqui é que
     // o índice COBRE o shape da query).
     DB::statement('SET LOCAL enable_seqscan = off');
+    // Estatísticas frescas da transação corrente: sem isto, o reltuples herdado do que a
+    // SUÍTE rodou antes deixa os custos empatados e o planner pode escolher outro índice
+    // (flake observado na STORY-058 ao crescer a suíte de turnos). ANALYZE dentro da
+    // transação do RefreshDatabase vê as linhas recém-criadas e desempata para o composto.
+    DB::statement('ANALYZE turnos');
 
     $plano = DB::select(
         'EXPLAIN (FORMAT JSON) SELECT count(*) FROM turnos
