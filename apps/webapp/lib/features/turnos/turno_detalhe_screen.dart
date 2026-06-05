@@ -5,6 +5,9 @@ import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
+import 'geofencing_copy.dart';
+import 'pin_checkin_screen.dart';
+import 'pin_checkin_service.dart';
 import 'turno_detalhe_service.dart';
 import 'turnos_lista_screen.dart' show TurnoEstadoBadge;
 
@@ -21,10 +24,13 @@ class TurnoDetalheScreen extends StatefulWidget {
     super.key,
     required this.turnoId,
     TurnoDetalheService? service,
-  }) : _service = service;
+    PinCheckinService? pinService,
+  }) : _service = service,
+       _pinService = pinService;
 
   final String turnoId;
   final TurnoDetalheService? _service;
+  final PinCheckinService? _pinService;
 
   @override
   State<TurnoDetalheScreen> createState() => _TurnoDetalheScreenState();
@@ -35,6 +41,8 @@ enum _Phase { loading, naoEncontrado, erro, pronto }
 class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
   late final TurnoDetalheService _service =
       widget._service ?? TurnoDetalheService();
+  late final PinCheckinService _pinService =
+      widget._pinService ?? PinCheckinService();
 
   _Phase _phase = _Phase.loading;
   TurnoDetalhe? _turno;
@@ -115,6 +123,8 @@ class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
           turno: _turno!,
           isDark: isDark,
           accent: _accent(isDark),
+          pinService: _pinService,
+          onRecarregar: _load,
         );
     }
   }
@@ -166,11 +176,24 @@ class _DetalheView extends StatelessWidget {
     required this.turno,
     required this.isDark,
     required this.accent,
+    required this.pinService,
+    required this.onRecarregar,
   });
 
   final TurnoDetalhe turno;
   final bool isDark;
   final Color accent;
+  final PinCheckinService pinService;
+  final Future<void> Function() onRecarregar;
+
+  /// STORY-061 — a área de ações vira o bloco do check-in para o PROFISSIONAL em
+  /// `confirmado`/`aguardando_checkin` (a janela vem no payload só para ele — CA-1/CA-8).
+  /// Contratante e demais estados não-terminais seguem com o placeholder da 060.
+  bool get _mostraCheckin =>
+      !turno.souContratante &&
+      turno.checkinJanela != null &&
+      (turno.estadoRaw == 'confirmado' ||
+          turno.estadoRaw == 'aguardando_checkin');
 
   @override
   Widget build(BuildContext context) {
@@ -183,10 +206,19 @@ class _DetalheView extends StatelessWidget {
         const SizedBox(height: TurniSpacing.sm),
         if (turno.aceite != null)
           _AceiteLink(aceite: turno.aceite!, isDark: isDark, accent: accent),
-        // CA-4 — moldura do "botão grande" das 061+; terminais não têm (§4.1).
+        // CA-4 da 060 — moldura do "botão grande"; terminais não têm (§4.1).
         if (!turno.estadoTerminal) ...[
           const SizedBox(height: TurniSpacing.sm),
-          _AcoesPlaceholder(isDark: isDark),
+          if (_mostraCheckin)
+            _AcoesCheckin(
+              turno: turno,
+              isDark: isDark,
+              accent: accent,
+              pinService: pinService,
+              onRecarregar: onRecarregar,
+            )
+          else
+            _AcoesPlaceholder(isDark: isDark),
         ],
       ],
     );
@@ -645,6 +677,303 @@ class _AcoesPlaceholder extends StatelessWidget {
   }
 }
 
+// ───────────────────── Área de ações do check-in (STORY-061 / SCREEN-061) ─────────────────────
+
+enum _JanelaEstado { antes, aberta, depois }
+
+/// Bloco do PIN de check-in na área de ações (CA-1/CA-2): janela aberta/antes/depois,
+/// loading "um gesto só" (captura geo + POST), erro com retry e — em
+/// `aguardando_checkin` — Gerar novo PIN + Cancelar PIN (§4.7).
+class _AcoesCheckin extends StatefulWidget {
+  const _AcoesCheckin({
+    required this.turno,
+    required this.isDark,
+    required this.accent,
+    required this.pinService,
+    required this.onRecarregar,
+  });
+
+  final TurnoDetalhe turno;
+  final bool isDark;
+  final Color accent;
+  final PinCheckinService pinService;
+  final Future<void> Function() onRecarregar;
+
+  @override
+  State<_AcoesCheckin> createState() => _AcoesCheckinState();
+}
+
+class _AcoesCheckinState extends State<_AcoesCheckin> {
+  bool _gerando = false;
+  bool _cancelando = false;
+  String? _erroMsg;
+  Future<void> Function()? _retry;
+
+  bool get _aguardando => widget.turno.estadoRaw == 'aguardando_checkin';
+
+  _JanelaEstado get _janela {
+    final j = widget.turno.checkinJanela!;
+    final agora = DateTime.now();
+    if (agora.isBefore(j.abreEm)) return _JanelaEstado.antes;
+    if (agora.isAfter(j.fechaEm)) return _JanelaEstado.depois;
+    return _JanelaEstado.aberta;
+  }
+
+  Future<void> _gerar() async {
+    setState(() {
+      _gerando = true;
+      _erroMsg = null;
+    });
+
+    final result = await widget.pinService.gerar(widget.turno.id);
+    if (!mounted) return;
+    setState(() => _gerando = false);
+
+    switch (result) {
+      case PinGerado(:final pin, :final geofencing):
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => PinCheckinScreen(
+              turnoId: widget.turno.id,
+              pin: pin,
+              geofencing: geofencing,
+              funcao: widget.turno.funcao,
+              estabelecimento: widget.turno.estabelecimento,
+              pinService: widget.pinService,
+            ),
+          ),
+        );
+        // Voltou da tela do PIN (cancelou ou saiu): o detalhe recarrega a verdade.
+        await widget.onRecarregar();
+      case PinForaDaJanela() || PinGeracaoEstadoInvalido():
+        // Servidor é a fonte de verdade (relógio do device pode mentir, ou o turno
+        // mudou em outra aba): recarrega para reapresentar o estado real.
+        await widget.onRecarregar();
+      case PinGeracaoErro():
+        setState(() {
+          _erroMsg = 'Não foi possível gerar o PIN. Verifique sua conexão.';
+          _retry = _gerar;
+        });
+    }
+  }
+
+  Future<void> _cancelar() async {
+    setState(() {
+      _cancelando = true;
+      _erroMsg = null;
+    });
+
+    final result = await widget.pinService.cancelar(widget.turno.id);
+    if (!mounted) return;
+    setState(() => _cancelando = false);
+
+    switch (result) {
+      case PinCancelado() || PinCancelEstadoInvalido():
+        await widget.onRecarregar();
+      case PinCancelErro():
+        setState(() {
+          _erroMsg = 'Não foi possível cancelar o PIN.';
+          _retry = _cancelar;
+        });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textStrong = widget.isDark
+        ? TurniColors.textStrongDark
+        : TurniColors.textStrongLight;
+    final textMuted = widget.isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+
+    final (titulo, apoio, habilitado) = _conteudo();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_erroMsg != null) ...[
+          Container(
+            key: const Key('turno-pin-erro-banner'),
+            padding: const EdgeInsets.symmetric(
+              horizontal: TurniSpacing.md,
+              vertical: TurniSpacing.sm,
+            ),
+            margin: const EdgeInsets.only(bottom: TurniSpacing.sm),
+            decoration: BoxDecoration(
+              color: widget.isDark
+                  ? TurniColors.errorSoftDark
+                  : TurniColors.errorSoftLight,
+              borderRadius: const BorderRadius.all(TurniRadius.md),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _erroMsg!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: widget.isDark
+                          ? TurniColors.errorDark
+                          : TurniColors.errorLight,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  key: const Key('turno-pin-retry-btn'),
+                  onPressed: () => _retry?.call(),
+                  child: const Text('Tentar de novo'),
+                ),
+              ],
+            ),
+          ),
+        ],
+        Container(
+          padding: const EdgeInsets.all(TurniSpacing.md),
+          decoration: BoxDecoration(
+            color: widget.isDark
+                ? TurniColors.surfaceDark
+                : TurniColors.surfaceLight,
+            borderRadius: const BorderRadius.all(TurniRadius.md),
+            border: Border.all(
+              color: widget.isDark
+                  ? TurniColors.borderSubtleDark
+                  : TurniColors.borderSubtleLight,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                titulo,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: textStrong,
+                ),
+              ),
+              const SizedBox(height: 4),
+              // Fora do botão de propósito: leitor de tela lê mesmo com o botão
+              // desabilitado (SCREEN-061 §6).
+              Text(
+                apoio,
+                key: const Key('turno-pin-janela-msg'),
+                style: TextStyle(
+                  fontSize: 13.5,
+                  color: textMuted,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: TurniSpacing.md),
+              FilledButton(
+                key: Key(
+                  _aguardando ? 'turno-pin-regen-btn' : 'turno-pin-gerar-btn',
+                ),
+                onPressed: habilitado && !_gerando && !_cancelando
+                    ? _gerar
+                    : null,
+                style: FilledButton.styleFrom(
+                  backgroundColor: widget.accent,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: const StadiumBorder(),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                child: _gerando
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text('Confirmando sua localização…'),
+                        ],
+                      )
+                    : Text(
+                        _aguardando
+                            ? 'Gerar novo PIN'
+                            : 'Gerar PIN de check-in',
+                      ),
+              ),
+              if (_aguardando) ...[
+                const SizedBox(height: TurniSpacing.xs),
+                TextButton(
+                  key: const Key('turno-pin-cancelar-btn'),
+                  onPressed: _gerando || _cancelando ? null : _cancelar,
+                  style: TextButton.styleFrom(
+                    foregroundColor: widget.accent,
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                  child: _cancelando
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2.5),
+                        )
+                      : const Text(
+                          'Não chegou ainda? Cancelar PIN',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Título/apoio/habilitado por estado (microcopy fixa da SCREEN-061 §5).
+  (String, String, bool) _conteudo() {
+    if (_aguardando) {
+      return (
+        'Aguardando validação do contratante',
+        'Perdeu o PIN de vista? Gere um novo — o anterior deixa de valer.',
+        true,
+      );
+    }
+
+    final j = widget.turno.checkinJanela!;
+    switch (_janela) {
+      case _JanelaEstado.antes:
+        final minutosAntes = widget.turno.dataInicio
+            .difference(j.abreEm)
+            .inMinutes;
+        return (
+          'Ainda não dá para fazer o check-in',
+          'O PIN pode ser gerado a partir das ${TurniDateTime.formatHora(j.abreEm)} '
+              '($minutosAntes min antes do início).',
+          false,
+        );
+      case _JanelaEstado.depois:
+        return (
+          'O período de check-in encerrou',
+          'O PIN podia ser gerado até as ${TurniDateTime.formatHora(j.fechaEm)}. '
+              'Fale com o contratante se você está no local.',
+          false,
+        );
+      case _JanelaEstado.aberta:
+        return (
+          'Chegou ao local?',
+          'Gere o PIN de check-in e mostre ao contratante para confirmar sua chegada.',
+          true,
+        );
+    }
+  }
+}
+
 // ───────────────────────── Timeline (CA-3 — timeline.event) ─────────────────────────
 
 class _Timeline extends StatelessWidget {
@@ -710,6 +1039,13 @@ class _TimelineEventoTile extends StatelessWidget {
   /// já filtrados pelo servidor; aqui é só texto.
   String? get _descricao => switch (evento.tipo) {
     TimelineEventoTipo.turnoCriado => 'Candidatura aprovada.',
+    // STORY-061 (§4.10) — nota de geofencing registrada na geração do PIN; sem
+    // snapshot (seed antigo) o título fica sozinho.
+    TimelineEventoTipo.checkinSolicitado => descricaoTimelineGeofencing(
+      evento.geofencing,
+    ),
+    TimelineEventoTipo.checkinCancelado =>
+      'Cancelado pelo profissional antes da validação.',
     TimelineEventoTipo.pagamentoPreAutorizado =>
       souContratante
           ? '${formatBRL(evento.valor ?? 0)} reservados no seu meio de pagamento.'

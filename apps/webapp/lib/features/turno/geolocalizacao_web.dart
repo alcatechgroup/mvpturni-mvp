@@ -33,6 +33,7 @@ Future<PosicaoGeo> capturarPosicao() {
       PosicaoGeo(
         lat: pos.coords.latitude.toDouble(),
         lng: pos.coords.longitude.toDouble(),
+        accuracyM: pos.coords.accuracy.toDouble(),
       ),
     );
   }

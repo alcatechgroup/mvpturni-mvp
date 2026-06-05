@@ -15,12 +15,16 @@ void main() {
 
   PinCheckinService service({
     required http.Response Function() resposta,
-    PosicaoGeo posicao = const PosicaoGeo(lat: -23.55, lng: -46.63, accuracyM: 12.5),
+    PosicaoGeo posicao = const PosicaoGeo(
+      lat: -23.55,
+      lng: -46.63,
+      accuracyM: 12.5,
+    ),
   }) {
     corpoEnviado = null;
     return PinCheckinService(
       client: MockClient((req) async {
-        if (req.method == 'POST') {
+        if (req.method == 'POST' && req.body.isNotEmpty) {
           corpoEnviado = jsonDecode(req.body) as Map<String, dynamic>;
         }
         return resposta();
@@ -45,38 +49,44 @@ void main() {
   );
 
   group('gerar', () {
-    test('geo concedida → POST com lat/lng/accuracy e PinGerado com plaintext', () async {
-      final svc = service(resposta: ok200);
+    test(
+      'geo concedida → POST com lat/lng/accuracy e PinGerado com plaintext',
+      () async {
+        final svc = service(resposta: ok200);
 
-      final r = await svc.gerar('t1');
+        final r = await svc.gerar('t1');
 
-      expect(r, isA<PinGerado>());
-      final gerado = r as PinGerado;
-      expect(gerado.pin, '4702');
-      expect(gerado.geofencing.ok, isTrue);
-      expect(gerado.geofencing.distanciaMetros, 23.4);
+        expect(r, isA<PinGerado>());
+        final gerado = r as PinGerado;
+        expect(gerado.pin, '4702');
+        expect(gerado.geofencing.ok, isTrue);
+        expect(gerado.geofencing.distanciaMetros, 23.4);
 
-      expect(corpoEnviado!['pin_solicitado'], isTrue);
-      expect(corpoEnviado!['lat'], -23.55);
-      expect(corpoEnviado!['lng'], -46.63);
-      expect(corpoEnviado!['accuracy_m'], 12.5);
-      expect(corpoEnviado!.containsKey('razao'), isFalse);
-    });
+        expect(corpoEnviado!['pin_solicitado'], isTrue);
+        expect(corpoEnviado!['lat'], -23.55);
+        expect(corpoEnviado!['lng'], -46.63);
+        expect(corpoEnviado!['accuracy_m'], 12.5);
+        expect(corpoEnviado!.containsKey('razao'), isFalse);
+      },
+    );
 
-    test('geo negada → POST com geo nulo + razão; PIN gerado mesmo assim (PDR-008)', () async {
-      final svc = service(
-        resposta: ok200,
-        posicao: const PosicaoGeo(razao: 'permissao_negada'),
-      );
+    test(
+      'geo negada → POST com geo nulo + razão; PIN gerado mesmo assim (PDR-008)',
+      () async {
+        final svc = service(
+          resposta: ok200,
+          posicao: const PosicaoGeo(razao: 'permissao_negada'),
+        );
 
-      final r = await svc.gerar('t1');
+        final r = await svc.gerar('t1');
 
-      expect(r, isA<PinGerado>());
-      expect(corpoEnviado!['pin_solicitado'], isTrue);
-      expect(corpoEnviado!['lat'], isNull);
-      expect(corpoEnviado!['lng'], isNull);
-      expect(corpoEnviado!['razao'], 'permissao_negada');
-    });
+        expect(r, isA<PinGerado>());
+        expect(corpoEnviado!['pin_solicitado'], isTrue);
+        expect(corpoEnviado!['lat'], isNull);
+        expect(corpoEnviado!['lng'], isNull);
+        expect(corpoEnviado!['razao'], 'permissao_negada');
+      },
+    );
 
     test('422 fora_da_janela → PinForaDaJanela com horários', () async {
       final svc = service(
@@ -124,32 +134,41 @@ void main() {
       expect(await svcRede.gerar('t1'), isA<PinGeracaoErro>());
     });
 
-    test('200 com payload malformado → PinGeracaoErro (parse nunca explode)', () async {
-      final svc = service(resposta: () => http.Response('{"pin": null}', 200));
+    test(
+      '200 com payload malformado → PinGeracaoErro (parse nunca explode)',
+      () async {
+        final svc = service(
+          resposta: () => http.Response('{"pin": null}', 200),
+        );
 
-      expect(await svc.gerar('t1'), isA<PinGeracaoErro>());
-    });
+        expect(await svc.gerar('t1'), isA<PinGeracaoErro>());
+      },
+    );
   });
 
   group('cancelar', () {
     test('200 → PinCancelado', () async {
       final svc = service(
-        resposta: () => http.Response(jsonEncode({'estado': 'confirmado'}), 200),
+        resposta: () =>
+            http.Response(jsonEncode({'estado': 'confirmado'}), 200),
       );
 
       expect(await svc.cancelar('t1'), isA<PinCancelado>());
     });
 
-    test('422 estado_invalido → PinCancelEstadoInvalido (alguém validou antes)', () async {
-      final svc = service(
-        resposta: () => http.Response(
-          jsonEncode({'motivo': 'estado_invalido', 'estado': 'ativo'}),
-          422,
-        ),
-      );
+    test(
+      '422 estado_invalido → PinCancelEstadoInvalido (alguém validou antes)',
+      () async {
+        final svc = service(
+          resposta: () => http.Response(
+            jsonEncode({'motivo': 'estado_invalido', 'estado': 'ativo'}),
+            422,
+          ),
+        );
 
-      expect(await svc.cancelar('t1'), isA<PinCancelEstadoInvalido>());
-    });
+        expect(await svc.cancelar('t1'), isA<PinCancelEstadoInvalido>());
+      },
+    );
 
     test('erro de rede → PinCancelErro', () async {
       final svc = PinCheckinService(

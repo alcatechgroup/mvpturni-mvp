@@ -13,6 +13,7 @@ enum TimelineEventoTipo {
   aceiteEmitido('aceite_eletronico_emitido', 'Aceite eletrônico emitido'),
   pagamentoPreAutorizado('pagamento_pre_autorizado', 'Pagamento reservado'),
   checkinSolicitado('checkin_solicitado', 'PIN de check-in gerado'),
+  checkinCancelado('checkin_cancelado', 'PIN de check-in cancelado'),
   checkinValidado('checkin_validado', 'Check-in validado'),
   checkoutSolicitado('checkout_solicitado', 'PIN de check-out gerado'),
   checkoutValidado('checkout_validado', 'Check-out validado'),
@@ -34,6 +35,43 @@ enum TimelineEventoTipo {
       );
 }
 
+/// Resultado do geofencing do check-in (PDR-008 / STORY-061): aparece no evento
+/// `checkin_solicitado` da timeline e na resposta da geração do PIN.
+class GeofencingCheckin {
+  final bool ok;
+  final double? distanciaMetros;
+  final String?
+  razao; // fora_do_raio | permissao_negada | timeout | indisponivel
+
+  const GeofencingCheckin({
+    required this.ok,
+    required this.distanciaMetros,
+    required this.razao,
+  });
+
+  factory GeofencingCheckin.fromJson(Map<String, dynamic> json) =>
+      GeofencingCheckin(
+        ok: json['ok'] as bool? ?? false,
+        distanciaMetros: (json['distancia_metros'] as num?)?.toDouble(),
+        razao: json['razao'] as String?,
+      );
+}
+
+/// Janela de geração do PIN de check-in (STORY-061 CA-1) — calculada no servidor a
+/// partir da config; a UI só compara com o relógio local para o estado do botão
+/// (o servidor revalida na geração — 422 se o relógio do device mentir).
+class CheckinJanela {
+  final DateTime abreEm;
+  final DateTime fechaEm;
+
+  const CheckinJanela({required this.abreEm, required this.fechaEm});
+
+  factory CheckinJanela.fromJson(Map<String, dynamic> json) => CheckinJanela(
+    abreEm: TurniDateTime.parseRequired(json['abre_em'] as String),
+    fechaEm: TurniDateTime.parseRequired(json['fecha_em'] as String),
+  );
+}
+
 /// Um evento da trilha simplificada (audit log filtrado pelo servidor).
 class TimelineEvento {
   final String id;
@@ -47,12 +85,17 @@ class TimelineEvento {
   /// Quem cancelou (`pro`|`emp`) — presente só em `cancelado` (STORY-066).
   final String? lado;
 
+  /// Nota de geofencing — presente só em `checkin_solicitado` (STORY-061; seeds
+  /// antigos não a têm — a timeline degrada para título sem descrição).
+  final GeofencingCheckin? geofencing;
+
   const TimelineEvento({
     required this.id,
     required this.tipo,
     required this.ocorridoEm,
     this.valor,
     this.lado,
+    this.geofencing,
   });
 
   factory TimelineEvento.fromJson(Map<String, dynamic> json) => TimelineEvento(
@@ -61,6 +104,11 @@ class TimelineEvento {
     ocorridoEm: TurniDateTime.parseRequired(json['ocorrido_em'] as String),
     valor: (json['valor'] as num?)?.toDouble(),
     lado: json['lado'] as String?,
+    geofencing: json['geofencing'] == null
+        ? null
+        : GeofencingCheckin.fromJson(
+            json['geofencing'] as Map<String, dynamic>,
+          ),
   );
 }
 
@@ -100,6 +148,9 @@ class TurnoDetalhe {
   final AceiteDoTurno? aceite;
   final List<TimelineEvento> timeline;
 
+  /// Janela de geração do PIN — só chega para o PROFISSIONAL (STORY-061 CA-1).
+  final CheckinJanela? checkinJanela;
+
   const TurnoDetalhe({
     required this.id,
     required this.funcao,
@@ -114,6 +165,7 @@ class TurnoDetalhe {
     required this.profissional,
     required this.aceite,
     required this.timeline,
+    this.checkinJanela,
   });
 
   /// O payload do contratante carrega o total — é assim que a tela sabe o papel sem
@@ -151,6 +203,11 @@ class TurnoDetalhe {
     timeline: (json['timeline'] as List? ?? [])
         .map((e) => TimelineEvento.fromJson(e as Map<String, dynamic>))
         .toList(growable: false),
+    checkinJanela: json['checkin_janela'] == null
+        ? null
+        : CheckinJanela.fromJson(
+            json['checkin_janela'] as Map<String, dynamic>,
+          ),
   );
 }
 

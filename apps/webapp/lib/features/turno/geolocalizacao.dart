@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show visibleForTesting;
+
 import 'geolocalizacao_stub.dart'
     if (dart.library.js_interop) 'geolocalizacao_web.dart'
     as impl;
@@ -12,14 +14,26 @@ import 'geolocalizacao_stub.dart'
 
 /// Posição capturada (ou a razão da falha). `razao ∈ {permissao_negada, timeout, indisponivel}`.
 class PosicaoGeo {
-  const PosicaoGeo({this.lat, this.lng, this.razao});
+  const PosicaoGeo({this.lat, this.lng, this.accuracyM, this.razao});
 
   final double? lat;
   final double? lng;
+
+  /// Precisão reportada pelo navegador em metros (STORY-061 CA-2) — registrada na trilha.
+  final double? accuracyM;
+
   final String? razao;
 
   bool get ok => lat != null && lng != null;
 }
 
+/// Override de teste (E2E/integration_test): o browser real do harness não tem como
+/// conceder permissão de geolocalização programaticamente (prompt nativo), então os
+/// cenários determinísticos injetam a posição aqui — mesmo padrão do
+/// `AuthService.debugSetSession`. Produção nunca seta isso.
+@visibleForTesting
+Future<PosicaoGeo> Function()? debugCapturarPosicaoOverride;
+
 /// Pede a posição atual ao navegador. Em VM/sem suporte resolve com `razao: 'indisponivel'`.
-Future<PosicaoGeo> capturarPosicao() => impl.capturarPosicao();
+Future<PosicaoGeo> capturarPosicao() =>
+    (debugCapturarPosicaoOverride ?? impl.capturarPosicao)();
