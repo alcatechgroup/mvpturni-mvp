@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-061-pin-checkin
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8
 created_at: 2026-06-03
-updated_at: 2026-06-03
+updated_at: 2026-06-05
 estimated_session_size: M
 produces_idr: null
 ---

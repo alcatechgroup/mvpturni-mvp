@@ -1998,6 +1998,30 @@
       "updated_at": "2026-06-05"
     },
     {
+      "id": "STORY-061",
+      "epic_id": "EPIC-003",
+      "title": "PIN de check-in — geração pelo profissional + captura de geofencing (PDR-008)",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-061-pin-checkin",
+      "status": "in_progress",
+      "owner_agent": "claude-opus-4-8",
+      "sprint_id": "SPRINT-2026-W28",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-061-pin-checkin-geracao-geofencing.md",
+      "blocked_by": [
+        "STORY-057",
+        "STORY-060"
+      ],
+      "blocks": [
+        "STORY-062"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-03",
+      "updated_at": "2026-06-05"
+    },
+    {
       "id": "STORY-074",
       "epic_id": "EPIC-011",
       "title": "Geocodificar o endereço do estabelecimento → lat/lng (cadastro + backfill + ACL + mock)",
@@ -3631,6 +3655,33 @@
           "section.group-header",
           "skeleton.card",
           "button.primary"
+        ],
+        "owner_designer": "claude-opus-4-8",
+        "created_at": "2026-06-05",
+        "updated_at": "2026-06-05"
+      },
+      {
+        "id": "SCREEN-STORY-061-pin-checkin",
+        "story": "STORY-061",
+        "epic": "EPIC-003",
+        "status": "ready",
+        "path": "design/screens/SCREEN-STORY-061-pin-checkin.md",
+        "viewports": [
+          "mobile",
+          "desktop"
+        ],
+        "related_ddrs": [
+          "DDR-001",
+          "DDR-002"
+        ],
+        "related_idrs": [],
+        "ds_components_used": [
+          "surface.card",
+          "badge.status",
+          "button.primary",
+          "banner",
+          "section.group-header",
+          "timeline.event"
         ],
         "owner_designer": "claude-opus-4-8",
         "created_at": "2026-06-05",
