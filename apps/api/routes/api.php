@@ -11,6 +11,7 @@ use App\Http\Controllers\Cadastro\CompletarCadastroProfissionalController;
 use App\Http\Controllers\Cadastro\ContratanteCadastroController;
 use App\Http\Controllers\Cadastro\FuncaoController;
 use App\Http\Controllers\Cadastro\ProfissionalCadastroController;
+use App\Http\Controllers\Candidatura\AprovarCandidaturaController;
 use App\Http\Controllers\Candidatura\CandidaturaController;
 use App\Http\Controllers\Feed\FeedController;
 use App\Http\Controllers\Feed\VagaDetalheController;
@@ -134,6 +135,12 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     // profissional) no controller; vaga inexistente → 404 (model binding). Lista os candidatos
     // `pendentes` ranqueados por score (snapshot persistido — não recalcula) com breakdown (CA-1..CA-9).
     Route::get('/vagas/{vaga}/candidatos', [CandidatosController::class, 'index']);
+
+    // Aprovar candidatura → abrir o turno (STORY-058). RBAC contratante DONO no controller
+    // (decisão PO 2026-06-04). Transação: habitualidade do aceite (PDR-002 sobre turnos) +
+    // Turno `confirmado` + AceiteEletronicoTurno imutável + audit; pré-autorização assíncrona
+    // pós-commit (PreAutorizarTurnoJob — ADR-016/PDR-017). `{ override: true }` p/ PJ na 3ª.
+    Route::post('/candidaturas/{candidatura}/aprovar', AprovarCandidaturaController::class);
 
     // Caixa de notificações in-app (STORY-053 CA-7). Qualquer papel ativo lê as PRÓPRIAS
     // (RBAC por destinatario_id no controller; 404 p/ terceiros). `marcar-todas-lidas` (path

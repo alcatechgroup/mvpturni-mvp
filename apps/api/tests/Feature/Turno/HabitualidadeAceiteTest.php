@@ -14,14 +14,20 @@ use App\Models\Turno;
 use App\Models\User;
 use App\Models\Vaga;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-/** Quarta-feira da semana-alvo, 18h — base estável para as bordas de semana. */
+/**
+ * Quarta-feira da semana-alvo, 18h — base estável para as bordas de semana.
+ * MONDAY explícito: o locale pt-BR muda o default de startOfWeek() para domingo,
+ * mas PDR-002 fixa a semana corrida como segunda→domingo.
+ */
 function inicioAlvo(): CarbonImmutable
 {
-    return CarbonImmutable::now()->addWeeks(2)->startOfWeek()->addDays(2)->setTime(18, 0);
+    return CarbonImmutable::now()->addWeeks(2)
+        ->startOfWeek(CarbonInterface::MONDAY)->addDays(2)->setTime(18, 0);
 }
 
 function profAceite(string $tipo = 'PF'): User
@@ -166,8 +172,8 @@ it('transição de semana reseta a contagem (2 turnos na semana anterior liberam
 it('segunda 00:00 e domingo 23:59 da mesma semana contam (bordas inclusivas)', function () {
     $contratante = User::factory()->contratante()->ativo()->create();
     $prof = profAceite('PF');
-    $segunda = inicioAlvo()->startOfWeek();                  // segunda 00:00:00
-    $domingo = inicioAlvo()->endOfWeek()->setTime(23, 59);   // domingo 23:59
+    $segunda = inicioAlvo()->startOfWeek(CarbonInterface::MONDAY);                // segunda 00:00:00
+    $domingo = inicioAlvo()->endOfWeek(CarbonInterface::SUNDAY)->setTime(23, 59); // domingo 23:59
     turnoNaSemana($prof, $contratante, $segunda);
     turnoNaSemana($prof, $contratante, $domingo);
 
@@ -179,7 +185,7 @@ it('segunda 00:00 e domingo 23:59 da mesma semana contam (bordas inclusivas)', f
 it('domingo 23:59 da semana ANTERIOR não conta na semana-alvo', function () {
     $contratante = User::factory()->contratante()->ativo()->create();
     $prof = profAceite('PF');
-    $domingoAnterior = inicioAlvo()->startOfWeek()->subMinute(); // domingo 23:59 anterior
+    $domingoAnterior = inicioAlvo()->startOfWeek(CarbonInterface::MONDAY)->subMinute(); // domingo 23:59 anterior
     turnoNaSemana($prof, $contratante, $domingoAnterior);
     turnoNaSemana($prof, $contratante, inicioAlvo()->subDay());
 

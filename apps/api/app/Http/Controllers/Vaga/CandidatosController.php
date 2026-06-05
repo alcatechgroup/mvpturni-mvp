@@ -58,9 +58,18 @@ class CandidatosController extends Controller
             ->orderBy('created_at')
             ->get();
 
+        // STORY-058 (SCREEN-058 D1): preview financeiro da vaga (PDR-004 — o contratante vê
+        // valor/taxa/total separados no momento da decisão). Mesma conta do aceite (15%).
+        [$valor, $taxa, $total] = \App\Services\AprovarCandidaturaService::financeiro((string) $vaga->valor);
+
         return response()->json([
             'candidatos' => $candidaturas->map(fn (Candidatura $c) => $this->serializar($c))->all(),
             'total' => $candidaturas->count(),
+            'vaga' => [
+                'valor' => $valor,
+                'taxa_turni' => $taxa,
+                'total_contratante' => $total,
+            ],
         ]);
     }
 

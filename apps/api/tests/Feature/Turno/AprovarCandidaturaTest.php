@@ -61,7 +61,9 @@ function profAprov(string $tipo = 'MEI'): User
 /** Vaga aberta futura (R$ 200,00) + candidatura pendente do profissional. */
 function cenarioAprov(User $contratante, User $prof, array $vagaOver = []): Candidatura
 {
-    $inicio = CarbonImmutable::now()->addWeeks(2)->startOfWeek()->addDays(2)->setTime(18, 0);
+    // MONDAY explícito: o locale pt-BR muda o default de startOfWeek() p/ domingo (PDR-002 = seg→dom).
+    $inicio = CarbonImmutable::now()->addWeeks(2)
+        ->startOfWeek(\Carbon\CarbonInterface::MONDAY)->addDays(2)->setTime(18, 0);
     $vaga = Vaga::factory()->create(array_merge([
         'contratante_id' => $contratante->id,
         'valor' => 200.00,
