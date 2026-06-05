@@ -110,5 +110,5 @@ NÃO decide: imutabilidade do snapshot de check-in (ADR-015); que geofencing nã
 - E2E: gate local completo verde (`make e2e-webapp-integration`) — 3 cenários bilaterais da 062: (1) geo negada → card de aviso + PIN errado inline + recusa com motivo; (2) 3 errados → PIN expirado (banner + `confirmado`); (3) PIN correto → `ativo` (snackbar + badge + "Turno iniciado."). Anti-flake: anchor no ciclo do botão (aprendizado dos runs 2–4 — `enterText('')` não esvazia campo no Web; tap em botão desabilitado é perdido em silêncio).
 ### Links de evidência
 - PR: n/a (commit direto na main — workflow do projeto)
-- Pipeline: CI da main no push
-- Deploy de homologação: aguardando rc tag + verificação manual do PO (2 navegadores)
+- Pipeline: CI da main verde (run 27031246772); Release `v0.1.0-rc.74` success (run 27031377128)
+- Deploy de homologação: `https://app.homolog.turni.com.br` servindo `v0.1.0-rc.74` (`/version.json` verificado); roteiro de verificação manual entregue ao PO em chat (2 navegadores, par `*.validar.seed`)
