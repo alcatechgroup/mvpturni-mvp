@@ -174,6 +174,6 @@ Nenhum — nenhuma lib nova, nenhum padrão transversal novo (tudo dentro de ADR
 - CA-10 → cobertura acima.
 
 ### Links de evidência
-- PR: n/a — commit direto na `main` (git workflow Turni). Commits: 89028f5 (red), ff80f29 (backend), 030f307 (UI+seeder), + pint/format.
-- Pipeline: CI pós-push na main (preencher após push).
-- Deploy de homologação: (preencher após rc + verificação do Alexandro)
+- PR: n/a — commit direto na `main` (git workflow Turni). Commits: 89028f5 (red), ff80f29 (backend), 030f307 (UI+seeder), bffaff3 (fix determinismo E2E).
+- Pipeline: CI da main verde + Release `v0.1.0-rc.69` verde (run 26991292632 — 2 reruns por infra: Cloud SQL desligado pelo scheduler de economia e warm-up do Postgres; nada de código).
+- Deploy de homologação: rc.69 deployado em 2026-06-05 (migrar+seed com `AprovacaoCandidaturaSeeder`, API, Admin, smoke pós-deploy verdes). **Verificação do Alexandro pendente** (botão Aceitar → turno + `pagamento_operacoes` `concluida` + audit `pagamento.pre_autorizado`).
