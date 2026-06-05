@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-059-listas-turnos
-status: in_progress
+status: done
 owner_agent: claude-opus-4-8
 created_at: 2026-06-03
 updated_at: 2026-06-05
@@ -71,10 +71,10 @@ NÃO decide: estados que aparecem (fixados em `domain/turno.md`).
 
 ## Definição de Pronto
 
-- [ ] CAs marcados; deploy em homolog verificado por Alexandro.
-- [ ] SCREEN-STORY-059 marcado `shipped`.
-- [ ] `index.json` atualizado.
-- [ ] "Notas do agente" preenchida.
+- [x] CAs marcados; deploy em homolog (rc.71) verificado e **aprovado por Alexandro em chat (2026-06-05)**.
+- [x] SCREEN-STORY-059 marcado `shipped`.
+- [x] `index.json` atualizado.
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo
 
@@ -133,4 +133,5 @@ NÃO decide: estados que aparecem (fixados em `domain/turno.md`).
 - PR: n/a (commit direto na main — fluxo combinado).
 - Pipeline: Release run 27017134814 (verde de primeira, sem rerun de Cloud SQL).
 - Deploy de homologação: **v0.1.0-rc.71** no ar (2026-06-05; `version.json` confere;
-  API respondendo). Verificação manual de Alexandro: pendente (roteiro entregue em chat).
+  API respondendo). **Verificado e aprovado por Alexandro em chat (2026-06-05)** — roteiro
+  de 5 cenários (listas dos 2 papéis, dados reais da 058, vazio, RBAC cruzado).

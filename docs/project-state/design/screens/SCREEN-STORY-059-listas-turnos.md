@@ -2,7 +2,7 @@
 id: SCREEN-STORY-059-listas-turnos
 story: STORY-059-listas-meus-turnos-vagas-confirmadas
 epic: EPIC-003-aceite-pin-e-pix
-status: in_implementation    # draft | ready | in_implementation | shipped | superseded
+status: shipped              # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-05
 updated_at: 2026-06-05
 owner_designer: claude-opus-4-8
@@ -397,3 +397,4 @@ Nenhuma cor nova: todas as variantes usam tokens semânticos auditados AA.
 |---|---|---|---|
 | 2026-06-05 | criação (spec completo + protótipo v1) | claude-opus-4-8 (designer) | STORY-059; spec + protótipo entregues juntos para validação humana |
 | 2026-06-05 | validação humana — aprovado com ajustes | Alexandro | em_disputa mantido como seção própria; título do contratante "Vagas confirmadas" → "Turnos"; `status: ready` |
+| 2026-06-05 | implementado + PO aprovou em homolog | claude-opus-4-8 / Alexandro | STORY-059 entregue (API 100%, webapp ~98%, gate E2E verde, rc.71) e aprovada em chat após teste manual; `status: shipped` |
