@@ -126,3 +126,32 @@ descrição 14px `text.muted`; timestamp 13px `text.muted` (`EEE, dd/MM · HH:mm
 ## Roadmap (entram por DDR/uso a partir do EPIC-001)
 
 `button.secondary` (`OutlinedButton`), `button.danger`, `input.text` (`TextFormField`), `input.select` (`DropdownMenu`), `input.checkbox`, `input.switch`, `chip` (`FilterChip`/`InputChip`), `segmented` (`SegmentedButton`), `card.vaga`, `card.turno`, `list.tile` (`ListTile`), `empty-state`, `snackbar`, `bottom-sheet`, `dialog`, `nav.bar` (`NavigationBar`) + `nav.rail` (`NavigationRail`), `app.bar`, `stepper`, `skeleton`, `badge`.
+
+---
+
+## `button.text`
+
+**Descrição:** ação de **baixa ênfase** no padrão "pergunta? ação" — label que combina o
+contexto e o verbo (ex.: "Não chegou ainda? Cancelar PIN", "Profissional não está no
+local? Recusar check-in"). 1º/2º usos na SCREEN-061 (cancelar PIN — tela do PIN e área
+de ações); **promovido a definitivo no 3º uso** (SCREEN-062 — gatilho da recusa do
+check-in). Não confundir com `link.text` (navegação): `button.text` executa uma AÇÃO.
+
+**Flutter:** `TextButton` com `foregroundColor` = `accent` do perfil (claro: `accent.ink`
+quando texto sobre superfície clara); `minimumSize: Size.fromHeight(48)`.
+
+**Anatomia:** label 15px w600 em `accent.ink` (claro) / `accent` (escuro); sem borda,
+sem fundo; alvo ≥48dp apesar do visual leve; loading = spinner inline no lugar do label.
+
+| Estado | Comportamento |
+|---|---|
+| default | texto `accent.ink` (claro) / `accent` (escuro) |
+| hover (web) | sublinhado |
+| focus | anel de foco visível |
+| pressed | overlay sutil |
+| disabled | opacidade 38% |
+| loading | spinner inline; toque bloqueado |
+
+**Usar quando:** ação secundária de baixa ênfase ao lado de um `button.primary` (máx. 1
+primário por tela — o `button.text` não compete). **Não usar quando:** for navegação
+(`link.text`) ou a ação for o objetivo principal da tela (`button.primary`).
