@@ -2,7 +2,7 @@
 id: SCREEN-STORY-061-pin-checkin
 story: STORY-061-pin-checkin-geracao-geofencing
 epic: EPIC-003-aceite-pin-e-pix
-status: in_implementation    # draft | ready | in_implementation | shipped | superseded
+status: shipped              # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-05
 updated_at: 2026-06-05
 owner_designer: claude-opus-4-8
@@ -441,3 +441,4 @@ Nenhuma cor nova; warning/success vêm dos tokens semânticos auditados (§4/§6
 | 2026-06-05 | criação (spec completo + protótipo v1) | claude-opus-4-8 (designer) | STORY-061; spec + protótipo entregues juntos para validação humana |
 | 2026-06-05 | validação humana — aprovado sem ajustes | Alexandro | inclui nota honesta de geofencing na tela do PIN, cancelamento sem dialog e premissa `checkin_cancelado` (§4.10); `status: ready` |
 | 2026-06-05 | implementação + ajuste consciente de razões | claude-opus-4-8 (programador) | razões de geo seguem o conjunto já testado da STORY-057 (`permissao_negada\|timeout\|indisponivel` — "indisponível" cobre o "erro do navegador" da §5); `timeline.event` promovido no DS (2º uso); `status: in_implementation` |
+| 2026-06-05 | implementado + PO aprovou em homolog | claude-opus-4-8 / Alexandro | STORY-061 entregue (API 93,2% / núcleo PIN 100%, webapp 441 testes, E2E 3 caminhos de geo, rc.73) e aprovada em chat após roteiro manual; `status: shipped` |

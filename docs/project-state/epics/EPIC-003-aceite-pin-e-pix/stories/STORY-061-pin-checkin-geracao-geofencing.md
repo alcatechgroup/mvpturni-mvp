@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-061-pin-checkin
-status: in_review
+status: done
 owner_agent: claude-opus-4-8
 created_at: 2026-06-03
 updated_at: 2026-06-05
@@ -73,11 +73,11 @@ NÃO decide: comportamento de geofencing (PDR-008 fixa); imutabilidade do snapsh
 
 ## Definição de Pronto
 
-- [ ] CAs marcados; deploy verificado.
-- [ ] SCREEN-STORY-061 `shipped`.
-- [ ] Alexandro testa em homolog (gera PIN, vê tela grande, geo capturada).
-- [ ] `index.json` atualizado.
-- [ ] "Notas do agente" preenchida.
+- [x] CAs marcados; deploy verificado (v0.1.0-rc.73 em homolog).
+- [x] SCREEN-STORY-061 `shipped`.
+- [x] Alexandro testa em homolog (gera PIN, vê tela grande, geo capturada) — aprovado em chat, 2026-06-05.
+- [x] `index.json` atualizado.
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo
 
