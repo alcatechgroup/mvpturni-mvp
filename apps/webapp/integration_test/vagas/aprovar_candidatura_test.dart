@@ -28,24 +28,33 @@ void main() {
       await awaitRouteChange(tester, '/');
       await tester.pumpAndSettle();
 
-      // 1) "Minhas vagas" — acha a vaga do cenário de aprovação (única com 1 candidato).
+      // 1) "Minhas vagas" — acha a vaga do cenário pela FUNÇÃO exclusiva do
+      // AprovacaoCandidaturaSeeder (Camareira / Arrumação — nenhum outro seed/E2E a usa).
       await pumpUntilFound(
         tester,
         find.byKey(const Key('minhas-vagas-screen')),
       );
-      await pumpUntilFound(tester, find.text('1 candidato aguardando'));
+      await pumpUntilFound(tester, find.text('Camareira / Arrumação'));
 
-      // 2) "Ver candidatos" DESTA vaga: o texto de contagem carrega a key
-      // `vaga-card-{id}-pendentes` — extrai o id e tapeia o botão correspondente.
-      final contagem = tester.widget<Text>(find.text('1 candidato aguardando'));
-      final vagaId = (contagem.key! as ValueKey<String>).value
-          .replaceFirst('vaga-card-', '')
-          .replaceFirst('-pendentes', '');
-      final verCandidatos = find.byKey(Key('vaga-card-$vagaId-ver-candidatos'));
+      // 2) "Ver candidatos" DESTA vaga: sobe ao card raiz (`vaga-card-{uuid}`) e desce ao
+      // botão — sem `.first` global (a vaga do painel/051 é dona do 1º "Ver candidatos").
+      final cardDaVaga = find.ancestor(
+        of: find.text('Camareira / Arrumação').first,
+        matching: find.byWidgetPredicate((w) {
+          final k = w.key;
+          return k is ValueKey<String> &&
+              k.value.startsWith('vaga-card-') &&
+              k.value.length == 'vaga-card-'.length + 36;
+        }, description: 'card raiz da vaga'),
+      );
+      final verCandidatos = find.descendant(
+        of: cardDaVaga.first,
+        matching: find.text('Ver candidatos'),
+      );
       await pumpUntilFound(tester, verCandidatos);
-      await tester.ensureVisible(verCandidatos);
+      await tester.ensureVisible(verCandidatos.first);
       await tester.pumpAndSettle();
-      await tester.tap(verCandidatos);
+      await tester.tap(verCandidatos.first);
       await tester.pumpAndSettle();
 
       // 3) Painel com o candidato seed.

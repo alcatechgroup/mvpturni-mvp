@@ -26,9 +26,15 @@ use Illuminate\Support\Facades\Hash;
  * teste) — a janela avança 1 semana por turno existente, então a habitualidade (PDR-002,
  * semana corrida seg→dom) nunca acumula e o fluxo é sempre o caminho feliz, sem override.
  *
- * A vaga fica SEMPRE com data_inicio depois da vaga do PainelCandidatosSeeder (+12 dias):
- * "Minhas vagas" ordena por data_inicio ASC e o E2E do painel tapeia o PRIMEIRO botão
- * "Ver candidatos" — esta vaga não pode roubar essa posição.
+ * Convivência com os OUTROS E2E (acoplamentos reais observados na suíte `vagas/`):
+ * - "Minhas vagas" ordena por data_inicio ASC; o E2E do painel tapeia o 1º "Ver candidatos"
+ *   e o de edição tapeia o 1º "Editar" (vaga Bartender de 31/12/2026). Por isso esta vaga
+ *   começa SEMPRE em 2027 — nunca rouba o `.first` de ninguém.
+ * - Função exclusiva (Camareira / Arrumação) — o teste de aprovação acha o card por ela,
+ *   sem depender da contagem "1 candidato aguardando" ser globalmente única.
+ * - Sobras de execuções anteriores ainda `abertas` (ex.: a candidatura virou
+ *   `pendente_revisao_apos_edicao` porque outro E2E editou a vaga) são CANCELADAS aqui —
+ *   vaga cancelada não tem botão "Editar"/"Cancelar" e sai do caminho dos outros testes.
  *
  * DEV/HOMOLOG — inócuo em prod (contratante.teste não existe lá).
  */
@@ -38,10 +44,12 @@ class AprovacaoCandidaturaSeeder extends Seeder
 
     private const PROF_EMAIL = 'aprovacao.pro@turni.local';
 
+    private const FUNCAO_SLUG = 'camareira';
+
     public function run(): void
     {
         $contratante = User::where('email', 'contratante.teste@turni.local')->first();
-        $funcao = Funcao::query()->orderBy('id')->first();
+        $funcao = Funcao::where('slug', self::FUNCAO_SLUG)->first();
         if ($contratante === null || $funcao === null) {
             return;
         }
@@ -57,11 +65,20 @@ class AprovacaoCandidaturaSeeder extends Seeder
             return;
         }
 
-        // Semana virgem para o par (1 turno aprovado por execução anterior = 1 semana usada).
+        // Sobras abertas sem candidatura pendente (cenário consumido/alterado): cancela para
+        // não poluir "Minhas vagas" nem roubar `.first` de outros E2E. aberta→cancelada é
+        // transição válida (ADR-013); vagas fechadas (aprovadas) ficam — são histórico real.
+        Vaga::where('observacoes', self::MARCADOR)
+            ->where('estado', VagaEstado::Aberta)
+            ->get()
+            ->each(fn (Vaga $v) => $v->transitionTo(VagaEstado::Cancelada));
+
+        // Semana virgem para o par (1 turno aprovado por execução anterior = 1 semana usada),
+        // sempre a partir de fevereiro/2027 (depois da vaga Bartender 31/12/2026 do E2E de edição).
         $semanasUsadas = Turno::where('estabelecimento_id', $contratante->id)
             ->where('profissional_id', $prof->id)
             ->count();
-        $inicio = now()->addWeeks(3 + $semanasUsadas)
+        $inicio = now()->parse('2027-02-01')->addWeeks($semanasUsadas)
             ->startOfWeek(CarbonInterface::MONDAY)
             ->addDays(3) // quinta-feira
             ->setTime(19, 0);

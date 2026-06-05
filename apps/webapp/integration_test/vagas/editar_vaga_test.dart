@@ -62,7 +62,12 @@ void main() {
     );
     await tester.enterText(
       find.byKey(const Key('publicar-vaga-valor')),
-      '18000',
+      // Valor ÚNICO entre as vagas abertas do contratante.teste (R$ 175,00): é por ele que
+      // o passo 2 acha o card DESTA vaga. O antigo `find.text('Editar').first` editava a
+      // vaga de MENOR data_inicio — que é a vaga seed do painel (STORY-051), não esta —
+      // mutando as candidaturas do painel para `pendente_revisao_apos_edicao` e quebrando
+      // o E2E do painel nas execuções seguintes (descoberto na STORY-058).
+      '17500',
     );
     await tester.pumpAndSettle();
     final submit = find.byKey(const Key('publicar-vaga-submit-btn'));
@@ -70,7 +75,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(submit);
 
-    // 2) De volta à lista — filtra "Todas" e abre "Editar" da vaga recém-criada.
+    // 2) De volta à lista — filtra "Todas" e abre "Editar" DA VAGA RECÉM-CRIADA, achada
+    // pelo valor único (R$ 175,00): o card carrega a key `vaga-card-{id}` e o botão de
+    // edição é `minhas-vagas-editar-{id}` — nada de `.first` (a lista ordena por
+    // data_inicio ASC e o `.first` apontava para a vaga seed do painel).
     await awaitRouteChange(tester, '/contratante/vagas');
     await pumpUntilFound(
       tester,
@@ -78,8 +86,25 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('minhas-vagas-filtro-todas')));
     await tester.pumpAndSettle();
-    await pumpUntilFound(tester, find.text('Editar'));
-    await tester.tap(find.text('Editar').first);
+    await pumpUntilFound(tester, find.textContaining(r'R$ 175,00'));
+    final valorTexto = find.textContaining(r'R$ 175,00');
+    final cardDaVaga = find.ancestor(
+      of: valorTexto.first,
+      matching: find.byWidgetPredicate((w) {
+        final k = w.key;
+        // Raiz do card: `vaga-card-{uuid}` (sem sufixo após o uuid de 36 chars).
+        return k is ValueKey<String> &&
+            k.value.startsWith('vaga-card-') &&
+            k.value.length == 'vaga-card-'.length + 36;
+      }, description: 'card raiz da vaga'),
+    );
+    final editarBtn = find.descendant(
+      of: cardDaVaga.first,
+      matching: find.text('Editar'),
+    );
+    await tester.ensureVisible(editarBtn.first);
+    await tester.pumpAndSettle();
+    await tester.tap(editarBtn.first);
 
     // 3) Form de edição carrega (GET /editar real). Muda o valor e revisa.
     await pumpUntilFound(

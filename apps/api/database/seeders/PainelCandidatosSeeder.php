@@ -54,8 +54,22 @@ class PainelCandidatosSeeder extends Seeder
             ])->save();
         }
 
-        // Candidaturas já semeadas? Não recria (idempotência por db:seed repetido).
-        if (Candidatura::where('vaga_id', $vaga->id)->exists()) {
+        // Candidaturas já semeadas? RESTAURA o estado canônico (3 pendentes) em vez de só
+        // retornar: outros E2E podem ter mutado o cenário — ex. o de edição (STORY-052) já
+        // editou esta vaga materialmente via `.first`, pondo as 3 em `pendente_revisao_apos_
+        // edicao` e derrubando o "3 candidatos aguardando" do painel (descoberto na STORY-058).
+        // O seed é o dono do cenário: cada execução recomeça do estado que o E2E espera.
+        $existentes = Candidatura::where('vaga_id', $vaga->id)->get();
+        if ($existentes->isNotEmpty()) {
+            foreach ($existentes as $candidatura) {
+                $candidatura->forceFill([
+                    'estado' => CandidaturaEstado::Pendente,
+                    'revisao_prazo_em' => null,
+                    'aprovada_em' => null,
+                    'retirada_em' => null,
+                ])->save();
+            }
+
             return;
         }
 
