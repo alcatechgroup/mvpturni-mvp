@@ -2,7 +2,7 @@
 id: SCREEN-STORY-060-detalhe-turno
 story: STORY-060-detalhe-turno-timeline-trilha-auditoria
 epic: EPIC-003-aceite-pin-e-pix
-status: ready                # draft | ready | in_implementation | shipped | superseded
+status: shipped              # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-05
 updated_at: 2026-06-05
 owner_designer: claude-opus-4-8
@@ -413,3 +413,4 @@ Nenhuma cor nova: tudo em tokens semânticos auditados AA.
 |---|---|---|---|
 | 2026-06-05 | criação (spec completo + protótipo v1) | claude-opus-4-8 (designer) | STORY-060; spec + protótipo entregues juntos para validação humana |
 | 2026-06-05 | validação humana — aprovado sem ajustes | Alexandro | inclui visibilidade financeira na timeline (§4.1), 403 como "não encontrado" (§4.5), placeholder de ações oculto em terminais; `status: ready` |
+| 2026-06-05 | implementado + PO aprovou em homolog | claude-opus-4-8 / Alexandro | STORY-060 entregue (API 92,9% total / controller 100%, webapp 414 testes, gate E2E verde, rc.72) e aprovada em chat após roteiro manual; `status: shipped` |

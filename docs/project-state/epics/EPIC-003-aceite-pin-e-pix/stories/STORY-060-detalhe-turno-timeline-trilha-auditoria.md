@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-060-detalhe-turno
-status: in_review
+status: done
 owner_agent: claude-opus-4-8
 created_at: 2026-06-03
 updated_at: 2026-06-05
@@ -70,10 +70,10 @@ NÃO decide: visibilidade financeira (fixada em `domain/pagamento.md`).
 
 ## Definição de Pronto
 
-- [ ] CAs marcados; deploy verificado.
-- [ ] SCREEN-STORY-060 marcado `shipped`.
-- [ ] `index.json` atualizado.
-- [ ] "Notas do agente" preenchida.
+- [x] CAs marcados; deploy verificado.
+- [x] SCREEN-STORY-060 marcado `shipped`.
+- [x] `index.json` atualizado.
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo
 
@@ -136,4 +136,5 @@ NÃO decide: visibilidade financeira (fixada em `domain/pagamento.md`).
   aplicado nos turnos do seed antigos).
 - Deploy de homologação: **v0.1.0-rc.72** no ar (2026-06-05; `version.json` confere;
   `GET /api/turnos/{uuid}` sem auth → 401, rota viva). Verificação manual de Alexandro:
-  pendente (roteiro entregue em chat).
+  **aprovada em chat (2026-06-05)** — roteiro de 4 cenários (detalhe nos 2 papéis,
+  fail-secure cruzado, área de ações por estado).
