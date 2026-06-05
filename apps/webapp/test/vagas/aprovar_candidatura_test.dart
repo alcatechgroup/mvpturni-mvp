@@ -60,9 +60,14 @@ class _FakeService extends CandidatosService {
   }
 
   @override
-  Future<AprovarResult> aprovar(String candidaturaId, {bool override = false}) async {
+  Future<AprovarResult> aprovar(
+    String candidaturaId, {
+    bool override = false,
+  }) async {
     chamadas.add((id: candidaturaId, override: override));
-    final i = aprovacoes < aprovarResults.length ? aprovacoes : aprovarResults.length - 1;
+    final i = aprovacoes < aprovarResults.length
+        ? aprovacoes
+        : aprovarResults.length - 1;
     aprovacoes++;
     return aprovarResults[i]();
   }
@@ -84,12 +89,13 @@ Future<_FakeService> _pump(
       GoRoute(path: '/contratante/vagas', builder: (_, _) => const Scaffold()),
       GoRoute(
         path: '/contratante/vagas/:id/candidatos',
-        builder: (_, _) => PainelCandidatosScreen(vagaId: 'v1', service: service),
+        builder: (_, _) =>
+            PainelCandidatosScreen(vagaId: 'v1', service: service),
       ),
     ],
   );
   await tester.pumpWidget(
-    MaterialApp.router(theme: turniTheme(Brightness.light), routerConfig: router),
+    MaterialApp.router(theme: buildLightTheme(), routerConfig: router),
   );
   await tester.pumpAndSettle();
   return service;
@@ -141,13 +147,16 @@ void main() {
   });
 
   group('CandidatosService.aprovar — contrato do POST', () {
-    CandidatosService comResposta(int status, Map<String, dynamic> body, {void Function(http.Request)? captura}) =>
-        CandidatosService(
-          client: MockClient((req) async {
-            captura?.call(req);
-            return http.Response(jsonEncode(body), status, headers: _utf8);
-          }),
-        );
+    CandidatosService comResposta(
+      int status,
+      Map<String, dynamic> body, {
+      void Function(http.Request)? captura,
+    }) => CandidatosService(
+      client: MockClient((req) async {
+        captura?.call(req);
+        return http.Response(jsonEncode(body), status, headers: _utf8);
+      }),
+    );
 
     test('201 → AprovarSucesso com o turno', () async {
       late http.Request req;
@@ -173,7 +182,10 @@ void main() {
     });
 
     test('409 → AprovarJaAceita (idempotência CA-5)', () async {
-      final r = await comResposta(409, {'erro': 'ja_aprovada', 'turno_id': 't9'}).aprovar('c1');
+      final r = await comResposta(409, {
+        'erro': 'ja_aprovada',
+        'turno_id': 't9',
+      }).aprovar('c1');
       expect(r, isA<AprovarJaAceita>());
     });
 
@@ -200,27 +212,43 @@ void main() {
   // ───────────────────── Widget: D1 confirmação ─────────────────────
 
   group('D1 — dialog de confirmação', () {
-    testWidgets('botão Aceitar agora habilitado abre o D1 com o financeiro (PDR-004)', (tester) async {
-      await _pump(tester);
+    testWidgets(
+      'botão Aceitar agora habilitado abre o D1 com o financeiro (PDR-004)',
+      (tester) async {
+        await _pump(tester);
 
-      await tester.tap(find.byKey(const Key('candidato-card-c1-aceitar-btn')));
-      await tester.pumpAndSettle();
+        await tester.tap(
+          find.byKey(const Key('candidato-card-c1-aceitar-btn')),
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('aprovar-dialog-confirmar')), findsOneWidget);
-      expect(find.byKey(const Key('aprovar-dialog-financeiro')), findsOneWidget);
-      expect(find.text('R\$ 200,00'), findsOneWidget);
-      expect(find.text('R\$ 30,00'), findsOneWidget);
-      expect(find.text('R\$ 230,00'), findsOneWidget);
-      expect(find.textContaining('Júlia Santos'), findsWidgets);
-      expect(
-        find.textContaining('o contrato do turno é emitido e registrado'),
-        findsOneWidget,
-      );
-      // Sem pré-aviso quando o candidato não tem alerta.
-      expect(find.byKey(const Key('aprovar-dialog-pre-aviso-habitualidade')), findsNothing);
-    });
+        expect(
+          find.byKey(const Key('aprovar-dialog-confirmar')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const Key('aprovar-dialog-financeiro')),
+          findsOneWidget,
+        );
+        expect(find.text('R\$ 200,00'), findsOneWidget);
+        expect(find.text('R\$ 30,00'), findsOneWidget);
+        expect(find.text('R\$ 230,00'), findsOneWidget);
+        expect(find.textContaining('Júlia Santos'), findsWidgets);
+        expect(
+          find.textContaining('o contrato do turno é emitido e registrado'),
+          findsOneWidget,
+        );
+        // Sem pré-aviso quando o candidato não tem alerta.
+        expect(
+          find.byKey(const Key('aprovar-dialog-pre-aviso-habitualidade')),
+          findsNothing,
+        );
+      },
+    );
 
-    testWidgets('candidato com alerta de habitualidade vê o pré-aviso no D1', (tester) async {
+    testWidgets('candidato com alerta de habitualidade vê o pré-aviso no D1', (
+      tester,
+    ) async {
       await _pump(tester, candidatos: [_cand(alerta: true)]);
 
       await tester.tap(find.byKey(const Key('candidato-card-c1-aceitar-btn')));
@@ -255,79 +283,117 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('sucesso → snackbar + lista recarrega (candidato some)', (tester) async {
-      final service = await _pump(tester, aprovar: [() => AprovarSucesso('t1')]);
+    testWidgets('sucesso → snackbar + lista recarrega (candidato some)', (
+      tester,
+    ) async {
+      final service = await _pump(
+        tester,
+        aprovar: [() => AprovarSucesso('t1')],
+      );
       // Após aprovar, o backend não devolve mais o candidato (virou turno).
       service.candidatos = [];
 
       await confirmar(tester);
 
       expect(find.byKey(const Key('aprovar-snackbar-sucesso')), findsOneWidget);
-      expect(
-        find.textContaining('Turno confirmado'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Turno confirmado'), findsOneWidget);
       expect(service.fetches, 2); // inicial + reload
       expect(service.chamadas.single, (id: 'c1', override: false));
       expect(find.text('Júlia Santos'), findsNothing);
     });
 
-    testWidgets('habitualidade_bloqueio (PF 3ª) → D2 com a razão e sem turno', (tester) async {
-      await _pump(tester, aprovar: [
-        () => AprovarBloqueio(erro: 'habitualidade_bloqueio', mensagem: 'x'),
-      ]);
+    testWidgets('habitualidade_bloqueio (PF 3ª) → D2 com a razão e sem turno', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        aprovar: [
+          () => AprovarBloqueio(erro: 'habitualidade_bloqueio', mensagem: 'x'),
+        ],
+      );
 
       await confirmar(tester);
 
-      expect(find.byKey(const Key('aprovar-dialog-bloqueio-pf')), findsOneWidget);
+      expect(
+        find.byKey(const Key('aprovar-dialog-bloqueio-pf')),
+        findsOneWidget,
+      );
       expect(find.text('Aceite bloqueado'), findsOneWidget);
       expect(
-        find.textContaining('bloqueia a 3ª alocação semanal de profissionais PF'),
+        find.textContaining(
+          'bloqueia a 3ª alocação semanal de profissionais PF',
+        ),
         findsOneWidget,
       );
 
-      await tester.tap(find.byKey(const Key('aprovar-dialog-bloqueio-pf-entendi-btn')));
+      await tester.tap(
+        find.byKey(const Key('aprovar-dialog-bloqueio-pf-entendi-btn')),
+      );
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('aprovar-dialog-bloqueio-pf')), findsNothing);
     });
 
-    testWidgets('requer_override (PJ 3ª) → D3; "Assumo o risco" reenvia com override', (tester) async {
-      final service = await _pump(tester, aprovar: [
-        () => AprovarBloqueio(erro: 'requer_override', mensagem: 'x'),
-        () => AprovarSucesso('t1'),
-      ]);
+    testWidgets(
+      'requer_override (PJ 3ª) → D3; "Assumo o risco" reenvia com override',
+      (tester) async {
+        final service = await _pump(
+          tester,
+          aprovar: [
+            () => AprovarBloqueio(erro: 'requer_override', mensagem: 'x'),
+            () => AprovarSucesso('t1'),
+          ],
+        );
 
-      await confirmar(tester);
+        await confirmar(tester);
 
-      expect(find.byKey(const Key('aprovar-dialog-override-pj')), findsOneWidget);
-      expect(find.text('3ª alocação na mesma semana'), findsOneWidget);
-      expect(find.textContaining('Sinais de habitualidade'), findsOneWidget);
+        expect(
+          find.byKey(const Key('aprovar-dialog-override-pj')),
+          findsOneWidget,
+        );
+        expect(find.text('3ª alocação na mesma semana'), findsOneWidget);
+        expect(find.textContaining('Sinais de habitualidade'), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('aprovar-dialog-override-pj-aceitar-btn')));
-      await tester.pumpAndSettle();
+        await tester.tap(
+          find.byKey(const Key('aprovar-dialog-override-pj-aceitar-btn')),
+        );
+        await tester.pumpAndSettle();
 
-      expect(service.chamadas, [
-        (id: 'c1', override: false),
-        (id: 'c1', override: true),
-      ]);
-      expect(find.byKey(const Key('aprovar-snackbar-sucesso')), findsOneWidget);
-    });
+        expect(service.chamadas, [
+          (id: 'c1', override: false),
+          (id: 'c1', override: true),
+        ]);
+        expect(
+          find.byKey(const Key('aprovar-snackbar-sucesso')),
+          findsOneWidget,
+        );
+      },
+    );
 
     testWidgets('D3 — Voltar desiste sem 2ª chamada', (tester) async {
-      final service = await _pump(tester, aprovar: [
-        () => AprovarBloqueio(erro: 'requer_override', mensagem: 'x'),
-      ]);
+      final service = await _pump(
+        tester,
+        aprovar: [
+          () => AprovarBloqueio(erro: 'requer_override', mensagem: 'x'),
+        ],
+      );
 
       await confirmar(tester);
-      await tester.tap(find.byKey(const Key('aprovar-dialog-override-pj-voltar-btn')));
+      await tester.tap(
+        find.byKey(const Key('aprovar-dialog-override-pj-voltar-btn')),
+      );
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('aprovar-dialog-override-pj')), findsNothing);
       expect(service.aprovacoes, 1);
     });
 
-    testWidgets('ja_aprovada (409) → snackbar idempotente + reload', (tester) async {
-      final service = await _pump(tester, aprovar: [() => AprovarJaAceita('t1')]);
+    testWidgets('ja_aprovada (409) → snackbar idempotente + reload', (
+      tester,
+    ) async {
+      final service = await _pump(
+        tester,
+        aprovar: [() => AprovarJaAceita('t1')],
+      );
 
       await confirmar(tester);
 
@@ -336,9 +402,10 @@ void main() {
     });
 
     testWidgets('vaga_fechada → snackbar + reload', (tester) async {
-      final service = await _pump(tester, aprovar: [
-        () => AprovarBloqueio(erro: 'vaga_fechada', mensagem: 'x'),
-      ]);
+      final service = await _pump(
+        tester,
+        aprovar: [() => AprovarBloqueio(erro: 'vaga_fechada', mensagem: 'x')],
+      );
 
       await confirmar(tester);
 
@@ -346,17 +413,26 @@ void main() {
       expect(service.fetches, 2);
     });
 
-    testWidgets('erro de rede → snackbar com "Tentar de novo" que reabre o D1', (tester) async {
-      await _pump(tester, aprovar: [() => AprovarErro()]);
+    testWidgets(
+      'erro de rede → snackbar com "Tentar de novo" que reabre o D1',
+      (tester) async {
+        await _pump(tester, aprovar: [() => AprovarErro()]);
 
-      await confirmar(tester);
+        await confirmar(tester);
 
-      expect(find.byKey(const Key('aprovar-snackbar-erro')), findsOneWidget);
-      expect(find.textContaining('Não foi possível concluir o aceite'), findsOneWidget);
+        expect(find.byKey(const Key('aprovar-snackbar-erro')), findsOneWidget);
+        expect(
+          find.textContaining('Não foi possível concluir o aceite'),
+          findsOneWidget,
+        );
 
-      await tester.tap(find.text('Tentar de novo'));
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('aprovar-dialog-confirmar')), findsOneWidget);
-    });
+        await tester.tap(find.text('Tentar de novo'));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const Key('aprovar-dialog-confirmar')),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

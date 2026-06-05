@@ -289,7 +289,11 @@ void main() {
     );
   });
 
-  testWidgets('aceitar e remover ficam desabilitados (CA-6)', (tester) async {
+  // STORY-058 atualizou o CA-6 da 051: "Aceitar" agora está HABILITADO (abre o D1 — fluxo
+  // coberto em aprovar_candidatura_test.dart); "Remover" segue desabilitado (Lacuna MVP).
+  testWidgets('aceitar habilitado (STORY-058); remover segue desabilitado', (
+    tester,
+  ) async {
     final svc = _FakeService(
       result: () => CandidatosSuccess([_cand(id: '1')], 1),
     );
@@ -301,7 +305,7 @@ void main() {
     final remover = tester.widget<TextButton>(
       find.byKey(const Key('candidato-card-1-remover-btn')),
     );
-    expect(aceitar.onPressed, isNull);
+    expect(aceitar.onPressed, isNotNull);
     expect(remover.onPressed, isNull);
   });
 

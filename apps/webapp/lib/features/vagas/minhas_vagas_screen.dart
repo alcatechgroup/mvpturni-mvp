@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
@@ -437,7 +438,7 @@ class _VagaCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${_formatBRL(vaga.valor)} · turno',
+                '${formatBRL(vaga.valor)} · turno',
                 style: TextStyle(fontSize: 15, color: textStrong),
               ),
               _PosicoesPill(
@@ -868,19 +869,4 @@ class _SkeletonCard extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Formatação pt-BR / 24h (DDR-002) ─────────────────────────
-
-String _dois(int n) => n.toString().padLeft(2, '0');
-
-/// "R$ 1.234,56" — formatação monetária pt-BR sem dependência de intl.
-String _formatBRL(double valor) {
-  final centavos = (valor * 100).round();
-  final reais = (centavos ~/ 100).toString();
-  final cents = _dois(centavos % 100);
-  final buf = StringBuffer();
-  for (var i = 0; i < reais.length; i++) {
-    if (i > 0 && (reais.length - i) % 3 == 0) buf.write('.');
-    buf.write(reais[i]);
-  }
-  return 'R\$ $buf,$cents';
-}
+// Formatação monetária promovida a core/format/brl.dart (4º uso — STORY-058).

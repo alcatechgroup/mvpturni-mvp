@@ -84,13 +84,40 @@ class CandidatoCard {
   }
 }
 
+/// STORY-058 (SCREEN-058 D1) — preview financeiro da vaga no payload do painel: o contratante
+/// vê valor/taxa/total separados ANTES de confirmar o aceite (PDR-004). Strings decimais
+/// ("200.00") como o backend serializa (cast decimal:2).
+class VagaFinanceiro {
+  final String valor;
+  final String taxaTurni;
+  final String totalContratante;
+
+  const VagaFinanceiro({
+    required this.valor,
+    required this.taxaTurni,
+    required this.totalContratante,
+  });
+
+  static VagaFinanceiro? fromJson(Map<String, dynamic>? json) {
+    if (json == null) return null;
+    return VagaFinanceiro(
+      valor: json['valor'] as String? ?? '0.00',
+      taxaTurni: json['taxa_turni'] as String? ?? '0.00',
+      totalContratante: json['total_contratante'] as String? ?? '0.00',
+    );
+  }
+}
+
 /// Resultado do GET /api/vagas/{id}/candidatos.
 sealed class CandidatosResult {}
 
 class CandidatosSuccess extends CandidatosResult {
   final List<CandidatoCard> candidatos;
   final int total;
-  CandidatosSuccess(this.candidatos, this.total);
+
+  /// Preview financeiro (STORY-058). Nulo em payload legado — o D1 degrada sem a tabela.
+  final VagaFinanceiro? vaga;
+  CandidatosSuccess(this.candidatos, this.total, [this.vaga]);
 }
 
 /// 403 — papel sem permissão (profissional) ou contratante não-dono. RBAC CA-1.
@@ -101,6 +128,32 @@ class CandidatosNotFound extends CandidatosResult {}
 
 /// Rede/5xx — erro recuperável; a tela oferece retry.
 class CandidatosError extends CandidatosResult {}
+
+/// STORY-058 — desfecho do POST /api/candidaturas/{id}/aprovar (contrato SCREEN-058 §10).
+sealed class AprovarResult {}
+
+/// 201 — turno criado (`confirmado`); a pré-autorização roda assíncrona no worker.
+class AprovarSucesso extends AprovarResult {
+  final String turnoId;
+  AprovarSucesso(this.turnoId);
+}
+
+/// 409 — clique duplo / outra sessão já aprovou (idempotência CA-5). UI trata como informativo.
+class AprovarJaAceita extends AprovarResult {
+  final String? turnoId;
+  AprovarJaAceita(this.turnoId);
+}
+
+/// 422 — bloqueio de negócio: `habitualidade_bloqueio` (PF 3ª — D2), `requer_override`
+/// (PJ 3ª — D3), `vaga_fechada`, `candidatura_invalida`. `mensagem` vem pronta do back.
+class AprovarBloqueio extends AprovarResult {
+  final String erro;
+  final String mensagem;
+  AprovarBloqueio({required this.erro, required this.mensagem});
+}
+
+/// 403/404/5xx/rede — falha técnica; snackbar com "Tentar de novo".
+class AprovarErro extends AprovarResult {}
 
 /// Serviço do painel de candidatos (STORY-051). Sessão Sanctum same-origin: o cookie trafega
 /// sozinho (não refazemos /sanctum/csrf-cookie no meio da sessão — IDR-019).
@@ -135,7 +188,10 @@ class CandidatosService {
               )
               .toList(growable: false);
           final total = (data['total'] as num?)?.toInt() ?? lista.length;
-          return CandidatosSuccess(lista, total);
+          final vaga = VagaFinanceiro.fromJson(
+            (data['vaga'] as Map?)?.cast<String, dynamic>(),
+          );
+          return CandidatosSuccess(lista, total, vaga);
         } catch (_) {
           return CandidatosError();
         }
@@ -145,6 +201,52 @@ class CandidatosService {
         return CandidatosNotFound();
       default:
         return CandidatosError();
+    }
+  }
+
+  /// STORY-058 — POST /api/candidaturas/{id}/aprovar. Abre o turno (201), responde 409 no
+  /// clique duplo entre sessões e 422 nos bloqueios de negócio (PDR-002, vaga fechada).
+  /// `override` = "Assumo o risco e aceito" do D3 (PJ na 3ª alocação — CA-4).
+  Future<AprovarResult> aprovar(
+    String candidaturaId, {
+    bool override = false,
+  }) async {
+    http.Response res;
+    try {
+      res = await _client.post(
+        Uri.parse('$_base/candidaturas/$candidaturaId/aprovar'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(override ? {'override': true} : {}),
+      );
+    } catch (_) {
+      return AprovarErro();
+    }
+
+    Map<String, dynamic> data;
+    try {
+      data = (jsonDecode(res.body) as Map).cast<String, dynamic>();
+    } catch (_) {
+      data = const {};
+    }
+
+    switch (res.statusCode) {
+      case 201:
+        final turno = (data['turno'] as Map?)?.cast<String, dynamic>();
+        return AprovarSucesso(turno?['id'] as String? ?? '');
+      case 409:
+        return AprovarJaAceita(data['turno_id'] as String?);
+      case 422:
+        return AprovarBloqueio(
+          erro: data['erro'] as String? ?? 'desconhecido',
+          mensagem:
+              data['mensagem'] as String? ??
+              'Não foi possível concluir o aceite.',
+        );
+      default:
+        return AprovarErro();
     }
   }
 }

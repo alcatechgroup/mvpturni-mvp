@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
 
+import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
@@ -908,27 +909,13 @@ class _SkeletonCard extends StatelessWidget {
 }
 
 // ───────────────────────── Formatação pt-BR / 24h (DDR-002) ─────────────────────────
-
-String _dois(int n) => n.toString().padLeft(2, '0');
+// Formatação monetária promovida a core/format/brl.dart (4º uso — STORY-058).
 
 /// "R$ 150,00 · turno" ou "R$ 150,00 · turno · a 3 km" (distância só quando há geo).
 String _linhaValor(FeedVagaResumo v) {
-  final base = '${_formatBRL(v.valor)} · turno';
+  final base = '${formatBRL(v.valor)} · turno';
   final d = v.distanciaKm;
   if (d == null) return base;
   final dist = d < 1 ? 'a menos de 1 km' : 'a ${d.round()} km';
   return '$base · $dist';
-}
-
-/// "R$ 1.234,56" — formatação monetária pt-BR sem dependência de intl.
-String _formatBRL(double valor) {
-  final centavos = (valor * 100).round();
-  final reais = (centavos ~/ 100).toString();
-  final cents = _dois(centavos % 100);
-  final buf = StringBuffer();
-  for (var i = 0; i < reais.length; i++) {
-    if (i > 0 && (reais.length - i) % 3 == 0) buf.write('.');
-    buf.write(reais[i]);
-  }
-  return 'R\$ $buf,$cents';
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import 'candidatos_service.dart';
@@ -9,10 +10,14 @@ import 'vaga_detalhe_screen.dart' show BreakdownRow;
 
 /// STORY-051 / SCREEN-STORY-051 — painel de candidatos do contratante: lista os candidatos
 /// `pendentes` da vaga ranqueados por score (CA-2), com o **mesmo** breakdown que o profissional
-/// viu (CA-4, reusa `BreakdownRow` da STORY-049). Marca o alerta de habitualidade (CA-5) e deixa
-/// "Aceitar"/"Remover" desabilitados — o aceite é EPIC-003 (CA-6). RBAC (CA-1): profissional ou
-/// contratante não-dono (403) cai em "sem permissão"; vaga inexistente (404) cai em estado próprio.
-/// Tema do papel: contratante (mostarda). Espelho de "Minhas vagas" (SCREEN-047).
+/// viu (CA-4, reusa `BreakdownRow` da STORY-049). Marca o alerta de habitualidade (CA-5). RBAC
+/// (CA-1): profissional ou contratante não-dono (403) cai em "sem permissão"; vaga inexistente
+/// (404) cai em estado próprio. Tema do papel: contratante (mostarda).
+///
+/// STORY-058 / SCREEN-STORY-058 — "Aceitar candidatura" agora ABRE O TURNO: D1 (confirmação com
+/// o financeiro PDR-004 + pré-aviso de habitualidade), D2 (bloqueio PF 3ª — PDR-002), D3 (aceite
+/// de risco PJ 3ª com override explícito) e snackbars de desfecho. "Remover" segue desabilitado
+/// (recusa é Lacuna do MVP).
 class PainelCandidatosScreen extends StatefulWidget {
   const PainelCandidatosScreen({
     super.key,
@@ -46,6 +51,7 @@ class _PainelCandidatosScreenState extends State<PainelCandidatosScreen> {
   _Phase _phase = _Phase.loading;
   List<CandidatoCard> _candidatos = const [];
   int _total = 0;
+  VagaFinanceiro? _financeiro; // preview valor/taxa/total (STORY-058 — D1)
 
   @override
   void initState() {
@@ -59,9 +65,10 @@ class _PainelCandidatosScreenState extends State<PainelCandidatosScreen> {
     if (!mounted) return;
     setState(() {
       switch (result) {
-        case CandidatosSuccess(:final candidatos, :final total):
+        case CandidatosSuccess(:final candidatos, :final total, :final vaga):
           _candidatos = candidatos;
           _total = total;
+          _financeiro = vaga;
           _phase = _Phase.pronto;
         case CandidatosForbidden():
           _phase = _Phase.semPermissao;
@@ -71,6 +78,143 @@ class _PainelCandidatosScreenState extends State<PainelCandidatosScreen> {
           _phase = _Phase.erro;
       }
     });
+  }
+
+  // ───────────────── Aceite da candidatura (STORY-058 / SCREEN-058) ─────────────────
+
+  /// D1 — confirmação. Confirmar dispara o POST dentro do próprio dialog (CTA em
+  /// "Confirmando…", barrier travada — anti clique-duplo na UI; o servidor é idempotente).
+  Future<void> _iniciarAceite(CandidatoCard candidato) async {
+    final result = await showDialog<AprovarResult>(
+      context: context,
+      builder: (_) => _AprovarConfirmaDialog(
+        candidato: candidato,
+        financeiro: _financeiro,
+        dataInicio: widget.dataInicio,
+        dataFim: widget.dataFim,
+        aprovar: () => _service.aprovar(candidato.id),
+      ),
+    );
+    if (!mounted || result == null) return;
+    await _tratarDesfecho(candidato, result);
+  }
+
+  Future<void> _tratarDesfecho(
+    CandidatoCard candidato,
+    AprovarResult result,
+  ) async {
+    switch (result) {
+      case AprovarSucesso():
+        _snack(
+          key: 'aprovar-snackbar-sucesso',
+          icone: Icons.check_circle_outline,
+          texto:
+              'Turno confirmado. O contrato foi registrado e o pagamento está sendo pré-autorizado.',
+          duracao: const Duration(seconds: 6),
+        );
+        await _load();
+      case AprovarJaAceita():
+        _snack(texto: 'Esta candidatura já foi aceita — o turno existe.');
+        await _load();
+      case AprovarBloqueio(:final erro):
+        switch (erro) {
+          case 'habitualidade_bloqueio':
+            await _mostrarBloqueioPf();
+          case 'requer_override':
+            final r = await showDialog<AprovarResult>(
+              context: context,
+              builder: (_) => _AprovarOverrideDialog(
+                aprovar: () => _service.aprovar(candidato.id, override: true),
+              ),
+            );
+            if (!mounted || r == null) return;
+            await _tratarDesfecho(candidato, r);
+          case 'vaga_fechada':
+            _snack(
+              texto: 'Esta vaga não está mais aberta. A lista foi atualizada.',
+            );
+            await _load();
+          default:
+            _snack(
+              texto: 'Esta candidatura não está mais disponível para aceite.',
+            );
+            await _load();
+        }
+      case AprovarErro():
+        _snack(
+          key: 'aprovar-snackbar-erro',
+          icone: Icons.warning_amber_rounded,
+          texto: 'Não foi possível concluir o aceite.',
+          erro: true,
+          acao: SnackBarAction(
+            label: 'Tentar de novo',
+            onPressed: () => _iniciarAceite(candidato),
+          ),
+        );
+    }
+  }
+
+  /// D2 — bloqueio PF 3ª (PDR-002): não é erro do usuário; tom de proteção (SCREEN-058 §3).
+  Future<void> _mostrarBloqueioPf() {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        key: const Key('aprovar-dialog-bloqueio-pf'),
+        title: Row(
+          children: [
+            Semantics(
+              label: 'Bloqueado por regra de proteção',
+              child: const Icon(Icons.shield_outlined),
+            ),
+            const SizedBox(width: TurniSpacing.sm),
+            const Expanded(child: Text('Aceite bloqueado')),
+          ],
+        ),
+        content: const Text(
+          'Este profissional é PF e já tem 2 alocações nesta semana neste '
+          'estabelecimento.\n\n'
+          'Para proteger a relação de trabalho eventual, a plataforma bloqueia a 3ª '
+          'alocação semanal de profissionais PF — sem exceção.\n\n'
+          'Você pode aceitá-lo a partir da próxima semana, ou escolher outro candidato.',
+        ),
+        actions: [
+          FilledButton(
+            key: const Key('aprovar-dialog-bloqueio-pf-entendi-btn'),
+            onPressed: () => Navigator.of(context).pop(),
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
+            child: const Text('Entendi'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _snack({
+    String? key,
+    IconData? icone,
+    required String texto,
+    bool erro = false,
+    Duration duracao = const Duration(seconds: 4),
+    SnackBarAction? acao,
+  }) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: duracao,
+        backgroundColor: erro ? const Color(0xFF4A2222) : null,
+        action: acao,
+        content: Row(
+          key: key != null ? Key(key) : null,
+          children: [
+            if (icone != null) ...[
+              Icon(icone, size: 18, color: erro ? TurniColors.warnDark : null),
+              const SizedBox(width: TurniSpacing.sm),
+            ],
+            Expanded(child: Text(texto)),
+          ],
+        ),
+      ),
+    );
   }
 
   void _voltar() {
@@ -170,6 +314,7 @@ class _PainelCandidatosScreenState extends State<PainelCandidatosScreen> {
                                     isDark: isDark,
                                     accent: _accent(isDark),
                                     accentInk: _accentInk(isDark),
+                                    onAceitar: () => _iniciarAceite(c),
                                   ),
                                 ),
                             ],
@@ -268,12 +413,14 @@ class _CandidatoCardView extends StatefulWidget {
     required this.isDark,
     required this.accent,
     required this.accentInk,
+    required this.onAceitar,
   });
 
   final CandidatoCard candidato;
   final bool isDark;
   final Color accent;
   final Color accentInk;
+  final VoidCallback onAceitar;
 
   @override
   State<_CandidatoCardView> createState() => _CandidatoCardViewState();
@@ -394,9 +541,9 @@ class _CandidatoCardViewState extends State<_CandidatoCardView> {
                 vagaCandidatoId: c.id,
               ),
           ],
-          // Ações futuras desabilitadas (CA-6).
+          // Aceitar habilitado (STORY-058); remover segue desabilitado (Lacuna MVP).
           Divider(color: border, height: TurniSpacing.lg),
-          _AcoesDesabilitadas(vagaCandidatoId: c.id),
+          _Acoes(vagaCandidatoId: c.id, onAceitar: widget.onAceitar),
         ],
       ),
     );
@@ -742,39 +889,34 @@ class _BreakdownBloco extends StatelessWidget {
   }
 }
 
-/// Ações de "Aceitar"/"Remover" desabilitadas — promessa honesta do EPIC-003 (CA-6).
-class _AcoesDesabilitadas extends StatelessWidget {
-  const _AcoesDesabilitadas({required this.vagaCandidatoId});
+/// Ações do card: "Aceitar candidatura" habilitado (STORY-058 — abre o D1); "Remover
+/// candidato" segue desabilitado (recusa é Lacuna do MVP — domain/candidatura.md).
+class _Acoes extends StatelessWidget {
+  const _Acoes({required this.vagaCandidatoId, required this.onAceitar});
 
   final String vagaCandidatoId;
+  final VoidCallback onAceitar;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Tooltip(
-          message: 'Disponível no EPIC-003 — Aceite, PIN e Pix',
-          child: Semantics(
-            enabled: false,
-            label: 'Aceitar candidatura. Disponível no EPIC-003',
-            child: FilledButton(
-              key: Key('candidato-card-$vagaCandidatoId-aceitar-btn'),
-              onPressed: null,
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(0, 48),
-                shape: const StadiumBorder(),
-              ),
-              child: const Text('Aceitar candidatura'),
-            ),
+        FilledButton(
+          key: Key('candidato-card-$vagaCandidatoId-aceitar-btn'),
+          onPressed: onAceitar,
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(0, 48),
+            shape: const StadiumBorder(),
           ),
+          child: const Text('Aceitar candidatura'),
         ),
         const SizedBox(height: TurniSpacing.xs),
         Tooltip(
-          message: 'Disponível no EPIC-003',
+          message: 'Em breve',
           child: Semantics(
             enabled: false,
-            label: 'Remover candidato. Disponível no EPIC-003',
+            label: 'Remover candidato. Em breve',
             child: TextButton(
               key: Key('candidato-card-$vagaCandidatoId-remover-btn'),
               onPressed: null,
@@ -783,6 +925,301 @@ class _AcoesDesabilitadas extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ───────────────── Dialogs do aceite (STORY-058 / SCREEN-058) ─────────────────
+
+/// D1 — confirmação do aceite: quem, quando, o financeiro (PDR-004) e a nota legal.
+/// O POST roda DENTRO do dialog (CTA vira "Confirmando…", barrier travada) e o desfecho
+/// é devolvido ao chamador via `Navigator.pop(result)`.
+class _AprovarConfirmaDialog extends StatefulWidget {
+  const _AprovarConfirmaDialog({
+    required this.candidato,
+    required this.financeiro,
+    required this.dataInicio,
+    required this.dataFim,
+    required this.aprovar,
+  });
+
+  final CandidatoCard candidato;
+  final VagaFinanceiro? financeiro;
+  final DateTime? dataInicio;
+  final DateTime? dataFim;
+  final Future<AprovarResult> Function() aprovar;
+
+  @override
+  State<_AprovarConfirmaDialog> createState() => _AprovarConfirmaDialogState();
+}
+
+class _AprovarConfirmaDialogState extends State<_AprovarConfirmaDialog> {
+  bool _enviando = false;
+
+  Future<void> _confirmar() async {
+    setState(() => _enviando = true);
+    final result = await widget.aprovar();
+    if (!mounted) return;
+    Navigator.of(context).pop(result);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.candidato;
+    final fin = widget.financeiro;
+    final funcao = c.profissional.funcaoPrimaria;
+    final quando = (widget.dataInicio != null && widget.dataFim != null)
+        ? TurniDateTime.formatIntervalo(widget.dataInicio!, widget.dataFim!)
+        : null;
+    final muted = Theme.of(context).textTheme.bodyMedium;
+
+    return PopScope(
+      canPop: !_enviando, // anti clique-duplo: travado durante o envio
+      child: AlertDialog(
+        key: const Key('aprovar-dialog-confirmar'),
+        title: const Text('Aceitar candidatura'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text.rich(
+                TextSpan(
+                  text: 'Você está abrindo um turno com ',
+                  children: [
+                    TextSpan(
+                      text: c.profissional.nome,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    if (funcao != null && funcao.isNotEmpty)
+                      TextSpan(text: ' — $funcao'),
+                    if (quando != null) TextSpan(text: '\n$quando'),
+                  ],
+                ),
+              ),
+              if (fin != null) ...[
+                const SizedBox(height: TurniSpacing.md),
+                _Financeiro(financeiro: fin),
+              ],
+              if (c.alertaHabitualidade) ...[
+                const SizedBox(height: TurniSpacing.md),
+                Container(
+                  key: const Key('aprovar-dialog-pre-aviso-habitualidade'),
+                  padding: const EdgeInsets.all(TurniSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: TurniColors.warnSoftLight,
+                    borderRadius: const BorderRadius.all(TurniRadius.sm),
+                    border: Border.all(
+                      color: TurniColors.contratanteAccentInkLight.withValues(
+                        alpha: 0.35,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, size: 16),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Este profissional já tem 2 turnos com você nesta semana. '
+                          'Vamos pedir sua confirmação de risco no próximo passo.',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            color: TurniColors.contratanteAccentInkLight,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: TurniSpacing.md),
+              Text(
+                'Ao confirmar, o pagamento é pré-autorizado e o contrato do turno é '
+                'emitido e registrado.',
+                style: muted,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            key: const Key('aprovar-dialog-voltar-btn'),
+            onPressed: _enviando ? null : () => Navigator.of(context).pop(),
+            child: const Text('Voltar'),
+          ),
+          _CtaEnviando(
+            chave: 'aprovar-dialog-confirmar-btn',
+            label: 'Confirmar aceite',
+            enviando: _enviando,
+            onPressed: _confirmar,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// D3 — aceite de risco PJ na 3ª alocação (PDR-002/compliance.md). O CTA usa o verbo do
+/// registro jurídico ("Assumo o risco e aceito") e reenvia o POST com `override: true`.
+class _AprovarOverrideDialog extends StatefulWidget {
+  const _AprovarOverrideDialog({required this.aprovar});
+
+  final Future<AprovarResult> Function() aprovar;
+
+  @override
+  State<_AprovarOverrideDialog> createState() => _AprovarOverrideDialogState();
+}
+
+class _AprovarOverrideDialogState extends State<_AprovarOverrideDialog> {
+  bool _enviando = false;
+
+  Future<void> _assumir() async {
+    setState(() => _enviando = true);
+    final result = await widget.aprovar();
+    if (!mounted) return;
+    Navigator.of(context).pop(result);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: !_enviando,
+      child: AlertDialog(
+        key: const Key('aprovar-dialog-override-pj'),
+        title: Row(
+          children: [
+            Semantics(
+              label: 'Atenção: aceite de risco',
+              child: const Icon(Icons.warning_amber_rounded),
+            ),
+            const SizedBox(width: TurniSpacing.sm),
+            const Expanded(child: Text('3ª alocação na mesma semana')),
+          ],
+        ),
+        content: const Text(
+          'Este profissional já realizou 2 turnos com você nesta semana. Sinais de '
+          'habitualidade.\n\n'
+          'Você pode prosseguir, mas isso fica registrado como aceite consciente de '
+          'risco no contrato do turno. Considere se faz sentido continuar.',
+        ),
+        actions: [
+          TextButton(
+            key: const Key('aprovar-dialog-override-pj-voltar-btn'),
+            onPressed: _enviando ? null : () => Navigator.of(context).pop(),
+            child: const Text('Voltar'),
+          ),
+          _CtaEnviando(
+            chave: 'aprovar-dialog-override-pj-aceitar-btn',
+            label: 'Assumo o risco e aceito',
+            enviando: _enviando,
+            onPressed: _assumir,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// dialog.destaque-financeiro (SCREEN-058 §8 — candidato a DS quando STORY-060 reusar):
+/// tabela valor / taxa / total (PDR-004 — o contratante vê os 3 separados na decisão).
+class _Financeiro extends StatelessWidget {
+  const _Financeiro({required this.financeiro});
+
+  final VagaFinanceiro financeiro;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final border = isDark
+        ? TurniColors.borderSubtleDark
+        : TurniColors.borderSubtleLight;
+
+    Widget linha(String label, String valor, {bool forte = false}) {
+      final estilo = TextStyle(
+        fontSize: 14,
+        fontWeight: forte ? FontWeight.w800 : FontWeight.w400,
+      );
+      return MergeSemantics(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(label, style: estilo),
+              Text(
+                formatBRLDecimal(valor),
+                style: estilo.copyWith(
+                  fontWeight: forte ? FontWeight.w800 : FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      key: const Key('aprovar-dialog-financeiro'),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TurniSpacing.md,
+        vertical: TurniSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        border: Border.all(color: border),
+        borderRadius: const BorderRadius.all(TurniRadius.sm),
+      ),
+      child: Column(
+        children: [
+          linha('Profissional recebe', financeiro.valor),
+          linha('Taxa Turni (15%)', financeiro.taxaTurni),
+          Divider(color: border, height: TurniSpacing.md),
+          linha('Total a pagar', financeiro.totalContratante, forte: true),
+        ],
+      ),
+    );
+  }
+}
+
+/// CTA primário com estado de envio (spinner inline + "Confirmando…") — anti clique-duplo.
+class _CtaEnviando extends StatelessWidget {
+  const _CtaEnviando({
+    required this.chave,
+    required this.label,
+    required this.enviando,
+    required this.onPressed,
+  });
+
+  final String chave;
+  final String label;
+  final bool enviando;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      enabled: !enviando,
+      label: enviando ? 'Confirmando aceite' : null,
+      child: FilledButton(
+        key: Key(chave),
+        onPressed: enviando ? null : onPressed,
+        style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
+        child: enviando
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(
+                    width: 15,
+                    height: 15,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(width: TurniSpacing.sm),
+                  const Text('Confirmando…'),
+                ],
+              )
+            : Text(label),
+      ),
     );
   }
 }
