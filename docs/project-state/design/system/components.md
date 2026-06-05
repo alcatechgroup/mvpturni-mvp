@@ -125,7 +125,35 @@ descrição 14px `text.muted`; timestamp 13px `text.muted` (`EEE, dd/MM · HH:mm
 
 ## Roadmap (entram por DDR/uso a partir do EPIC-001)
 
-`button.secondary` (`OutlinedButton`), `button.danger`, `input.text` (`TextFormField`), `input.select` (`DropdownMenu`), `input.checkbox`, `input.switch`, `chip` (`FilterChip`/`InputChip`), `segmented` (`SegmentedButton`), `card.vaga`, `card.turno`, `list.tile` (`ListTile`), `empty-state`, `snackbar`, `bottom-sheet`, `dialog`, `nav.bar` (`NavigationBar`) + `nav.rail` (`NavigationRail`), `app.bar`, `stepper`, `skeleton`, `badge`.
+`button.secondary` (`OutlinedButton`), `button.danger`, `input.text` (`TextFormField`), `input.select` (`DropdownMenu`), `input.checkbox`, `input.switch`, `chip` (`FilterChip`/`InputChip`), `segmented` (`SegmentedButton`), `card.vaga`, `card.turno`, `list.tile` (`ListTile`), `empty-state`, `snackbar`, `bottom-sheet`, `nav.bar` (`NavigationBar`) + `nav.rail` (`NavigationRail`), `app.bar`, `stepper`, `skeleton`, `badge`.
+
+---
+
+## `dialog.confirm`
+
+**Descrição:** confirmação de uma decisão **destrutiva para o fluxo de outra pessoa** —
+título-pergunta + corpo que explica a consequência + campo opcional + par
+Voltar/destrutiva. 1º uso na SCREEN-062 (recusa do check-in); **promovido a definitivo
+no 2º uso** (SCREEN-064 — recusa do check-out, como a 062 previu). Próximos usos
+esperados: cancelamento de turno (STORY-066) e disputa (EPIC-005). Não confundir com
+`dialog.document` (leitura — aceite da 060): este é DECISÃO.
+
+**Flutter:** `AlertDialog` com `FilledButton` destrutivo em `error` sólido (branco
+5.7:1) e `TextButton` "Voltar"; `showDialog<bool>` devolvendo o desfecho.
+
+**Anatomia:** título `titleMedium` em pergunta ("Recusar check-out?"); corpo 14px
+`text.muted` com a consequência explícita; campo opcional (textarea ≤280) com label;
+erro inline no rodapé (o dialog NÃO fecha em erro); ações à direita (Voltar à esquerda
+da destrutiva).
+
+**Acessibilidade:** focus trap; foco inicial no corpo/título (nunca no botão
+destrutivo); ESC e toque fora fecham sem efeito; botões ≥48dp; erro com
+`liveRegion: true`.
+
+**Usar quando:** a ação invalida trabalho/estado de outra parte (recusa mata o PIN do
+profissional). **Não usar quando:** a ação é do próprio dono e reversível em um toque
+(cancelar o próprio PIN — 061/064 — não pede confirmação) ou for só leitura
+(`dialog.document`).
 
 ---
 

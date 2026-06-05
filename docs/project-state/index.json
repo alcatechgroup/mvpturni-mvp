@@ -3786,6 +3786,34 @@
         "owner_designer": "claude-opus-4-8",
         "created_at": "2026-06-05",
         "updated_at": "2026-06-05"
+      },
+      {
+        "id": "SCREEN-STORY-064-pin-checkout",
+        "story": "STORY-064",
+        "epic": "EPIC-003",
+        "status": "in_implementation",
+        "path": "design/screens/SCREEN-STORY-064-pin-checkout.md",
+        "viewports": [
+          "mobile",
+          "desktop"
+        ],
+        "related_ddrs": [
+          "DDR-001",
+          "DDR-002"
+        ],
+        "related_idrs": [],
+        "ds_components_used": [
+          "surface.card",
+          "badge.status",
+          "button.primary",
+          "button.text",
+          "banner",
+          "timeline.event",
+          "mono.display"
+        ],
+        "owner_designer": "claude-opus-4-8",
+        "created_at": "2026-06-05",
+        "updated_at": "2026-06-05"
       }
     ],
     "system": {
