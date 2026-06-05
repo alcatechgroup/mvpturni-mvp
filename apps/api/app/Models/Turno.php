@@ -30,7 +30,7 @@ class Turno extends Model
         'candidatura_id', 'vaga_id', 'vaga_versao_id', 'profissional_id', 'contratante_id',
         'estabelecimento_id', 'status', 'valor', 'taxa_turni', 'total_contratante',
         'data_inicio', 'data_fim', 'check_in_at', 'check_out_at',
-        'geofencing_check_in', 'geofencing_check_out', 'cancelamento',
+        'geofencing_check_in', 'geofencing_check_out', 'cancelamento', 'pin_checkin_hash',
     ];
 
     protected function casts(): array

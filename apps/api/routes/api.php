@@ -18,6 +18,7 @@ use App\Http\Controllers\Feed\VagaDetalheController;
 use App\Http\Controllers\Notificacao\NotificacaoController;
 use App\Http\Controllers\Turno\CheckinGeoController;
 use App\Http\Controllers\Turno\CronometroController;
+use App\Http\Controllers\Turno\PinCheckinController;
 use App\Http\Controllers\Turno\TurnoAtivoController;
 use App\Http\Controllers\Turno\TurnoDetalheController;
 use App\Http\Controllers\Turno\TurnosController;
@@ -168,6 +169,12 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     Route::get('/contratante/turnos', [TurnosController::class, 'doContratante']);
     Route::get('/turnos/{turno}/cronometro', [CronometroController::class, 'show']);
     Route::post('/turnos/{turno}/checkin-geo', [CheckinGeoController::class, 'store']);
+
+    // PIN de check-in (STORY-061 / PDR-008) — geração pelo profissional dentro da janela
+    // (config/turno.php) com captura de geofencing (alerta-e-registra, nunca bloqueia);
+    // cancelamento volta a `confirmado`. RBAC: só o profissional do turno (403 — CA-8).
+    Route::post('/turnos/{turno}/gerar-pin-checkin', [PinCheckinController::class, 'gerar']);
+    Route::post('/turnos/{turno}/cancelar-pin-checkin', [PinCheckinController::class, 'cancelar']);
 
     // Detalhe do turno (STORY-060) — rota compartilhada pelos 2 papéis (RBAC no controller:
     // cruzados 403, CA-1). Atributos + valor por papel (CA-2) + timeline filtrada (CA-3) +

@@ -111,6 +111,9 @@ test('depois da janela → 422 fora_da_janela', function () {
 });
 
 test('bordas inclusivas: exatamente na abertura e no fechamento da janela → 200', function () {
+    // Congela o relógio em segundo cheio: a borda é exata e o banco trunca microssegundos.
+    $this->travelTo(now()->startOfSecond());
+
     $abre = turnoNaJanela();
     $abre->forceFill(['data_inicio' => now()->addMinutes(30), 'data_fim' => now()->addHours(7)])->save();
     gerarPin($abre->fresh(['vaga', 'profissional']))->assertStatus(200);
