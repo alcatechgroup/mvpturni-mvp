@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PROTÓTIPO DE VALIDAÇÃO — NÃO É CÓDIGO DE PRODUÇÃO.
+     SCREEN-STORY-058 — Aceitar candidatura (dialogs D1/D2/D3 + snackbars)
+     Delta sobre SCREEN-STORY-051 (painel de candidatos do contratante).
+     HTML/CSS/JS vanilla, sem rede. Estados via seletor no topo ou ?state=…
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo — SCREEN-STORY-058 — Aceitar candidatura</title>
+<style>
+  /* Tokens DDR-001 / design/system/tokens.md (tema claro) */
+  :root{
+    --surface-page:#F7F4EC; --surface:#FFFFFF; --surface-sunken:#F0EDE3;
+    --surface-muted:#E8E5DB; --border-subtle:#E0DDD3; --border-strong:#C8C5BB;
+    --text-strong:#0F1B2D; --text-muted:#42504A;
+    --accent:#9A6E25; --accent-ink:#6E4E12; --accent-soft:#FBEED1;
+    --warn:#9A6E25; --warn-soft:#FBEED1;
+    --error:#B83A3A; --error-soft:#FBE2E2;
+    --success:#2D7A4F; --success-soft:#E2F0E5;
+    --radius-md:12px; --radius-full:999px;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:#DDD9CC;color:var(--text-strong);padding:16px;}
+  /* ── chrome do protótipo ─────────────────────────────── */
+  .proto-bar{max-width:980px;margin:0 auto 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .proto-bar b{font-size:13px;margin-right:4px}
+  .proto-bar button{border:1px solid var(--border-strong);background:#fff;border-radius:999px;
+    padding:6px 12px;font-size:12.5px;cursor:pointer}
+  .proto-bar button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+  .proto-note{max-width:980px;margin:0 auto 12px;font-size:12px;color:#6b6557}
+  /* ── viewport ────────────────────────────────────────── */
+  .frame{margin:0 auto;background:var(--surface-page);border:1px solid var(--border-strong);
+    border-radius:18px;overflow:hidden;position:relative;min-height:680px}
+  .frame.mobile{width:390px}
+  .frame.desktop{width:980px}
+  .brand{display:none;text-align:center;font-weight:900;letter-spacing:.5px;padding:18px 0 2px}
+  .brand i{color:#00A868;font-style:normal}
+  .frame.desktop .brand{display:block}
+  .appbar{display:flex;align-items:center;gap:10px;padding:14px 16px;font-size:18px;font-weight:800}
+  .appbar .back{font-size:20px;text-decoration:none;color:var(--text-strong);min-width:48px;
+    min-height:48px;display:flex;align-items:center}
+  .contexto{background:var(--surface);border-bottom:1px solid var(--border-subtle);padding:12px 16px}
+  .contexto .l1{font-weight:700;font-size:15px}
+  .contexto .l2{font-size:14px;color:var(--text-muted)}
+  .lista{padding:16px;max-width:720px;margin:0 auto}
+  /* ── card do candidato (reprodução da 051) ───────────── */
+  .card{background:var(--surface);border:1px solid var(--border-subtle);
+    border-radius:var(--radius-md);padding:16px;margin-bottom:16px}
+  .head{display:flex;gap:10px}
+  .avatar{width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}
+  .nome-l{flex:1}
+  .nome{font-size:17px;font-weight:800;display:flex;justify-content:space-between;gap:8px}
+  .chip{background:var(--warn-soft);border:1px solid rgba(154,110,37,.4);color:var(--accent-ink);
+    border-radius:var(--radius-full);padding:3px 11px;font-weight:800;font-size:15px;white-space:nowrap}
+  .funcao{font-size:14px;color:var(--text-muted);display:flex;gap:6px;align-items:center}
+  .nivel{font-size:12px;font-weight:700;border:1px solid var(--border-subtle);
+    background:var(--surface-sunken);border-radius:var(--radius-full);padding:2px 9px}
+  .scorebar{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .track{flex:1;height:10px;background:var(--border-subtle);border-radius:var(--radius-full);overflow:hidden}
+  .fill{height:100%;background:var(--accent);border-radius:var(--radius-full)}
+  .data{font-size:13px;color:var(--text-muted);margin-top:6px}
+  .hab{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:13px;font-weight:600;
+    color:var(--accent-ink);background:var(--warn-soft);border:1px solid rgba(110,78,18,.4);
+    border-radius:var(--radius-full);padding:5px 12px}
+  .toggle{color:var(--accent-ink);font-size:14px;font-weight:600;margin-top:8px;background:none;
+    border:none;cursor:pointer;padding:10px 0;min-height:44px}
+  hr.div{border:none;border-top:1px solid var(--border-subtle);margin:14px 0}
+  .acoes{display:flex;flex-direction:column;gap:8px}
+  .frame.desktop .acoes{flex-direction:row;align-items:center}
+  .btn{min-height:48px;border-radius:var(--radius-full);font-size:15px;font-weight:700;
+    cursor:pointer;padding:0 22px}
+  .btn-primary{background:var(--accent);color:#fff;border:none}
+  .btn-primary[disabled]{background:var(--surface-muted);color:#8a8678;cursor:not-allowed}
+  .btn-text{background:none;border:none;color:#8a8678;cursor:not-allowed;min-height:44px}
+  /* ── dialogs ─────────────────────────────────────────── */
+  .scrim{position:absolute;inset:0;background:rgba(15,27,45,.42);display:flex;
+    align-items:center;justify-content:center;padding:20px;z-index:10}
+  .dialog{background:var(--surface);border-radius:16px;max-width:420px;width:100%;
+    padding:22px 22px 16px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+  .dialog h2{font-size:19px;font-weight:800;margin-bottom:12px;display:flex;gap:10px;align-items:center}
+  .dialog p{font-size:14.5px;color:var(--text-muted);line-height:1.45;margin-bottom:10px}
+  .dialog .quem{color:var(--text-strong);font-size:15px}
+  .dialog .quem b{font-weight:800}
+  .fin{border:1px solid var(--border-subtle);border-radius:10px;padding:12px 14px;margin:12px 0}
+  .fin .row{display:flex;justify-content:space-between;font-size:14px;color:var(--text-muted);
+    padding:3px 0}
+  .fin .row b{color:var(--text-strong);font-weight:600}
+  .fin .total{border-top:1px solid var(--border-subtle);margin-top:8px;padding-top:8px;
+    font-weight:800;color:var(--text-strong)}
+  .fin .total b{font-weight:800}
+  .aviso{display:flex;gap:8px;background:var(--warn-soft);border:1px solid rgba(110,78,18,.35);
+    border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--accent-ink);margin:0 0 12px}
+  .dialog .acts{display:flex;justify-content:flex-end;gap:6px;margin-top:14px}
+  .dialog .btn{min-height:44px;font-size:14.5px}
+  .btn-flat{background:none;border:none;color:var(--accent-ink);font-weight:700;cursor:pointer;
+    border-radius:var(--radius-full);padding:0 16px;min-height:44px}
+  .icon-circle{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:19px;flex:none}
+  .ic-warn{background:var(--warn-soft);color:var(--accent-ink)}
+  .spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);
+    border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite;vertical-align:-2px;margin-right:8px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  /* ── snackbar ────────────────────────────────────────── */
+  .snackbar{position:absolute;left:16px;right:16px;bottom:18px;background:#2A2A26;color:#fff;
+    border-radius:10px;padding:13px 16px;font-size:14px;display:flex;gap:10px;align-items:center;
+    box-shadow:0 6px 24px rgba(0,0,0,.3);z-index:20;max-width:560px;margin:0 auto}
+  .snackbar.err{background:#4A2222}
+  .snackbar .ok{color:#7BD8A2}
+  .snackbar button{margin-left:auto;background:none;border:none;color:#E5B968;font-weight:800;
+    cursor:pointer;font-size:13.5px;white-space:nowrap;min-height:44px}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+  <div class="proto-bar" id="states">
+    <b>Estado:</b>
+    <button data-s="d1">D1 confirmação</button>
+    <button data-s="d1-aviso">D1 + pré-aviso PJ</button>
+    <button data-s="d1-enviando">D1 enviando</button>
+    <button data-s="d2-bloqueio-pf">D2 bloqueio PF</button>
+    <button data-s="d3-override-pj">D3 override PJ</button>
+    <button data-s="sucesso">Sucesso</button>
+    <button data-s="erro">Erro de rede</button>
+    <b style="margin-left:14px">Viewport:</b>
+    <button data-v="mobile">Mobile</button>
+    <button data-v="desktop">Desktop</button>
+  </div>
+  <p class="proto-note">Protótipo de validação (não é produção). Delta sobre SCREEN-051: o card de fundo é contexto; o foco são os dialogs e desfechos do aceite.</p>
+
+  <div class="frame mobile" id="frame">
+    <div class="brand">TURN<i>I</i>.</div>
+    <div class="appbar"><a class="back" href="#" aria-label="Voltar">←</a> Candidatos</div>
+    <div class="contexto" data-testid="painel-candidatos-contexto">
+      <div class="l1">Garçom · Sex, 12/06 · 18:00–23:00</div>
+      <div class="l2" id="contagem">2 candidatos</div>
+    </div>
+
+    <div class="lista" data-testid="painel-candidatos-lista">
+      <!-- candidata 1 — Júlia (PF, sem alerta) -->
+      <div class="card" id="card-julia" data-testid="candidato-card-julia">
+        <div class="head">
+          <div class="avatar">JS</div>
+          <div class="nome-l">
+            <div class="nome">Júlia Santos <span class="chip">⬢ 92</span></div>
+            <div class="funcao">Garçom <span class="nivel">Elite</span></div>
+          </div>
+        </div>
+        <div class="scorebar"><div class="track"><div class="fill" style="width:92%"></div></div><b>92/100</b></div>
+        <div class="data">Candidatou Sex, 12/06 · 14:20</div>
+        <button class="toggle">▸ Ver breakdown</button>
+        <hr class="div">
+        <div class="acoes">
+          <button class="btn btn-primary" data-testid="candidato-card-julia-aceitar-btn" onclick="setState('d1')">Aceitar candidatura</button>
+          <button class="btn-text" disabled title="Disponível no EPIC-003">Remover candidato</button>
+        </div>
+      </div>
+
+      <!-- candidato 2 — Bruno (MEI/PJ com alerta de habitualidade) -->
+      <div class="card" data-testid="candidato-card-bruno">
+        <div class="head">
+          <div class="avatar">BC</div>
+          <div class="nome-l">
+            <div class="nome">Bruno Costa <span class="chip">⬢ 88</span></div>
+            <div class="funcao">Cozinheiro <span class="nivel">Destaque</span></div>
+          </div>
+        </div>
+        <div class="scorebar"><div class="track"><div class="fill" style="width:88%"></div></div><b>88/100</b></div>
+        <div class="data">Candidatou Sex, 12/06 · 15:02</div>
+        <div><span class="hab">⚠ Habitualidade — 3ª alocação na semana</span></div>
+        <button class="toggle">▸ Ver breakdown</button>
+        <hr class="div">
+        <div class="acoes">
+          <button class="btn btn-primary" data-testid="candidato-card-bruno-aceitar-btn" onclick="setState('d1-aviso')">Aceitar candidatura</button>
+          <button class="btn-text" disabled title="Disponível no EPIC-003">Remover candidato</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── D1 — Confirmar aceite ───────────────────────── -->
+    <div class="scrim hidden" id="d1" data-testid="aprovar-dialog-confirmar">
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="d1-t">
+        <h2 id="d1-t">Aceitar candidatura</h2>
+        <p class="quem">Você está abrindo um turno com <b id="d1-nome">Júlia Santos</b> — Garçom<br>Sex, 12/06 · 18:00–23:00</p>
+        <div class="fin" data-testid="aprovar-dialog-financeiro">
+          <div class="row"><span>Profissional recebe</span><b>R$ 200,00</b></div>
+          <div class="row"><span>Taxa Turni (15%)</span><b>R$ 30,00</b></div>
+          <div class="row total"><span>Total a pagar</span><b>R$ 230,00</b></div>
+        </div>
+        <div class="aviso hidden" id="d1-aviso-box" data-testid="aprovar-dialog-pre-aviso-habitualidade">⚠&nbsp; Este profissional já tem 2 turnos com você nesta semana. Vamos pedir sua confirmação de risco no próximo passo.</div>
+        <p>Ao confirmar, o pagamento é pré-autorizado e o contrato do turno é emitido e registrado.</p>
+        <div class="acts">
+          <button class="btn-flat" id="d1-voltar" data-testid="aprovar-dialog-voltar-btn" onclick="setState('lista')">Voltar</button>
+          <button class="btn btn-primary" id="d1-cta" data-testid="aprovar-dialog-confirmar-btn" onclick="confirmar()">Confirmar aceite</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── D2 — Bloqueio PF ────────────────────────────── -->
+    <div class="scrim hidden" id="d2" data-testid="aprovar-dialog-bloqueio-pf">
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="d2-t">
+        <h2 id="d2-t"><span class="icon-circle ic-warn" aria-label="Bloqueado por regra de proteção">🛡</span> Aceite bloqueado</h2>
+        <p>Este profissional é PF e já tem 2 alocações nesta semana neste estabelecimento.</p>
+        <p>Para proteger a relação de trabalho eventual, a plataforma bloqueia a 3ª alocação semanal de profissionais PF — sem exceção.</p>
+        <p>Você pode aceitá-lo a partir da próxima semana, ou escolher outro candidato.</p>
+        <div class="acts">
+          <button class="btn btn-primary" data-testid="aprovar-dialog-bloqueio-pf-entendi-btn" onclick="setState('lista')">Entendi</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── D3 — Override PJ ────────────────────────────── -->
+    <div class="scrim hidden" id="d3" data-testid="aprovar-dialog-override-pj">
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="d3-t">
+        <h2 id="d3-t"><span class="icon-circle ic-warn" aria-label="Atenção: aceite de risco">⚠</span> 3ª alocação na mesma semana</h2>
+        <p>Este profissional já realizou 2 turnos com você nesta semana. Sinais de habitualidade.</p>
+        <p>Você pode prosseguir, mas isso fica registrado como aceite consciente de risco no contrato do turno. Considere se faz sentido continuar.</p>
+        <div class="acts">
+          <button class="btn-flat" data-testid="aprovar-dialog-override-pj-voltar-btn" onclick="setState('lista')">Voltar</button>
+          <button class="btn btn-primary" data-testid="aprovar-dialog-override-pj-aceitar-btn" onclick="setState('sucesso')">Assumo o risco e aceito</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── snackbars ───────────────────────────────────── -->
+    <div class="snackbar hidden" id="snack-ok" data-testid="aprovar-snackbar-sucesso" role="status">
+      <span class="ok">✓</span> Turno confirmado. O contrato foi registrado e o pagamento está sendo pré-autorizado.
+    </div>
+    <div class="snackbar err hidden" id="snack-err" data-testid="aprovar-snackbar-erro" role="alert">
+      ⚠ Não foi possível concluir o aceite.
+      <button onclick="setState('d1')">Tentar de novo</button>
+    </div>
+  </div>
+
+<script>
+  // Protótipo: máquina de estados visual. Nada de rede; tudo mock inline.
+  const els = id => document.getElementById(id);
+  function hideAll(){['d1','d2','d3','snack-ok','snack-err'].forEach(i=>els(i).classList.add('hidden'));
+    els('d1-aviso-box').classList.add('hidden');
+    els('card-julia').classList.remove('hidden');
+    els('contagem').textContent='2 candidatos';
+    const cta=els('d1-cta'); cta.innerHTML='Confirmar aceite'; cta.disabled=false; els('d1-voltar').disabled=false;}
+  function setState(s){
+    hideAll();
+    document.querySelectorAll('#states [data-s]').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
+    if(s==='d1'){els('d1').classList.remove('hidden');els('d1-nome').textContent='Júlia Santos';}
+    if(s==='d1-aviso'){els('d1').classList.remove('hidden');els('d1-aviso-box').classList.remove('hidden');els('d1-nome').textContent='Bruno Costa';}
+    if(s==='d1-enviando'){els('d1').classList.remove('hidden');
+      const cta=els('d1-cta'); cta.innerHTML='<span class="spin"></span>Confirmando…'; cta.disabled=true; els('d1-voltar').disabled=true;}
+    if(s==='d2-bloqueio-pf')els('d2').classList.remove('hidden');
+    if(s==='d3-override-pj')els('d3').classList.remove('hidden');
+    if(s==='sucesso'){els('snack-ok').classList.remove('hidden');
+      els('card-julia').classList.add('hidden'); els('contagem').textContent='1 candidato';}
+    if(s==='erro')els('snack-err').classList.remove('hidden');
+  }
+  // No protótipo, "Confirmar aceite" do D1 simula o desfecho conforme o candidato:
+  // Júlia → sucesso; Bruno (pré-aviso) → D3 (o servidor respondeu requer_override).
+  function confirmar(){
+    const ehBruno = !els('d1-aviso-box').classList.contains('hidden');
+    setState('d1-enviando');
+    setTimeout(()=> setState(ehBruno ? 'd3-override-pj' : 'sucesso'), 900);
+  }
+  document.querySelectorAll('#states [data-v]').forEach(b=>b.addEventListener('click',()=>{
+    els('frame').className='frame '+b.dataset.v;
+    document.querySelectorAll('#states [data-v]').forEach(x=>x.classList.toggle('on',x===b));
+  }));
+  document.querySelectorAll('#states [data-s]').forEach(b=>b.addEventListener('click',()=>setState(b.dataset.s)));
+  document.querySelector('#states [data-v="mobile"]').classList.add('on');
+  setState(new URLSearchParams(location.search).get('state')||'d1');
+</script>
+</body>
+</html>
