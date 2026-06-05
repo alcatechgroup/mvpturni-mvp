@@ -10,6 +10,7 @@
 use App\Domain\Pagamento\Exceptions\GatewayIndisponivel;
 use App\Domain\Pagamento\Exceptions\PreAutorizacaoNegada;
 use App\Domain\Pagamento\GatewayPagamento;
+use App\Domain\Pagamento\OperacaoIdempotente;
 use App\Domain\Pagamento\ResultadoOperacao;
 use App\Enums\StatusOperacaoPagamento;
 use App\Enums\TipoOperacaoPagamento;
@@ -25,7 +26,7 @@ use Illuminate\Support\Facades\Event;
 uses(RefreshDatabase::class);
 
 /** Duble do gateway na fronteira da ACL (colaborador externo — mock com critério). */
-function gatewayPreAuthFake(?\Throwable $lanca = null): object
+function gatewayPreAuthFake(?Throwable $lanca = null): object
 {
     $fake = new class($lanca) implements GatewayPagamento
     {
@@ -33,7 +34,7 @@ function gatewayPreAuthFake(?\Throwable $lanca = null): object
 
         public array $args = [];
 
-        public function __construct(private readonly ?\Throwable $lanca) {}
+        public function __construct(private readonly ?Throwable $lanca) {}
 
         public function preAutorizar(string $turnoId, string $totalContratante, string $meioPagamentoToken): ResultadoOperacao
         {
@@ -85,7 +86,7 @@ test('CA-6: sucesso → operação concluída + evento PagamentoPreAutorizado + 
     $gateway = gatewayPreAuthFake();
     $turno = Turno::factory()->create(['total_contratante' => 230.00, 'valor' => 200.00, 'taxa_turni' => 30.00]);
 
-    (new PreAutorizarTurnoJob($turno->id))->handle(app(\App\Domain\Pagamento\OperacaoIdempotente::class), app(GatewayPagamento::class));
+    (new PreAutorizarTurnoJob($turno->id))->handle(app(OperacaoIdempotente::class), app(GatewayPagamento::class));
 
     expect($gateway->chamadas)->toBe(1)
         ->and($gateway->args['totalContratante'])->toBe('230.00');
@@ -110,8 +111,8 @@ test('CA-5/CA-6: job executado duas vezes chama o provedor UMA vez (curto-circui
     $turno = Turno::factory()->create();
 
     $job = new PreAutorizarTurnoJob($turno->id);
-    $job->handle(app(\App\Domain\Pagamento\OperacaoIdempotente::class), app(GatewayPagamento::class));
-    $job->handle(app(\App\Domain\Pagamento\OperacaoIdempotente::class), app(GatewayPagamento::class));
+    $job->handle(app(OperacaoIdempotente::class), app(GatewayPagamento::class));
+    $job->handle(app(OperacaoIdempotente::class), app(GatewayPagamento::class));
 
     expect($gateway->chamadas)->toBe(1)
         ->and(PagamentoOperacao::where('turno_id', $turno->id)->count())->toBe(1);
@@ -125,7 +126,7 @@ test('CA-6: PreAutorizacaoNegada → operação falhou + evento de falha + audit
     $turno = Turno::factory()->create();
 
     // Falha fatal é registrada e alerta o admin — sem retry automático (fora de escopo da estória).
-    (new PreAutorizarTurnoJob($turno->id))->handle(app(\App\Domain\Pagamento\OperacaoIdempotente::class), app(GatewayPagamento::class));
+    (new PreAutorizarTurnoJob($turno->id))->handle(app(OperacaoIdempotente::class), app(GatewayPagamento::class));
 
     $op = PagamentoOperacao::where('turno_id', $turno->id)->firstOrFail();
     expect($op->status)->toBe(StatusOperacaoPagamento::Falhou)
@@ -143,7 +144,7 @@ test('CA-6: GatewayIndisponivel relança (worker retenta com backoff)', function
     $turno = Turno::factory()->create();
 
     expect(fn () => (new PreAutorizarTurnoJob($turno->id))
-        ->handle(app(\App\Domain\Pagamento\OperacaoIdempotente::class), app(GatewayPagamento::class)))
+        ->handle(app(OperacaoIdempotente::class), app(GatewayPagamento::class)))
         ->toThrow(GatewayIndisponivel::class);
 
     // Transiente não emite evento de desfecho — o desfecho ainda não aconteceu.
@@ -157,7 +158,7 @@ test('turno inexistente: job retorna sem erro (defensivo)', function () {
     $gateway = gatewayPreAuthFake();
 
     (new PreAutorizarTurnoJob('0197a000-0000-7000-8000-000000000000'))
-        ->handle(app(\App\Domain\Pagamento\OperacaoIdempotente::class), app(GatewayPagamento::class));
+        ->handle(app(OperacaoIdempotente::class), app(GatewayPagamento::class));
 
     expect($gateway->chamadas)->toBe(0)->and(PagamentoOperacao::count())->toBe(0);
 });

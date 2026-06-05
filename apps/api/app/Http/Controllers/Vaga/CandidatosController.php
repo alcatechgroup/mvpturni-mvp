@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Candidatura;
 use App\Models\ProfissionalProfile;
 use App\Models\Vaga;
+use App\Services\AprovarCandidaturaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -60,7 +61,7 @@ class CandidatosController extends Controller
 
         // STORY-058 (SCREEN-058 D1): preview financeiro da vaga (PDR-004 — o contratante vê
         // valor/taxa/total separados no momento da decisão). Mesma conta do aceite (15%).
-        [$valor, $taxa, $total] = \App\Services\AprovarCandidaturaService::financeiro((string) $vaga->valor);
+        [$valor, $taxa, $total] = AprovarCandidaturaService::financeiro((string) $vaga->valor);
 
         return response()->json([
             'candidatos' => $candidaturas->map(fn (Candidatura $c) => $this->serializar($c))->all(),

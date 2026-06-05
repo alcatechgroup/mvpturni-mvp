@@ -18,6 +18,7 @@ use App\Models\Template;
 use App\Models\TemplateVersao;
 use App\Models\Turno;
 use App\Models\User;
+use App\Models\Vaga;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -217,7 +218,7 @@ class AprovarCandidaturaService
     private function contexto(
         User $contratante,
         User $profissional,
-        \App\Models\Vaga $vaga,
+        Vaga $vaga,
         string $valor,
         string $taxa,
         string $total,

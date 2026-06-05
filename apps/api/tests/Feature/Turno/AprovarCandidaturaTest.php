@@ -16,11 +16,13 @@ use App\Models\AuditLog;
 use App\Models\Candidatura;
 use App\Models\ContratanteProfile;
 use App\Models\ProfissionalProfile;
+use App\Models\Template;
 use App\Models\TemplateVersao;
 use App\Models\Turno;
 use App\Models\User;
 use App\Models\Vaga;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Database\Seeders\TemplatesContratuaisSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -63,7 +65,7 @@ function cenarioAprov(User $contratante, User $prof, array $vagaOver = []): Cand
 {
     // MONDAY explícito: o locale pt-BR muda o default de startOfWeek() p/ domingo (PDR-002 = seg→dom).
     $inicio = CarbonImmutable::now()->addWeeks(2)
-        ->startOfWeek(\Carbon\CarbonInterface::MONDAY)->addDays(2)->setTime(18, 0);
+        ->startOfWeek(CarbonInterface::MONDAY)->addDays(2)->setTime(18, 0);
     $vaga = Vaga::factory()->create(array_merge([
         'contratante_id' => $contratante->id,
         'valor' => 200.00,
@@ -201,18 +203,18 @@ test('CA-2: aceite eletrônico emitido referencia a versão ativa do template do
         ->assertCreated();
 
     $aceite = AceiteEletronicoTurno::firstOrFail();
-    $versaoMei = \App\Models\Template::where('slug', 'mei_pj_b2b')->first()->versaoAtiva;
+    $versaoMei = Template::where('slug', 'mei_pj_b2b')->first()->versaoAtiva;
 
     expect($aceite->template_versao_id)->toBe($versaoMei->id)
         ->and($aceite->habitualidade_override)->toBeFalse()
         ->and($aceite->ip)->not->toBeNull()
         ->and($aceite->fingerprint)->not->toBeNull()
         ->and($aceite->conteudo_renderizado)
-            ->toContain('Júlia Santos')
-            ->toContain('Bar do Zé Ltda')
-            ->toContain('R$ 200,00')   // valor do turno
-            ->toContain('R$ 30,00')    // taxa Turni
-            ->toContain('R$ 230,00')   // total contratante
+        ->toContain('Júlia Santos')
+        ->toContain('Bar do Zé Ltda')
+        ->toContain('R$ 200,00')   // valor do turno
+        ->toContain('R$ 30,00')    // taxa Turni
+        ->toContain('R$ 230,00')   // total contratante
         ->and($aceite->dados_renderizados)->toHaveKeys([
             'profissional.nome', 'contratante.razao_social', 'turno.valor',
             'turno.taxa_turni', 'turno.total_contratante', 'aceite.timestamp',
@@ -228,7 +230,7 @@ test('CA-2: profissional PF usa o template pf_autonomo_eventual', function () {
         ->postJson("/api/candidaturas/{$candidatura->id}/aprovar")
         ->assertCreated();
 
-    $versaoPf = \App\Models\Template::where('slug', 'pf_autonomo_eventual')->first()->versaoAtiva;
+    $versaoPf = Template::where('slug', 'pf_autonomo_eventual')->first()->versaoAtiva;
     expect(AceiteEletronicoTurno::firstOrFail()->template_versao_id)->toBe($versaoPf->id);
 });
 
@@ -334,8 +336,8 @@ test('CA-4: PJ na 3ª com override=true → turno criado + cláusula de risco no
     $aceite = AceiteEletronicoTurno::firstOrFail();
     expect($aceite->habitualidade_override)->toBeTrue()
         ->and($aceite->conteudo_renderizado)
-            ->toContain('Aceite consciente de risco de habitualidade')
-            ->toContain('assume esse risco de forma integral e exclusiva');
+        ->toContain('Aceite consciente de risco de habitualidade')
+        ->toContain('assume esse risco de forma integral e exclusiva');
 });
 
 test('CA-4 (borda): override=true SEM 3ª alocação não carimba cláusula (override só vale onde há risco)', function () {
