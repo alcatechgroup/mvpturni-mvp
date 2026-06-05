@@ -155,4 +155,70 @@ void main() {
     );
     expect(await invalido.fetch('u1'), isA<TurnoDetalheError>());
   });
+
+  // ───────────────────── STORY-061 — aditivos do PIN ─────────────────────
+
+  test('STORY-061: parse de checkin_janela (profissional) e ausência (contratante)', () async {
+    final comJanela = await _svc(
+      200,
+      _payload(
+        extra: {
+          'checkin_janela': {
+            'abre_em': '2026-06-12T17:30:00-03:00',
+            'fecha_em': '2026-06-12T20:00:00-03:00',
+          },
+        },
+      ),
+    ).fetch('u1');
+
+    final turno = (comJanela as TurnoDetalheSuccess).turno;
+    expect(turno.checkinJanela, isNotNull);
+    expect(
+      turno.checkinJanela!.fechaEm.difference(turno.checkinJanela!.abreEm),
+      const Duration(minutes: 150),
+    );
+
+    final sem = await _svc(200, _payload()).fetch('u1');
+    expect((sem as TurnoDetalheSuccess).turno.checkinJanela, isNull);
+  });
+
+  test('STORY-061: timeline parseia geofencing do checkin_solicitado e tolera ausência', () async {
+    final result = await _svc(
+      200,
+      _payload(
+        extra: {
+          'timeline': [
+            {
+              'id': 'ev3',
+              'evento': 'checkin_solicitado',
+              'ocorrido_em': '2026-06-12T17:58:00-03:00',
+              'geofencing': {
+                'ok': false,
+                'distancia_metros': 230.4,
+                'razao': 'fora_do_raio',
+              },
+            },
+            {
+              'id': 'ev4',
+              'evento': 'checkin_cancelado',
+              'ocorrido_em': '2026-06-12T18:02:00-03:00',
+            },
+            {
+              'id': 'ev5',
+              'evento': 'checkin_solicitado', // seed antigo, sem geofencing
+              'ocorrido_em': '2026-06-12T18:10:00-03:00',
+            },
+          ],
+        },
+      ),
+    ).fetch('u1');
+
+    final timeline = (result as TurnoDetalheSuccess).turno.timeline;
+    expect(timeline[0].tipo, TimelineEventoTipo.checkinSolicitado);
+    expect(timeline[0].geofencing!.ok, isFalse);
+    expect(timeline[0].geofencing!.distanciaMetros, 230.4);
+    expect(timeline[0].geofencing!.razao, 'fora_do_raio');
+    expect(timeline[1].tipo, TimelineEventoTipo.checkinCancelado);
+    expect(timeline[2].geofencing, isNull);
+  });
 }
