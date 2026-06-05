@@ -131,5 +131,6 @@ NÃO decide: estados que aparecem (fixados em `domain/turno.md`).
 
 ### Links de evidência
 - PR: n/a (commit direto na main — fluxo combinado).
-- Pipeline: CI da main após o push.
-- Deploy de homologação: pendente (tag rc + verificação de Alexandro — DoD).
+- Pipeline: Release run 27017134814 (verde de primeira, sem rerun de Cloud SQL).
+- Deploy de homologação: **v0.1.0-rc.71** no ar (2026-06-05; `version.json` confere;
+  API respondendo). Verificação manual de Alexandro: pendente (roteiro entregue em chat).
