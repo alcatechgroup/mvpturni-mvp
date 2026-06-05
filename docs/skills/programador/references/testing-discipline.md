@@ -63,8 +63,8 @@ TDD vale para **implementar comportamento conhecido**. Existem fases onde escrev
 ### End-to-End (E2E)
 - **Escopo:** fluxo completo do usuário — frontend até banco e de volta.
 - **Velocidade:** segundos por cenário. Suíte completa pode tomar minutos.
-- **Quando escrever:** todo fluxo de usuário tocado pela estória.
-- **Padrão obrigatório (PO):** todo CA que envolve interação do usuário tem pelo menos um E2E.
+- **Quando escrever:** todo fluxo de usuário tocado pela estória — e **cada caminho mapeado** dele (feliz, alternativos, exceção/erro), não apenas o caminho feliz.
+- **Padrão obrigatório (PO):** todo CA que envolve interação do usuário tem pelo menos um E2E; CAs com ramificações de processo têm um E2E **por desfecho mapeado**.
 
 ---
 
@@ -134,15 +134,18 @@ Frameworks tipo jsdom rodam JavaScript fora de um browser real. Eles são úteis
 
 **Por isso:** para todo fluxo de usuário FE, o E2E roda em **browser real via automação** (Playwright, Cypress, Puppeteer — qual ferramenta é decisão de ADR).
 
-**O que o E2E de FE deve validar:**
+**O que o E2E de FE deve validar — todos os fluxos mapeados, não só o feliz:**
 
-- Caminho feliz do fluxo (clica botão, preenche form, vê resultado).
-- Validação visual de feedback (mensagem de erro aparece, loading aparece).
+Para cada fluxo de usuário tocado pela estória, mapeie **todos os caminhos do processo** (consulte os CAs, o fluxo de processo e o diagrama/BPMN da estória) e cubra **cada um** com um cenário E2E em browser real:
+
+- **Caminho feliz** do fluxo (clica botão, preenche form, vê resultado persistido).
+- **Cada caminho alternativo mapeado** — toda ramificação do processo que leva a um desfecho diferente vira um cenário próprio (ex.: PJ na 3ª alocação alerta e segue; PF bloqueia → dois E2E distintos).
+- **Cada fluxo de exceção/erro que o usuário atinge pela UI** — submete form vazio e vê erro; tenta candidatar-se com avaliação pendente e vê a mensagem com link para o turno pendente; vaga já fechada; conflito de horário; indisponibilidade sinalizada. Não é "o" fluxo de erro — são **todos** os desfechos de erro alcançáveis.
+- Validação visual de feedback (mensagem de erro aparece, loading aparece) **em cada um** desses cenários.
 - Estados intermediários (botão fica desabilitado durante submit).
 - Acessibilidade básica (todo input tem label, foco por teclado funciona).
-- **Casos inválidos do ponto de vista do usuário** (submete form vazio, vê erro; tenta candidatar-se com avaliação pendente, vê mensagem com link para o turno pendente).
 
-Não é necessário um E2E para cada caso minúsculo — os casos inválidos detalhados ficam no unit/integração da camada lógica. Mas o **fluxo principal de erro** (usuário tenta algo errado, sistema responde) deve estar coberto em E2E.
+**A regra:** se o caminho está mapeado, ele tem um cenário E2E. **Micro-validações de input** (CNPJ com 12 dígitos, string de 10000 caracteres, encoding inesperado) continuam no unit/integração da camada lógica — não inflam a suíte E2E. Mas **todo desfecho de fluxo que o usuário pode alcançar** — feliz, alternativo ou de erro — está coberto em E2E. Um único E2E de caminho feliz **não fecha o gate**.
 
 ---
 
@@ -254,9 +257,13 @@ CA-1: <descrição curta do critério>
     - test_<nome>          (caso inválido)          arquivo: tests/unit/...
     - test_<nome>          (exceção esperada)       arquivo: tests/integration/...
     - test_<nome>          (borda)                  arquivo: tests/unit/...
-    - e2e_<nome>           (fluxo de usuário)       arquivo: tests/e2e/...
+    - e2e_<nome>           (E2E — caminho feliz)    arquivo: tests/e2e/...
+    - e2e_<nome>           (E2E — caminho alt.)     arquivo: tests/e2e/...
+    - e2e_<nome>           (E2E — fluxo de erro)    arquivo: tests/e2e/...
   TDD evidenciado: commit <hash-teste> precede commit <hash-código>
 ```
+
+Se o CA toca FE web, **liste um E2E por caminho mapeado** (feliz, cada alternativo, cada fluxo de erro alcançável). Um único `e2e_` de caminho feliz na lista é sinal de fluxo não mapeado — preencha os desfechos que faltam ou explique por que não existem.
 
 Sem esse mapeamento explícito, o trabalho de teste é invisível para o revisor — e quase sempre indica que falta categoria. Se você não consegue preencher uma linha (ex.: "não tem caso inválido relevante"), **explique por quê** ali mesmo. Buraco silencioso é débito futuro.
 
@@ -266,7 +273,7 @@ Ao terminar de implementar uma funcionalidade, **antes** de marcar `in_review`:
 
 1. ✅ Cada CA da estória tem ao menos um teste cobrindo — nome do teste registrado nas Notas do agente.
 2. ✅ Para cada CA, existem testes de: caminho feliz, casos inválidos, exceções esperadas, bordas. Categorias listadas no mapeamento por CA.
-3. ✅ Se FE web, existe **E2E em browser real** cobrindo o fluxo — evidência (vídeo/print/link) anexada ao PR.
+3. ✅ Se FE web, existe **E2E em browser real** cobrindo **cada caminho mapeado** do fluxo (feliz, alternativos, exceção/erro) — não só o caminho feliz. Evidência (vídeo/print/link) anexada ao PR, um cenário por desfecho mapeado.
 4. ✅ **TDD evidenciado:** o histórico de commits mostra teste antes do código (ou junto, no mesmo commit). Implementação primeiro + teste depois é refeita.
 5. ✅ Mocks só estão onde precisam estar (serviços externos, tempo, aleatoriedade). Mock dentro do próprio módulo testado é refatorado, não aceito.
 6. ✅ Cobertura local atinge as metas (80% geral / 98% núcleo) **e** as linhas descobertas têm justificativa concreta — não "depois eu vejo".

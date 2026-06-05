@@ -13,7 +13,7 @@ Para estória pequena e rotineira, este filtro rápido cobre o essencial. Se voc
 1. **TDD evidenciado:** o histórico de commits mostra teste antes do código para cada CA? (Não "implementei e adicionei testes depois".)
 2. **Mapeamento CA → teste:** consigo dizer o nome do teste que prova cada CA, sem olhar a estória?
 3. **Caminho feliz + caso inválido + exceção + borda:** existe pelo menos um teste de cada categoria para cada funcionalidade tocada?
-4. **E2E em browser real** rodando local **e** anexado ao PR (vídeo/print/link), se a estória mexe em FE web?
+4. **E2E em browser real** rodando local **e** anexado ao PR (vídeo/print/link), se a estória mexe em FE web — **um cenário por caminho mapeado** (feliz, alternativos, erro), não só o feliz?
 5. **Suíte completa local verde** (unit + integração + E2E) — não só meus testes?
 6. **Eu colocaria isso em produção real e dormiria tranquilo?**
 
@@ -83,11 +83,12 @@ Para cada funcionalidade nova/alterada, eu cobri:
 
 ### Bloco 4 — E2E (gate duro para FE web)
 
-- [ ] Se a estória envolve fluxo de usuário, há **pelo menos um cenário E2E** novo cobrindo.
+- [ ] Se a estória envolve fluxo de usuário, **mapeei todos os caminhos do processo** (feliz, alternativos, exceção/erro) a partir dos CAs e do diagrama/fluxo da estória.
+- [ ] Há **um cenário E2E para cada caminho mapeado** — não apenas para o caminho feliz. Um único E2E de caminho feliz **não fecha o gate**.
 - [ ] Se há frontend web tocado, o E2E roda em **browser real via automação** (Playwright/Cypress/Puppeteer — qual é decisão de ADR). **NÃO** vale jsdom, NÃO vale teste manual, NÃO vale "eu cliquei na UI e funcionou".
-- [ ] O E2E novo passa **localmente** (não só em CI).
-- [ ] O E2E novo cobre tanto **fluxo de sucesso quanto pelo menos um fluxo de erro** do ponto de vista do usuário.
-- [ ] **Evidência anexada ao PR**: vídeo do runner, screenshots, ou link para a execução em CI mostrando o E2E verde.
+- [ ] Os E2E novos passam **localmente** (não só em CI).
+- [ ] Os E2E cobrem o **fluxo de sucesso, cada caminho alternativo, e cada fluxo de erro** alcançável pelo usuário. Micro-validações de input ficam no unit/integração, não na suíte E2E.
+- [ ] **Evidência anexada ao PR**: vídeo do runner, screenshots, ou link para a execução em CI mostrando os E2E verdes — um por cenário mapeado.
 
 **Como verificar:** rode o E2E local. Se não consegue, está quebrado (lembre que princípio arquitetural #6: tudo sobe local). **Sem E2E em browser real anexado, PR de FE web não merge — não é negociável.**
 
