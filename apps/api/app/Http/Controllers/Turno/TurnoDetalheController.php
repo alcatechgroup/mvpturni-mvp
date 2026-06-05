@@ -57,6 +57,12 @@ class TurnoDetalheController extends Controller
         // pela trilha por quê. O MOTIVO da recusa fica fora da timeline (trilha do admin).
         'turno.checkin_recusado' => 'checkin_recusado',
         'turno.checkin_pin_expirado' => 'checkin_pin_expirado',
+        // STORY-064 (SCREEN-064 §4.12) — espelhos de check-out: cancelamento pelo
+        // profissional, recusa pelo contratante e expiração por tentativas devolvem o
+        // turno a `ativo` e a trilha explica por quê. Motivo da recusa fora da timeline.
+        'turno.checkout_cancelado' => 'checkout_cancelado',
+        'turno.checkout_recusado' => 'checkout_recusado',
+        'turno.checkout_pin_expirado' => 'checkout_pin_expirado',
     ];
 
     public function show(Request $request, Turno $turno): JsonResponse
@@ -162,6 +168,17 @@ class TurnoDetalheController extends Controller
             // o que foi registrado). Tolerante a seeds antigos sem o snapshot no payload.
             if ($evento === 'checkin_solicitado' && isset($log->payload['geofencing_check_in'])) {
                 $geo = $log->payload['geofencing_check_in'];
+                $item['geofencing'] = [
+                    'ok' => (bool) ($geo['ok'] ?? false),
+                    'distancia_metros' => isset($geo['distancia_metros']) && $geo['distancia_metros'] !== null
+                        ? (float) $geo['distancia_metros'] : null,
+                    'razao' => $geo['razao'] ?? null,
+                ];
+            }
+            // STORY-064 (CA-7) — o evento da timeline é o ÚNICO lugar onde o geofencing
+            // de check-out aparece (sem aviso destacado na UI — SCREEN-064 §4.12).
+            if ($evento === 'checkout_solicitado' && isset($log->payload['geofencing_check_out'])) {
+                $geo = $log->payload['geofencing_check_out'];
                 $item['geofencing'] = [
                     'ok' => (bool) ($geo['ok'] ?? false),
                     'distancia_metros' => isset($geo['distancia_metros']) && $geo['distancia_metros'] !== null

@@ -12,9 +12,12 @@ import 'cronometro_service.dart';
 import 'geofencing_copy.dart';
 import 'pin_checkin_screen.dart';
 import 'pin_checkin_service.dart';
+import 'pin_checkout_screen.dart';
+import 'pin_checkout_service.dart';
 import 'turno_detalhe_service.dart';
 import 'turnos_lista_screen.dart' show TurnoEstadoBadge;
 import 'validar_checkin_service.dart';
+import 'validar_checkout_service.dart';
 
 /// STORY-060 / SCREEN-STORY-060 — detalhe do turno (`/turnos/{id}`, rota compartilhada).
 ///
@@ -32,16 +35,22 @@ class TurnoDetalheScreen extends StatefulWidget {
     PinCheckinService? pinService,
     ValidarCheckinService? validarService,
     CronometroService? cronometroService,
+    PinCheckoutService? pinCheckoutService,
+    ValidarCheckoutService? validarCheckoutService,
   }) : _service = service,
        _pinService = pinService,
        _validarService = validarService,
-       _cronometroService = cronometroService;
+       _cronometroService = cronometroService,
+       _pinCheckoutService = pinCheckoutService,
+       _validarCheckoutService = validarCheckoutService;
 
   final String turnoId;
   final TurnoDetalheService? _service;
   final PinCheckinService? _pinService;
   final ValidarCheckinService? _validarService;
   final CronometroService? _cronometroService;
+  final PinCheckoutService? _pinCheckoutService;
+  final ValidarCheckoutService? _validarCheckoutService;
 
   @override
   State<TurnoDetalheScreen> createState() => _TurnoDetalheScreenState();
@@ -58,13 +67,17 @@ class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
       widget._validarService ?? ValidarCheckinService();
   late final CronometroService _cronometroService =
       widget._cronometroService ?? CronometroService();
+  late final PinCheckoutService _pinCheckoutService =
+      widget._pinCheckoutService ?? PinCheckoutService();
+  late final ValidarCheckoutService _validarCheckoutService =
+      widget._validarCheckoutService ?? ValidarCheckoutService();
 
   _Phase _phase = _Phase.loading;
   TurnoDetalhe? _turno;
 
-  /// STORY-062 §4.5 — aviso persistente (PIN expirado por tentativas): sobrevive ao
-  /// recarregamento que devolve o turno a `confirmado` (a área de validação some e o
-  /// banner é a única pista do que houve). Limpo só por navegação (dispose).
+  /// STORY-062 §4.5 / STORY-064 §4.8 — aviso persistente (PIN expirado por tentativas):
+  /// sobrevive ao recarregamento que devolve o turno ao estado de origem (a área de
+  /// validação some e o banner é a única pista do que houve). Limpo só por navegação.
   String? _avisoCheckin;
 
   /// Papel para tema/navegação ANTES do payload chegar (loading/erro/não-encontrado):
@@ -146,6 +159,8 @@ class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
           pinService: _pinService,
           validarService: _validarService,
           cronometroService: _cronometroService,
+          pinCheckoutService: _pinCheckoutService,
+          validarCheckoutService: _validarCheckoutService,
           avisoCheckin: _avisoCheckin,
           onAvisoCheckin: (msg) => setState(() => _avisoCheckin = msg),
           onRecarregar: _load,
@@ -203,6 +218,8 @@ class _DetalheView extends StatelessWidget {
     required this.pinService,
     required this.validarService,
     required this.cronometroService,
+    required this.pinCheckoutService,
+    required this.validarCheckoutService,
     required this.avisoCheckin,
     required this.onAvisoCheckin,
     required this.onRecarregar,
@@ -214,6 +231,8 @@ class _DetalheView extends StatelessWidget {
   final PinCheckinService pinService;
   final ValidarCheckinService validarService;
   final CronometroService cronometroService;
+  final PinCheckoutService pinCheckoutService;
+  final ValidarCheckoutService validarCheckoutService;
   final String? avisoCheckin;
   final ValueChanged<String> onAvisoCheckin;
   final Future<void> Function() onRecarregar;
@@ -231,6 +250,16 @@ class _DetalheView extends StatelessWidget {
   bool get _mostraValidacao =>
       turno.souContratante && turno.estadoRaw == 'aguardando_checkin';
 
+  /// STORY-064 — o PROFISSIONAL em `ativo`/`aguardando_checkout` gera/cancela o PIN
+  /// de check-out (SCREEN-064 §3.1; CA-1 — sem janela horária).
+  bool get _mostraCheckout =>
+      !turno.souContratante &&
+      (turno.estadoRaw == 'ativo' || turno.estadoRaw == 'aguardando_checkout');
+
+  /// STORY-064 — o CONTRATANTE em `aguardando_checkout` valida o check-out (§3.3).
+  bool get _mostraValidacaoCheckout =>
+      turno.souContratante && turno.estadoRaw == 'aguardando_checkout';
+
   @override
   Widget build(BuildContext context) {
     final colTurno = Column(
@@ -239,9 +268,10 @@ class _DetalheView extends StatelessWidget {
         _HeaderCard(turno: turno, isDark: isDark),
         // STORY-063 / SCREEN-063 §3.1 — em `ativo` o tempo é a informação mais quente
         // da tela: o cronômetro entra logo abaixo do header (congelado em
-        // `aguardando_checkout` — CA-5).
+        // `aguardando_checkout` — CA-5; duração final em `finalizado` — 064 CA-6).
         if (turno.estadoRaw == 'ativo' ||
-            turno.estadoRaw == 'aguardando_checkout') ...[
+            turno.estadoRaw == 'aguardando_checkout' ||
+            turno.estadoRaw == 'finalizado') ...[
           const SizedBox(height: TurniSpacing.md),
           CronometroCard(
             turnoId: turno.id,
@@ -294,7 +324,26 @@ class _DetalheView extends StatelessWidget {
               onAvisoCheckin: onAvisoCheckin,
               onRecarregar: onRecarregar,
             ),
-          ] else
+          ] else if (_mostraCheckout)
+            _AcoesCheckout(
+              turno: turno,
+              isDark: isDark,
+              accent: accent,
+              pinService: pinCheckoutService,
+              onRecarregar: onRecarregar,
+            )
+          // STORY-064 §4.7 — SEM aviso de geofencing no check-out (diferença
+          // intencional da 062: o registro vai só para a timeline, CA-7).
+          else if (_mostraValidacaoCheckout)
+            _AcoesValidarCheckout(
+              turno: turno,
+              isDark: isDark,
+              accent: accent,
+              validarService: validarCheckoutService,
+              onAvisoCheckin: onAvisoCheckin,
+              onRecarregar: onRecarregar,
+            )
+          else
             _AcoesPlaceholder(isDark: isDark),
         ],
       ],
@@ -1597,6 +1646,714 @@ class _RecusaDialogState extends State<_RecusaDialog> {
   }
 }
 
+// ───────────── Check-out: geração pelo profissional (STORY-064 / SCREEN-064 §3.1) ─────────────
+
+/// Bloco do PIN de check-out na área de ações — espelho da _AcoesCheckin SEM janela
+/// horária (CA-1: em `ativo` o botão é sempre habilitado; turno pode estender) e com
+/// captura de geolocalização silenciosa (CA-2 — loading diz "Gerando PIN…", não
+/// promete localização). Em `aguardando_checkout`: Gerar novo PIN + Cancelar (§4.4/4.6).
+class _AcoesCheckout extends StatefulWidget {
+  const _AcoesCheckout({
+    required this.turno,
+    required this.isDark,
+    required this.accent,
+    required this.pinService,
+    required this.onRecarregar,
+  });
+
+  final TurnoDetalhe turno;
+  final bool isDark;
+  final Color accent;
+  final PinCheckoutService pinService;
+  final Future<void> Function() onRecarregar;
+
+  @override
+  State<_AcoesCheckout> createState() => _AcoesCheckoutState();
+}
+
+class _AcoesCheckoutState extends State<_AcoesCheckout> {
+  bool _gerando = false;
+  bool _cancelando = false;
+  String? _erroMsg;
+  Future<void> Function()? _retry;
+
+  bool get _aguardando => widget.turno.estadoRaw == 'aguardando_checkout';
+
+  Future<void> _gerar() async {
+    setState(() {
+      _gerando = true;
+      _erroMsg = null;
+    });
+
+    final result = await widget.pinService.gerar(widget.turno.id);
+    if (!mounted) return;
+    setState(() => _gerando = false);
+
+    switch (result) {
+      case PinGerado(:final pin):
+        // §4.3 — tela do PIN sem nota de geofencing (registro vai para a timeline).
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => PinCheckoutScreen(
+              turnoId: widget.turno.id,
+              pin: pin,
+              funcao: widget.turno.funcao,
+              estabelecimento: widget.turno.estabelecimento,
+              pinService: widget.pinService,
+            ),
+          ),
+        );
+        // Voltou da tela do PIN (cancelou ou saiu): o detalhe recarrega a verdade.
+        await widget.onRecarregar();
+      case PinForaDaJanela() || PinGeracaoEstadoInvalido():
+        // Check-out não tem janela; estado_invalido = mudou em outra aba.
+        await widget.onRecarregar();
+      case PinGeracaoErro():
+        setState(() {
+          _erroMsg = 'Não foi possível gerar o PIN. Verifique sua conexão.';
+          _retry = _gerar;
+        });
+    }
+  }
+
+  Future<void> _cancelar() async {
+    setState(() {
+      _cancelando = true;
+      _erroMsg = null;
+    });
+
+    final result = await widget.pinService.cancelar(widget.turno.id);
+    if (!mounted) return;
+    setState(() => _cancelando = false);
+
+    switch (result) {
+      case PinCancelado() || PinCancelEstadoInvalido():
+        // §4.6 — volta a `ativo`: o cronômetro retoma e o display salta (honesto).
+        await widget.onRecarregar();
+      case PinCancelErro():
+        setState(() {
+          _erroMsg = 'Não foi possível cancelar o PIN.';
+          _retry = _cancelar;
+        });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textStrong = widget.isDark
+        ? TurniColors.textStrongDark
+        : TurniColors.textStrongLight;
+    final textMuted = widget.isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+
+    final (titulo, apoio) = _aguardando
+        ? (
+            'Aguardando validação do contratante',
+            'Perdeu o PIN de vista? Gere um novo — o anterior deixa de valer.',
+          )
+        : (
+            'Terminou o turno?',
+            'Gere o PIN de check-out e mostre ao contratante para confirmar o '
+                'fim do turno.',
+          );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_erroMsg != null) ...[
+          Container(
+            key: const Key('turno-checkout-erro-banner'),
+            padding: const EdgeInsets.symmetric(
+              horizontal: TurniSpacing.md,
+              vertical: TurniSpacing.sm,
+            ),
+            margin: const EdgeInsets.only(bottom: TurniSpacing.sm),
+            decoration: BoxDecoration(
+              color: widget.isDark
+                  ? TurniColors.errorSoftDark
+                  : TurniColors.errorSoftLight,
+              borderRadius: const BorderRadius.all(TurniRadius.md),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _erroMsg!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: widget.isDark
+                          ? TurniColors.errorDark
+                          : TurniColors.errorLight,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  key: const Key('turno-checkout-retry-btn'),
+                  onPressed: () => _retry?.call(),
+                  child: const Text('Tentar de novo'),
+                ),
+              ],
+            ),
+          ),
+        ],
+        Container(
+          padding: const EdgeInsets.all(TurniSpacing.md),
+          decoration: BoxDecoration(
+            color: widget.isDark
+                ? TurniColors.surfaceDark
+                : TurniColors.surfaceLight,
+            borderRadius: const BorderRadius.all(TurniRadius.md),
+            border: Border.all(
+              color: widget.isDark
+                  ? TurniColors.borderSubtleDark
+                  : TurniColors.borderSubtleLight,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                titulo,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: textStrong,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                apoio,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  color: textMuted,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: TurniSpacing.md),
+              FilledButton(
+                key: Key(
+                  _aguardando
+                      ? 'turno-checkout-regen-btn'
+                      : 'turno-checkout-gerar-btn',
+                ),
+                onPressed: _gerando || _cancelando ? null : _gerar,
+                style: FilledButton.styleFrom(
+                  backgroundColor: widget.accent,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: const StadiumBorder(),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                child: _gerando
+                    ? const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Text('Gerando PIN…'),
+                        ],
+                      )
+                    : Text(
+                        _aguardando
+                            ? 'Gerar novo PIN'
+                            : 'Gerar PIN de check-out',
+                      ),
+              ),
+              if (_aguardando) ...[
+                const SizedBox(height: TurniSpacing.xs),
+                TextButton(
+                  key: const Key('turno-checkout-cancelar-btn'),
+                  onPressed: _gerando || _cancelando ? null : _cancelar,
+                  style: TextButton.styleFrom(
+                    foregroundColor: widget.accent,
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                  child: _cancelando
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2.5),
+                        )
+                      : const Text(
+                          'Ainda não terminou? Cancelar PIN',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────── Check-out: validação pelo contratante (STORY-064 / SCREEN-064 §3.3) ───────────
+
+/// Bloco de validação do check-out — espelho da _AcoesValidarCheckin SEM o card de
+/// aviso de geofencing (diferença intencional — estória; o registro fica na timeline).
+/// PIN expirado (3 erros) devolve o turno a `ativo` e o cronômetro retoma (CA-4).
+class _AcoesValidarCheckout extends StatefulWidget {
+  const _AcoesValidarCheckout({
+    required this.turno,
+    required this.isDark,
+    required this.accent,
+    required this.validarService,
+    required this.onAvisoCheckin,
+    required this.onRecarregar,
+  });
+
+  final TurnoDetalhe turno;
+  final bool isDark;
+  final Color accent;
+  final ValidarCheckoutService validarService;
+  final ValueChanged<String> onAvisoCheckin;
+  final Future<void> Function() onRecarregar;
+
+  @override
+  State<_AcoesValidarCheckout> createState() => _AcoesValidarCheckoutState();
+}
+
+class _AcoesValidarCheckoutState extends State<_AcoesValidarCheckout> {
+  final _pinController = TextEditingController();
+  final _pinFocus = FocusNode();
+
+  bool _validando = false;
+  bool _pinInvalido = false;
+  String? _bannerMsg;
+  bool _bannerComRetry = false;
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    _pinFocus.dispose();
+    super.dispose();
+  }
+
+  bool get _pinCompleto => _pinController.text.length == 4;
+
+  Future<void> _validar() async {
+    final pin = _pinController.text;
+    setState(() {
+      _validando = true;
+      _pinInvalido = false;
+      _bannerMsg = null;
+    });
+
+    final result = await widget.validarService.validar(widget.turno.id, pin);
+    if (!mounted) return;
+    setState(() => _validando = false);
+
+    switch (result) {
+      case PinValidado():
+        // §4.11 — sucesso celebra com discrição; a verdade vem do reload (badge
+        // "Finalizado" + cronômetro final + timeline "Check-out validado").
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Check-out validado — turno finalizado.',
+              key: Key('validar-checkout-sucesso'),
+            ),
+          ),
+        );
+        await widget.onRecarregar();
+      case PinInvalido():
+        // §4.8 — erro no campo; valor mantido SELECIONADO (re-digitar é um toque).
+        setState(() => _pinInvalido = true);
+        _pinController.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: _pinController.text.length,
+        );
+        _pinFocus.requestFocus();
+      case PinExpirado():
+        // §4.8 — o turno já voltou a `ativo` no servidor (cronômetro retoma); o
+        // banner persistente é a única pista após o reload esvaziar este bloco.
+        widget.onAvisoCheckin(
+          'PIN expirado por excesso de tentativas. '
+          'Peça ao profissional para gerar um novo.',
+        );
+        await widget.onRecarregar();
+      case ValidarRateLimit():
+        setState(() {
+          _bannerMsg =
+              'Muitas tentativas em pouco tempo. '
+              'Aguarde um minuto e tente de novo.';
+          _bannerComRetry = false;
+        });
+      case ValidarEstadoInvalido():
+        // §4.13 — mudou em outra aba; o servidor é a fonte de verdade.
+        await widget.onRecarregar();
+      case ValidarErro():
+        setState(() {
+          _bannerMsg =
+              'Não foi possível validar o check-out. Verifique sua conexão.';
+          _bannerComRetry = true; // retry reenvia o MESMO PIN digitado
+        });
+    }
+  }
+
+  Future<void> _abrirRecusa() async {
+    final recusou = await showDialog<bool>(
+      context: context,
+      builder: (_) => _RecusaCheckoutDialog(
+        turnoId: widget.turno.id,
+        validarService: widget.validarService,
+      ),
+    );
+    if (recusou == true) await widget.onRecarregar();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textStrong = widget.isDark
+        ? TurniColors.textStrongDark
+        : TurniColors.textStrongLight;
+    final textMuted = widget.isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+    final errorInk = widget.isDark
+        ? TurniColors.errorDark
+        : TurniColors.errorLight;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_bannerMsg != null) ...[
+          Semantics(
+            liveRegion: true,
+            child: Container(
+              key: const Key('validar-checkout-banner'),
+              padding: const EdgeInsets.symmetric(
+                horizontal: TurniSpacing.md,
+                vertical: TurniSpacing.sm,
+              ),
+              margin: const EdgeInsets.only(bottom: TurniSpacing.sm),
+              decoration: BoxDecoration(
+                color: widget.isDark
+                    ? TurniColors.errorSoftDark
+                    : TurniColors.errorSoftLight,
+                borderRadius: const BorderRadius.all(TurniRadius.md),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _bannerMsg!,
+                      style: TextStyle(fontSize: 14, color: errorInk),
+                    ),
+                  ),
+                  if (_bannerComRetry)
+                    TextButton(
+                      key: const Key('validar-checkout-retry-btn'),
+                      onPressed: _validando ? null : _validar,
+                      child: const Text('Tentar de novo'),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+        Container(
+          key: const Key('validar-checkout-area'),
+          padding: const EdgeInsets.all(TurniSpacing.md),
+          decoration: BoxDecoration(
+            color: widget.isDark
+                ? TurniColors.surfaceDark
+                : TurniColors.surfaceLight,
+            borderRadius: const BorderRadius.all(TurniRadius.md),
+            border: Border.all(
+              color: widget.isDark
+                  ? TurniColors.borderSubtleDark
+                  : TurniColors.borderSubtleLight,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Turno concluído?',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: textStrong,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Peça o PIN de 4 dígitos que aparece no celular do '
+                'profissional e digite abaixo.',
+                style: TextStyle(
+                  fontSize: 13.5,
+                  color: textMuted,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: TurniSpacing.md),
+              // input.pin (mono.display) — mesmo espelho de entrada da 062.
+              Center(
+                child: SizedBox(
+                  width: 220,
+                  child: Semantics(
+                    label: 'PIN de check-out, 4 dígitos',
+                    child: TextField(
+                      key: const Key('validar-checkout-pin-input'),
+                      controller: _pinController,
+                      focusNode: _pinFocus,
+                      enabled: !_validando,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(4),
+                      ],
+                      textAlign: TextAlign.center,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 10,
+                        color: textStrong,
+                      ),
+                      decoration: InputDecoration(
+                        counterText: '',
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: TurniSpacing.sm,
+                        ),
+                        errorText: _pinInvalido ? '' : null,
+                        errorStyle: const TextStyle(fontSize: 0, height: 0.01),
+                      ),
+                      onChanged: (_) => setState(() => _pinInvalido = false),
+                      onSubmitted: (_) {
+                        if (_pinCompleto && !_validando) _validar();
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              if (_pinInvalido) ...[
+                const SizedBox(height: 6),
+                Center(
+                  child: Semantics(
+                    liveRegion: true,
+                    child: Text(
+                      'PIN inválido. Confira com o profissional.',
+                      key: const Key('validar-checkout-pin-erro'),
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: errorInk,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: TurniSpacing.md),
+              FilledButton(
+                key: const Key('validar-checkout-btn'),
+                onPressed: _pinCompleto && !_validando ? _validar : null,
+                style: FilledButton.styleFrom(
+                  backgroundColor: widget.accent,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: const StadiumBorder(),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                child: _validando
+                    ? const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Text('Validando…'),
+                        ],
+                      )
+                    : const Text('Validar check-out'),
+              ),
+              const SizedBox(height: TurniSpacing.xs),
+              TextButton(
+                key: const Key('recusar-checkout-btn'),
+                onPressed: _validando ? null : _abrirRecusa,
+                style: TextButton.styleFrom(
+                  foregroundColor: widget.accent,
+                  minimumSize: const Size.fromHeight(48),
+                ),
+                child: const Text(
+                  'Turno ainda não terminou? Recusar check-out',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Dialog de confirmação da recusa de check-out (CA-5 / §3.4 — dialog.confirm, 2º uso).
+/// A recusa devolve o turno a `ativo` — o tempo CONTINUA contando (nunca `em_disputa`,
+/// EPIC-005 fora de escopo). Devolve `true` quando efetivada (inclui estado_invalido:
+/// a tela recarrega a verdade do mesmo jeito).
+class _RecusaCheckoutDialog extends StatefulWidget {
+  const _RecusaCheckoutDialog({
+    required this.turnoId,
+    required this.validarService,
+  });
+
+  final String turnoId;
+  final ValidarCheckoutService validarService;
+
+  @override
+  State<_RecusaCheckoutDialog> createState() => _RecusaCheckoutDialogState();
+}
+
+class _RecusaCheckoutDialogState extends State<_RecusaCheckoutDialog> {
+  final _motivoController = TextEditingController();
+  bool _enviando = false;
+  bool _erro = false;
+
+  @override
+  void dispose() {
+    _motivoController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _confirmar() async {
+    setState(() {
+      _enviando = true;
+      _erro = false;
+    });
+
+    final motivo = _motivoController.text.trim();
+    final result = await widget.validarService.recusar(
+      widget.turnoId,
+      motivo: motivo.isEmpty ? null : motivo,
+    );
+    if (!mounted) return;
+
+    switch (result) {
+      case RecusaOk() || RecusaEstadoInvalido():
+        Navigator.of(context).pop(true);
+      case RecusaErro():
+        setState(() {
+          _enviando = false;
+          _erro = true;
+        });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textMuted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+    final errorColor = isDark ? TurniColors.errorDark : TurniColors.errorLight;
+
+    return AlertDialog(
+      key: const Key('recusar-checkout-dialog'),
+      title: const Text('Recusar check-out?'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 432),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'O PIN atual deixa de valer e o turno volta para "Ativo" — o '
+              'tempo continua contando. O profissional poderá gerar um novo '
+              'PIN.',
+              style: TextStyle(fontSize: 14, color: textMuted, height: 1.5),
+            ),
+            const SizedBox(height: TurniSpacing.md),
+            const Text(
+              'Motivo (opcional)',
+              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 6),
+            TextField(
+              key: const Key('recusar-checkout-motivo-input'),
+              controller: _motivoController,
+              enabled: !_enviando,
+              maxLines: 3,
+              maxLength: 280,
+              decoration: const InputDecoration(
+                counterText: '',
+                hintText: 'Ex.: o turno ainda não terminou',
+                hintMaxLines: 2,
+              ),
+            ),
+            if (_erro) ...[
+              const SizedBox(height: TurniSpacing.sm),
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  'Não foi possível recusar. Tente de novo.',
+                  key: const Key('recusar-checkout-erro'),
+                  style: TextStyle(fontSize: 13.5, color: errorColor),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          key: const Key('recusar-checkout-voltar-btn'),
+          onPressed: _enviando ? null : () => Navigator.of(context).pop(false),
+          child: const Text('Voltar'),
+        ),
+        FilledButton(
+          key: const Key('recusar-checkout-confirmar-btn'),
+          onPressed: _enviando ? null : _confirmar,
+          style: FilledButton.styleFrom(
+            backgroundColor: errorColor,
+            foregroundColor: Colors.white,
+            minimumSize: const Size(0, 48),
+            shape: const StadiumBorder(),
+          ),
+          child: _enviando
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Recusar check-out'),
+        ),
+      ],
+    );
+  }
+}
+
 // ───────────────────────── Timeline (CA-3 — timeline.event) ─────────────────────────
 
 class _Timeline extends StatelessWidget {
@@ -1678,7 +2435,17 @@ class _TimelineEventoTile extends StatelessWidget {
           ? '${formatBRL(evento.valor ?? 0)} reservados no seu meio de pagamento.'
           : 'O contratante garantiu o pagamento deste turno.',
     TimelineEventoTipo.checkinValidado => 'Turno iniciado.',
-    TimelineEventoTipo.checkoutValidado => 'Turno encerrado.',
+    // STORY-064 (§4.12) — geofencing do check-out só aparece aqui (CA-7); recusa/
+    // cancelamento/expiração devolvem a `ativo` e a trilha explica (motivo é admin-only).
+    TimelineEventoTipo.checkoutSolicitado => descricaoTimelineGeofencing(
+      evento.geofencing,
+    ),
+    TimelineEventoTipo.checkoutCancelado =>
+      'Cancelado pelo profissional antes da validação.',
+    TimelineEventoTipo.checkoutValidado => 'Turno finalizado.',
+    TimelineEventoTipo.checkoutRecusado => 'Recusado pelo contratante.',
+    TimelineEventoTipo.checkoutPinExpirado =>
+      'Expirado por excesso de tentativas de validação.',
     TimelineEventoTipo.pagamentoCapturado =>
       souContratante && evento.valor != null
           ? '${formatBRL(evento.valor!)} cobrados do seu meio de pagamento.'

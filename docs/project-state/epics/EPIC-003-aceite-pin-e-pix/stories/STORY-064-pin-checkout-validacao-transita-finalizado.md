@@ -8,8 +8,8 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-064-pin-checkout
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8
 created_at: 2026-06-03
 updated_at: 2026-06-03
 estimated_session_size: M
@@ -42,14 +42,14 @@ Fecha o ciclo do PIN bilateral. Sem o check-out, o turno fica preso em `ativo` e
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Botão "Gerar PIN de check-out" no detalhe do turno aparece **apenas** quando estado é `ativo`. Sem janela horária restritiva (turno pode estender; aceitar).
-- [ ] **CA-2:** Geração: PIN 4 dígitos, hash server-side, transita `ativo → aguardando_checkout` em transação. Captura geofencing igual STORY-061 (sem aviso destacado na validação do contratante). PIN aparece em plaintext **uma vez** na tela do profissional (mesma disciplina da STORY-061).
-- [ ] **CA-3:** `POST /api/turnos/{id}/validar-checkout` recebe `{ pin: "5678" }`, valida hash, transita `aguardando_checkout → finalizado`, grava `check_out_at` final, emite `TurnoFinalizado`. Validação ≤ 500ms p95.
-- [ ] **CA-4:** PIN errado: 422 com microcopy. 3 erradas: invalida PIN; profissional gera novo (espelha STORY-062).
-- [ ] **CA-5:** "Recusar check-out" como botão secundário: volta turno para `ativo` (cronômetro retoma) + audit log `turno.checkout_recusado` com motivo opcional. **NÃO** transita para `em_disputa` (escopo EPIC-005).
-- [ ] **CA-6:** Cronômetro (STORY-063) para automaticamente na transição para `aguardando_checkout` e mostra "Aguardando validação — duração: HH:MM:SS"; em `finalizado` mostra "Turno finalizado — duração: HH:MM:SS".
-- [ ] **CA-7:** Audit log: `turno.checkout_solicitado` (com `geofencing_check_out` opcional), `turno.checkout_validado` ou `turno.checkout_recusado`.
-- [ ] **CA-8:** Cobertura ≥ 98% no núcleo (validação + transição + invalidação por tentativas + recusa); ≥ 80% no resto. E2E cobre o ciclo completo `confirmado → finalizado` em 1 cenário.
+- [x] **CA-1:** Botão "Gerar PIN de check-out" no detalhe do turno aparece **apenas** quando estado é `ativo`. Sem janela horária restritiva (turno pode estender; aceitar).
+- [x] **CA-2:** Geração: PIN 4 dígitos, hash server-side, transita `ativo → aguardando_checkout` em transação. Captura geofencing igual STORY-061 (sem aviso destacado na validação do contratante). PIN aparece em plaintext **uma vez** na tela do profissional (mesma disciplina da STORY-061).
+- [x] **CA-3:** `POST /api/turnos/{id}/validar-checkout` recebe `{ pin: "5678" }`, valida hash, transita `aguardando_checkout → finalizado`, grava `check_out_at` final, emite `TurnoFinalizado`. Validação ≤ 500ms p95.
+- [x] **CA-4:** PIN errado: 422 com microcopy. 3 erradas: invalida PIN; profissional gera novo (espelha STORY-062).
+- [x] **CA-5:** "Recusar check-out" como botão secundário: volta turno para `ativo` (cronômetro retoma) + audit log `turno.checkout_recusado` com motivo opcional. **NÃO** transita para `em_disputa` (escopo EPIC-005).
+- [x] **CA-6:** Cronômetro (STORY-063) para automaticamente na transição para `aguardando_checkout` e mostra "Aguardando validação — duração: HH:MM:SS"; em `finalizado` mostra "Turno finalizado — duração: HH:MM:SS".
+- [x] **CA-7:** Audit log: `turno.checkout_solicitado` (com `geofencing_check_out` opcional), `turno.checkout_validado` ou `turno.checkout_recusado`.
+- [x] **CA-8:** Cobertura ≥ 98% no núcleo (validação + transição + invalidação por tentativas + recusa); ≥ 80% no resto. E2E cobre o ciclo completo `confirmado → finalizado` em 1 cenário.
 
 ## Fora de escopo
 
@@ -93,13 +93,32 @@ NÃO decide: que `em_disputa` está fora (EPIC-005); imutabilidade da transiçã
 ## Notas do agente
 
 ### Decisões tomadas
+- **Espelhamento literal da dupla 061/062** (liberdade técnica "reuso máximo — desejado"): `PinCheckoutService`/`ValidarCheckoutService` espelham os services de check-in; o WebApp reusa os **resultados sealed** das 061/062 (`PinGerado`, `PinInvalido`, `RecusaOk`…) em services novos com endpoints próprios — zero refactor em código shipped.
+- **Exceptions reusadas** (`PinInvalidoException`, `PinExpiradoException`, `PinCheckinEstadoInvalidoException` — mensagem generalizada de "PIN de check-in" para "PIN").
+- **Expiração por 3 erros devolve a `ativo`** (estado de origem — espelho da 062, que devolvia a `confirmado`); cronômetro retoma da âncora `check_in_at` intacta.
+- **Geofencing silencioso** (CA-2): captura na geração com a mesma API da 061, snapshot na trilha/timeline (único lugar onde aparece — CA-7); sem nota na tela do PIN e sem card de aviso na validação. Loading do gerar diz "Gerando PIN…" (não promete localização).
+- **Conflito de microcopy CA-6 × SCREEN-063 arbitrado por Alexandro**: vale o CA-6 da 064 ("Aguardando validação — duração:"); mudança consciente registrada no histórico da SCREEN-063 (testes da 063 atualizados junto).
+- **Cronômetro detecta transição que a tela não viu**: polling que pega `aguardando_checkout`/`finalizado` com a tela ainda em `ativo` dispara reload — o contratante ganha o bloco de validação sem refresh manual (melhoria sobre a 063, registrada na SCREEN-064 §histórico).
+- **`finalizado` sem placeholder de ações** (regra da 060 §4.1 vence o protótipo v1 — ajuste consciente, SCREEN-064 §4.11).
+- **Seed**: par exclusivo `*.checkout.seed` com `recriaConsumido` (o E2E consome o turno até `finalizado`, terminal; run interrompido em `ativo`/`aguardando_checkout` também recria).
+
 ### Descobertas
+- A 063 já tinha deixado o `CronometroController::encerradoEm()` derivando do evento `turno.checkout_solicitado` — a 064 só precisou gravar o evento com esse nome para a duração congelar bilateral (premissa §10 da SCREEN-063 cumprida sem mudança na API do cronômetro).
+- A whitelist da timeline (060) já mapeava `checkout_solicitado`/`checkout_validado`; faltavam só os 3 espelhos (cancelado/recusado/pin_expirado).
+- `enum TurnoStatus`/trigger do banco já suportavam todas as transições da 064 (ADR-015 previu o ciclo completo) — nenhuma migration de máquina de estados.
+
 ### Bloqueios encontrados
+- Nenhum.
+
 ### IDRs criados
+- Nenhum (zero decisão arquitetural nova — tudo espelho de padrões decididos nas 061/062/063).
+
 ### Cobertura final
-- Unitários:
-- E2E:
+- Unitários API: 879 testes (46 novos de check-out), **total 93,6%**; núcleo da 064 (PinCheckoutService 100%, ValidarCheckoutService 100% — validação+transição+invalidação+recusa) ✅ ≥ 98%.
+- WebApp: 507 testes de widget (17 novos — pin_checkout_area, validar_checkout_area, cronômetro finalizado/transição).
+- E2E: ciclo completo `confirmado → finalizado` em 1 cenário bilateral (checkout_test.dart, par `*.checkout.seed`) — CA-8.
+
 ### Links de evidência
-- PR:
-- Pipeline:
-- Deploy de homologação:
+- PR: n/a (commit direto na main — fluxo do projeto)
+- Pipeline: release.yml (tag v0.1.0-rc.76)
+- Deploy de homologação: app.homolog.turni.com.br (rc.76)

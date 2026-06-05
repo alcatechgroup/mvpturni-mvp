@@ -50,14 +50,14 @@ test('seeder cria exatamente um turno em cada um dos 11 estados', function () {
 test('seeder anexa um aceite imutável a cada turno', function () {
     seedTurnosComDependencias();
     // 11 do universo turnos.seed + turno PIN (061) + turno validar (062) + turno cronômetro (063).
-    expect(AceiteEletronicoTurno::count())->toBe(14);
+    expect(AceiteEletronicoTurno::count())->toBe(15);
 });
 
 test('seeder é idempotente (rodar 2x não duplica)', function () {
     seedTurnosComDependencias();
     test()->seed(TurnosSeeder::class);
     expect(turnosDoSeedPrincipal()->count())->toBe(11)
-        ->and(Turno::count())->toBe(14); // + turno PIN (061) + validar (062) + cronômetro (063)
+        ->and(Turno::count())->toBe(15); // + PIN (061) + validar (062) + cronômetro (063) + checkout (064)
 });
 
 test('o turno confirmado do seed demonstra o override de habitualidade (PJ)', function () {
@@ -196,6 +196,49 @@ test('STORY-062: turno validar consumido (ativo) → reseed cria um NOVO confirm
     // Reseed seguinte só renova a janela do novo (não duplica de novo).
     test()->seed(TurnosSeeder::class);
     expect(Turno::where('profissional_id', $pro->id)->count())->toBe(2);
+});
+
+test('STORY-064: seeder cria o turno do ciclo de check-out com usuários exclusivos *.checkout.seed', function () {
+    seedTurnosComDependencias();
+
+    $pro = User::where('email', 'profissional.checkout.seed@turni.local')->first();
+    expect($pro)->not->toBeNull();
+
+    $turno = Turno::where('profissional_id', $pro->id)->first();
+    expect($turno)->not->toBeNull()
+        ->and($turno->status)->toBe(TurnoStatus::Confirmado)
+        ->and($turno->data_inicio->isAfter(now()))->toBeTrue()
+        ->and((float) $turno->vaga->lat)->toBe(-23.55)
+        ->and($turno->aceite)->not->toBeNull();
+});
+
+test('STORY-064: turno checkout consumido (finalizado) → reseed cria um NOVO confirmado na janela', function () {
+    seedTurnosComDependencias();
+
+    $pro = User::where('email', 'profissional.checkout.seed@turni.local')->first();
+    $consumido = Turno::where('profissional_id', $pro->id)->first();
+    // E2E percorreu o ciclo completo: finalizado é TERMINAL (não volta).
+    $consumido->transitionTo(TurnoStatus::AguardandoCheckin);
+    $consumido->transitionTo(TurnoStatus::Ativo);
+    $consumido->transitionTo(TurnoStatus::AguardandoCheckout);
+    $consumido->transitionTo(TurnoStatus::Finalizado);
+
+    test()->seed(TurnosSeeder::class);
+
+    // Ordena por `id` (UUIDv7 — ordenável no tempo com precisão sub-segundo; created_at
+    // empata quando os dois nascem no mesmo segundo do teste — ADR-018).
+    $turnos = Turno::where('profissional_id', $pro->id)->orderBy('id')->get();
+    expect($turnos)->toHaveCount(2)
+        ->and($turnos[0]->status)->toBe(TurnoStatus::Finalizado)   // histórico fica
+        ->and($turnos[1]->status)->toBe(TurnoStatus::Confirmado)   // novo, pronto p/ E2E
+        ->and($turnos[1]->data_inicio->isAfter(now()))->toBeTrue()
+        ->and($turnos[1]->aceite)->not->toBeNull();
+
+    // Run interrompido no meio do ciclo (aguardando_checkout) também recria.
+    $turnos[1]->transitionTo(TurnoStatus::AguardandoCheckin);
+    $turnos[1]->transitionTo(TurnoStatus::Ativo);
+    test()->seed(TurnosSeeder::class);
+    expect(Turno::where('profissional_id', $pro->id)->count())->toBe(3);
 });
 
 test('STORY-063: seeder cria o turno cronômetro (ativo, ~35min decorridos) com usuários exclusivos', function () {

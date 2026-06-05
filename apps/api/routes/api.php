@@ -19,10 +19,12 @@ use App\Http\Controllers\Notificacao\NotificacaoController;
 use App\Http\Controllers\Turno\CheckinGeoController;
 use App\Http\Controllers\Turno\CronometroController;
 use App\Http\Controllers\Turno\PinCheckinController;
+use App\Http\Controllers\Turno\PinCheckoutController;
 use App\Http\Controllers\Turno\TurnoAtivoController;
 use App\Http\Controllers\Turno\TurnoDetalheController;
 use App\Http\Controllers\Turno\TurnosController;
 use App\Http\Controllers\Turno\ValidarCheckinController;
+use App\Http\Controllers\Turno\ValidarCheckoutController;
 use App\Http\Controllers\Usuario\WelcomeController;
 use App\Http\Controllers\Vaga\CandidatosController;
 use App\Http\Controllers\Vaga\VagaController;
@@ -183,6 +185,17 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     // RBAC: só o contratante do turno (403 — CA-1).
     Route::post('/turnos/{turno}/validar-checkin', [ValidarCheckinController::class, 'validar']);
     Route::post('/turnos/{turno}/recusar-checkin', [ValidarCheckinController::class, 'recusar']);
+
+    // PIN de check-out (STORY-064) — espelho da dupla 061/062 com origem em `ativo`:
+    // geração SEM janela horária (CA-1; geofencing opcional e silencioso — CA-2);
+    // validação transita para `finalizado` + evento TurnoFinalizado (065/067 — CA-3);
+    // 3 erros expiram o PIN e recusa/cancelamento devolvem a `ativo` (CA-4/CA-5 —
+    // NUNCA `em_disputa`, que é EPIC-005). RBAC espelhado: gerar/cancelar só o
+    // profissional (403); validar/recusar só o contratante (403).
+    Route::post('/turnos/{turno}/gerar-pin-checkout', [PinCheckoutController::class, 'gerar']);
+    Route::post('/turnos/{turno}/cancelar-pin-checkout', [PinCheckoutController::class, 'cancelar']);
+    Route::post('/turnos/{turno}/validar-checkout', [ValidarCheckoutController::class, 'validar']);
+    Route::post('/turnos/{turno}/recusar-checkout', [ValidarCheckoutController::class, 'recusar']);
 
     // Detalhe do turno (STORY-060) — rota compartilhada pelos 2 papéis (RBAC no controller:
     // cruzados 403, CA-1). Atributos + valor por papel (CA-2) + timeline filtrada (CA-3) +

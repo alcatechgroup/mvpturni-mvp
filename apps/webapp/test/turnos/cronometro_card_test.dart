@@ -178,8 +178,10 @@ void main() {
       await tester.pump();
 
       expect(display(tester), '05:02:13');
+      // STORY-064 CA-6 — microcopy trocada conscientemente sobre a da 063
+      // (aprovado por Alexandro em 2026-06-05; ver SCREEN-064 §4.10).
       expect(
-        find.text('Aguardando check-out — duração final: 05:02:13'),
+        find.text('Aguardando validação — duração: 05:02:13'),
         findsOneWidget,
       );
       expect(find.text('AGUARDANDO CHECK-OUT'), findsOneWidget);
@@ -319,6 +321,117 @@ void main() {
     },
   );
 
+  // ───────────────── STORY-064 (CA-6) — estados de check-out ─────────────────
+
+  testWidgets(
+    '064 CA-6: finalizado mostra a duração final congelada, sem polling',
+    (tester) async {
+      final clock = _Clock(base);
+      final svc = _FakeCronoService(
+        () => snap(
+          clock,
+          estado: 'finalizado',
+          decorrido: const Duration(hours: 5, minutes: 4, seconds: 27),
+          encerradoEm: clock(), // check_out_at final
+        ),
+      );
+
+      await tester.pumpWidget(app(card(clock, svc, estadoRaw: 'finalizado')));
+      await tester.pump();
+
+      expect(display(tester), '05:04:27');
+      expect(find.text('TURNO FINALIZADO'), findsOneWidget);
+      expect(find.text('Turno finalizado — duração: 05:04:27'), findsOneWidget);
+      expect(find.byKey(const Key('cronometro-previsto')), findsNothing);
+
+      // Estado terminal: o tempo passa, o display não avança e o polling parou.
+      final chamadas = svc.calls;
+      clock.avanca(const Duration(seconds: 12));
+      await tester.pump(const Duration(seconds: 12));
+      expect(display(tester), '05:04:27');
+      expect(svc.calls, chamadas);
+
+      await desmonta(tester);
+    },
+  );
+
+  testWidgets(
+    '064: polling detecta ativo→aguardando_checkout e avisa a tela (reload) — '
+    'o contratante ganha o bloco de validação sem refresh manual',
+    (tester) async {
+      final clock = _Clock(base);
+      var estado = 'ativo';
+      var avisos = 0;
+      final svc = _FakeCronoService(
+        () => snap(
+          clock,
+          estado: estado,
+          encerradoEm: estado == 'ativo' ? null : clock(),
+        ),
+      );
+
+      await tester.pumpWidget(
+        app(card(clock, svc, onEstadoMudou: () async => avisos++)),
+      );
+      await tester.pump();
+      expect(avisos, 0);
+
+      estado = 'aguardando_checkout'; // profissional gerou o PIN do outro lado
+      clock.avanca(const Duration(seconds: 5));
+      await tester.pump(const Duration(seconds: 5));
+      expect(avisos, 1);
+
+      // Congelou e o polling parou; o aviso não repete.
+      final chamadas = svc.calls;
+      clock.avanca(const Duration(seconds: 10));
+      await tester.pump(const Duration(seconds: 10));
+      expect(svc.calls, chamadas);
+      expect(avisos, 1);
+
+      await desmonta(tester);
+    },
+  );
+
+  testWidgets('064: rebuild com estadoRaw novo SEM remontar re-ancora o card '
+      '(aguardando_checkout → finalizado na validação — regressão pega no E2E)', (
+    tester,
+  ) async {
+    final clock = _Clock(base);
+    var estado = 'aguardando_checkout';
+    final svc = _FakeCronoService(
+      () => snap(
+        clock,
+        estado: estado,
+        decorrido: const Duration(hours: 5, minutes: 2, seconds: 13),
+        encerradoEm: clock(),
+      ),
+    );
+
+    await tester.pumpWidget(
+      app(card(clock, svc, estadoRaw: 'aguardando_checkout')),
+    );
+    await tester.pump();
+    expect(
+      find.byKey(const Key('cronometro-aguardando-checkout')),
+      findsOneWidget,
+    );
+
+    // Contratante validou: a tela recarrega e REBUILDA o card com o estado novo
+    // (mesmo slot da árvore — o State persiste; didUpdateWidget re-ancora).
+    estado = 'finalizado';
+    await tester.pumpWidget(app(card(clock, svc, estadoRaw: 'finalizado')));
+    await tester.pump(); // resolve o re-fetch da âncora
+
+    expect(find.text('TURNO FINALIZADO'), findsOneWidget);
+    expect(find.byKey(const Key('cronometro-finalizado')), findsOneWidget);
+    expect(
+      find.byKey(const Key('cronometro-aguardando-checkout')),
+      findsNothing,
+    );
+
+    await desmonta(tester);
+  });
+
   // ───────────── Integração com a tela do detalhe (SCREEN-063 §3.1) ─────────────
 
   group('TurnoDetalheScreen', () {
@@ -362,8 +475,9 @@ void main() {
 
       expect(find.byKey(const Key('cronometro-card')), findsOneWidget);
       expect(find.byKey(const Key('cronometro-display')), findsOneWidget);
-      // A área de ações segue com o placeholder da 060 (o check-out é a 064).
-      expect(find.byKey(const Key('turno-detalhe-acoes')), findsOneWidget);
+      // STORY-064 — o profissional em `ativo` ganhou o bloco de check-out no slot
+      // que era placeholder na 063 (SCREEN-064 §3.1).
+      expect(find.byKey(const Key('turno-checkout-gerar-btn')), findsOneWidget);
 
       await desmonta(tester);
     });

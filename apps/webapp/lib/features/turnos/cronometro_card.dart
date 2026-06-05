@@ -19,7 +19,9 @@ import 'cronometro_service.dart';
 /// Estados (SCREEN-063 §4): sincronizando (`--:--:--`), rodando (tick 1s + dot pulsante),
 /// reconectando (CA-6 — falha de polling > 30s mostra a linha de aviso; o display NUNCA
 /// congela em `ativo`: a âncora local segue válida), congelado (CA-5 — `aguardando_checkout`
-/// exibe a duração final e para o polling) e erro da 1ª sincronização (retry).
+/// exibe a duração e para o polling), FINAL (STORY-064 CA-6 — `finalizado` exibe a duração
+/// final `check_out_at − check_in_at`, estado terminal sem polling) e erro da 1ª
+/// sincronização (retry).
 ///
 /// Aba em background pausa os timers (`AppLifecycleState` ↔ visibilitychange no Web — ADR-017);
 /// ao voltar, a primeira reconciliação corrige o display para a verdade.
@@ -40,7 +42,8 @@ class CronometroCard extends StatefulWidget {
 
   final String turnoId;
 
-  /// Estado do payload do detalhe no momento do build (`ativo` | `aguardando_checkout`).
+  /// Estado do payload do detalhe no momento do build
+  /// (`ativo` | `aguardando_checkout` | `finalizado` — STORY-064 CA-6).
   final String estadoRaw;
 
   /// Início/fim PREVISTOS (CA-2 — microcopy fixa "Início previsto" / "Duração prevista").
@@ -93,8 +96,12 @@ class _CronometroCardState extends State<CronometroCard>
 
   bool get _congelado => _estado == 'aguardando_checkout';
 
+  /// STORY-064 (CA-6) — `finalizado` é estado TERMINAL exibível: duração final
+  /// (`check_out_at − check_in_at`) congelada, sem polling, sem dot.
+  bool get _finalizado => _estado == 'finalizado';
+
   bool get _reconectando {
-    if (!_sincronizou || _congelado) return false;
+    if (!_sincronizou || _congelado || _finalizado) return false;
     final base = _ultimoSyncOk;
     return base != null &&
         _agora().difference(base) > const Duration(seconds: 30);
@@ -106,6 +113,22 @@ class _CronometroCardState extends State<CronometroCard>
     WidgetsBinding.instance.addObserver(this);
     _sincronizar();
     _agendarTimers();
+  }
+
+  @override
+  void didUpdateWidget(covariant CronometroCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // STORY-064 — a tela recarregou com outro estado SEM remontar o card (o State
+    // persiste no mesmo slot da árvore): ex.: validação do check-out leva
+    // aguardando_checkout → finalizado. Re-ancora e re-agenda para o novo estado —
+    // sem isto o card ficaria preso no estado da montagem.
+    if (oldWidget.estadoRaw != widget.estadoRaw) {
+      _estado = widget.estadoRaw;
+      _avisouEstadoMudou = false;
+      _decorridoCongelado = null;
+      _sincronizar();
+      _agendarTimers();
+    }
   }
 
   @override
@@ -133,7 +156,7 @@ class _CronometroCardState extends State<CronometroCard>
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
-    if (!_congelado) {
+    if (!_congelado && !_finalizado) {
       _poll = Timer.periodic(
         Duration(seconds: _pollSegundos),
         (_) => _sincronizar(),
@@ -176,15 +199,22 @@ class _CronometroCardState extends State<CronometroCard>
         _agendarTimers();
       }
 
-      if (_congelado) {
-        // CA-5 — duração final: encerrado_em do servidor (idêntica nos 2 lados); degrade
-        // pré-064 congela no último decorrido conhecido. O polling para — nada mais muda
-        // sozinho neste estado (a saída é navegação/reload da 064).
+      if (_congelado || _finalizado) {
+        // CA-5 (063) / CA-6 (064) — duração congelada: encerrado_em do servidor
+        // (idêntica nos 2 lados); degrade sem encerrado_em congela no último decorrido
+        // conhecido. O polling para — nada mais muda sozinho nestes estados.
         _decorridoCongelado ??= _ancora.decorrido(_agora().toUtc());
         _poll?.cancel();
         _poll = null;
+        // STORY-064 — o polling pegou uma transição que a tela ainda não viu (ex.:
+        // contratante em `ativo` quando o profissional gera o PIN de check-out): a tela
+        // recarrega a verdade e a área de ações se reorganiza (bloco de validação).
+        if (_estado != widget.estadoRaw && !_avisouEstadoMudou) {
+          _avisouEstadoMudou = true;
+          widget.onEstadoMudou();
+        }
       } else if (_estado != 'ativo') {
-        // Saiu do ciclo do cronômetro (finalizado/cancelado/...): a tela recarrega a verdade.
+        // Saiu do ciclo do cronômetro (cancelado/disputa/...): a tela recarrega a verdade.
         _cancelarTimers();
         if (!_avisouEstadoMudou) {
           _avisouEstadoMudou = true;
@@ -195,7 +225,7 @@ class _CronometroCardState extends State<CronometroCard>
   }
 
   Duration get _decorrido {
-    if (_congelado) {
+    if (_congelado || _finalizado) {
       if (_ancora.encerradoEm != null && _ancora.iniciadoEm != null) {
         return _ancora.decorrido(_agora().toUtc());
       }
@@ -234,12 +264,30 @@ class _CronometroCardState extends State<CronometroCard>
                 _titulo(textMuted),
                 _display(textStrong),
                 if (_congelado)
+                  // STORY-064 CA-6 — microcopy trocada conscientemente sobre a da 063
+                  // ("duração final" mentia: recusa/cancelamento retomam o tempo).
                   Semantics(
                     liveRegion: true,
                     child: Text(
-                      'Aguardando check-out — duração final: '
+                      'Aguardando validação — duração: '
                       '${_sincronizou ? CronometroAncora.formatar(_decorrido) : CronometroAncora.placeholder()}',
                       key: const Key('cronometro-aguardando-checkout'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: textMuted,
+                        height: 1.5,
+                      ),
+                    ),
+                  )
+                else if (_finalizado)
+                  // STORY-064 CA-6 — duração final de verdade: check_out_at carimbado.
+                  Semantics(
+                    liveRegion: true,
+                    child: Text(
+                      'Turno finalizado — duração: '
+                      '${_sincronizou ? CronometroAncora.formatar(_decorrido) : CronometroAncora.placeholder()}',
+                      key: const Key('cronometro-finalizado'),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13.5,
@@ -280,6 +328,7 @@ class _CronometroCardState extends State<CronometroCard>
     );
 
     if (_congelado) return Text('AGUARDANDO CHECK-OUT', style: estilo);
+    if (_finalizado) return Text('TURNO FINALIZADO', style: estilo);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

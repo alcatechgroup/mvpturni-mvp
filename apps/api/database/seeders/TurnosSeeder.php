@@ -320,6 +320,17 @@ class TurnosSeeder extends Seeder
             rotulo: 'turno validar seed',
             recriaConsumido: true,
         );
+
+        // STORY-064: o E2E do ciclo completo (confirmado → … → finalizado, CA-8) também
+        // CONSOME o turno — e um run interrompido pode deixá-lo em ativo/aguardando_checkout
+        // (fora do refresh da janela) → recriaConsumido cobre os dois casos.
+        $this->seedTurnoNaJanela(
+            emailPrefixo: 'checkout.seed',
+            nomeBase: 'Checkout Seed',
+            observacao: 'Vaga seed do ciclo completo de check-out (STORY-064)',
+            rotulo: 'turno checkout seed',
+            recriaConsumido: true,
+        );
     }
 
     private function seedTurnoNaJanela(

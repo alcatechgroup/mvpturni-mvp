@@ -20,7 +20,13 @@ enum TimelineEventoTipo {
   checkinRecusado('checkin_recusado', 'Check-in recusado'),
   checkinPinExpirado('checkin_pin_expirado', 'PIN de check-in expirado'),
   checkoutSolicitado('checkout_solicitado', 'PIN de check-out gerado'),
+  // STORY-064 (SCREEN-064 §4.12) — espelhos de check-out: cancelamento, recusa e
+  // expiração devolvem o turno a `ativo`; a trilha explica por quê (motivo da recusa
+  // NÃO vem — admin only).
+  checkoutCancelado('checkout_cancelado', 'PIN de check-out cancelado'),
   checkoutValidado('checkout_validado', 'Check-out validado'),
+  checkoutRecusado('checkout_recusado', 'Check-out recusado'),
+  checkoutPinExpirado('checkout_pin_expirado', 'PIN de check-out expirado'),
   pagamentoCapturado('pagamento_capturado', 'Pagamento processado'),
   pixEnviado('pix_enviado', 'Pix enviado'),
   cancelado('cancelado', 'Turno cancelado'),
@@ -89,8 +95,9 @@ class TimelineEvento {
   /// Quem cancelou (`pro`|`emp`) — presente só em `cancelado` (STORY-066).
   final String? lado;
 
-  /// Nota de geofencing — presente só em `checkin_solicitado` (STORY-061; seeds
-  /// antigos não a têm — a timeline degrada para título sem descrição).
+  /// Nota de geofencing — presente em `checkin_solicitado` (STORY-061) e
+  /// `checkout_solicitado` (STORY-064 — único lugar onde o geo de check-out aparece;
+  /// seeds antigos não a têm — a timeline degrada para título sem descrição).
   final GeofencingCheckin? geofencing;
 
   const TimelineEvento({

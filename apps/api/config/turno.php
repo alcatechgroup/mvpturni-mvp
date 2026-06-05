@@ -12,6 +12,11 @@ return [
     // PIN — é fixo no ValidarCheckinService).
     'checkin_validacao_max_por_minuto' => (int) env('TURNI_CHECKIN_VALIDACAO_MAX_POR_MINUTO', 5),
 
+    // STORY-064 (CA-4) — rate limit da validação do PIN de check-out: espelho do de
+    // check-in (mesma proteção de borda contra força bruta, janela própria por turno;
+    // o limite de domínio — 3 erros expiram o PIN — é fixo no ValidarCheckoutService).
+    'checkout_validacao_max_por_minuto' => (int) env('TURNI_CHECKOUT_VALIDACAO_MAX_POR_MINUTO', 5),
+
     // STORY-063 (CA-1) — janela de reconciliação do cronômetro bilateral (ADR-017): o
     // cliente tica LOCALMENTE a cada 1s e faz polling nesta janela só para corrigir o
     // offset de relógio e detectar a saída de `ativo`. Configurável por env sem deploy
