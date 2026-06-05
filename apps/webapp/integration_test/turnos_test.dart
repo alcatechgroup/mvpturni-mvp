@@ -5,8 +5,10 @@
 // SAME-ORIGIN sob o harness (proxy reverso + --web-launch-url) — fluxo autenticado.
 import 'turnos/detalhe_turno_test.dart' as detalhe_turno;
 import 'turnos/listas_turnos_test.dart' as listas_turnos;
+import 'turnos/pin_checkin_test.dart' as pin_checkin;
 
 void main() {
   listas_turnos.main();
   detalhe_turno.main();
+  pin_checkin.main();
 }

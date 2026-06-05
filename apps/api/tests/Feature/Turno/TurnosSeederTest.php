@@ -13,6 +13,7 @@ use Database\Seeders\AdminUserSeeder;
 use Database\Seeders\FuncaoSeeder;
 use Database\Seeders\TemplatesContratuaisSeeder;
 use Database\Seeders\TurnosSeeder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -27,7 +28,7 @@ function seedTurnosComDependencias(): void
 }
 
 /** Turnos do universo `*.turnos.seed` (a STORY-061 somou o turno PIN em outro contratante). */
-function turnosDoSeedPrincipal(): \Illuminate\Database\Eloquent\Builder
+function turnosDoSeedPrincipal(): Builder
 {
     $contratante = User::where('email', 'contratante.turnos.seed@turni.local')->firstOrFail();
 

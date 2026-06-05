@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-061-pin-checkin
-status: in_progress
+status: in_review
 owner_agent: claude-opus-4-8
 created_at: 2026-06-03
 updated_at: 2026-06-05
@@ -35,15 +35,15 @@ PIN bilateral é um dos 3 pilares do produto. Sem geração, não há check-in. 
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Botão "Gerar PIN de check-in" aparece **apenas** quando turno em `confirmado` E horário corrente está em [data_inicio - 30min, data_inicio + 2h] (janela configurável via env, default explícito). Fora dessa janela: botão desabilitado com microcopy explicando.
-- [ ] **CA-2:** Clique solicita geolocalização ao navegador. Se concedida: WebApp envia `{ pin_solicitado: true, lat, lng, accuracy_m }`. Se negada/timeout/erro: WebApp envia `{ pin_solicitado: true, geo: null, razao: 'permissao_negada' | 'timeout' | 'erro_browser' }`.
-- [ ] **CA-3:** Backend gera PIN aleatório de 4 dígitos (uniforme, com retry para evitar PINs trivais — repetidos/sequenciais — opcional; documentar decisão); guarda **hash + sal** server-side (nunca plaintext após resposta inicial); transita turno para `aguardando_checkin` em transação com gravação do `geofencing_check_in` (calculando distância via Haversine para coordenada do estabelecimento — reuso do helper `Support\Geo` da STORY-049/057).
-- [ ] **CA-4:** Resposta retorna **PIN em plaintext** para a tela do profissional (única vez que aparece — refresh perde o PIN, profissional re-gera). PIN nunca aparece em logs JSON (só hash + flag de geração).
-- [ ] **CA-5:** Tela do profissional mostra PIN em grande (tipografia ≥ 64pt; contraste AAA) com microcopy "Mostre este PIN ao contratante para validar a chegada". Botão "Não chegou ainda? Cancelar PIN" volta para `confirmado` (idempotente — geração nova invalida hash anterior).
-- [ ] **CA-6:** `geofencing_ok` calculado contra raio do estabelecimento (default 100m, configurável por estabelecimento — registrar como follow-up se for muito; default 100m é o suficiente para o sprint). `geofencing_ok: false` **não bloqueia** o check-in (PDR-008) — só registra.
-- [ ] **CA-7:** Audit log captura `turno.checkin_solicitado` com `geofencing_check_in` completo (snapshot).
-- [ ] **CA-8:** RBAC: só o profissional do turno gera PIN; contratante recebe 403 ao tentar; admin não gera (papel do admin é diferente).
-- [ ] **CA-9:** Cobertura ≥ 98% na geração de PIN (regra de negócio) e cálculo de geofencing; ≥ 80% no resto. E2E cobre os 3 caminhos de geo (concedida, negada, timeout).
+- [x] **CA-1:** Botão "Gerar PIN de check-in" aparece **apenas** quando turno em `confirmado` E horário corrente está em [data_inicio - 30min, data_inicio + 2h] (janela configurável via env, default explícito). Fora dessa janela: botão desabilitado com microcopy explicando.
+- [x] **CA-2:** Clique solicita geolocalização ao navegador. Se concedida: WebApp envia `{ pin_solicitado: true, lat, lng, accuracy_m }`. Se negada/timeout/erro: WebApp envia `{ pin_solicitado: true, geo: null, razao: 'permissao_negada' | 'timeout' | 'erro_browser' }`.
+- [x] **CA-3:** Backend gera PIN aleatório de 4 dígitos (uniforme, com retry para evitar PINs trivais — repetidos/sequenciais — opcional; documentar decisão); guarda **hash + sal** server-side (nunca plaintext após resposta inicial); transita turno para `aguardando_checkin` em transação com gravação do `geofencing_check_in` (calculando distância via Haversine para coordenada do estabelecimento — reuso do helper `Support\Geo` da STORY-049/057).
+- [x] **CA-4:** Resposta retorna **PIN em plaintext** para a tela do profissional (única vez que aparece — refresh perde o PIN, profissional re-gera). PIN nunca aparece em logs JSON (só hash + flag de geração).
+- [x] **CA-5:** Tela do profissional mostra PIN em grande (tipografia ≥ 64pt; contraste AAA) com microcopy "Mostre este PIN ao contratante para validar a chegada". Botão "Não chegou ainda? Cancelar PIN" volta para `confirmado` (idempotente — geração nova invalida hash anterior).
+- [x] **CA-6:** `geofencing_ok` calculado contra raio do estabelecimento (default 100m, configurável por estabelecimento — registrar como follow-up se for muito; default 100m é o suficiente para o sprint). `geofencing_ok: false` **não bloqueia** o check-in (PDR-008) — só registra.
+- [x] **CA-7:** Audit log captura `turno.checkin_solicitado` com `geofencing_check_in` completo (snapshot).
+- [x] **CA-8:** RBAC: só o profissional do turno gera PIN; contratante recebe 403 ao tentar; admin não gera (papel do admin é diferente).
+- [x] **CA-9:** Cobertura ≥ 98% na geração de PIN (regra de negócio) e cálculo de geofencing; ≥ 80% no resto. E2E cobre os 3 caminhos de geo (concedida, negada, timeout).
 
 ## Fora de escopo
 
@@ -142,13 +142,83 @@ existente do código (`permissao_negada|timeout|indisponivel` — STORY-057) em 
 - CA-9 (cobertura/E2E): pest --coverage ≥80/≥98 núcleo; E2E `pin_checkin_test.dart` 3 cenários.
 
 ### Decisões tomadas
+
+- **Anti-trivial implementado** (CA-3 marcava como opcional): `PinCheckin::ehTrivial` rejeita
+  4 dígitos repetidos e sequências de passo 1 asc/desc (24/10.000 ≈ 0,24% de re-sorteio) —
+  custo desprezível, PIN menos chutável. Hash **bcrypt** via `Hash::make` (o já presente do
+  EPIC-001).
+- **Razões de geo**: mantive o conjunto da STORY-057 (`permissao_negada|timeout|indisponivel`)
+  em vez do `erro_browser` exemplificado no CA-2 — reuso da validação do `Geofencing` e da
+  ponte `geolocalizacao.dart` já testadas; microcopy humana: "permissão negada", "tempo
+  esgotado", "indisponível". Registrado também na SCREEN-061.
+- **Janela em `config/turno.php`** (`TURNI_CHECKIN_JANELA_ANTES_MIN`/`_DEPOIS_MIN`, defaults
+  30/120) com **bordas inclusivas**; o detalhe expõe `checkin_janela` para o profissional —
+  a UI deriva microcopy/estado do botão sem hardcodar minutos; servidor revalida (422
+  `fora_da_janela` carrega a janela).
+- **RBAC 403** nos dois endpoints (CA-8 fixa 403 para contratante; o fail-secure 404 segue
+  nas rotas de leitura cruzada).
+- **`turno.checkin_cancelado`** criado na trilha (premissa da SCREEN-061 §4.10 — a transição
+  `aguardando_checkin→confirmado` pelo profissional precisava de evento); entrou na whitelist
+  da timeline do detalhe.
+- **Re-geração** em `aguardando_checkin` troca o hash sem transição (o enum/trigger não têm
+  self-loop) + audit com `pin_regerado: true`.
+- **Tela do PIN efêmera** (sem rota): push de Navigator; refresh cai no detalhe em
+  `aguardando_checkin` com "Gerar novo PIN" (CA-4/CA-5, SCREEN-061 §4.7).
+- **E2E com posição injetada** (`debugCapturarPosicaoOverride`, padrão `debugSetSession`):
+  o Chrome do harness não concede permissão de geolocalização programaticamente; a ponte
+  JS real foi validada na PoC da STORY-057. Todo o resto do fluxo é real (POST, bcrypt,
+  Haversine, transição, audit). Cada cenário termina cancelando → turno volta a
+  `confirmado` (idempotente).
+- **Seed `*.pin.seed`** exclusivo (o E2E muta estado; não contamina a suíte 059/060) com
+  **refresh da janela a cada reseed** — em homolog a janela não envelhece entre deploys.
+- A atomicidade da transação (gerar/cancelar) é garantida por `DB::transaction` + trigger
+  do banco; não há teste de falha-no-meio (forçar falha exigiria mock do próprio módulo —
+  red flag de mock).
+
 ### Descobertas
+
+- O teste de borda exata da janela exige `travelTo(now()->startOfSecond())` — o Postgres
+  trunca microssegundos do `datetime` e desloca a borda em <1s.
+- No E2E, após o pop da tela do PIN o botão do detalhe aparece **antes** de a tela sair da
+  árvore (animação de pop) — assert de `findsNothing` precisa de `pumpAndSettle` após o
+  `pumpUntilFound`, que também drena os microtasks de foco (FocusManager disposed flaky).
+
 ### Bloqueios encontrados
+
+Nenhum.
+
 ### IDRs criados
+
+Nenhum (nenhuma lib nova; decisões locais documentadas acima).
+
 ### Cobertura final
-- Unitários:
-- E2E:
+
+- Unitários/integração API: **804 testes verdes; 93,2% total**; núcleo da estória 100%
+  (`PinCheckin`, `PinCheckinService`, `PinCheckinController`, `Geofencing`, `Haversine`,
+  `TurnoDetalheController`) — CA-9 ≥98% no núcleo ✓.
+- WebApp: **441 testes verdes** (27 novos: service do PIN, área de ações, tela do PIN,
+  timeline, parse).
+- E2E (browser real, same-origin, backend real): `pin_checkin_test.dart` — 3 cenários
+  (geo concedida/negada/timeout), gate `make e2e-webapp-integration` verde com a suíte
+  completa (auth + cadastro + vagas + feed + turnos).
+
+### Mapeamento CA → teste (provas)
+
+| CA | Testes |
+|---|---|
+| CA-1 | `GerarPinCheckin`: antes/depois da janela 422 + estado intacto, bordas inclusivas, janela via config; widget: botão desabilitado antes/depois com microcopy, habilitado na janela |
+| CA-2 | service webapp: POST com lat/lng/accuracy · geo nulo + razão; feature: negada/timeout preservam razão; E2E 3 caminhos |
+| CA-3 | unit `PinCheckin` (formato, uniformidade, anti-trivial, retry, exaustão); feature: hash bcrypt persistido ≠ plaintext, transição, estado inválido 422 |
+| CA-4 | feature: resposta com pin 4 dígitos; audit payload sem PIN; re-geração invalida hash anterior; E2E: PIN visível uma vez, regen após refresh |
+| CA-5 | widget: PIN ≥64pt + microcopy fixa + cancelar volta; feature `CancelarPinCheckin`: confirmado + hash limpo + audit + ciclo gerar→cancelar→gerar |
+| CA-6 | `GeofencingTest` (STORY-057, 100%); feature: fora do raio → ok:false + PIN gerado |
+| CA-7 | feature: audit `turno.checkin_solicitado` com snapshot completo; detalhe expõe geofencing na timeline |
+| CA-8 | feature: contratante 403, terceiro 403, 401 (gerar e cancelar); widget: contratante sem botão |
+| CA-9 | pest --coverage (93,2% / núcleo 100%); E2E 3 cenários de geo verdes |
+
 ### Links de evidência
-- PR:
-- Pipeline:
-- Deploy de homologação:
+
+- PR: commit direto na main (workflow do projeto) — TDD evidenciado na sequência de commits
+  `test(...) (red)` → `feat(...) (green)` de 2026-06-05.
+- Pipeline: CI da main + tag de release.
+- Deploy de homologação: v0.1.0-rc.73 (tag desta entrega).

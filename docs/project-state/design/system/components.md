@@ -107,6 +107,22 @@ SCREEN-059 (registro deste uso).
 
 ---
 
+## `timeline.event`
+
+**Descrição:** evento de linha do tempo (dot + linha vertical + título forte + descrição
+opcional muted + timestamp 24h pt-BR). 1º uso na SCREEN-060 (histórico do turno);
+**promovido a definitivo no 2º uso** (SCREEN-061 — eventos `checkin_solicitado` com nota
+de geofencing e `checkin_cancelado`). Ordem cronológica descendente; evento desconhecido
+degrada para título genérico, nunca quebra.
+
+**Flutter:** `Column` de linhas com `Container` para dot+linha (sem lib externa);
+cada evento é um nó `Semantics` único; dot/linha decorativos (`ExcludeSemantics`).
+
+**Anatomia:** dot 10px no acento do perfil; linha 2px `border.strong`; título 15px w700;
+descrição 14px `text.muted`; timestamp 13px `text.muted` (`EEE, dd/MM · HH:mm`).
+
+---
+
 ## Roadmap (entram por DDR/uso a partir do EPIC-001)
 
 `button.secondary` (`OutlinedButton`), `button.danger`, `input.text` (`TextFormField`), `input.select` (`DropdownMenu`), `input.checkbox`, `input.switch`, `chip` (`FilterChip`/`InputChip`), `segmented` (`SegmentedButton`), `card.vaga`, `card.turno`, `list.tile` (`ListTile`), `empty-state`, `snackbar`, `bottom-sheet`, `dialog`, `nav.bar` (`NavigationBar`) + `nav.rail` (`NavigationRail`), `app.bar`, `stepper`, `skeleton`, `badge`.

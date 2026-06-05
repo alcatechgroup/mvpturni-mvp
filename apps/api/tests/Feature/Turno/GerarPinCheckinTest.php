@@ -13,6 +13,7 @@ use App\Models\Turno;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Testing\TestResponse;
 
 uses(RefreshDatabase::class);
 
@@ -28,7 +29,7 @@ function turnoNaJanela(TurnoStatus $status = TurnoStatus::Confirmado): Turno
     return $turno->fresh(['vaga', 'profissional', 'contratante']);
 }
 
-function gerarPin(Turno $turno, array $body = []): \Illuminate\Testing\TestResponse
+function gerarPin(Turno $turno, array $body = []): TestResponse
 {
     return test()->actingAs($turno->profissional)
         ->postJson("/api/turnos/{$turno->id}/gerar-pin-checkin", [
