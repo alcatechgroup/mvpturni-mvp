@@ -2,7 +2,7 @@
 id: SCREEN-STORY-062-validar-checkin
 story: STORY-062-validacao-pin-checkin-transita-ativo
 epic: EPIC-003-aceite-pin-e-pix
-status: in_implementation    # draft | ready | in_implementation | shipped | superseded
+status: shipped              # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-05
 updated_at: 2026-06-05
 owner_designer: claude-opus-4-8
@@ -429,3 +429,4 @@ Nenhuma cor nova; warning/error vêm dos tokens semânticos auditados (§4/§6 d
 | 2026-06-05 | criação (spec completo + protótipo v1) | claude-opus-4-8 (designer) | STORY-062; spec + protótipo entregues juntos para validação humana |
 | 2026-06-05 | validação humana — aprovado sem ajustes | Alexandro | inclui premissas §4.11 (eventos `checkin_recusado`/`checkin_pin_expirado` na timeline; motivo da recusa só na trilha do admin); `status: ready` |
 | 2026-06-05 | implementação | claude-opus-4-8 (programador) | premissas confirmadas: geofencing exposto top-level no payload do contratante em `aguardando_checkin`; eventos na whitelist da timeline; `button.text` promovido no DS (3º uso); `status: in_implementation` |
+| 2026-06-05 | implementado + PO aprovou em homolog | claude-opus-4-8 / Alexandro | STORY-062 entregue (API 93,3% / núcleo 100%, webapp 471 testes, E2E 3 cenários bilaterais, rc.74) e aprovada em chat após roteiro manual; `status: shipped` |

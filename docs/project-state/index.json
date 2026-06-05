@@ -2029,7 +2029,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-062-validar-checkin",
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-opus-4-8",
       "sprint_id": "SPRINT-2026-W28",
       "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-062-validacao-pin-checkin-transita-ativo.md",
@@ -3716,7 +3716,7 @@
         "id": "SCREEN-STORY-062-validar-checkin",
         "story": "STORY-062",
         "epic": "EPIC-003",
-        "status": "in_implementation",
+        "status": "shipped",
         "path": "design/screens/SCREEN-STORY-062-validar-checkin.md",
         "viewports": [
           "mobile",

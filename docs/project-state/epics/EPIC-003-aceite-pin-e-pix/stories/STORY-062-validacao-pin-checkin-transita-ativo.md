@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-062-validar-checkin
-status: in_review
+status: done
 owner_agent: claude-opus-4-8
 created_at: 2026-06-03
 updated_at: 2026-06-05
@@ -72,11 +72,11 @@ NÃO decide: imutabilidade do snapshot de check-in (ADR-015); que geofencing nã
 
 ## Definição de Pronto
 
-- [ ] CAs marcados; deploy verificado.
-- [ ] SCREEN-STORY-062 `shipped`.
-- [ ] Alexandro testa em homolog (2 navegadores, valida PIN, vê transição).
-- [ ] `index.json` atualizado.
-- [ ] "Notas do agente" preenchida.
+- [x] CAs marcados; deploy verificado (rc.74 em homolog).
+- [x] SCREEN-STORY-062 `shipped`.
+- [x] Alexandro testa em homolog (2 navegadores, valida PIN, vê transição) — aprovado em chat 2026-06-05.
+- [x] `index.json` atualizado.
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo
 
