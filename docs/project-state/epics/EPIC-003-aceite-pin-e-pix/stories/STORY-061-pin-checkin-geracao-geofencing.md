@@ -219,6 +219,11 @@ Nenhum (nenhuma lib nova; decisões locais documentadas acima).
 ### Links de evidência
 
 - PR: commit direto na main (workflow do projeto) — TDD evidenciado na sequência de commits
-  `test(...) (red)` → `feat(...) (green)` de 2026-06-05.
-- Pipeline: CI da main + tag de release.
-- Deploy de homologação: v0.1.0-rc.73 (tag desta entrega).
+  `test(...) (red)` → `feat(...) (green)` de 2026-06-05 (2018e16→c108114, bf6d390→c971c14,
+  4669e8c→8d689c1; unit do PIN: 8ab066f→d9e3955).
+- Pipeline: release run 27026156261 (tag v0.1.0-rc.73) — todos os jobs verdes, incl.
+  smoke /health (3 interfaces) e /version.json = tag.
+- Deploy de homologação: **v0.1.0-rc.73 verificado** em 2026-06-05 —
+  `api`/`webapp` homolog respondendo `{"version":"v0.1.0-rc.73"}`; job migrate+seed
+  executado (turno PIN seed com janela renovada). Gate E2E local verde
+  (`make e2e-webapp-integration`, IDR-004 — integration_test não roda contra homolog).
