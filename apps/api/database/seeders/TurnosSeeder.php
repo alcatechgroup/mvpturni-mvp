@@ -225,9 +225,11 @@ class TurnosSeeder extends Seeder
         $inicio = now()->addMinutes(15)->startOfMinute();
         $fim = (clone $inicio)->addHours(6);
 
+        // Mais recente por `id`: UUIDv7 é ordenável no tempo com precisão sub-segundo
+        // (created_at empata quando dois seeds rodam no mesmo segundo — ADR-018).
         $existente = Turno::query()
             ->where('contratante_id', $contratante->id)
-            ->latest('created_at')
+            ->orderByDesc('id')
             ->first();
         if ($existente !== null) {
             // Refresh da janela — o trigger só valida MUDANÇA de status; aqui status fica.
