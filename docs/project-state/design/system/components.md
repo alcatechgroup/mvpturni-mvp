@@ -155,3 +155,29 @@ sem fundo; alvo ≥48dp apesar do visual leve; loading = spinner inline no lugar
 **Usar quando:** ação secundária de baixa ênfase ao lado de um `button.primary` (máx. 1
 primário por tela — o `button.text` não compete). **Não usar quando:** for navegação
 (`link.text`) ou a ação for o objetivo principal da tela (`button.primary`).
+
+---
+
+## `mono.display` (família "número grande em mono")
+
+**Descrição:** dado curto de alta criticidade exibido em **JetBrains Mono grande,
+centrado** — o usuário precisa ler/conferir/digitar o valor com zero ambiguidade, muitas
+vezes em contexto de rua. Família registrada no **3º uso** (SCREEN-063): `pin.display`
+(061 — PIN de 4 dígitos em tela cheia), `input.pin` (062 — espelho de ENTRADA do mesmo
+número) e `cronometro.display` (063 — tempo vivo `HH:MM:SS`/`MM:SS` a ticar a cada 1s).
+
+**Flutter:** `GoogleFonts.jetBrainsMono` w600; no display vivo, **`FontFeature
+.tabularFigures()` é obrigatório** (o número não pode "tremer" a cada tick);
+`letter-spacing` largo (0.35em) só nas variantes de PIN (dígitos isolados), nunca no
+tempo (os `:` já separam).
+
+**Variantes:** `pin.display` 56px+ (legível a 1 braço de distância); `input.pin` 28px
+(32px desktop), teclado numérico, maxLength 4; `cronometro.display` 40px (48px desktop).
+
+**Acessibilidade:** o visual mono NUNCA vaza para o leitor de tela — display vivo usa
+nó `Semantics` com horas/minutos (sem segundos, sem liveRegion); input usa label
+explícito ("PIN de check-in, 4 dígitos").
+
+**Usar quando:** número curto que precisa ser conferido entre duas pessoas ou observado
+em tempo real. **Não usar quando:** valor monetário em card (tipografia do tema) ou
+texto corrente.
