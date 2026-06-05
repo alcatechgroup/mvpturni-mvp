@@ -6,6 +6,7 @@ use App\Enums\CandidaturaEstado;
 use App\Enums\TurnoStatus;
 use App\Enums\VagaEstado;
 use App\Models\AceiteEletronicoTurno;
+use App\Models\AuditLog;
 use App\Models\Candidatura;
 use App\Models\Funcao;
 use App\Models\TemplateVersao;
@@ -58,8 +59,12 @@ class TurnosSeeder extends Seeder
             ],
         );
 
-        // Idempotência: se o contratante seed já tem turnos, não recria.
+        // Idempotência: se o contratante seed já tem turnos, não recria — mas backfilla a
+        // trilha de auditoria dos turnos antigos (STORY-060: dev/homolog seedados antes da
+        // timeline existir ficariam com histórico vazio no detalhe).
         if (Turno::where('contratante_id', $contratante->id)->exists()) {
+            $this->backfillTimeline($contratante);
+
             return;
         }
 
@@ -127,7 +132,7 @@ class TurnosSeeder extends Seeder
             ]);
 
             // Todo turno nasce com aceite imutável; o `confirmado` demonstra o override PJ.
-            AceiteEletronicoTurno::create([
+            $aceite = AceiteEletronicoTurno::create([
                 'turno_id' => $turno->id,
                 'template_versao_id' => $templateVersaoId,
                 'conteudo_renderizado' => 'Contrato eventual de turno — '.$status->value.'. Valor R$ 200,00.',
@@ -141,9 +146,82 @@ class TurnosSeeder extends Seeder
                 'fingerprint' => hash('sha256', 'seed:'.$turno->id.':'.now()->toDateString()),
                 'habitualidade_override' => $status === TurnoStatus::Confirmado,
             ]);
+
+            $this->seedTimeline($turno, $aceite, $status);
         }
 
-        $this->command?->info('TurnosSeeder: 11 turnos (um por estado) + aceites criados.');
+        $this->command?->info('TurnosSeeder: 11 turnos (um por estado) + aceites + timeline criados.');
+    }
+
+    /** STORY-060 — anexa a trilha aos turnos do seed criados antes da timeline existir. */
+    private function backfillTimeline(User $contratante): void
+    {
+        $turnos = Turno::query()
+            ->where('contratante_id', $contratante->id)
+            ->whereNotExists(fn ($q) => $q->from('audit_logs')
+                ->whereColumn('audit_logs.target_id', 'turnos.id')
+                ->where('audit_logs.target_type', 'Turno'))
+            ->with('aceite')
+            ->get();
+
+        foreach ($turnos as $turno) {
+            if ($turno->aceite !== null) {
+                $this->seedTimeline($turno, $turno->aceite, $turno->status);
+            }
+        }
+
+        if ($turnos->isNotEmpty()) {
+            $this->command?->info("TurnosSeeder: trilha backfillada em {$turnos->count()} turnos.");
+        }
+    }
+
+    /**
+     * STORY-060 — trilha de auditoria coerente com o estado do turno, para a timeline do
+     * detalhe ter história em dev/homolog (no fluxo real a 058+ grava os eventos; o seed
+     * insere os turnos direto no estado-alvo e por isso replica a trilha aqui). Mesmos
+     * `action`/`target` do fluxo real (AprovarCandidaturaService/PreAutorizarTurnoJob).
+     */
+    private function seedTimeline(Turno $turno, AceiteEletronicoTurno $aceite, TurnoStatus $status): void
+    {
+        // Eventos extra por estado, na ordem do ciclo (depois da base criado/aceite/preauth).
+        $extras = match ($status) {
+            TurnoStatus::Confirmado => [],
+            TurnoStatus::AguardandoCheckin => ['turno.checkin_solicitado'],
+            TurnoStatus::Ativo => ['turno.checkin_solicitado', 'turno.checkin_validado'],
+            TurnoStatus::AguardandoCheckout => ['turno.checkin_solicitado', 'turno.checkin_validado', 'turno.checkout_solicitado'],
+            TurnoStatus::EmDisputa,
+            TurnoStatus::DisputaResolvidaSemPagamento => ['turno.checkin_solicitado', 'turno.checkin_validado', 'turno.checkout_solicitado'],
+            TurnoStatus::Finalizado,
+            TurnoStatus::FinalizadoAjustado => ['turno.checkin_solicitado', 'turno.checkin_validado', 'turno.checkout_solicitado', 'turno.checkout_validado', 'pagamento.capturado', 'pix.enviado'],
+            TurnoStatus::CanceladoPro => [['turno.cancelado', ['lado' => 'pro']]],
+            TurnoStatus::CanceladoEmp => [['turno.cancelado', ['lado' => 'emp']]],
+            TurnoStatus::NoShowPro => ['turno.no_show_pro'],
+        };
+
+        $eventos = [
+            ['turno.criado', ['candidatura_id' => $turno->candidatura_id, 'vaga_id' => $turno->vaga_id]],
+            // Target próprio + turno_id no payload, como no fluxo real da 058.
+            ['aceite_eletronico.emitido', ['turno_id' => $turno->id], 'AceiteEletronicoTurno', $aceite->id],
+            ['pagamento.pre_autorizado', ['total_contratante' => (float) $turno->total_contratante]],
+            ...$extras,
+        ];
+
+        $em = now()->subDays(2);
+        foreach ($eventos as $evento) {
+            [$action, $payload, $targetType, $targetId] = is_array($evento)
+                ? $evento + [2 => 'Turno', 3 => $turno->id]
+                : [$evento, [], 'Turno', $turno->id];
+
+            // created_at no INSERT: audit_logs é append-only (trigger + REVOKE).
+            AuditLog::query()->forceCreate([
+                'actor_id' => $turno->contratante_id,
+                'action' => $action,
+                'target_type' => $targetType,
+                'target_id' => $targetId,
+                'payload' => $payload,
+                'created_at' => $em = $em->copy()->addMinutes(7),
+            ]);
+        }
     }
 
     /** Estados em que o check-in já foi validado. */

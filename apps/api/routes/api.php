@@ -19,6 +19,7 @@ use App\Http\Controllers\Notificacao\NotificacaoController;
 use App\Http\Controllers\Turno\CheckinGeoController;
 use App\Http\Controllers\Turno\CronometroController;
 use App\Http\Controllers\Turno\TurnoAtivoController;
+use App\Http\Controllers\Turno\TurnoDetalheController;
 use App\Http\Controllers\Turno\TurnosController;
 use App\Http\Controllers\Usuario\WelcomeController;
 use App\Http\Controllers\Vaga\CandidatosController;
@@ -167,4 +168,10 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     Route::get('/contratante/turnos', [TurnosController::class, 'doContratante']);
     Route::get('/turnos/{turno}/cronometro', [CronometroController::class, 'show']);
     Route::post('/turnos/{turno}/checkin-geo', [CheckinGeoController::class, 'store']);
+
+    // Detalhe do turno (STORY-060) — rota compartilhada pelos 2 papéis (RBAC no controller:
+    // cruzados 403, CA-1). Atributos + valor por papel (CA-2) + timeline filtrada (CA-3) +
+    // aceite eletrônico inline para o modal somente-leitura (CA-5). Registrada DEPOIS de
+    // `/turnos/meu-ativo` (path estático vence o binding `{turno}`).
+    Route::get('/turnos/{turno}', [TurnoDetalheController::class, 'show']);
 });

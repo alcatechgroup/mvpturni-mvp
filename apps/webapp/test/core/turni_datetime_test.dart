@@ -123,6 +123,27 @@ void main() {
       expect(TurniDateTime.formatResumo(inicio), 'Sex, 12/06 · 18:00');
     });
 
+    test(
+      'formatEvento: timestamp de timeline; ano explícito quando ≠ corrente',
+      () {
+        final agora = DateTime(2026, 6, 5, 10);
+        expect(
+          TurniDateTime.formatEvento(
+            DateTime(2026, 6, 3, 15, 47),
+            agora: agora,
+          ),
+          'Qua, 03/06 · 15:47',
+        );
+        expect(
+          TurniDateTime.formatEvento(
+            DateTime(2025, 12, 31, 23, 59),
+            agora: agora,
+          ),
+          'Qua, 31/12/2025 · 23:59',
+        );
+      },
+    );
+
     test('formatDataHoraCurta e formatPrazo (diff/banner de revisão)', () {
       expect(TurniDateTime.formatDataHoraCurta(inicio), '12/06 18:00');
       expect(TurniDateTime.formatPrazo(inicio), 'Sex, 12/06 às 18:00');

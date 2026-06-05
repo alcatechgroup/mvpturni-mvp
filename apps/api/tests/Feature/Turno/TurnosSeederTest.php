@@ -5,8 +5,10 @@
 
 use App\Enums\TurnoStatus;
 use App\Models\AceiteEletronicoTurno;
+use App\Models\AuditLog;
 use App\Models\Template;
 use App\Models\Turno;
+use App\Models\User;
 use Database\Seeders\AdminUserSeeder;
 use Database\Seeders\FuncaoSeeder;
 use Database\Seeders\TemplatesContratuaisSeeder;
@@ -57,4 +59,58 @@ test('o aceite reusa o template PF existente (não cria template novo)', functio
     seedTurnosComDependencias();
     expect(Template::where('categoria', 'aceite_turno')->count())->toBe(0)
         ->and(AceiteEletronicoTurno::first()->templateVersao->template->slug)->toBe('pf_autonomo_eventual');
+});
+
+test('idempotência backfilla a trilha em turnos sem audit log (STORY-060)', function () {
+    seedTurnosComDependencias();
+
+    // Turno do contratante seed criado FORA do seeder (sem trilha) — simula um seed
+    // anterior à timeline. (Não dá para apagar audit_logs: append-only no banco.)
+    $contratante = User::where('email', 'contratante.turnos.seed@turni.local')->firstOrFail();
+    $antigo = Turno::factory()->status(TurnoStatus::Confirmado)
+        ->create(['contratante_id' => $contratante->id]);
+    AceiteEletronicoTurno::factory()->create(['turno_id' => $antigo->id]);
+
+    test()->seed(TurnosSeeder::class); // idempotente: não recria turnos, backfilla a trilha
+
+    // Mesmo filtro do detalhe: target Turno OU aceite referenciando via payload (ADR-018).
+    expect(Turno::where('contratante_id', $contratante->id)->count())->toBe(12)
+        ->and(AuditLog::query()
+            ->where(fn ($q) => $q
+                ->where(fn ($q) => $q->where('target_type', 'Turno')->where('target_id', $antigo->id))
+                ->orWhere('payload->turno_id', $antigo->id))
+            ->orderBy('created_at')->pluck('action')->all())
+        ->toBe(['turno.criado', 'aceite_eletronico.emitido', 'pagamento.pre_autorizado']);
+});
+
+test('seeder grava trilha de auditoria coerente com o estado (STORY-060)', function () {
+    seedTurnosComDependencias();
+
+    // Base em todo turno: criado + aceite + pré-autorização.
+    $confirmado = Turno::where('status', TurnoStatus::Confirmado)->first();
+    $acoesDoTurno = fn ($turno) => AuditLog::query()
+        ->where(fn ($q) => $q
+            ->where(fn ($q) => $q->where('target_type', 'Turno')->where('target_id', $turno->id))
+            ->orWhere('payload->turno_id', $turno->id))
+        ->orderBy('created_at')
+        ->pluck('action')
+        ->all();
+
+    expect($acoesDoTurno($confirmado))
+        ->toBe(['turno.criado', 'aceite_eletronico.emitido', 'pagamento.pre_autorizado']);
+
+    // Finalizado tem o ciclo completo até o Pix.
+    $finalizado = Turno::where('status', TurnoStatus::Finalizado)->first();
+    expect($acoesDoTurno($finalizado))->toBe([
+        'turno.criado', 'aceite_eletronico.emitido', 'pagamento.pre_autorizado',
+        'turno.checkin_solicitado', 'turno.checkin_validado',
+        'turno.checkout_solicitado', 'turno.checkout_validado',
+        'pagamento.capturado', 'pix.enviado',
+    ]);
+
+    // Cancelado registra o lado no payload (consumido pela timeline da 060/066).
+    $canceladoEmp = Turno::where('status', TurnoStatus::CanceladoEmp)->first();
+    $cancelado = AuditLog::where('action', 'turno.cancelado')
+        ->where('target_id', $canceladoEmp->id)->first();
+    expect($cancelado->payload['lado'])->toBe('emp');
 });

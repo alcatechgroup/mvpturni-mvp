@@ -96,14 +96,14 @@ SCREEN-059 (registro deste uso).
 
 ## `section.group-header`
 
-**Descrição:** cabeçalho de seção para lista agrupada (overline caps + contador) — 1º uso na
-SCREEN-059 (listas de turnos por estado). Candidato a promoção definitiva quando STORY-060/066
-reusarem. Seção vazia é **omitida** (sem header órfão).
+**Descrição:** cabeçalho de seção para conteúdo agrupado (overline caps, contador opcional) —
+1º uso na SCREEN-059 (listas de turnos por estado); **promovido a definitivo no 2º uso**
+(SCREEN-060, header "Histórico" da timeline). Seção vazia é **omitida** (sem header órfão).
 
 **Flutter:** `Text` 12px w800 `letterSpacing 1.2` em `text.muted`, envolto em
-`Semantics(header: true, label: '<Título>, N turnos')`.
+`Semantics(header: true, label: '<Título>, N turnos')` (ou `header: true` simples sem contador).
 
-**Anatomia:** `"{Título} ({N})"`; margem `space.lg` acima / `space.sm` abaixo.
+**Anatomia:** `"{Título} ({N})"` ou `"{Título}"`; margem `space.lg` acima / `space.sm` abaixo.
 
 ---
 

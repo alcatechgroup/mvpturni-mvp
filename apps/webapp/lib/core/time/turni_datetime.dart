@@ -108,6 +108,18 @@ abstract final class TurniDateTime {
         '${_pad(i.hour)}:${_pad(i.minute)}';
   }
 
+  /// `"Qua, 03/06 · 15:47"` — timestamp de evento da timeline (SCREEN-060 §4.1).
+  /// Ano explícito (`03/06/2025`) quando ≠ ano corrente — histórico de turno pode
+  /// atravessar a virada.
+  static String formatEvento(DateTime instant, {DateTime? agora}) {
+    final l = _local(instant);
+    final anoCorrente = (agora ?? DateTime.now()).year;
+    final data = l.year == anoCorrente
+        ? '${_pad(l.day)}/${_pad(l.month)}'
+        : '${_pad(l.day)}/${_pad(l.month)}/${l.year}';
+    return '${_diasSemana[l.weekday - 1]}, $data · ${_pad(l.hour)}:${_pad(l.minute)}';
+  }
+
   /// `"12/06 18:00"` — data+hora compacta (linha de diff, conflito de horário).
   static String formatDataHoraCurta(DateTime instant) {
     final l = _local(instant);

@@ -247,94 +247,112 @@ class _TurnoCard extends StatelessWidget {
         ? TurniColors.textMutedDark
         : TurniColors.textMutedLight;
 
+    // STORY-060: o card inteiro vira alvo de toque para o detalhe (decisão antecipada na
+    // SCREEN-059 §10 — anatomia inalterada, sem chevron; ripple/hover dão a affordance).
     return MergeSemantics(
-      child: Container(
-        key: Key('turno-card-${turno.id}'),
-        padding: const EdgeInsets.all(TurniSpacing.md),
-        decoration: BoxDecoration(
-          color: surface,
-          border: Border.all(color: border),
+      child: Material(
+        color: surface,
+        borderRadius: const BorderRadius.all(TurniRadius.md),
+        child: InkWell(
+          key: Key('turno-card-${turno.id}'),
           borderRadius: const BorderRadius.all(TurniRadius.md),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        turno.funcao,
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: textStrong,
-                        ),
-                      ),
-                      // Linha "quem": estabelecimento (prof.) / profissional (contr.);
-                      // ausente no payload → omite, nunca quebra (SCREEN-059 §4.6).
-                      if (turno.quem != null && turno.quem!.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          turno.quem!,
-                          style: TextStyle(fontSize: 14, color: textMuted),
-                        ),
-                      ],
-                      const SizedBox(height: 2),
-                      Text(
-                        TurniDateTime.formatIntervalo(
-                          turno.dataInicio,
-                          turno.dataFim,
-                        ),
-                        style: TextStyle(fontSize: 14, color: textMuted),
-                      ),
-                    ],
-                  ),
-                ),
-                _EstadoBadge(estado: turno.estado, turnoId: turno.id),
-              ],
+          onTap: () => context.go('/turnos/${turno.id}'),
+          child: Container(
+            padding: const EdgeInsets.all(TurniSpacing.md),
+            decoration: BoxDecoration(
+              border: Border.all(color: border),
+              borderRadius: const BorderRadius.all(TurniRadius.md),
             ),
-            const SizedBox(height: TurniSpacing.sm),
-            Text.rich(
-              key: Key('turno-card-${turno.id}-valor'),
-              TextSpan(
-                text: formatBRL(turno.valor),
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: textStrong,
-                ),
-                children: [
-                  // Contratante vê o TOTAL que paga (PDR-004); o sufixo explicita.
-                  if (!ehProfissional)
-                    TextSpan(
-                      text: ' · total',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w400,
-                        color: textMuted,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
+            child: _conteudo(textStrong, textMuted),
+          ),
         ),
       ),
     );
   }
+
+  Widget _conteudo(Color textStrong, Color textMuted) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  turno.funcao,
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: textStrong,
+                  ),
+                ),
+                // Linha "quem": estabelecimento (prof.) / profissional (contr.);
+                // ausente no payload → omite, nunca quebra (SCREEN-059 §4.6).
+                if (turno.quem != null && turno.quem!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    turno.quem!,
+                    style: TextStyle(fontSize: 14, color: textMuted),
+                  ),
+                ],
+                const SizedBox(height: 2),
+                Text(
+                  TurniDateTime.formatIntervalo(
+                    turno.dataInicio,
+                    turno.dataFim,
+                  ),
+                  style: TextStyle(fontSize: 14, color: textMuted),
+                ),
+              ],
+            ),
+          ),
+          TurnoEstadoBadge(
+            estado: turno.estado,
+            chave: 'turno-card-${turno.id}-estado',
+          ),
+        ],
+      ),
+      const SizedBox(height: TurniSpacing.sm),
+      Text.rich(
+        key: Key('turno-card-${turno.id}-valor'),
+        TextSpan(
+          text: formatBRL(turno.valor),
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: textStrong,
+          ),
+          children: [
+            // Contratante vê o TOTAL que paga (PDR-004); o sufixo explicita.
+            if (!ehProfissional)
+              TextSpan(
+                text: ' · total',
+                style: TextStyle(fontWeight: FontWeight.w400, color: textMuted),
+              ),
+          ],
+        ),
+      ),
+    ],
+  );
 }
 
 // ───────────────────────── Selo de estado (badge.status — variantes de Turno) ────────────────
 
-class _EstadoBadge extends StatelessWidget {
-  const _EstadoBadge({required this.estado, required this.turnoId});
+/// Selo de estado de Turno (badge.status do DS) — compartilhado entre a lista (059) e o
+/// detalhe (060). `chave` vira a `Key` estável do teste (`turno-card-{id}-estado` na lista;
+/// `turno-detalhe-estado` no detalhe).
+class TurnoEstadoBadge extends StatelessWidget {
+  const TurnoEstadoBadge({
+    super.key,
+    required this.estado,
+    required this.chave,
+  });
 
   final TurnoEstadoResumo estado;
-  final String turnoId;
+  final String chave;
 
   @override
   Widget build(BuildContext context) {
@@ -389,7 +407,7 @@ class _EstadoBadge extends StatelessWidget {
     };
 
     return Container(
-      key: Key('turno-card-$turnoId-estado'),
+      key: Key(chave),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bg,

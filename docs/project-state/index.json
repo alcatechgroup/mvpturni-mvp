@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "generated_at": "2026-06-04T06:30:00Z",
+  "generated_at": "2026-06-05",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
@@ -1971,6 +1971,33 @@
       "updated_at": "2026-06-05"
     },
     {
+      "id": "STORY-060",
+      "epic_id": "EPIC-003",
+      "title": "Detalhe do turno (ambos os lados) + timeline + trilha de auditoria visível",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-060-detalhe-turno",
+      "status": "in_review",
+      "owner_agent": "claude-opus-4-8",
+      "sprint_id": "SPRINT-2026-W28",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-060-detalhe-turno-timeline-trilha-auditoria.md",
+      "blocked_by": [
+        "STORY-058"
+      ],
+      "blocks": [
+        "STORY-061",
+        "STORY-062",
+        "STORY-063",
+        "STORY-064",
+        "STORY-066"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-03",
+      "updated_at": "2026-06-05"
+    },
+    {
       "id": "STORY-074",
       "epic_id": "EPIC-011",
       "title": "Geocodificar o endereço do estabelecimento → lat/lng (cadastro + backfill + ACL + mock)",
@@ -2495,15 +2522,15 @@
       ],
       "delivered_story_ids": [
         "STORY-055",
-        "STORY-057"
+        "STORY-057",
+        "STORY-058",
+        "STORY-059"
       ],
       "in_progress_story_ids": [
-        "STORY-056"
+        "STORY-056",
+        "STORY-060"
       ],
       "pending_story_ids": [
-        "STORY-058",
-        "STORY-059",
-        "STORY-060",
         "STORY-061",
         "STORY-062",
         "STORY-063",
@@ -2515,7 +2542,7 @@
         "STORY-073",
         "STORY-075"
       ],
-      "last_progress_update": "2026-06-04",
+      "last_progress_update": "2026-06-05",
       "progress_summary": "D+1 (2026-06-04): STORY-055 DONE (modelo Turno + ADR-015). STORY-057 DONE (spike tempo real + geo — ADR-017 accepted; cronômetro por âncora-de-timestamp+polling, geofencing por Geolocation API+Haversine; PoC viva validada em 2 dispositivos em homolog rc.64→rc.67, sincronia ≤2s; 100% cobertura no núcleo novo; destrava STORY-061 e STORY-063). Descoberta da 057 virou EPIC-011/STORY-074 (geocoding do estabelecimento, fast-follow) + colunas lat/lng já criadas em contratante_profiles. STORY-056 (ACL+fake, L) em `in_review` — pivô PDR-017 aplicado: mock em container vira fake genérico (driver único MVP); STORY-056-B (contract test sandbox) ABANDONADA. STORY-075 (banner global PDR-017) adicionada. STORY-058/065/066/068 + checklist do validador revisados para refletir fake. ADR-005 + ADR-016 marcadas para revisão pelo Arquiteto. Próximo: aprovar ADR-016 revisada + deploy rc.N; seguir STORY-058 (consome preAutorizar)."
     }
   ],
@@ -3575,6 +3602,35 @@
           "banner",
           "button.primary",
           "skeleton.card"
+        ],
+        "owner_designer": "claude-opus-4-8",
+        "created_at": "2026-06-05",
+        "updated_at": "2026-06-05"
+      },
+      {
+        "id": "SCREEN-STORY-060-detalhe-turno",
+        "story": "STORY-060",
+        "epic": "EPIC-003",
+        "status": "ready",
+        "path": "design/screens/SCREEN-STORY-060-detalhe-turno.md",
+        "viewports": [
+          "mobile",
+          "desktop"
+        ],
+        "related_ddrs": [
+          "DDR-001",
+          "DDR-002"
+        ],
+        "related_idrs": [],
+        "ds_components_used": [
+          "brand.logo",
+          "surface.card",
+          "badge.status",
+          "banner",
+          "link.text",
+          "section.group-header",
+          "skeleton.card",
+          "button.primary"
         ],
         "owner_designer": "claude-opus-4-8",
         "created_at": "2026-06-05",

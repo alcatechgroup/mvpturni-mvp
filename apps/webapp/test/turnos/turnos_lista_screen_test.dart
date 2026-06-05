@@ -64,6 +64,12 @@ Widget _comRouter(
         path: '/contratante/vagas',
         builder: (_, _) => const Scaffold(body: Text('MINHAS VAGAS')),
       ),
+      // STORY-060: o card da lista navega para o detalhe.
+      GoRoute(
+        path: '/turnos/:id',
+        builder: (_, state) =>
+            Scaffold(body: Text('DETALHE ${state.pathParameters['id']}')),
+      ),
     ],
   );
   return MaterialApp.router(theme: buildLightTheme(), routerConfig: router);
@@ -282,6 +288,23 @@ void main() {
     expect(find.byKey(const Key('turnos-skeleton')), findsOneWidget);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('turnos-skeleton')), findsNothing);
+  });
+
+  testWidgets('toque no card navega para o detalhe (STORY-060)', (
+    tester,
+  ) async {
+    final svc = _FakeTurnosService(
+      () => TurnosSuccess([
+        GrupoTurnos(grupo: TurnoGrupo.confirmado, turnos: [_turno()]),
+      ]),
+    );
+    await tester.pumpWidget(_comRouter(svc));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('turno-card-u1')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('DETALHE u1'), findsOneWidget);
   });
 
   testWidgets('erro de rede mostra banner e o retry recarrega', (tester) async {

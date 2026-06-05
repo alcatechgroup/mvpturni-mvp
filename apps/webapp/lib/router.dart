@@ -13,6 +13,7 @@ import 'features/cadastro/pre_cadastro_profissional_screen.dart';
 import 'features/feed/feed_screen.dart';
 import 'features/funnel/welcome_screen.dart' as funnel;
 import 'features/turno/cronometro_poc_screen.dart';
+import 'features/turnos/turno_detalhe_screen.dart';
 import 'features/turnos/turnos_lista_screen.dart';
 import 'features/vagas/editar_vaga_screen.dart';
 import 'features/vagas/minhas_vagas_screen.dart';
@@ -231,6 +232,20 @@ final router = GoRouter(
       path: '/contratante/turnos',
       builder: (context, state) =>
           const TurnosListaScreen(papel: TurnosPapel.contratante),
+    ),
+
+    // Detalhe do turno (STORY-060 / SCREEN-060) — rota COMPARTILHADA pelos 2 papéis (a
+    // estória fixa `/turnos/{id}`; o tema/microcopy vêm do papel). RBAC no backend: 403
+    // cruzado e 404 inexistente caem no MESMO "não encontrado" fail-secure (§4.5).
+    GoRoute(
+      path: '/turnos/:id',
+      pageBuilder: (context, state) {
+        final id = state.pathParameters['id'] ?? '';
+        return MaterialPage(
+          key: ValueKey('turno-detalhe-$id'),
+          child: TurnoDetalheScreen(turnoId: id),
+        );
+      },
     ),
 
     // PoC do cronômetro bilateral + geofencing (STORY-057 / ADR-017 — CA-5). Rota não-pública
