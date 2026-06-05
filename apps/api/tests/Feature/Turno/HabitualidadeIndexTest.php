@@ -26,6 +26,20 @@ test('a consulta de habitualidade usa idx_turnos_habitualidade', function () {
         'data_fim' => Carbon::parse('2026-06-08 23:00:00'),
     ]);
 
+    // Lastro do MESMO profissional em OUTRO estabelecimento: torna o índice composto
+    // estritamente mais barato que o parcial (profissional_id, status) + filter — sem isto
+    // os custos empatam com poucas linhas e o desempate do planner é instável (flake
+    // observado na STORY-058: Bitmap em idx_turnos_profissional_status vencia conforme o
+    // que a suíte rodou antes).
+    $outro = User::factory()->contratante()->ativo()->create();
+    Turno::factory()->count(20)->create([
+        'contratante_id' => $outro->id,
+        'estabelecimento_id' => $outro->id,
+        'profissional_id' => $profissional->id,
+        'data_inicio' => Carbon::parse('2026-09-07 18:00:00'), // fora da janela consultada
+        'data_fim' => Carbon::parse('2026-09-07 23:00:00'),
+    ]);
+
     $inicioSemana = '2026-06-08 00:00:00';
     $fimSemana = '2026-06-14 23:59:59';
 
