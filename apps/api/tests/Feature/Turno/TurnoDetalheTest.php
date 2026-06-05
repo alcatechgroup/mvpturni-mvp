@@ -280,3 +280,53 @@ test('STORY-061: checkin_cancelado aparece na timeline (whitelist atualizada)', 
 
     expect(collect($timeline)->pluck('evento'))->toContain('checkin_cancelado');
 });
+
+// ---------------------------------------------------------------- STORY-062 (aditivos da validação)
+
+test('STORY-062: contratante recebe geofencing_check_in em aguardando_checkin (card de aviso da SCREEN-062)', function () {
+    $turno = Turno::factory()->status(TurnoStatus::AguardandoCheckin)->create([
+        'geofencing_check_in' => ['ok' => false, 'distancia_metros' => 350.0,
+            'razao' => 'fora_do_raio', 'capturado_em' => now()->toIso8601String()],
+    ]);
+
+    $json = $this->actingAs($turno->contratante)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json();
+
+    expect($json['geofencing_check_in']['ok'])->toBeFalse()
+        ->and($json['geofencing_check_in']['distancia_metros'])->toEqual(350.0)
+        ->and($json['geofencing_check_in']['razao'])->toBe('fora_do_raio');
+});
+
+test('STORY-062: geofencing_check_in NÃO vaza fora de aguardando_checkin nem para o profissional', function () {
+    $snapshot = ['ok' => true, 'distancia_metros' => 23.0, 'razao' => null,
+        'capturado_em' => now()->toIso8601String()];
+
+    // Contratante, turno já ativo: o aviso é só do momento da validação.
+    $ativo = Turno::factory()->status(TurnoStatus::Ativo)->create(['geofencing_check_in' => $snapshot]);
+    $json = $this->actingAs($ativo->contratante)->getJson("/api/turnos/{$ativo->id}")
+        ->assertStatus(200)->json();
+    expect($json)->not->toHaveKey('geofencing_check_in');
+
+    // Profissional vê a nota na tela do PIN (061) — o detalhe dele não carrega o snapshot.
+    $aguardando = Turno::factory()->status(TurnoStatus::AguardandoCheckin)->create(['geofencing_check_in' => $snapshot]);
+    $json = $this->actingAs($aguardando->profissional)->getJson("/api/turnos/{$aguardando->id}")
+        ->assertStatus(200)->json();
+    expect($json)->not->toHaveKey('geofencing_check_in');
+});
+
+test('STORY-062: checkin_recusado e checkin_pin_expirado aparecem na timeline (whitelist — SCREEN-062 §4.11)', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Confirmado)->create();
+    auditDoTurno($turno, 'turno.checkin_recusado', ['motivo' => 'não chegou']);
+    auditDoTurno($turno, 'turno.checkin_pin_expirado', ['tentativas' => 3]);
+
+    $timeline = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json('timeline');
+
+    expect(collect($timeline)->pluck('evento'))
+        ->toContain('checkin_recusado')
+        ->toContain('checkin_pin_expirado');
+
+    // O motivo da recusa fica na trilha do admin — NÃO vaza para a timeline das partes.
+    $recusado = collect($timeline)->firstWhere('evento', 'checkin_recusado');
+    expect(json_encode($recusado))->not->toContain('não chegou');
+});

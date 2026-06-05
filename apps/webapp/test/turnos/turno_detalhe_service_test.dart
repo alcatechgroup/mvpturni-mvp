@@ -227,4 +227,41 @@ void main() {
       expect(timeline[2].geofencing, isNull);
     },
   );
+
+  // ───────────────── STORY-062 — geofencing_check_in top-level ─────────────────
+
+  test(
+    'STORY-062: parse do geofencing_check_in top-level (card de aviso do contratante)',
+    () async {
+      final result = await _svc(
+        200,
+        _payload(
+          extra: {
+            'estado': 'aguardando_checkin',
+            'taxa_turni': 30.0,
+            'total_contratante': 230.0,
+            'geofencing_check_in': {
+              'ok': false,
+              'distancia_metros': 350.0,
+              'razao': 'fora_do_raio',
+            },
+          },
+        ),
+      ).fetch('u1');
+
+      final turno = (result as TurnoDetalheSuccess).turno;
+      expect(turno.geofencingCheckin!.ok, isFalse);
+      expect(turno.geofencingCheckin!.distanciaMetros, 350.0);
+      expect(turno.geofencingCheckin!.razao, 'fora_do_raio');
+    },
+  );
+
+  test(
+    'STORY-062: payload sem geofencing_check_in → null (não quebra)',
+    () async {
+      final result = await _svc(200, _payload()).fetch('u1');
+
+      expect((result as TurnoDetalheSuccess).turno.geofencingCheckin, isNull);
+    },
+  );
 }

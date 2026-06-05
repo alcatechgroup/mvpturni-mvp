@@ -31,6 +31,7 @@ class Turno extends Model
         'estabelecimento_id', 'status', 'valor', 'taxa_turni', 'total_contratante',
         'data_inicio', 'data_fim', 'check_in_at', 'check_out_at',
         'geofencing_check_in', 'geofencing_check_out', 'cancelamento', 'pin_checkin_hash',
+        'pin_checkin_tentativas',
     ];
 
     protected function casts(): array
@@ -47,6 +48,7 @@ class Turno extends Model
             'geofencing_check_in' => 'array',
             'geofencing_check_out' => 'array',
             'cancelamento' => 'array',
+            'pin_checkin_tentativas' => 'integer',
         ];
     }
 

@@ -65,6 +65,7 @@ class PinCheckinService
 
         DB::transaction(function () use ($turno, $pin, $snapshot, $regeracao) {
             $turno->pin_checkin_hash = Hash::make($pin);
+            $turno->pin_checkin_tentativas = 0; // STORY-062 (CA-3): PIN novo zera os erros de validação
             $turno->geofencing_check_in = $snapshot;
 
             if ($regeracao) {
@@ -134,20 +135,6 @@ class PinCheckinService
     }
 }
 
-/** 422 `fora_da_janela` — carrega a janela para a UI explicar (SCREEN-061 §4.2/4.3). */
-class PinCheckinForaDaJanelaException extends \DomainException
-{
-    public function __construct(public readonly string $abreEm, public readonly string $fechaEm)
-    {
-        parent::__construct('Fora da janela de geração do PIN de check-in.');
-    }
-}
-
-/** 422 `estado_invalido` — turno fora de confirmado/aguardando_checkin. */
-class PinCheckinEstadoInvalidoException extends \DomainException
-{
-    public function __construct(public readonly string $estado)
-    {
-        parent::__construct("Turno em `{$estado}` não gera/cancela PIN de check-in.");
-    }
-}
+// STORY-062: PinCheckinForaDaJanelaException e PinCheckinEstadoInvalidoException foram
+// extraídas para arquivos próprios (PSR-4) — classes no mesmo arquivo do service não são
+// autoloadáveis por quem não carrega o service (o ValidarCheckinService reusa a de estado).

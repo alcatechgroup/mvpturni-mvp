@@ -38,7 +38,11 @@ Future<void> _ateODetalhe(WidgetTester tester) async {
   await pumpApp(tester);
   assertOnRoute(tester, '/login');
 
-  await loginAs(tester, email: _profissionalPinSeed, password: _pinSeedPassword);
+  await loginAs(
+    tester,
+    email: _profissionalPinSeed,
+    password: _pinSeedPassword,
+  );
   await awaitRouteChange(tester, '/');
   await tester.pumpAndSettle();
   await pumpUntilFound(tester, find.byKey(const Key('feed-screen')));
@@ -128,7 +132,8 @@ void main() {
       await _geraValidaECancela(
         tester,
         posicao: const PosicaoGeo(razao: 'permissao_negada'),
-        notaEsperada: 'Sua localização não pôde ser confirmada (permissão negada).',
+        notaEsperada:
+            'Sua localização não pôde ser confirmada (permissão negada).',
       );
     },
   );

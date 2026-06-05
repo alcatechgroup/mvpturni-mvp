@@ -49,15 +49,15 @@ test('seeder cria exatamente um turno em cada um dos 11 estados', function () {
 
 test('seeder anexa um aceite imutável a cada turno', function () {
     seedTurnosComDependencias();
-    // 11 do universo turnos.seed + 1 do turno PIN (STORY-061).
-    expect(AceiteEletronicoTurno::count())->toBe(12);
+    // 11 do universo turnos.seed + turno PIN (STORY-061) + turno validar (STORY-062).
+    expect(AceiteEletronicoTurno::count())->toBe(13);
 });
 
 test('seeder é idempotente (rodar 2x não duplica)', function () {
     seedTurnosComDependencias();
     test()->seed(TurnosSeeder::class);
     expect(turnosDoSeedPrincipal()->count())->toBe(11)
-        ->and(Turno::count())->toBe(12); // + turno PIN (STORY-061)
+        ->and(Turno::count())->toBe(13); // + turno PIN (061) + turno validar (062)
 });
 
 test('o turno confirmado do seed demonstra o override de habitualidade (PJ)', function () {
@@ -158,4 +158,55 @@ test('STORY-061: reseed renova a janela do turno PIN sem duplicar', function () 
 
     expect(Turno::where('profissional_id', $pro->id)->count())->toBe(1);
     expect($turno->fresh()->data_inicio->isAfter(now()))->toBeTrue();
+});
+
+test('STORY-062: seeder cria o turno de validação com usuários exclusivos *.validar.seed', function () {
+    seedTurnosComDependencias();
+
+    $pro = User::where('email', 'profissional.validar.seed@turni.local')->first();
+    expect($pro)->not->toBeNull();
+
+    $turno = Turno::where('profissional_id', $pro->id)->first();
+    expect($turno)->not->toBeNull()
+        ->and($turno->status)->toBe(TurnoStatus::Confirmado)
+        ->and($turno->data_inicio->isAfter(now()))->toBeTrue()
+        ->and((float) $turno->vaga->lat)->toBe(-23.55)
+        ->and($turno->aceite)->not->toBeNull();
+});
+
+test('STORY-062: turno validar consumido (ativo) → reseed cria um NOVO confirmado na janela', function () {
+    seedTurnosComDependencias();
+
+    $pro = User::where('email', 'profissional.validar.seed@turni.local')->first();
+    $consumido = Turno::where('profissional_id', $pro->id)->first();
+    // E2E validou o PIN: ativo (não volta — máquina de estados; o trigger só guarda UPDATE
+    // de status, então o caminho legal são as transições reais).
+    $consumido->transitionTo(TurnoStatus::AguardandoCheckin);
+    $consumido->transitionTo(TurnoStatus::Ativo);
+
+    test()->seed(TurnosSeeder::class);
+
+    $turnos = Turno::where('profissional_id', $pro->id)->orderBy('created_at')->get();
+    expect($turnos)->toHaveCount(2)
+        ->and($turnos[0]->status)->toBe(TurnoStatus::Ativo)        // histórico fica
+        ->and($turnos[1]->status)->toBe(TurnoStatus::Confirmado)   // novo, pronto p/ E2E
+        ->and($turnos[1]->data_inicio->isAfter(now()))->toBeTrue()
+        ->and($turnos[1]->aceite)->not->toBeNull();
+
+    // Reseed seguinte só renova a janela do novo (não duplica de novo).
+    test()->seed(TurnosSeeder::class);
+    expect(Turno::where('profissional_id', $pro->id)->count())->toBe(2);
+});
+
+test('STORY-062: turno PIN (061) consumido NÃO é recriado (recriação é só do validar)', function () {
+    seedTurnosComDependencias();
+
+    $pro = User::where('email', 'profissional.pin.seed@turni.local')->first();
+    $turnoPin = Turno::where('profissional_id', $pro->id)->first();
+    $turnoPin->transitionTo(TurnoStatus::AguardandoCheckin);
+    $turnoPin->transitionTo(TurnoStatus::Ativo);
+
+    test()->seed(TurnosSeeder::class);
+
+    expect(Turno::where('profissional_id', $pro->id)->count())->toBe(1);
 });

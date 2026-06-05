@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
@@ -10,6 +12,7 @@ import 'pin_checkin_screen.dart';
 import 'pin_checkin_service.dart';
 import 'turno_detalhe_service.dart';
 import 'turnos_lista_screen.dart' show TurnoEstadoBadge;
+import 'validar_checkin_service.dart';
 
 /// STORY-060 / SCREEN-STORY-060 — detalhe do turno (`/turnos/{id}`, rota compartilhada).
 ///
@@ -25,12 +28,15 @@ class TurnoDetalheScreen extends StatefulWidget {
     required this.turnoId,
     TurnoDetalheService? service,
     PinCheckinService? pinService,
+    ValidarCheckinService? validarService,
   }) : _service = service,
-       _pinService = pinService;
+       _pinService = pinService,
+       _validarService = validarService;
 
   final String turnoId;
   final TurnoDetalheService? _service;
   final PinCheckinService? _pinService;
+  final ValidarCheckinService? _validarService;
 
   @override
   State<TurnoDetalheScreen> createState() => _TurnoDetalheScreenState();
@@ -43,9 +49,16 @@ class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
       widget._service ?? TurnoDetalheService();
   late final PinCheckinService _pinService =
       widget._pinService ?? PinCheckinService();
+  late final ValidarCheckinService _validarService =
+      widget._validarService ?? ValidarCheckinService();
 
   _Phase _phase = _Phase.loading;
   TurnoDetalhe? _turno;
+
+  /// STORY-062 §4.5 — aviso persistente (PIN expirado por tentativas): sobrevive ao
+  /// recarregamento que devolve o turno a `confirmado` (a área de validação some e o
+  /// banner é a única pista do que houve). Limpo só por navegação (dispose).
+  String? _avisoCheckin;
 
   /// Papel para tema/navegação ANTES do payload chegar (loading/erro/não-encontrado):
   /// sessão local. Depois do fetch, o payload manda (souContratante).
@@ -124,6 +137,9 @@ class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
           isDark: isDark,
           accent: _accent(isDark),
           pinService: _pinService,
+          validarService: _validarService,
+          avisoCheckin: _avisoCheckin,
+          onAvisoCheckin: (msg) => setState(() => _avisoCheckin = msg),
           onRecarregar: _load,
         );
     }
@@ -177,6 +193,9 @@ class _DetalheView extends StatelessWidget {
     required this.isDark,
     required this.accent,
     required this.pinService,
+    required this.validarService,
+    required this.avisoCheckin,
+    required this.onAvisoCheckin,
     required this.onRecarregar,
   });
 
@@ -184,16 +203,23 @@ class _DetalheView extends StatelessWidget {
   final bool isDark;
   final Color accent;
   final PinCheckinService pinService;
+  final ValidarCheckinService validarService;
+  final String? avisoCheckin;
+  final ValueChanged<String> onAvisoCheckin;
   final Future<void> Function() onRecarregar;
 
   /// STORY-061 — a área de ações vira o bloco do check-in para o PROFISSIONAL em
   /// `confirmado`/`aguardando_checkin` (a janela vem no payload só para ele — CA-1/CA-8).
-  /// Contratante e demais estados não-terminais seguem com o placeholder da 060.
   bool get _mostraCheckin =>
       !turno.souContratante &&
       turno.checkinJanela != null &&
       (turno.estadoRaw == 'confirmado' ||
           turno.estadoRaw == 'aguardando_checkin');
+
+  /// STORY-062 — o CONTRATANTE em `aguardando_checkin` valida o PIN (SCREEN-062).
+  /// Demais papéis/estados não-terminais seguem com o placeholder da 060.
+  bool get _mostraValidacao =>
+      turno.souContratante && turno.estadoRaw == 'aguardando_checkin';
 
   @override
   Widget build(BuildContext context) {
@@ -206,6 +232,12 @@ class _DetalheView extends StatelessWidget {
         const SizedBox(height: TurniSpacing.sm),
         if (turno.aceite != null)
           _AceiteLink(aceite: turno.aceite!, isDark: isDark, accent: accent),
+        // STORY-062 §4.5 — banner persistente do PIN expirado (acima da área de ações;
+        // sobrevive ao reload que esvazia a área).
+        if (avisoCheckin != null) ...[
+          const SizedBox(height: TurniSpacing.sm),
+          _AvisoBanner(mensagem: avisoCheckin!, isDark: isDark),
+        ],
         // CA-4 da 060 — moldura do "botão grande"; terminais não têm (§4.1).
         if (!turno.estadoTerminal) ...[
           const SizedBox(height: TurniSpacing.sm),
@@ -217,7 +249,25 @@ class _DetalheView extends StatelessWidget {
               pinService: pinService,
               onRecarregar: onRecarregar,
             )
-          else
+          else if (_mostraValidacao) ...[
+            // CA-5 — aviso de geofencing ANTES do input; nunca bloqueia (PDR-008).
+            if (turno.geofencingCheckin != null &&
+                !turno.geofencingCheckin!.ok) ...[
+              _GeoAvisoValidacao(
+                geofencing: turno.geofencingCheckin!,
+                isDark: isDark,
+              ),
+              const SizedBox(height: TurniSpacing.md),
+            ],
+            _AcoesValidarCheckin(
+              turno: turno,
+              isDark: isDark,
+              accent: accent,
+              validarService: validarService,
+              onAvisoCheckin: onAvisoCheckin,
+              onRecarregar: onRecarregar,
+            ),
+          ] else
             _AcoesPlaceholder(isDark: isDark),
         ],
       ],
@@ -974,6 +1024,552 @@ class _AcoesCheckinState extends State<_AcoesCheckin> {
   }
 }
 
+// ──────────── Validação do check-in pelo contratante (STORY-062 / SCREEN-062) ────────────
+
+/// Banner warning persistente (§4.5 — "PIN expirado por excesso de tentativas").
+class _AvisoBanner extends StatelessWidget {
+  const _AvisoBanner({required this.mensagem, required this.isDark});
+
+  final String mensagem;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final ink = isDark
+        ? TurniColors.warnDark
+        : TurniColors.contratanteAccentInkLight;
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        key: const Key('validar-checkin-banner'),
+        padding: const EdgeInsets.symmetric(
+          horizontal: TurniSpacing.md,
+          vertical: TurniSpacing.sm + 4,
+        ),
+        decoration: BoxDecoration(
+          color: isDark ? TurniColors.warnSoftDark : TurniColors.warnSoftLight,
+          borderRadius: const BorderRadius.all(TurniRadius.md),
+          border: Border.all(color: ink.withValues(alpha: 0.4)),
+        ),
+        child: Text(
+          mensagem,
+          style: TextStyle(fontSize: 14, color: ink, height: 1.45),
+        ),
+      ),
+    );
+  }
+}
+
+/// Card de aviso de geofencing (CA-5 / §4.2): warning + ícone + texto, ANTES do input.
+/// Informa, não bloqueia (PDR-008) — o fluxo de validação é idêntico com ou sem ele.
+class _GeoAvisoValidacao extends StatelessWidget {
+  const _GeoAvisoValidacao({required this.geofencing, required this.isDark});
+
+  final GeofencingCheckin geofencing;
+  final bool isDark;
+
+  String get _texto {
+    final sufixo =
+        'Confirme com ele antes de validar — você pode validar mesmo assim.';
+    if (geofencing.distanciaMetros != null) {
+      return 'O profissional está a cerca de '
+          '${formatDistanciaMetros(geofencing.distanciaMetros!)} do estabelecimento. '
+          '$sufixo';
+    }
+    return 'Localização do profissional não disponível '
+        '(${razaoHumana(geofencing.razao)}). $sufixo';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ink = isDark
+        ? TurniColors.warnDark
+        : TurniColors.contratanteAccentInkLight;
+
+    return Container(
+      key: const Key('validar-checkin-geo-aviso'),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TurniSpacing.md,
+        vertical: TurniSpacing.sm + 4,
+      ),
+      decoration: BoxDecoration(
+        color: isDark ? TurniColors.warnSoftDark : TurniColors.warnSoftLight,
+        borderRadius: const BorderRadius.all(TurniRadius.md),
+        border: Border.all(color: ink.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ExcludeSemantics(
+            child: Icon(Icons.warning_amber_rounded, size: 20, color: ink),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _texto,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: ink,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Bloco de validação (CA-1/2/3 — §3.1): input de 4 dígitos em mono (espelho de
+/// entrada do pin.display da 061), Validar (primário) e Recusar (texto, com dialog).
+class _AcoesValidarCheckin extends StatefulWidget {
+  const _AcoesValidarCheckin({
+    required this.turno,
+    required this.isDark,
+    required this.accent,
+    required this.validarService,
+    required this.onAvisoCheckin,
+    required this.onRecarregar,
+  });
+
+  final TurnoDetalhe turno;
+  final bool isDark;
+  final Color accent;
+  final ValidarCheckinService validarService;
+  final ValueChanged<String> onAvisoCheckin;
+  final Future<void> Function() onRecarregar;
+
+  @override
+  State<_AcoesValidarCheckin> createState() => _AcoesValidarCheckinState();
+}
+
+class _AcoesValidarCheckinState extends State<_AcoesValidarCheckin> {
+  final _pinController = TextEditingController();
+  final _pinFocus = FocusNode();
+
+  bool _validando = false;
+  bool _pinInvalido = false;
+  String? _bannerMsg;
+  bool _bannerComRetry = false;
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    _pinFocus.dispose();
+    super.dispose();
+  }
+
+  bool get _pinCompleto => _pinController.text.length == 4;
+
+  Future<void> _validar() async {
+    final pin = _pinController.text;
+    setState(() {
+      _validando = true;
+      _pinInvalido = false;
+      _bannerMsg = null;
+    });
+
+    final result = await widget.validarService.validar(widget.turno.id, pin);
+    if (!mounted) return;
+    setState(() => _validando = false);
+
+    switch (result) {
+      case PinValidado():
+        // §4.8 — sucesso celebra com discrição; a verdade vem do reload (badge
+        // "Ativo" + timeline "Check-in validado").
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Check-in validado — turno iniciado.',
+              key: Key('validar-checkin-sucesso'),
+            ),
+          ),
+        );
+        await widget.onRecarregar();
+      case PinInvalido():
+        // §4.4 — erro no campo; valor mantido SELECIONADO (re-digitar é um toque).
+        setState(() => _pinInvalido = true);
+        _pinController.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: _pinController.text.length,
+        );
+        _pinFocus.requestFocus();
+      case PinExpirado():
+        // §4.5 — o turno já voltou a `confirmado` no servidor; o banner persistente
+        // (acima da área) é a única pista após o reload esvaziar este bloco.
+        widget.onAvisoCheckin(
+          'PIN expirado por excesso de tentativas. '
+          'Peça ao profissional para gerar um novo.',
+        );
+        await widget.onRecarregar();
+      case ValidarRateLimit():
+        setState(() {
+          _bannerMsg =
+              'Muitas tentativas em pouco tempo. '
+              'Aguarde um minuto e tente de novo.';
+          _bannerComRetry = false;
+        });
+      case ValidarEstadoInvalido():
+        // §4.10 — mudou em outra aba; o servidor é a fonte de verdade.
+        await widget.onRecarregar();
+      case ValidarErro():
+        setState(() {
+          _bannerMsg =
+              'Não foi possível validar o check-in. Verifique sua conexão.';
+          _bannerComRetry = true; // retry reenvia o MESMO PIN digitado (§4.7)
+        });
+    }
+  }
+
+  Future<void> _abrirRecusa() async {
+    final recusou = await showDialog<bool>(
+      context: context,
+      builder: (_) => _RecusaDialog(
+        turnoId: widget.turno.id,
+        validarService: widget.validarService,
+      ),
+    );
+    if (recusou == true) await widget.onRecarregar();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textStrong = widget.isDark
+        ? TurniColors.textStrongDark
+        : TurniColors.textStrongLight;
+    final textMuted = widget.isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+    final errorInk = widget.isDark
+        ? TurniColors.errorDark
+        : TurniColors.errorLight;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_bannerMsg != null) ...[
+          Semantics(
+            liveRegion: true,
+            child: Container(
+              key: const Key('validar-checkin-banner'),
+              padding: const EdgeInsets.symmetric(
+                horizontal: TurniSpacing.md,
+                vertical: TurniSpacing.sm,
+              ),
+              margin: const EdgeInsets.only(bottom: TurniSpacing.sm),
+              decoration: BoxDecoration(
+                color: widget.isDark
+                    ? TurniColors.errorSoftDark
+                    : TurniColors.errorSoftLight,
+                borderRadius: const BorderRadius.all(TurniRadius.md),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _bannerMsg!,
+                      style: TextStyle(fontSize: 14, color: errorInk),
+                    ),
+                  ),
+                  if (_bannerComRetry)
+                    TextButton(
+                      key: const Key('validar-checkin-retry-btn'),
+                      onPressed: _validando ? null : _validar,
+                      child: const Text('Tentar de novo'),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+        Container(
+          key: const Key('validar-checkin-area'),
+          padding: const EdgeInsets.all(TurniSpacing.md),
+          decoration: BoxDecoration(
+            color: widget.isDark
+                ? TurniColors.surfaceDark
+                : TurniColors.surfaceLight,
+            borderRadius: const BorderRadius.all(TurniRadius.md),
+            border: Border.all(
+              color: widget.isDark
+                  ? TurniColors.borderSubtleDark
+                  : TurniColors.borderSubtleLight,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Profissional chegou?',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: textStrong,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Peça o PIN de 4 dígitos que aparece no celular do '
+                'profissional e digite abaixo.',
+                style: TextStyle(
+                  fontSize: 13.5,
+                  color: textMuted,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: TurniSpacing.md),
+              // input.pin (SCREEN-062 §8) — espelho de entrada do pin.display da 061.
+              Center(
+                child: SizedBox(
+                  width: 220,
+                  child: Semantics(
+                    label: 'PIN de check-in, 4 dígitos',
+                    child: TextField(
+                      key: const Key('validar-checkin-pin-input'),
+                      controller: _pinController,
+                      focusNode: _pinFocus,
+                      enabled: !_validando,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(4),
+                      ],
+                      textAlign: TextAlign.center,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 10,
+                        color: textStrong,
+                      ),
+                      decoration: InputDecoration(
+                        counterText: '',
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: TurniSpacing.sm,
+                        ),
+                        // §4.4 — erro vinculado ao campo (borda); a mensagem visível
+                        // (com liveRegion) fica logo abaixo, centrada como o campo.
+                        errorText: _pinInvalido ? '' : null,
+                        errorStyle: const TextStyle(fontSize: 0, height: 0.01),
+                      ),
+                      onChanged: (_) => setState(() => _pinInvalido = false),
+                      onSubmitted: (_) {
+                        if (_pinCompleto && !_validando) _validar();
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              if (_pinInvalido) ...[
+                const SizedBox(height: 6),
+                Center(
+                  child: Semantics(
+                    liveRegion: true,
+                    child: Text(
+                      'PIN inválido. Confira com o profissional.',
+                      key: const Key('validar-checkin-pin-erro'),
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: errorInk,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: TurniSpacing.md),
+              FilledButton(
+                key: const Key('validar-checkin-btn'),
+                onPressed: _pinCompleto && !_validando ? _validar : null,
+                style: FilledButton.styleFrom(
+                  backgroundColor: widget.accent,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: const StadiumBorder(),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                child: _validando
+                    ? const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Text('Validando…'),
+                        ],
+                      )
+                    : const Text('Validar check-in'),
+              ),
+              const SizedBox(height: TurniSpacing.xs),
+              TextButton(
+                key: const Key('recusar-checkin-btn'),
+                onPressed: _validando ? null : _abrirRecusa,
+                style: TextButton.styleFrom(
+                  foregroundColor: widget.accent,
+                  minimumSize: const Size.fromHeight(48),
+                ),
+                child: const Text(
+                  'Profissional não está no local? Recusar check-in',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Dialog de confirmação da recusa (CA-6 / §3.2 — dialog.confirm): a recusa mata o
+/// PIN do profissional, por isso confirmação (≠ cancelamento da 061, do próprio dono).
+/// Devolve `true` quando a recusa foi efetivada (inclui estado_invalido: a tela
+/// recarrega a verdade do mesmo jeito).
+class _RecusaDialog extends StatefulWidget {
+  const _RecusaDialog({required this.turnoId, required this.validarService});
+
+  final String turnoId;
+  final ValidarCheckinService validarService;
+
+  @override
+  State<_RecusaDialog> createState() => _RecusaDialogState();
+}
+
+class _RecusaDialogState extends State<_RecusaDialog> {
+  final _motivoController = TextEditingController();
+  bool _enviando = false;
+  bool _erro = false;
+
+  @override
+  void dispose() {
+    _motivoController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _confirmar() async {
+    setState(() {
+      _enviando = true;
+      _erro = false;
+    });
+
+    final motivo = _motivoController.text.trim();
+    final result = await widget.validarService.recusar(
+      widget.turnoId,
+      motivo: motivo.isEmpty ? null : motivo,
+    );
+    if (!mounted) return;
+
+    switch (result) {
+      case RecusaOk() || RecusaEstadoInvalido():
+        Navigator.of(context).pop(true);
+      case RecusaErro():
+        setState(() {
+          _enviando = false;
+          _erro = true;
+        });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textMuted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+    final errorColor = isDark ? TurniColors.errorDark : TurniColors.errorLight;
+
+    return AlertDialog(
+      key: const Key('recusar-checkin-dialog'),
+      title: const Text('Recusar check-in?'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 432),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'O PIN atual deixa de valer e o turno volta para "Confirmado". '
+              'O profissional poderá gerar um novo PIN.',
+              style: TextStyle(fontSize: 14, color: textMuted, height: 1.5),
+            ),
+            const SizedBox(height: TurniSpacing.md),
+            const Text(
+              'Motivo (opcional)',
+              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 6),
+            TextField(
+              key: const Key('recusar-checkin-motivo-input'),
+              controller: _motivoController,
+              enabled: !_enviando,
+              maxLines: 3,
+              maxLength: 280,
+              decoration: const InputDecoration(
+                counterText: '',
+                hintText:
+                    'Ex.: o profissional ainda não chegou ao '
+                    'estabelecimento',
+                hintMaxLines: 2,
+              ),
+            ),
+            if (_erro) ...[
+              const SizedBox(height: TurniSpacing.sm),
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  'Não foi possível recusar. Tente de novo.',
+                  key: const Key('recusar-checkin-erro'),
+                  style: TextStyle(fontSize: 13.5, color: errorColor),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          key: const Key('recusar-checkin-voltar-btn'),
+          onPressed: _enviando ? null : () => Navigator.of(context).pop(false),
+          child: const Text('Voltar'),
+        ),
+        FilledButton(
+          key: const Key('recusar-checkin-confirmar-btn'),
+          onPressed: _enviando ? null : _confirmar,
+          style: FilledButton.styleFrom(
+            backgroundColor: errorColor,
+            foregroundColor: Colors.white,
+            minimumSize: const Size(0, 48),
+            shape: const StadiumBorder(),
+          ),
+          child: _enviando
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Recusar check-in'),
+        ),
+      ],
+    );
+  }
+}
+
 // ───────────────────────── Timeline (CA-3 — timeline.event) ─────────────────────────
 
 class _Timeline extends StatelessWidget {
@@ -1046,6 +1642,10 @@ class _TimelineEventoTile extends StatelessWidget {
     ),
     TimelineEventoTipo.checkinCancelado =>
       'Cancelado pelo profissional antes da validação.',
+    // STORY-062 (§4.11) — sem o motivo da recusa (trilha do admin).
+    TimelineEventoTipo.checkinRecusado => 'Recusado pelo contratante.',
+    TimelineEventoTipo.checkinPinExpirado =>
+      'Expirado por excesso de tentativas de validação.',
     TimelineEventoTipo.pagamentoPreAutorizado =>
       souContratante
           ? '${formatBRL(evento.valor ?? 0)} reservados no seu meio de pagamento.'

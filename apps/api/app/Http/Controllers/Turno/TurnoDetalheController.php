@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Turno;
 
+use App\Enums\TurnoStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Turno;
@@ -51,6 +52,11 @@ class TurnoDetalheController extends Controller
         'turno.no_show_pro' => 'no_show_pro',
         // STORY-061 — cancelamento do PIN pelo profissional (aguardando_checkin→confirmado).
         'turno.checkin_cancelado' => 'checkin_cancelado',
+        // STORY-062 (SCREEN-062 §4.11) — recusa pelo contratante e expiração por excesso de
+        // tentativas: ambas devolvem o turno a `confirmado` e o profissional precisa entender
+        // pela trilha por quê. O MOTIVO da recusa fica fora da timeline (trilha do admin).
+        'turno.checkin_recusado' => 'checkin_recusado',
+        'turno.checkin_pin_expirado' => 'checkin_pin_expirado',
     ];
 
     public function show(Request $request, Turno $turno): JsonResponse
@@ -91,11 +97,26 @@ class TurnoDetalheController extends Controller
             ]);
         }
 
-        return response()->json($comum + [
+        $contratante = [
             'taxa_turni' => (float) $turno->taxa_turni,
             'total_contratante' => (float) $turno->total_contratante,
             'profissional' => ['nome' => $turno->profissional?->name],
-        ]);
+        ];
+
+        // STORY-062 (CA-5) — snapshot de geofencing da geração do PIN para o card de aviso
+        // da validação (SCREEN-062 §4.2). Só em `aguardando_checkin`: o aviso é do momento
+        // de validar, não um atributo permanente do turno.
+        if ($turno->status === TurnoStatus::AguardandoCheckin && $turno->geofencing_check_in !== null) {
+            $geo = $turno->geofencing_check_in;
+            $contratante['geofencing_check_in'] = [
+                'ok' => (bool) ($geo['ok'] ?? false),
+                'distancia_metros' => isset($geo['distancia_metros']) && $geo['distancia_metros'] !== null
+                    ? (float) $geo['distancia_metros'] : null,
+                'razao' => $geo['razao'] ?? null,
+            ];
+        }
+
+        return response()->json($comum + $contratante);
     }
 
     /**

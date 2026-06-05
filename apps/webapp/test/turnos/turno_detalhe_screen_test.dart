@@ -182,6 +182,32 @@ void main() {
     expect(find.textContaining('Qua, 03/06 · 15:47'), findsWidgets);
   });
 
+  testWidgets(
+    'STORY-062: timeline renderiza checkin_recusado e checkin_pin_expirado (§4.11)',
+    (tester) async {
+      final svc = _FakeService(
+        () => TurnoDetalheSuccess(
+          _turno(
+            timeline: [
+              _evento(TimelineEventoTipo.checkinPinExpirado),
+              _evento(TimelineEventoTipo.checkinRecusado),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpWidget(_comRouter(svc));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Check-in recusado'), findsOneWidget);
+      expect(find.text('Recusado pelo contratante.'), findsOneWidget);
+      expect(find.text('PIN de check-in expirado'), findsOneWidget);
+      expect(
+        find.text('Expirado por excesso de tentativas de validação.'),
+        findsOneWidget,
+      );
+    },
+  );
+
   testWidgets('timeline do contratante mostra o total; pix sem valor', (
     tester,
   ) async {

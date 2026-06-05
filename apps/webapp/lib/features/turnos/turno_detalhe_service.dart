@@ -15,6 +15,10 @@ enum TimelineEventoTipo {
   checkinSolicitado('checkin_solicitado', 'PIN de check-in gerado'),
   checkinCancelado('checkin_cancelado', 'PIN de check-in cancelado'),
   checkinValidado('checkin_validado', 'Check-in validado'),
+  // STORY-062 (SCREEN-062 §4.11) — recusa e expiração devolvem o turno a `confirmado`;
+  // o profissional entende pela trilha por quê (o motivo da recusa NÃO vem — admin only).
+  checkinRecusado('checkin_recusado', 'Check-in recusado'),
+  checkinPinExpirado('checkin_pin_expirado', 'PIN de check-in expirado'),
   checkoutSolicitado('checkout_solicitado', 'PIN de check-out gerado'),
   checkoutValidado('checkout_validado', 'Check-out validado'),
   pagamentoCapturado('pagamento_capturado', 'Pagamento processado'),
@@ -151,6 +155,10 @@ class TurnoDetalhe {
   /// Janela de geração do PIN — só chega para o PROFISSIONAL (STORY-061 CA-1).
   final CheckinJanela? checkinJanela;
 
+  /// Snapshot de geofencing da geração do PIN — só chega para o CONTRATANTE em
+  /// `aguardando_checkin` (STORY-062 CA-5: alimenta o card de aviso da validação).
+  final GeofencingCheckin? geofencingCheckin;
+
   const TurnoDetalhe({
     required this.id,
     required this.funcao,
@@ -166,6 +174,7 @@ class TurnoDetalhe {
     required this.aceite,
     required this.timeline,
     this.checkinJanela,
+    this.geofencingCheckin,
   });
 
   /// O payload do contratante carrega o total — é assim que a tela sabe o papel sem
@@ -207,6 +216,11 @@ class TurnoDetalhe {
         ? null
         : CheckinJanela.fromJson(
             json['checkin_janela'] as Map<String, dynamic>,
+          ),
+    geofencingCheckin: json['geofencing_check_in'] == null
+        ? null
+        : GeofencingCheckin.fromJson(
+            json['geofencing_check_in'] as Map<String, dynamic>,
           ),
   );
 }

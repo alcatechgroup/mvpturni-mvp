@@ -22,6 +22,7 @@ use App\Http\Controllers\Turno\PinCheckinController;
 use App\Http\Controllers\Turno\TurnoAtivoController;
 use App\Http\Controllers\Turno\TurnoDetalheController;
 use App\Http\Controllers\Turno\TurnosController;
+use App\Http\Controllers\Turno\ValidarCheckinController;
 use App\Http\Controllers\Usuario\WelcomeController;
 use App\Http\Controllers\Vaga\CandidatosController;
 use App\Http\Controllers\Vaga\VagaController;
@@ -175,6 +176,13 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     // cancelamento volta a `confirmado`. RBAC: só o profissional do turno (403 — CA-8).
     Route::post('/turnos/{turno}/gerar-pin-checkin', [PinCheckinController::class, 'gerar']);
     Route::post('/turnos/{turno}/cancelar-pin-checkin', [PinCheckinController::class, 'cancelar']);
+
+    // Validação do PIN pelo contratante (STORY-062) — PIN correto transita para `ativo`
+    // (evento TurnoIniciado → 063/067); 3 erros expiram o PIN (volta a `confirmado`);
+    // recusa com motivo opcional. Rate limit 5/60s por turno no controller (CA-2).
+    // RBAC: só o contratante do turno (403 — CA-1).
+    Route::post('/turnos/{turno}/validar-checkin', [ValidarCheckinController::class, 'validar']);
+    Route::post('/turnos/{turno}/recusar-checkin', [ValidarCheckinController::class, 'recusar']);
 
     // Detalhe do turno (STORY-060) — rota compartilhada pelos 2 papéis (RBAC no controller:
     // cruzados 403, CA-1). Atributos + valor por papel (CA-2) + timeline filtrada (CA-3) +

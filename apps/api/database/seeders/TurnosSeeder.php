@@ -157,19 +157,51 @@ class TurnosSeeder extends Seeder
     }
 
     /**
-     * STORY-061 — turno `confirmado` DENTRO da janela de check-in (data_inicio ≈ now()+15min)
-     * com usuários exclusivos `*.pin.seed` (o E2E do PIN muta o estado — gerar/cancelar — e
-     * não pode contaminar a suíte da 059/060, que usa os `*.turnos.seed`). Idempotente com
-     * REFRESH: a cada seed (deploy de homolog / reseed local), `data_inicio` volta para
-     * now()+15min enquanto o turno estiver em confirmado/aguardando_checkin — sem isso a
-     * janela "envelhece" e o botão de gerar morre em homolog. Production-safe (sem fake()).
+     * STORY-061/062 — turnos `confirmado` DENTRO da janela de check-in com usuários
+     * exclusivos por estória (os E2E mutam estado e não podem contaminar a suíte da
+     * 059/060, que usa os `*.turnos.seed`):
+     *
+     * - `*.pin.seed` (061): gerar/cancelar PIN — sempre volta a confirmado/aguardando,
+     *   então basta o REFRESH da janela.
+     * - `*.validar.seed` (062): a validação CONSOME o turno (ativo não volta — máquina
+     *   de estados/trigger), então quando o turno foi consumido o seed cria um NOVO
+     *   (vaga+candidatura+aceite novos; o antigo fica como histórico real — o aceite é
+     *   imutável e o turno não pode ser deletado).
+     *
+     * Idempotente com REFRESH: a cada seed, `data_inicio` volta para now()+15min
+     * enquanto o turno estiver em confirmado/aguardando_checkin — sem isso a janela
+     * "envelhece" e o botão de gerar morre em homolog. Production-safe (sem fake()).
      */
     private function seedTurnoPinJanela(): void
     {
+        $this->seedTurnoNaJanela(
+            emailPrefixo: 'pin.seed',
+            nomeBase: 'PIN Seed',
+            observacao: 'Vaga seed do turno PIN de check-in (STORY-061)',
+            rotulo: 'turno PIN seed',
+            recriaConsumido: false,
+        );
+
+        $this->seedTurnoNaJanela(
+            emailPrefixo: 'validar.seed',
+            nomeBase: 'Validar Seed',
+            observacao: 'Vaga seed da validação do check-in (STORY-062)',
+            rotulo: 'turno validar seed',
+            recriaConsumido: true,
+        );
+    }
+
+    private function seedTurnoNaJanela(
+        string $emailPrefixo,
+        string $nomeBase,
+        string $observacao,
+        string $rotulo,
+        bool $recriaConsumido,
+    ): void {
         $contratante = User::updateOrCreate(
-            ['email' => 'contratante.pin.seed@turni.local'],
+            ['email' => "contratante.{$emailPrefixo}@turni.local"],
             [
-                'name' => 'Estabelecimento PIN Seed',
+                'name' => "Estabelecimento {$nomeBase}",
                 'password' => Hash::make('password'),
                 'role' => 'contratante',
                 'status' => 'ativo',
@@ -179,9 +211,9 @@ class TurnosSeeder extends Seeder
         );
 
         $profissional = User::updateOrCreate(
-            ['email' => 'profissional.pin.seed@turni.local'],
+            ['email' => "profissional.{$emailPrefixo}@turni.local"],
             [
-                'name' => 'Profissional PIN Seed',
+                'name' => "Profissional {$nomeBase}",
                 'password' => Hash::make('password'),
                 'role' => 'profissional',
                 'status' => 'ativo',
@@ -193,16 +225,24 @@ class TurnosSeeder extends Seeder
         $inicio = now()->addMinutes(15)->startOfMinute();
         $fim = (clone $inicio)->addHours(6);
 
-        $existente = Turno::query()->where('contratante_id', $contratante->id)->first();
+        $existente = Turno::query()
+            ->where('contratante_id', $contratante->id)
+            ->latest('created_at')
+            ->first();
         if ($existente !== null) {
             // Refresh da janela — o trigger só valida MUDANÇA de status; aqui status fica.
             if (in_array($existente->status, [TurnoStatus::Confirmado, TurnoStatus::AguardandoCheckin], true)) {
                 $existente->forceFill(['data_inicio' => $inicio, 'data_fim' => $fim])->save();
                 $existente->vaga?->update(['data_inicio' => $inicio, 'data_fim' => $fim]);
-                $this->command?->info('TurnosSeeder: janela do turno PIN seed renovada.');
+                $this->command?->info("TurnosSeeder: janela do {$rotulo} renovada.");
+
+                return;
             }
 
-            return;
+            if (! $recriaConsumido) {
+                return;
+            }
+            // Consumido (ativo/terminal) → cai na criação de um turno novo abaixo.
         }
 
         $funcaoId = Funcao::query()->orderBy('nome')->value('id');
@@ -212,7 +252,7 @@ class TurnosSeeder extends Seeder
             ->value('id');
 
         if ($funcaoId === null || $templateVersaoId === null) {
-            $this->command?->warn('TurnosSeeder: turno PIN seed requer FuncaoSeeder + TemplatesContratuaisSeeder. Pulado.');
+            $this->command?->warn("TurnosSeeder: {$rotulo} requer FuncaoSeeder + TemplatesContratuaisSeeder. Pulado.");
 
             return;
         }
@@ -225,7 +265,7 @@ class TurnosSeeder extends Seeder
             'valor' => 200.00,
             'posicoes' => 1,
             'posicoes_preenchidas' => 1,
-            'observacoes' => 'Vaga seed do turno PIN de check-in (STORY-061)',
+            'observacoes' => $observacao,
             'lat' => -23.55,
             'lng' => -46.63,
             'cidade' => 'São Paulo',
@@ -274,7 +314,7 @@ class TurnosSeeder extends Seeder
 
         $this->seedTimeline($turno, $aceite, TurnoStatus::Confirmado);
 
-        $this->command?->info('TurnosSeeder: turno PIN seed (confirmado, na janela) criado.');
+        $this->command?->info("TurnosSeeder: {$rotulo} (confirmado, na janela) criado.");
     }
 
     /** STORY-060 — anexa a trilha aos turnos do seed criados antes da timeline existir. */
