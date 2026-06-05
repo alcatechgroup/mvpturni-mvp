@@ -64,6 +64,7 @@ class TurnosSeeder extends Seeder
         // timeline existir ficariam com histórico vazio no detalhe).
         if (Turno::where('contratante_id', $contratante->id)->exists()) {
             $this->backfillTimeline($contratante);
+            $this->seedTurnoPinJanela(); // STORY-061 — independente dos 11 turnos acima
 
             return;
         }
@@ -151,6 +152,129 @@ class TurnosSeeder extends Seeder
         }
 
         $this->command?->info('TurnosSeeder: 11 turnos (um por estado) + aceites + timeline criados.');
+
+        $this->seedTurnoPinJanela();
+    }
+
+    /**
+     * STORY-061 — turno `confirmado` DENTRO da janela de check-in (data_inicio ≈ now()+15min)
+     * com usuários exclusivos `*.pin.seed` (o E2E do PIN muta o estado — gerar/cancelar — e
+     * não pode contaminar a suíte da 059/060, que usa os `*.turnos.seed`). Idempotente com
+     * REFRESH: a cada seed (deploy de homolog / reseed local), `data_inicio` volta para
+     * now()+15min enquanto o turno estiver em confirmado/aguardando_checkin — sem isso a
+     * janela "envelhece" e o botão de gerar morre em homolog. Production-safe (sem fake()).
+     */
+    private function seedTurnoPinJanela(): void
+    {
+        $contratante = User::updateOrCreate(
+            ['email' => 'contratante.pin.seed@turni.local'],
+            [
+                'name' => 'Estabelecimento PIN Seed',
+                'password' => Hash::make('password'),
+                'role' => 'contratante',
+                'status' => 'ativo',
+                'email_verified_at' => now(),
+                'cadastro_completed_at' => now(),
+            ],
+        );
+
+        $profissional = User::updateOrCreate(
+            ['email' => 'profissional.pin.seed@turni.local'],
+            [
+                'name' => 'Profissional PIN Seed',
+                'password' => Hash::make('password'),
+                'role' => 'profissional',
+                'status' => 'ativo',
+                'email_verified_at' => now(),
+                'cadastro_completed_at' => now(),
+            ],
+        );
+
+        $inicio = now()->addMinutes(15)->startOfMinute();
+        $fim = (clone $inicio)->addHours(6);
+
+        $existente = Turno::query()->where('contratante_id', $contratante->id)->first();
+        if ($existente !== null) {
+            // Refresh da janela — o trigger só valida MUDANÇA de status; aqui status fica.
+            if (in_array($existente->status, [TurnoStatus::Confirmado, TurnoStatus::AguardandoCheckin], true)) {
+                $existente->forceFill(['data_inicio' => $inicio, 'data_fim' => $fim])->save();
+                $existente->vaga?->update(['data_inicio' => $inicio, 'data_fim' => $fim]);
+                $this->command?->info('TurnosSeeder: janela do turno PIN seed renovada.');
+            }
+
+            return;
+        }
+
+        $funcaoId = Funcao::query()->orderBy('nome')->value('id');
+        $templateVersaoId = TemplateVersao::query()
+            ->whereHas('template', fn ($q) => $q->where('slug', 'pf_autonomo_eventual'))
+            ->where('ativa', true)
+            ->value('id');
+
+        if ($funcaoId === null || $templateVersaoId === null) {
+            $this->command?->warn('TurnosSeeder: turno PIN seed requer FuncaoSeeder + TemplatesContratuaisSeeder. Pulado.');
+
+            return;
+        }
+
+        $vaga = Vaga::create([
+            'contratante_id' => $contratante->id,
+            'funcao_id' => $funcaoId,
+            'data_inicio' => $inicio,
+            'data_fim' => $fim,
+            'valor' => 200.00,
+            'posicoes' => 1,
+            'posicoes_preenchidas' => 1,
+            'observacoes' => 'Vaga seed do turno PIN de check-in (STORY-061)',
+            'lat' => -23.55,
+            'lng' => -46.63,
+            'cidade' => 'São Paulo',
+            'uf' => 'SP',
+            'estado' => VagaEstado::Fechada,
+            'versao_atual' => 1,
+            'publicada_em' => now(),
+            'fechada_em' => now(),
+        ]);
+
+        $candidatura = Candidatura::create([
+            'vaga_id' => $vaga->id,
+            'profissional_id' => $profissional->id,
+            'estado' => CandidaturaEstado::Aprovada,
+            'aprovada_em' => now(),
+        ]);
+
+        $turno = Turno::create([
+            'candidatura_id' => $candidatura->id,
+            'vaga_id' => $vaga->id,
+            'vaga_versao_id' => null,
+            'profissional_id' => $profissional->id,
+            'contratante_id' => $contratante->id,
+            'estabelecimento_id' => $contratante->id,
+            'status' => TurnoStatus::Confirmado,
+            'valor' => 200.00,
+            'taxa_turni' => 30.00,
+            'total_contratante' => 230.00,
+            'data_inicio' => $inicio,
+            'data_fim' => $fim,
+        ]);
+
+        $aceite = AceiteEletronicoTurno::create([
+            'turno_id' => $turno->id,
+            'template_versao_id' => $templateVersaoId,
+            'conteudo_renderizado' => 'Contrato eventual de turno — PIN de check-in. Valor R$ 200,00.',
+            'dados_renderizados' => [
+                'turno.valor' => 'R$ 200,00',
+                'turno.taxa_turni' => 'R$ 30,00',
+                'turno.total_contratante' => 'R$ 230,00',
+            ],
+            'ip' => '127.0.0.1',
+            'fingerprint' => hash('sha256', 'seed:'.$turno->id.':'.now()->toDateString()),
+            'habitualidade_override' => false,
+        ]);
+
+        $this->seedTimeline($turno, $aceite, TurnoStatus::Confirmado);
+
+        $this->command?->info('TurnosSeeder: turno PIN seed (confirmado, na janela) criado.');
     }
 
     /** STORY-060 — anexa a trilha aos turnos do seed criados antes da timeline existir. */

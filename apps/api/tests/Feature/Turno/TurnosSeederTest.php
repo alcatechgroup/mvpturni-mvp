@@ -26,32 +26,42 @@ function seedTurnosComDependencias(): void
     test()->seed(TurnosSeeder::class);
 }
 
+/** Turnos do universo `*.turnos.seed` (a STORY-061 somou o turno PIN em outro contratante). */
+function turnosDoSeedPrincipal(): \Illuminate\Database\Eloquent\Builder
+{
+    $contratante = User::where('email', 'contratante.turnos.seed@turni.local')->firstOrFail();
+
+    return Turno::query()->where('contratante_id', $contratante->id);
+}
+
 test('seeder cria exatamente um turno em cada um dos 11 estados', function () {
     seedTurnosComDependencias();
 
-    $porEstado = Turno::query()->get()->groupBy(fn ($t) => $t->status->value);
+    $porEstado = turnosDoSeedPrincipal()->get()->groupBy(fn ($t) => $t->status->value);
 
     foreach (TurnoStatus::cases() as $status) {
         expect($porEstado->has($status->value))->toBeTrue("faltou turno no estado {$status->value}");
         expect($porEstado[$status->value])->toHaveCount(1);
     }
-    expect(Turno::count())->toBe(11);
+    expect(turnosDoSeedPrincipal()->count())->toBe(11);
 });
 
 test('seeder anexa um aceite imutável a cada turno', function () {
     seedTurnosComDependencias();
-    expect(AceiteEletronicoTurno::count())->toBe(11);
+    // 11 do universo turnos.seed + 1 do turno PIN (STORY-061).
+    expect(AceiteEletronicoTurno::count())->toBe(12);
 });
 
 test('seeder é idempotente (rodar 2x não duplica)', function () {
     seedTurnosComDependencias();
     test()->seed(TurnosSeeder::class);
-    expect(Turno::count())->toBe(11);
+    expect(turnosDoSeedPrincipal()->count())->toBe(11)
+        ->and(Turno::count())->toBe(12); // + turno PIN (STORY-061)
 });
 
 test('o turno confirmado do seed demonstra o override de habitualidade (PJ)', function () {
     seedTurnosComDependencias();
-    $confirmado = Turno::where('status', TurnoStatus::Confirmado)->first();
+    $confirmado = turnosDoSeedPrincipal()->where('status', TurnoStatus::Confirmado)->first();
     expect($confirmado->aceite->habitualidade_override)->toBeTrue();
 });
 
@@ -113,4 +123,38 @@ test('seeder grava trilha de auditoria coerente com o estado (STORY-060)', funct
     $cancelado = AuditLog::where('action', 'turno.cancelado')
         ->where('target_id', $canceladoEmp->id)->first();
     expect($cancelado->payload['lado'])->toBe('emp');
+});
+
+test('STORY-061: seeder cria o turno PIN (confirmado, na janela) com usuários exclusivos', function () {
+    seedTurnosComDependencias();
+
+    $pro = User::where('email', 'profissional.pin.seed@turni.local')->first();
+    expect($pro)->not->toBeNull();
+
+    $turno = Turno::where('profissional_id', $pro->id)->first();
+    expect($turno)->not->toBeNull()
+        ->and($turno->status)->toBe(TurnoStatus::Confirmado)
+        // Dentro da janela default (−30min/+2h): início ~15min à frente.
+        ->and($turno->data_inicio->isAfter(now()))->toBeTrue()
+        ->and($turno->data_inicio->isBefore(now()->addMinutes(30)))->toBeTrue()
+        ->and((float) $turno->vaga->lat)->toBe(-23.55)
+        ->and($turno->aceite)->not->toBeNull();
+});
+
+test('STORY-061: reseed renova a janela do turno PIN sem duplicar', function () {
+    seedTurnosComDependencias();
+
+    $pro = User::where('email', 'profissional.pin.seed@turni.local')->first();
+    $turno = Turno::where('profissional_id', $pro->id)->first();
+
+    // Envelhece a janela (simula homolog dias depois) e re-seeda.
+    $turno->forceFill([
+        'data_inicio' => now()->subDays(3),
+        'data_fim' => now()->subDays(3)->addHours(6),
+    ])->save();
+
+    test()->seed(TurnosSeeder::class);
+
+    expect(Turno::where('profissional_id', $pro->id)->count())->toBe(1);
+    expect($turno->fresh()->data_inicio->isAfter(now()))->toBeTrue();
 });

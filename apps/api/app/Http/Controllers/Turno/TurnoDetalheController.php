@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Turno;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Turno;
+use App\Services\PinCheckinService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -48,6 +49,8 @@ class TurnoDetalheController extends Controller
         'pix.enviado' => 'pix_enviado',
         'turno.cancelado' => 'cancelado',
         'turno.no_show_pro' => 'no_show_pro',
+        // STORY-061 — cancelamento do PIN pelo profissional (aguardando_checkin→confirmado).
+        'turno.checkin_cancelado' => 'checkin_cancelado',
     ];
 
     public function show(Request $request, Turno $turno): JsonResponse
@@ -75,7 +78,20 @@ class TurnoDetalheController extends Controller
             'timeline' => $this->timeline($turno, $souProfissional),
         ];
 
-        return response()->json($souProfissional ? $comum : $comum + [
+        if ($souProfissional) {
+            // STORY-061 (CA-1) — janela de geração do PIN: a UI decide o estado do botão
+            // (antes/aberta/depois) sem hardcodar os minutos; o servidor segue validando.
+            [$abre, $fecha] = PinCheckinService::janela($turno);
+
+            return response()->json($comum + [
+                'checkin_janela' => [
+                    'abre_em' => $abre->toIso8601String(),
+                    'fecha_em' => $fecha->toIso8601String(),
+                ],
+            ]);
+        }
+
+        return response()->json($comum + [
             'taxa_turni' => (float) $turno->taxa_turni,
             'total_contratante' => (float) $turno->total_contratante,
             'profissional' => ['nome' => $turno->profissional?->name],
@@ -120,6 +136,17 @@ class TurnoDetalheController extends Controller
             // Quem cancelou (STORY-066 grava `lado` no payload; tolerante à ausência).
             if ($evento === 'cancelado' && isset($log->payload['lado'])) {
                 $item['lado'] = $log->payload['lado'];
+            }
+            // STORY-061 — nota de geofencing no evento de PIN (PDR-008: ambos os lados veem
+            // o que foi registrado). Tolerante a seeds antigos sem o snapshot no payload.
+            if ($evento === 'checkin_solicitado' && isset($log->payload['geofencing_check_in'])) {
+                $geo = $log->payload['geofencing_check_in'];
+                $item['geofencing'] = [
+                    'ok' => (bool) ($geo['ok'] ?? false),
+                    'distancia_metros' => isset($geo['distancia_metros']) && $geo['distancia_metros'] !== null
+                        ? (float) $geo['distancia_metros'] : null,
+                    'razao' => $geo['razao'] ?? null,
+                ];
             }
 
             return $item;
