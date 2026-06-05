@@ -214,3 +214,69 @@ test('turno sem aceite (seed antigo): aceite null, tela não quebra', function (
         ->assertStatus(200)
         ->assertJsonPath('aceite', null);
 });
+
+// ---------------------------------------------------------------- STORY-061 (aditivos do PIN)
+
+test('STORY-061: profissional recebe checkin_janela calculada da config (contratante não)', function () {
+    config(['turno.checkin_janela_antes_min' => 30, 'turno.checkin_janela_depois_min' => 120]);
+    $turno = Turno::factory()->status(TurnoStatus::Confirmado)->create([
+        'data_inicio' => now()->startOfSecond()->addMinutes(15),
+        'data_fim' => now()->startOfSecond()->addHours(6),
+    ]);
+
+    $json = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json();
+
+    expect($json)->toHaveKey('checkin_janela')
+        ->and($json['checkin_janela'])->toHaveKeys(['abre_em', 'fecha_em']);
+    expect(new DateTimeImmutable($json['checkin_janela']['abre_em']))
+        ->toEqual($turno->data_inicio->copy()->subMinutes(30)->toDateTimeImmutable());
+    expect(new DateTimeImmutable($json['checkin_janela']['fecha_em']))
+        ->toEqual($turno->data_inicio->copy()->addMinutes(120)->toDateTimeImmutable());
+
+    // Contratante não gera PIN — não recebe a janela (payload mínimo por papel).
+    $jsonContr = $this->actingAs($turno->contratante->fresh())
+        ->getJson("/api/turnos/{$turno->id}")->assertStatus(200)->json();
+    expect($jsonContr)->not->toHaveKey('checkin_janela');
+});
+
+test('STORY-061: timeline expõe o geofencing do checkin_solicitado para os dois papéis', function () {
+    $turno = Turno::factory()->status(TurnoStatus::AguardandoCheckin)->create();
+    auditDoTurno($turno, 'turno.checkin_solicitado', [
+        'geofencing_check_in' => ['ok' => false, 'distancia_metros' => 230.4, 'razao' => 'fora_do_raio',
+            'capturado_em' => now()->toIso8601String()],
+        'pin_regerado' => false,
+    ]);
+
+    foreach ([$turno->profissional, $turno->contratante->fresh()] as $user) {
+        $timeline = $this->actingAs($user)->getJson("/api/turnos/{$turno->id}")
+            ->assertStatus(200)->json('timeline');
+        $evento = collect($timeline)->firstWhere('evento', 'checkin_solicitado');
+
+        expect($evento)->not->toBeNull()
+            ->and($evento['geofencing']['ok'])->toBeFalse()
+            ->and($evento['geofencing']['distancia_metros'])->toBe(230.4)
+            ->and($evento['geofencing']['razao'])->toBe('fora_do_raio');
+    }
+});
+
+test('STORY-061: checkin_solicitado antigo sem payload de geofencing não quebra a timeline', function () {
+    $turno = Turno::factory()->status(TurnoStatus::AguardandoCheckin)->create();
+    auditDoTurno($turno, 'turno.checkin_solicitado'); // seed antigo: payload vazio
+
+    $timeline = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json('timeline');
+    $evento = collect($timeline)->firstWhere('evento', 'checkin_solicitado');
+
+    expect($evento)->not->toBeNull()->and($evento)->not->toHaveKey('geofencing');
+});
+
+test('STORY-061: checkin_cancelado aparece na timeline (whitelist atualizada)', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Confirmado)->create();
+    auditDoTurno($turno, 'turno.checkin_cancelado');
+
+    $timeline = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json('timeline');
+
+    expect(collect($timeline)->pluck('evento'))->toContain('checkin_cancelado');
+});
