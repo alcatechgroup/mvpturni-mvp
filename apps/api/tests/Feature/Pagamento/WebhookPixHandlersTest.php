@@ -19,7 +19,7 @@ uses(RefreshDatabase::class);
 // ─── PixEnviado — (a) caminho feliz ──────────────────────────────────────────
 
 test('CA-4/CA-6: webhook PixEnviado grava audit pix.enviado com transfer_id e valor', function () {
-    $turno = Turno::factory()->create(['valor' => 200.00]);
+    $turno = Turno::factory()->create(['valor' => 200.00, 'taxa_turni' => 30.00, 'total_contratante' => 230.00]);
 
     event(new PixEnviado($turno->id, 'evt_1', [
         'type' => 'transfer.paid',

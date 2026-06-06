@@ -4,10 +4,14 @@ namespace App\Providers;
 
 use App\Email\MailEnviaEmailTransacional;
 use App\Events\CandidaturaEnviada;
+use App\Events\Pagamento\PixEnviado;
+use App\Events\Pagamento\PixFalhou;
 use App\Events\TurnoFinalizado;
 use App\Events\VagaCancelada;
 use App\Events\VagaEditadaMaterialmente;
 use App\Listeners\HandleCandidaturaEnviada;
+use App\Listeners\HandlePixEnviado;
+use App\Listeners\HandlePixFalhou;
 use App\Listeners\HandleVagaCancelada;
 use App\Listeners\HandleVagaEditadaMaterialmente;
 use App\Listeners\TurnoFinalizadoListener;
@@ -45,5 +49,11 @@ class AppServiceProvider extends ServiceProvider
         // STORY-065 (CA-1) — fim do turno dispara o ciclo financeiro (captura + Pix) em
         // job na fila database; o listener é fino e o job re-verifica o estado (CA-9).
         Event::listen(TurnoFinalizado::class, TurnoFinalizadoListener::class);
+
+        // STORY-065 (CA-4..6) — o webhook do gateway é a fonte de verdade do pagamento:
+        // confirmação vira `pix.enviado` (timeline + card); falha vira caso na fila do
+        // admin (`pix_falhas`) — inclusive falha reportada após sucesso aparente.
+        Event::listen(PixEnviado::class, HandlePixEnviado::class);
+        Event::listen(PixFalhou::class, HandlePixFalhou::class);
     }
 }
