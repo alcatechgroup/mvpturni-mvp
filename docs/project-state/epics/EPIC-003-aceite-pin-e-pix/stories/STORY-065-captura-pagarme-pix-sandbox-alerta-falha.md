@@ -193,6 +193,14 @@ verdade), documentado nos docblocks. Não é ambiguidade de produto — não blo
   sempre no detalhe — sem evento, sem job, honesto e esperado; não confundir com bug.
 - Worker `queue:work` precisa de restart para enxergar classe de Job nova (gotcha da 056,
   reconfirmado).
+- **(rc.77 → rc.78)** O job de migração de homolog (`turni-migrate-homolog`) é deployado
+  pelo **release.yml** com secrets PRÓPRIOS — Terraform não o cobre. O seeder rodou sem
+  `PIX_FALHA_CHAVE_KEY`, cifrou a chave do caso com o default de dev e o admin (com o
+  secret real) dava **500 na fila inteira** (DecryptException no render). Fix duplo:
+  secret no release.yml + casts espelhados degradam linha indecifrável para "chave não
+  cadastrada" com warning `pix_falha.chave_indecifravel` (uma linha ruim não cega a
+  operação). Regra geral: **env nova de runtime tem 4 pontos de wiring** — compose (dev),
+  Terraform (api/worker/admin) E release.yml (migrate job) E .env.example.
 
 ### Bloqueios encontrados
 - Nenhum bloqueante. A decisão da chave compartilhada (acima) foi escalada a Alexandro em
@@ -244,9 +252,9 @@ verdade), documentado nos docblocks. Não é ambiguidade de produto — não blo
   red/green por CA até `bba8961`)
 - Pipeline: release.yml run **27064489299** (tag `v0.1.0-rc.77`) — build api/admin/
   pagarme-mock/webapp + migrate&seed + 4 deploys + smoke pós-deploy, tudo verde
-- Deploy de homologação: **rc.77** — migração `create_pix_falhas_table` DONE;
-  `PixFalhaSeeder` abriu caso na fila; `TurnosSeeder` recriou o par de checkout (com
-  chave Pix + pré-auth sintética); fake com `PIX_RESULTADO=sucesso`,
-  `SLA_SEGUNDOS=30`, `cpu-throttling=false` (verificado via gcloud); infra IDR-028
-  aplicada por Terraform (secret `turni-homolog-pix-falha-chave-key` + envs em
-  api/worker/admin)
+- Deploy de homologação: **rc.78** (rc.77 + fix do 500 da fila — ver Descobertas) —
+  migração `create_pix_falhas_table` DONE; `PixFalhaSeeder` com caso aberto na fila;
+  `TurnosSeeder` recriou o par de checkout (chave Pix + pré-auth sintética); fake com
+  `PIX_RESULTADO=sucesso`, `SLA_SEGUNDOS=30`, `cpu-throttling=false`; infra IDR-028
+  aplicada por Terraform; **/pix-falhas verificada em browser real contra homolog**
+  (caso visível com chave decifrada, badge, valor, razão, contador)
