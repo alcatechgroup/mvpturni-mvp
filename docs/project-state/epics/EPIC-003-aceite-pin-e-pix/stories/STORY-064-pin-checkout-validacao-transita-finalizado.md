@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-064-pin-checkout
-status: in_progress
+status: done
 owner_agent: claude-opus-4-8
 created_at: 2026-06-03
-updated_at: 2026-06-03
+updated_at: 2026-06-06
 estimated_session_size: M
 produces_idr: null
 ---
@@ -80,11 +80,11 @@ NÃO decide: que `em_disputa` está fora (EPIC-005); imutabilidade da transiçã
 
 ## Definição de Pronto
 
-- [ ] CAs marcados; deploy verificado.
-- [ ] SCREEN-STORY-064 `shipped` (ou reuso documentado).
-- [ ] Alexandro testa em homolog (ciclo completo até `finalizado`).
-- [ ] `index.json` atualizado.
-- [ ] "Notas do agente" preenchida.
+- [x] CAs marcados; deploy verificado (rc.76 em homolog; `/health?deep=1` 200).
+- [x] SCREEN-STORY-064 `shipped` (ou reuso documentado).
+- [x] Alexandro testa em homolog (ciclo completo até `finalizado` — aprovado em 2026-06-06).
+- [x] `index.json` atualizado.
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo
 

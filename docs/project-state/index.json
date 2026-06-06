@@ -2071,6 +2071,29 @@
       "updated_at": "2026-06-05"
     },
     {
+      "id": "STORY-064",
+      "epic_id": "EPIC-003",
+      "title": "PIN de check-out — geração + validação + transição para `finalizado`",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-064-pin-checkout",
+      "status": "done",
+      "owner_agent": "claude-opus-4-8",
+      "sprint_id": "SPRINT-2026-W28",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-064-pin-checkout-validacao-transita-finalizado.md",
+      "blocked_by": [
+        "STORY-063"
+      ],
+      "blocks": [
+        "STORY-065"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-03",
+      "updated_at": "2026-06-06"
+    },
+    {
       "id": "STORY-074",
       "epic_id": "EPIC-011",
       "title": "Geocodificar o endereço do estabelecimento → lat/lng (cadastro + backfill + ACL + mock)",
@@ -3791,7 +3814,7 @@
         "id": "SCREEN-STORY-064-pin-checkout",
         "story": "STORY-064",
         "epic": "EPIC-003",
-        "status": "in_implementation",
+        "status": "shipped",
         "path": "design/screens/SCREEN-STORY-064-pin-checkout.md",
         "viewports": [
           "mobile",
@@ -3813,7 +3836,7 @@
         ],
         "owner_designer": "claude-opus-4-8",
         "created_at": "2026-06-05",
-        "updated_at": "2026-06-05"
+        "updated_at": "2026-06-06"
       }
     ],
     "system": {

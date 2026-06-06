@@ -2,9 +2,9 @@
 id: SCREEN-STORY-064-pin-checkout
 story: STORY-064-pin-checkout-validacao-transita-finalizado
 epic: EPIC-003-aceite-pin-e-pix
-status: in_implementation    # draft | ready | in_implementation | shipped | superseded
+status: shipped              # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-05
-updated_at: 2026-06-05
+updated_at: 2026-06-06
 owner_designer: claude-opus-4-8
 related_ddrs: [DDR-001, DDR-002]
 ds_components_used: [surface.card, badge.status, button.primary, button.text, banner, timeline.event, mono.display]
@@ -519,3 +519,4 @@ STORY-064 reusar no check-out" — cumprido). Nenhuma cor nova; nenhum component
 | 2026-06-05 | criação (spec completo + protótipo v1) | claude-opus-4-8 (designer) | STORY-064; spec + protótipo entregues juntos para validação humana |
 | 2026-06-05 | validação humana — aprovado sem ajustes | Alexandro | inclui premissas §4.12/§10 (eventos novos na whitelist; motivo só no audit log; expiração devolve a `ativo`) e arbitragem do conflito de microcopy §4.10: **vale o CA-6 da 064** ("Aguardando validação — duração"), mudança consciente na SCREEN-063; `status: ready` |
 | 2026-06-05 | implementação + 2 ajustes conscientes | claude-opus-4-8 (programador) | (a) `finalizado` SEM placeholder de ações (regra da 060 §4.1 vence o protótipo v1 — §4.11); (b) polling do cronômetro que detecta transição que a tela não viu (ex.: contratante em `ativo` quando o PIN de check-out nasce) dispara reload — o bloco de validação aparece sem refresh manual; `dialog.confirm` promovido no DS (2º uso); `status: in_implementation` |
+| 2026-06-06 | implementado + PO aprovou em homolog | claude-opus-4-8 / Alexandro | STORY-064 entregue (API núcleo 100% / suíte 879 testes 93,6%, webapp 508 testes, E2E ciclo completo bilateral, rc.76) e aprovada em chat após roteiro manual em 2 janelas; `status: shipped` |
