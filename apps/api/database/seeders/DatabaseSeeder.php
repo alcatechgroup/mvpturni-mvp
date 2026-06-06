@@ -52,6 +52,10 @@ class DatabaseSeeder extends Seeder
         // Depende de AdminUserSeeder + FuncaoSeeder; roda APÓS TurnosSeeder (conta turnos do par).
         $this->call(AprovacaoCandidaturaSeeder::class);
 
+        // STORY-065 — caso aberto na fila "Pix com falha" p/ o E2E do Backoffice (reabre
+        // o consumido). Depende de TurnosSeeder (ancora num turno finalizado).
+        $this->call(PixFalhaSeeder::class);
+
         // STORY-053 — smoke de e-mail (CA-12) DESREGISTRADO: a validação em homolog já foi feita
         // (CA-12 done). O seeder `Ca12EmailSmokeSeeder` + `scripts/ca12-homolog-e2e.sh` ficam no repo
         // para reuso manual (`php artisan db:seed --class=Ca12EmailSmokeSeeder`), mas NÃO rodam no

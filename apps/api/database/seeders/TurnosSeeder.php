@@ -9,6 +9,7 @@ use App\Models\AceiteEletronicoTurno;
 use App\Models\AuditLog;
 use App\Models\Candidatura;
 use App\Models\Funcao;
+use App\Models\ProfissionalProfile;
 use App\Models\TemplateVersao;
 use App\Models\Turno;
 use App\Models\User;
@@ -361,6 +362,20 @@ class TurnosSeeder extends Seeder
                 'status' => 'ativo',
                 'email_verified_at' => now(),
                 'cadastro_completed_at' => now(),
+            ],
+        );
+
+        // STORY-065 — o ciclo financeiro pós-turno lê a chave Pix do PERFIL (EPIC-001);
+        // sem ela o Pix cai na fila "Pix com falha" e o E2E do ciclo completo trava.
+        ProfissionalProfile::updateOrCreate(
+            ['user_id' => $profissional->id],
+            [
+                'tipo_pessoa' => 'MEI',
+                'telefone' => '11999990000',
+                'cidade' => 'São Paulo',
+                'bairro' => 'Centro',
+                'funcao_id' => Funcao::query()->orderBy('nome')->value('id'),
+                'chave_pix_encrypted' => "profissional.{$emailPrefixo}@pix.turni.local",
             ],
         );
 
