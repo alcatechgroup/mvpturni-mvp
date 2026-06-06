@@ -2,7 +2,7 @@
 id: SCREEN-STORY-065-pix-enviado-e-fila-falhas
 story: STORY-065-captura-pagarme-pix-sandbox-alerta-falha
 epic: EPIC-003-aceite-pin-e-pix
-status: in_implementation    # draft | ready | in_implementation | shipped | superseded
+status: shipped              # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-06
 updated_at: 2026-06-06
 owner_designer: claude-opus-4-8
@@ -386,3 +386,4 @@ com ícone — variante já sancionada.
 | 2026-06-06 | criação (spec completo + protótipo v1) | claude-opus-4-8 (designer) | STORY-065; Alexandro pediu fluxo designer→programador (estória nasceu `requires_design: false` — atualizada) |
 | 2026-06-06 | validação humana — aprovado sem ajustes | Alexandro | confirmou a decisão §A.4 (falha de Pix → profissional segue vendo "Pix a caminho", PDR-010) e aprovou spec+protótipo para implementação; `status: ready` |
 | 2026-06-06 | implementação + 3 ajustes conscientes | claude-opus-4-8 (programador) | (a) spinner do "Pix a caminho" virou ícone ESTÁTICO (animação contínua trava o frame scheduler — racional do _DotVivo/063; protótipo mantém o spinner como intenção visual); (b) chave Pix exibida COMPLETA (não truncada) — o protótipo truncava com elipse, mas o admin copia/verifica a chave e o monospace 12.5px cabe; (c) snapshot operacional em `pix_falhas` + chave cifrada com segredo compartilhado api+admin (IDR-028 — APP_KEYs distintas impediam o Backoffice de decifrar o perfil; aprovado por Alexandro em chat); `status: in_implementation` |
+| 2026-06-06 | implementado + PO aprovou em homolog | claude-opus-4-8 / Alexandro | STORY-065 entregue (api 916 / admin 115 / webapp 516; E2E ciclo financeiro completo + Playwright 14/14; rc.78 — inclui fix do 500 da fila: linha indecifrável degrada como "sem chave") e aprovada em chat após teste manual; `status: shipped` |

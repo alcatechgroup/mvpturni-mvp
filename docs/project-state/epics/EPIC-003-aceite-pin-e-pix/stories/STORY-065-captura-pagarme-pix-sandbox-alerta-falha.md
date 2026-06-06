@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true  # [2026-06-06] Alexandro pediu fluxo designer→programador em chat; era false ("admin reusa fila padrão") — o spec formaliza o card de valor (CA-4) e a aba "Pix com falha" (CA-5/8)
 design_screen_id: SCREEN-STORY-065-pix-enviado-e-fila-falhas
-status: in_review  # aguardando teste manual do Alexandro em homolog (rc.77)
+status: done  # aprovada por Alexandro em chat (2026-06-06) após teste manual em homolog (rc.78)
 owner_agent: claude-opus-4-8-2026-06-06
 created_at: 2026-06-03
 updated_at: 2026-06-06
@@ -39,16 +39,16 @@ Sem captura, o contratante não paga e o profissional não recebe. Sem Pix em �
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Listener `TurnoFinalizadoListener` consome o evento da STORY-064 e executa `capturar(turno_id)` via ACL de pagamento com chave de idempotência `captura:{turno_id}`. Em job na fila `database` (ADR-002 — worker assíncrono).
-- [ ] **CA-2:** Sucesso da captura: emite `PagamentoCapturado` com `charge_id` retornado pelo gateway (formato Pagar.me-compatível — fake mantém o contrato), valor capturado, timestamp; audit log captura `pagamento.capturado`.
-- [ ] **CA-3:** Em sequência, executa `transferirPix(turno_id, valor)` para a chave Pix do profissional (lida do perfil — EPIC-001). Idempotência `pix:{turno_id}`.
-- [ ] **CA-4:** Sucesso do Pix: emite `PixEnviado` com `transferencia_id` retornado pelo gateway, valor, timestamp; audit log captura `pix.enviado`. Detalhe do turno mostra "Pix enviado em HH:MM" no card de valor (visível ao profissional).
-- [ ] **CA-5:** Falha de Pix (PDR-010 — **uma tentativa**): emite `PixFalhou` com motivo retornado pelo gateway, timestamp; audit log `pix.falhou`. Fila operacional do admin destaca: badge vermelho + microcopy "Pix falhou — tratamento manual" + valor + chave Pix do profissional + razão. **Cenário exercitado em homolog via configuração do fake** (`PAGAMENTO_FAKE_FORCE_PIX_FAILURE=true` ou similar — agente decide nome) para validar o caminho determinísticamente.
-- [ ] **CA-6:** Webhook entrante (STORY-056) é a **fonte de verdade** da confirmação do gateway — listener inicial dispara a captura/Pix, mas o estado final do pagamento vem do webhook (assíncrono). Se webhook reportar falha após sucesso aparente, alerta é atualizado. **No MVP, o webhook é emitido pelo próprio fake** (com HMAC assinado pelo mesmo segredo) — contrato mantido para troca futura por Pagar.me real.
-- [ ] **CA-7:** Métrica primária verificada em CI: em 20 turnos seedados percorrendo o ciclo completo, **100%** completam `confirmado → finalizado → Pix enviado` com o fake em modo `success` (PDR-017 — fake confirma em ~30s ou conforme SLA configurado). Resultado anexado à estória. **Métrica de promessa pública "Pix em ≤ 15 min"** é demonstrada como simulação: SLA do fake é configurável (default ~30s, máximo 15min para fins de teste de promessa); em 20 turnos seedados com SLA 15min, 100% confirmam dentro da janela. Resultado anexado.
-- [ ] **CA-8:** Fila operacional do admin tem aba "Pix com falha" — lista paginada de turnos com `pix.falhou`, ordenado por timestamp desc; admin pode marcar "Resolvido manualmente" com nota (audit log). **Cenário exercitado em homolog** com fake configurado para falhar.
-- [ ] **CA-9:** Em cancelamento (STORY-066) ou caminho onde turno não chega a `finalizado`, captura **não** é disparada (pré-autorização é liberada em vez disso).
-- [ ] **CA-10:** Cobertura ≥ 98% no núcleo (listener + parsing de webhook + lógica de fallback do alerta); ≥ 80% no resto.
+- [x] **CA-1:** Listener `TurnoFinalizadoListener` consome o evento da STORY-064 e executa `capturar(turno_id)` via ACL de pagamento com chave de idempotência `captura:{turno_id}`. Em job na fila `database` (ADR-002 — worker assíncrono).
+- [x] **CA-2:** Sucesso da captura: emite `PagamentoCapturado` com `charge_id` retornado pelo gateway (formato Pagar.me-compatível — fake mantém o contrato), valor capturado, timestamp; audit log captura `pagamento.capturado`.
+- [x] **CA-3:** Em sequência, executa `transferirPix(turno_id, valor)` para a chave Pix do profissional (lida do perfil — EPIC-001). Idempotência `pix:{turno_id}`.
+- [x] **CA-4:** Sucesso do Pix: emite `PixEnviado` com `transferencia_id` retornado pelo gateway, valor, timestamp; audit log captura `pix.enviado`. Detalhe do turno mostra "Pix enviado em HH:MM" no card de valor (visível ao profissional).
+- [x] **CA-5:** Falha de Pix (PDR-010 — **uma tentativa**): emite `PixFalhou` com motivo retornado pelo gateway, timestamp; audit log `pix.falhou`. Fila operacional do admin destaca: badge vermelho + microcopy "Pix falhou — tratamento manual" + valor + chave Pix do profissional + razão. **Cenário exercitado em homolog via configuração do fake** (`PAGAMENTO_FAKE_FORCE_PIX_FAILURE=true` ou similar — agente decide nome) para validar o caminho determinísticamente.
+- [x] **CA-6:** Webhook entrante (STORY-056) é a **fonte de verdade** da confirmação do gateway — listener inicial dispara a captura/Pix, mas o estado final do pagamento vem do webhook (assíncrono). Se webhook reportar falha após sucesso aparente, alerta é atualizado. **No MVP, o webhook é emitido pelo próprio fake** (com HMAC assinado pelo mesmo segredo) — contrato mantido para troca futura por Pagar.me real.
+- [x] **CA-7:** Métrica primária verificada em CI: em 20 turnos seedados percorrendo o ciclo completo, **100%** completam `confirmado → finalizado → Pix enviado` com o fake em modo `success` (PDR-017 — fake confirma em ~30s ou conforme SLA configurado). Resultado anexado à estória. **Métrica de promessa pública "Pix em ≤ 15 min"** é demonstrada como simulação: SLA do fake é configurável (default ~30s, máximo 15min para fins de teste de promessa); em 20 turnos seedados com SLA 15min, 100% confirmam dentro da janela. Resultado anexado.
+- [x] **CA-8:** Fila operacional do admin tem aba "Pix com falha" — lista paginada de turnos com `pix.falhou`, ordenado por timestamp desc; admin pode marcar "Resolvido manualmente" com nota (audit log). **Cenário exercitado em homolog** com fake configurado para falhar.
+- [x] **CA-9:** Em cancelamento (STORY-066) ou caminho onde turno não chega a `finalizado`, captura **não** é disparada (pré-autorização é liberada em vez disso).
+- [x] **CA-10:** Cobertura ≥ 98% no núcleo (listener + parsing de webhook + lógica de fallback do alerta); ≥ 80% no resto.
 
 ## Fora de escopo
 
@@ -79,11 +79,11 @@ NÃO decide: 1 tentativa de Pix (PDR-010); que webhook é fonte de verdade (ADR-
 
 ## Definição de Pronto
 
-- [ ] CAs marcados; deploy verificado.
-- [ ] Alexandro testa em homolog (1 turno completo: captura + Pix visíveis no painel sandbox Pagar.me).
-- [ ] 20 turnos seedados com ≥ 95% em ≤ 15 min.
-- [ ] `index.json` atualizado.
-- [ ] "Notas do agente" preenchida.
+- [x] CAs marcados; deploy verificado.
+- [x] Alexandro testa em homolog (1 turno completo: captura + Pix visíveis no painel sandbox Pagar.me).
+- [x] 20 turnos seedados com ≥ 95% em ≤ 15 min.
+- [x] `index.json` atualizado.
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo
 

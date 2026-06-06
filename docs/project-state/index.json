@@ -2121,7 +2121,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-065-pix-enviado-e-fila-falhas",
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-opus-4-8-2026-06-06",
       "sprint_id": "SPRINT-2026-W28",
       "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-065-captura-pagarme-pix-sandbox-alerta-falha.md",
@@ -3867,7 +3867,7 @@
         "id": "SCREEN-STORY-065-pix-enviado-e-fila-falhas",
         "story": "STORY-065",
         "epic": "EPIC-003",
-        "status": "in_implementation",
+        "status": "shipped",
         "path": "design/screens/SCREEN-STORY-065-pix-enviado-e-fila-falhas.md",
         "viewports": [
           "mobile",
@@ -3935,5 +3935,5 @@
       "note": "Inventário GCP homolog pós-rc.68 com previsão de custos (~$20–29/mês). Substitui gcp-inventory-2026-05-28.md (worker GCE→Cloud Run Job, fake de pagamento PDR-017). Alavanca de economia nº 1: alinhar scheduler do worker à janela do SQL."
     }
   ],
-  "next_action": "STORY-056 DONE em 2026-06-04 (rc.68): ADR-016 accepted (revisada pós-PDR-017 e aprovada pelo Alexandro); ADR-005 anotada (accepted mantido); make setup verificado ponta-a-ponta (achado corrigido: fake stateless não ecoava external_reference em capture/cancel → eventos de domínio não emitidos; fix com estado mínimo); fake deployado em homolog (Cloud Run turni-pagarme-mock-homolog via Terraform + matrix do release.yml) e ciclo pré-auth→captura→Pix→webhook verificado no Cloud Logging (PreAutorizacaoCriada/CapturaConfirmada/PixEnviado correlacionados). STORY-056-B abandonada (PDR-017). Caminho crítico: STORY-058 (aceite + pré-autorização, consome GatewayPagamento::preAutorizar via fake). Ortogonais prontas para iniciar: STORY-075 (banner homolog) e STORY-073 (schedule:run)."
+  "next_action": "STORY-065 DONE em 2026-06-06 (rc.78): ciclo financeiro pós-turno vivo em homolog (captura + Pix via fake, 'Pix enviado em HH:MM' no card do profissional, fila 'Pix com falha' no Backoffice com resolução auditada); IDR-028 (chave Pix do snapshot com segredo compartilhado api+admin) accepted; métrica CA-7 20/20 ≤ 15min. Próximas da W28: STORY-066 (cancelamento/no-show → liberar pré-auth), STORY-067 (notificações), STORY-075 (banner global homolog), STORY-068 (validação final do épico)."
 }
