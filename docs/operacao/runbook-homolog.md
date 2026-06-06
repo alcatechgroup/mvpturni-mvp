@@ -354,6 +354,56 @@ gcloud logging read \
 
 ---
 
+## Scheduler do Laravel (Cloud Run Job — STORY-073)
+
+O Scheduler do Laravel (`php artisan schedule:run`) roda como um **segundo Cloud Run
+Job** (`turni-scheduler-job-homolog`), disparado por um **Cloud Scheduler** próprio
+(`turni-scheduler-scheduler-homolog`, cron `* * * * *`, BRT). É **separado do worker
+da fila de propósito**: kill-switch independente — pausar a fila não desliga o cron e
+vice-versa. Cada tick avalia os `Schedule::command(...)` de `apps/api/routes/console.php`
+e executa o que estiver "due" no minuto (auto-retirada pós-edição PDR-009, lembretes de
+cadastro 09:00 BRT, sweeper de e-mail, detecção de no-show). Mesma fiação do worker
+(módulo `infra/modules/worker-job` parametrizado; `release.yml` atualiza a imagem a
+cada release; mesma imagem da api).
+
+**Verificar que está rodando:**
+
+```bash
+P=turni-mvp; R=southamerica-east1
+
+# Execuções do tick (deve haver ~1/min, estado Succeeded)
+gcloud run jobs executions list --job=turni-scheduler-job-homolog --region=$R --project=$P
+
+# Logs (JSON em stderr): comandos disparados nos últimos 60 min
+gcloud logging read \
+  'resource.type="cloud_run_job" AND resource.labels.job_name="turni-scheduler-job-homolog"' \
+  --project=$P --freshness=1h --limit=100 --format=json | jq -r '.[] | .textPayload // .jsonPayload.message'
+
+# Rodar manualmente (debug — não espera o tick)
+gcloud run jobs execute turni-scheduler-job-homolog --region=$R --project=$P --wait
+```
+
+> 🔴 **Kill-switch (pausar o cron em emergência):**
+> ```bash
+> gcloud scheduler jobs pause turni-scheduler-scheduler-homolog --location=$R --project=$P
+> # retomar:
+> gcloud scheduler jobs resume turni-scheduler-scheduler-homolog --location=$R --project=$P
+> ```
+> Pausar interrompe novos ticks; o tick em andamento termina o que está executando.
+> Agendamentos perdidos durante a pausa **não são reexecutados** retroativamente
+> (`dailyAt` perdido só roda no dia seguinte; `everyMinute` retoma no próximo tick).
+
+> ⚠️ **Cloud SQL desligado** (seg–sex 22h BRT / fim de semana): os ticks falham até o
+> banco voltar — mesmo comportamento e mesma janela de economia do worker. Sem efeito
+> colateral: o tick seguinte ao religamento processa normalmente.
+
+> 🏭 **Produção:** o espelho exato existe em `infra/envs/prod/main.tf`
+> (`module "scheduler_job"` → `turni-scheduler-job-prod`), **gated** como todo o
+> ambiente prod — só entra com a aprovação manual do go-live (EPIC-006); nomes dos
+> comandos acima trocam `homolog` por `prod`.
+
+---
+
 ## E-mail transacional — verificação do remetente (STORY-021 CA-3)
 
 Remetente: `no-reply@mail.homolog.turni.com.br` (Resend — ADR-011). SPF/DKIM/DMARC

@@ -25,18 +25,18 @@ Schedule::command('candidaturas:auto-retirar-apos-edicao')
 
 // Sweeper/backfill do e-mail das notificações (STORY-053 CA-5). REDE DE SEGURANÇA, não o caminho
 // primário: a entrega real é EnviarEmailDaNotificacaoJob na fila `database`, processada pelo
-// `queue:work` que roda em homolog/prod (`schedule:run` NÃO roda lá — por isso a fila, não o
-// Schedule). Este agendamento só tem efeito onde houver `schedule:run`; mantido para reprocessar
-// pendências (ex.: jobs perdidos) quando/se isso existir.
+// `queue:work` (Cloud Run Job dedicado — por isso a fila, não o Schedule). Desde a STORY-073 o
+// `schedule:run` roda em homolog/prod (Cloud Run Job `turni-scheduler-job-<env>` + Cloud
+// Scheduler 1/min), então este sweeper reprocessa pendências (ex.: jobs perdidos) de verdade.
 Schedule::command('notificacoes:enviar-emails')
     ->everyMinute()
     ->withoutOverlapping();
 
 // Detecção de no-show (STORY-066 CA-5): turnos `confirmado`/`aguardando_checkin` sem
 // check-in até X horas após o início previsto (X = config turno.no_show_horas — 2h,
-// decisão do PO 2026-06-06) viram `no_show_pro` e liberam a pré-autorização. everyMinute
-// no worker da STORY-034; idempotente (`no_show_pro` é terminal), withoutOverlapping é
-// higiene. ATENÇÃO: depende do `schedule:run` plumbado em homolog/prod (STORY-073).
+// decisão do PO 2026-06-06) viram `no_show_pro` e liberam a pré-autorização. everyMinute;
+// idempotente (`no_show_pro` é terminal), withoutOverlapping é higiene. Dispara via
+// `schedule:run` plumbado em homolog/prod pela STORY-073.
 Schedule::command('turnos:detectar-no-show')
     ->everyMinute()
     ->withoutOverlapping();

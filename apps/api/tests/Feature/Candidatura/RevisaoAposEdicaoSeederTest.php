@@ -10,8 +10,10 @@
 
 use App\Enums\CandidaturaEstado;
 use App\Enums\VagaEstado;
+use App\Events\VagaEditadaMaterialmente;
 use App\Models\AuditLog;
 use App\Models\Candidatura;
+use App\Models\User;
 use App\Models\Vaga;
 use Database\Seeders\AdminUserSeeder;
 use Database\Seeders\FuncaoSeeder;
@@ -29,7 +31,7 @@ function vagaStory073(): ?Vaga
 
 beforeEach(function () {
     // O e-mail/notificação da edição material é caminho da STORY-053, não deste seeder.
-    Event::fake([\App\Events\VagaEditadaMaterialmente::class]);
+    Event::fake([VagaEditadaMaterialmente::class]);
     $this->seed(FuncaoSeeder::class);
     $this->seed(AdminUserSeeder::class);
 });
@@ -59,7 +61,7 @@ test('seed cria candidatura em pendente_revisao_apos_edicao com prazo real curto
 // (b) pré-requisito ausente — sem usuários/funções de seed, não cria nada e não lança.
 test('seed sem contratante.teste é no-op silencioso', function () {
     Vaga::query()->delete();
-    \App\Models\User::query()->delete();
+    User::query()->delete();
 
     $this->seed(RevisaoAposEdicaoSeeder::class);
 
@@ -96,7 +98,7 @@ test('seed é idempotente — rodar de novo não duplica', function () {
     $vaga = vagaStory073();
     expect(Vaga::where('observacoes', RevisaoAposEdicaoSeeder::MARCADOR)->count())->toBe(1)
         ->and(Candidatura::where('vaga_id', $vaga->id)->count())->toBe(1)
-        ->and(\App\Models\User::where('email', RevisaoAposEdicaoSeeder::EMAIL_CANDIDATO)->count())->toBe(1);
+        ->and(User::where('email', RevisaoAposEdicaoSeeder::EMAIL_CANDIDATO)->count())->toBe(1);
 });
 
 // (d) borda/integração — a candidatura seedada é ELEGÍVEL para o cron (CA-5): passado o
