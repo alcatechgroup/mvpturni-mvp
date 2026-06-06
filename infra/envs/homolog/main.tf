@@ -327,6 +327,23 @@ resource "google_cloud_run_v2_service" "pagarme_mock" {
         value = "https://turni-api-homolog-dnj2tcr2xa-rj.a.run.app/api/webhooks/pagarme"
       }
       env {
+        # STORY-065 (CA-5) — cenário do Pix: `sucesso` | `falha` (webhook transfer.failed
+        # determinístico p/ exercitar a fila "Pix com falha" do admin em homolog).
+        name  = "PAGARME_MOCK_PIX_RESULTADO"
+        value = var.pagarme_mock_pix_resultado
+      }
+      env {
+        # STORY-065 (CA-7 / PDR-017) — SLA do webhook do Pix (~30s simula a promessa
+        # "Pix em ≤ 15 min"; a resposta HTTP não espera). Exige CPU always-allocated.
+        name  = "PAGARME_MOCK_PIX_SLA_SEGUNDOS"
+        value = tostring(var.pagarme_mock_pix_sla_segundos)
+      }
+      env {
+        # O sleep do SLA segura um worker do php -S; 8 workers mantêm o fake atendendo.
+        name  = "PHP_CLI_SERVER_WORKERS"
+        value = "8"
+      }
+      env {
         name = "PAGARME_SECRET_KEY"
         value_source {
           secret_key_ref {
@@ -350,6 +367,9 @@ resource "google_cloud_run_v2_service" "pagarme_mock" {
           cpu    = "1"
           memory = "512Mi" # < 512Mi não é aceito pelo Cloud Run v2 com CPU always-allocated
         }
+        # STORY-065 — o webhook do Pix é emitido APÓS a resposta (SLA configurável); com
+        # CPU throttled o processo congela ao fechar a conexão e o webhook nunca sai.
+        cpu_idle = false
       }
 
       liveness_probe {

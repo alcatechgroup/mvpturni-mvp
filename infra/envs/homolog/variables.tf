@@ -67,6 +67,23 @@ variable "pagarme_mock_image" {
   default     = "southamerica-east1-docker.pkg.dev/PROJECT_ID/turni/pagarme-mock:latest"
 }
 
+variable "pagarme_mock_pix_resultado" {
+  description = "STORY-065 (CA-5) — cenário do Pix no fake: `sucesso` | `falha` (falha emite webhook transfer.failed determinístico p/ validar a fila 'Pix com falha' do admin em homolog)"
+  type        = string
+  default     = "sucesso"
+
+  validation {
+    condition     = contains(["sucesso", "falha"], var.pagarme_mock_pix_resultado)
+    error_message = "pagarme_mock_pix_resultado deve ser `sucesso` ou `falha`."
+  }
+}
+
+variable "pagarme_mock_pix_sla_segundos" {
+  description = "STORY-065 (CA-7 / PDR-017) — atraso do webhook do Pix no fake, em segundos (~30 simula a promessa 'Pix em ≤ 15 min' sem segurar a resposta HTTP)"
+  type        = number
+  default     = 30
+}
+
 variable "pagarme_secret_key" {
   description = "Bearer do fake de pagamento (contract.md §auth) — compartilhado entre fake e api/worker. SEGREDO — gerar valor aleatório; nunca em git versionado."
   type        = string

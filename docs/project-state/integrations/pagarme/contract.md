@@ -37,8 +37,13 @@ resp: { "id": "ch_…", "status": "canceled" }
 ### 4. Pix ao profissional — `POST /transfers`
 ```
 req:  { "amount": 10000, "pix_key": "<chave — SENSÍVEL, nunca logada>", "external_reference": "<turno_uuid>" }
-resp: { "id": "tr_…", "status": "paid", "external_reference": "<turno_uuid>" }
+resp: { "id": "tr_…", "status": "processing", "external_reference": "<turno_uuid>" }
 ```
+> **STORY-065:** a resposta síncrona é `processing` — a confirmação (ou falha) É o webhook
+> (`transfer.paid` / `transfer.failed`), fonte de verdade do estado (CA-6). O fake atrasa o
+> webhook do Pix conforme `PAGARME_MOCK_PIX_SLA_SEGUNDOS` (default 0; homolog ~30s — PDR-017
+> simula a promessa "Pix em ≤ 15 min") e força falha determinística com
+> `PAGARME_MOCK_PIX_RESULTADO=falha` (`transfer.failed` com `reason`+`message` no `data`).
 
 ## Webhook entrante — `POST /api/webhooks/pagarme`
 - **Assinatura:** header `X-Pagarme-Signature` = `HMAC-SHA256(corpo_bruto, PAGARME_WEBHOOK_SECRET)`; inválida → **401**.

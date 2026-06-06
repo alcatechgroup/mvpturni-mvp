@@ -87,23 +87,75 @@ if ($method === 'POST' && preg_match('#^/charges/([^/]+)/cancel$#', $path, $m)) 
 }
 
 // POST /transfers — Pix ao profissional. A chave Pix chega no body mas NÃO é ecoada no webhook.
+//
+// STORY-065 (CA-5, CA-7) — dois knobs de configuração:
+//  - PAGARME_MOCK_PIX_RESULTADO = sucesso (default) | falha → `falha` emite
+//    `transfer.failed` com razão Pagar.me-compatível (reason+message), tornando o caminho
+//    de falha DETERMINÍSTICO em homolog (PDR-010: alerta na fila do admin);
+//  - PAGARME_MOCK_PIX_SLA_SEGUNDOS (default 0) → atraso do webhook do Pix, simulando a
+//    promessa pública "Pix em ≤ 15 min" (PDR-017: ~30s em homolog). A resposta HTTP sai
+//    ANTES do atraso (o adapter não espera) — a conexão é fechada e o worker do PHP segue
+//    para emitir; em Cloud Run isso exige CPU always-allocated (cpu_idle=false na infra).
 if ($method === 'POST' && $path === '/transfers') {
     $transferId = 'tr_'.bin2hex(random_bytes(8));
     $externalRef = (string) ($body['external_reference'] ?? '');
+    $amount = $body['amount'] ?? null;
 
-    emitirWebhook('transfer.paid', $externalRef, ['transfer_id' => $transferId, 'amount' => $body['amount'] ?? null]);
+    $pixFalha = getenv('PAGARME_MOCK_PIX_RESULTADO') === 'falha';
+    $slaSegundos = max(0, (int) (getenv('PAGARME_MOCK_PIX_SLA_SEGUNDOS') ?: 0));
 
-    responder(200, ['id' => $transferId, 'status' => 'paid', 'external_reference' => $externalRef]);
+    $webhook = $pixFalha
+        ? fn () => emitirWebhook('transfer.failed', $externalRef, [
+            'transfer_id' => $transferId,
+            'amount' => $amount,
+            'reason' => 'invalid_pix_key',
+            'message' => 'chave não encontrada na instituição de destino (cenário forçado — PAGARME_MOCK_PIX_RESULTADO=falha)',
+        ])
+        : fn () => emitirWebhook('transfer.paid', $externalRef, ['transfer_id' => $transferId, 'amount' => $amount]);
+
+    // Resposta síncrona: `processing` espelha o provedor real (a confirmação É o webhook —
+    // CA-6 fonte de verdade). Sucesso aparente também no cenário de falha: é exatamente o
+    // caso "webhook reporta falha após sucesso aparente" que a estória manda cobrir.
+    responder(200, ['id' => $transferId, 'status' => 'processing', 'external_reference' => $externalRef],
+        aposResposta: function () use ($webhook, $slaSegundos) {
+            if ($slaSegundos > 0) {
+                sleep($slaSegundos);
+            }
+            $webhook();
+        });
 }
 
 responder(404, ['mock' => true, 'erro' => 'rota não simulada', 'path' => $path]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-function responder(int $status, array $payload): never
+/**
+ * Responde e encerra. Com `$aposResposta`, FECHA a conexão primeiro (Content-Length +
+ * Connection: close + flush) e só então executa o trabalho atrasado — o chamador (adapter
+ * da ACL) nunca espera o SLA do webhook. Um worker do `php -S` fica ocupado durante o
+ * sleep; PHP_CLI_SERVER_WORKERS cobre o paralelismo (mesmo padrão do `api`).
+ */
+function responder(int $status, array $payload, ?callable $aposResposta = null): never
 {
+    $corpo = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+    if ($aposResposta === null) {
+        http_response_code($status);
+        echo $corpo;
+        exit;
+    }
+
+    ignore_user_abort(true);
     http_response_code($status);
-    echo json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    header('Content-Length: '.strlen($corpo));
+    header('Connection: close');
+    echo $corpo;
+    if (ob_get_level() > 0) {
+        ob_end_flush();
+    }
+    flush();
+
+    $aposResposta();
     exit;
 }
 

@@ -98,6 +98,14 @@ services:
       # pela rede interna do compose (porta interna 8000).
       PAGARME_WEBHOOK_SECRET: "${PAGARME_WEBHOOK_SECRET:-whsec_mock}"
       PAGARME_WEBHOOK_TARGET: "http://api:8000/api/webhooks/pagarme"
+      # STORY-065 — knobs do fake: cenário do Pix (sucesso|falha → webhook transfer.failed
+      # determinístico) e SLA do webhook do Pix em segundos (0 = imediato; homolog usa ~30s
+      # para simular a promessa "Pix em ≤ 15 min" — PDR-017).
+      PAGARME_MOCK_PIX_RESULTADO: "${PAGARME_MOCK_PIX_RESULTADO:-sucesso}"
+      PAGARME_MOCK_PIX_SLA_SEGUNDOS: "${PAGARME_MOCK_PIX_SLA_SEGUNDOS:-0}"
+      # sleep do SLA segura um worker do php -S; com 8 workers o fake segue atendendo
+      # (mesmo padrão do serviço `api` — descoberta da STORY-056).
+      PHP_CLI_SERVER_WORKERS: "8"
     ports:
       - "${PAGARME_MOCK_PORT:-8090}:8080"
 
