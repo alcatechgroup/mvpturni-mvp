@@ -1,4 +1,7 @@
-{{-- STORY-065 (CA-5, CA-8) — fila "Pix com falha" (SCREEN-065 §B). Microcopy = spec §5. --}}
+{{-- STORY-065 (CA-5, CA-8) — fila de falhas (SCREEN-065 §B). Microcopy = spec §5.
+     STORY-066 (CA-4, SCREEN-066 §B) generalizou para "Falhas de pagamento": casos de
+     liberação de pré-autorização entram na MESMA fila, distinguidos por `tipo`
+     (rename validado pelo PO 2026-06-06; rota e testids preservados). --}}
 
 <div data-testid="screen-pix-falhas"
      x-data="{ toast: null, type: 'success', t: null,
@@ -9,12 +12,12 @@
     <div class="narrow-warn">Backoffice é desktop-first (≥1024px). Alargue a janela para ver o shell completo.</div>
 
     <div class="crumb">Backoffice · Admin</div>
-    <h1 class="main-h">Pix com falha</h1>
+    <h1 class="main-h">Falhas de pagamento</h1>
     <p class="main-d" data-testid="pixfalhas-subtitle">
         @if ($this->pendentesCount > 0)
-            {{ $this->pendentesCount }} {{ $this->pendentesCount === 1 ? 'transferência aguardando' : 'transferências aguardando' }} tratamento manual
+            {{ $this->pendentesCount }} {{ $this->pendentesCount === 1 ? 'caso aguardando' : 'casos aguardando' }} tratamento manual
         @else
-            Nenhuma transferência aguardando tratamento
+            Nenhum caso aguardando tratamento
         @endif
     </p>
 
@@ -43,8 +46,8 @@
             @else
                 <div class="empty" data-testid="pixfalhas-empty">
                     <div class="mark">✓</div>
-                    <h4>Nenhum Pix com falha</h4>
-                    <p>Falhas de transferência aparecem aqui assim que o gateway reportar. Por enquanto, tudo certo.</p>
+                    <h4>Nenhuma falha de pagamento</h4>
+                    <p>Falhas de transferência e de liberação aparecem aqui assim que o gateway reportar. Por enquanto, tudo certo.</p>
                 </div>
             @endif
         @else
@@ -68,9 +71,9 @@
                                         <span class="ic" aria-hidden="true"></span>Resolvido manualmente
                                     </span>
                                 @else
-                                    {{-- Badge vermelho + microcopy fixados pelo CA-5 --}}
+                                    {{-- Badge vermelho + microcopy fixados pelo CA-5/066 (por tipo) --}}
                                     <span class="chip sla-late" data-testid="pixfalhas-item-{{ $caso->turno_id }}-badge" style="margin-bottom:7px">
-                                        <span class="ic" aria-hidden="true"></span>Pix falhou — tratamento manual
+                                        <span class="ic" aria-hidden="true"></span>{{ $caso->tipo === 'liberacao' ? 'Liberação falhou — tratamento manual' : 'Pix falhou — tratamento manual' }}
                                     </span>
                                 @endif
                                 <div class="cell-name">{{ $caso->funcao ?? 'Turno' }}{{ $caso->estabelecimento ? ' · '.$caso->estabelecimento : '' }}</div>
@@ -80,7 +83,10 @@
                                 {{ $caso->valor !== null ? 'R$ '.number_format((float) $caso->valor, 2, ',', '.') : '—' }}
                             </td>
                             <td>
-                                @if ($caso->chave_pix)
+                                @if ($caso->tipo === 'liberacao')
+                                    {{-- Liberação não tem chave Pix — o tratamento é no gateway (SCREEN-066 §B.2) --}}
+                                    <span data-testid="pixfalhas-item-{{ $caso->turno_id }}-chave">—</span>
+                                @elseif ($caso->chave_pix)
                                     <span style="font-family:var(--m);font-size:12.5px;white-space:nowrap;display:inline-flex;align-items:center;gap:8px"
                                           data-testid="pixfalhas-item-{{ $caso->turno_id }}-chave">
                                         {{ $caso->chave_pix }}
@@ -133,7 +139,11 @@
                 <p>Confirme apenas depois de tratar a transferência fora da plataforma. O caso sai da fila e fica registrado no histórico de auditoria.</p>
                 <div style="background:var(--sunken);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13.5px;margin-bottom:14px">
                     {{ $caso->funcao }}{{ $caso->estabelecimento ? ' · '.$caso->estabelecimento : '' }} — R$ {{ number_format((float) $caso->valor, 2, ',', '.') }}
-                    <div class="cell-sub" style="font-family:var(--m)">{{ $caso->profissional_nome }}{{ $caso->chave_pix ? ' · '.$caso->chave_pix : '' }}</div>
+                    @if ($caso->tipo === 'liberacao')
+                        <div class="cell-sub" style="font-family:var(--m)">{{ $caso->profissional_nome }} · liberação de pré-autorização</div>
+                    @else
+                        <div class="cell-sub" style="font-family:var(--m)">{{ $caso->profissional_nome }}{{ $caso->chave_pix ? ' · '.$caso->chave_pix : '' }}</div>
+                    @endif
                 </div>
                 <label for="pixfalhas-nota" style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">O que foi feito (obrigatório)</label>
                 <textarea id="pixfalhas-nota" wire:model="nota" maxlength="500" rows="3"

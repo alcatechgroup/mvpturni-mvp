@@ -21,7 +21,7 @@ class PixFalha extends Model
     protected $table = 'pix_falhas';
 
     protected $fillable = [
-        'turno_id', 'profissional_nome', 'funcao', 'estabelecimento', 'valor',
+        'turno_id', 'tipo', 'profissional_nome', 'funcao', 'estabelecimento', 'valor',
         'chave_pix', 'razao', 'payload_gateway', 'falhou_em',
         'resolvido_em', 'resolvido_por', 'nota_resolucao',
     ];

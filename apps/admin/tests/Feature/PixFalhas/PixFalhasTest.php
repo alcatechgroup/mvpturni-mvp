@@ -26,7 +26,7 @@ function casoPixFalha(array $attrs = []): PixFalha
 
 test('rota /pix-falhas responde 200 para admin autenticado', function () {
     $admin = User::factory()->admin()->create();
-    $this->actingAs($admin)->get('/pix-falhas')->assertOk()->assertSee('Pix com falha');
+    $this->actingAs($admin)->get('/pix-falhas')->assertOk()->assertSee('Falhas de pagamento');
 });
 
 test('rota /pix-falhas redireciona não-autenticado para /login', function () {
@@ -182,7 +182,7 @@ test('fila zerada mostra estado vazio positivo', function () {
     $admin = User::factory()->admin()->create();
 
     Livewire::actingAs($admin)->test(PixFalhas::class)
-        ->assertSee('Nenhum Pix com falha')
+        ->assertSee('Nenhuma falha de pagamento')
         ->assertSee('Por enquanto, tudo certo');
 });
 
@@ -220,4 +220,52 @@ test('sidebar mostra contador de pendentes quando há casos', function () {
     $this->actingAs($admin)->get('/pix-falhas')
         ->assertSee('data-testid="nav-pix-falhas-count"', false)
         ->assertSee('>2<', false);
+});
+
+// ──────────────────────────────────────────────────────────────
+// STORY-066 (CA-4, SCREEN-066 §B) — fila generalizada: casos de liberação
+// ──────────────────────────────────────────────────────────────
+
+test('caso de liberação aparece com badge próprio, chave "—" e valor total (CA-4)', function () {
+    $admin = User::factory()->admin()->create();
+    casoPixFalha([
+        'tipo' => 'liberacao',
+        'chave_pix' => null,
+        'valor' => 276.00,
+        'razao' => 'release_failed — pré-autorização não encontrada no gateway',
+    ]);
+
+    Livewire::actingAs($admin)->test(PixFalhas::class)
+        ->assertSee('Liberação falhou — tratamento manual')
+        ->assertDontSee('Pix falhou — tratamento manual')
+        ->assertDontSee('chave não cadastrada no perfil') // liberação mostra "—", não o aviso de chave
+        ->assertSee('R$ 276,00')
+        ->assertSee('release_failed');
+});
+
+test('fila mista: caso Pix e caso liberação convivem, cada um com seu badge', function () {
+    $admin = User::factory()->admin()->create();
+    casoPixFalha(['profissional_nome' => 'Diego Reis']); // tipo pix (factory)
+    casoPixFalha(['tipo' => 'liberacao', 'chave_pix' => null, 'profissional_nome' => 'Pedro Alves']);
+
+    Livewire::actingAs($admin)->test(PixFalhas::class)
+        ->assertSee('Pix falhou — tratamento manual')
+        ->assertSee('Liberação falhou — tratamento manual')
+        ->assertSee('Diego Reis')
+        ->assertSee('Pedro Alves');
+});
+
+test('resolução de caso de liberação: dialog mostra "liberação de pré-autorização" e fecha com nota', function () {
+    $admin = User::factory()->admin()->create();
+    $caso = casoPixFalha(['tipo' => 'liberacao', 'chave_pix' => null, 'profissional_nome' => 'Pedro Alves']);
+
+    Livewire::actingAs($admin)->test(PixFalhas::class)
+        ->call('abrirResolucao', $caso->id)
+        ->assertSee('liberação de pré-autorização')
+        ->set('nota', 'Pré-autorização cancelada manualmente no painel do gateway.')
+        ->call('confirmarResolucao')
+        ->assertSet('resolvendoId', null);
+
+    expect($caso->fresh()->resolvido_em)->not->toBeNull()
+        ->and($caso->fresh()->tipo)->toBe('liberacao');
 });

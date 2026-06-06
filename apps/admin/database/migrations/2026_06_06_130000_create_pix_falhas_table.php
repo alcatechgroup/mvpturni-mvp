@@ -29,6 +29,10 @@ return new class extends Migration
             // Chave Pix cifrada com segredo compartilhado api+admin (IDR-028).
             $table->text('chave_pix')->nullable();
 
+            // STORY-066 (CA-4) — fila generalizada "Falhas de pagamento": 'pix' | 'liberacao'
+            // (réplica de teste já nasce com a coluna; a canônica ganhou em migração própria).
+            $table->text('tipo')->default('pix');
+
             $table->text('razao');
             $table->jsonb('payload_gateway')->nullable();
             $table->timestampTz('falhou_em');

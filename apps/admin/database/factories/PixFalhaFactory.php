@@ -18,6 +18,7 @@ class PixFalhaFactory extends Factory
     {
         return [
             'turno_id' => (string) Str::uuid7(),
+            'tipo' => 'pix',
             'profissional_nome' => fake()->name(),
             'funcao' => 'Garçom',
             'estabelecimento' => 'Bar do Zé',

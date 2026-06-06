@@ -222,11 +222,12 @@
             <a href="{{ route('aprovacoes') }}" class="sb-item {{ request()->routeIs('aprovacoes') ? 'active' : '' }}" wire:navigate data-testid="nav-aprovacoes">
                 <span class="ic"></span> Cadastros pendentes
             </a>
-            {{-- STORY-065 (SCREEN-065 §B.2) — fila de Pix com falha; contador VERMELHO
-                 quando há dinheiro parado (PDR-010: tratamento manual é o único caminho). --}}
+            {{-- STORY-065 (SCREEN-065 §B.2) — fila de falhas; contador VERMELHO quando há
+                 dinheiro parado (PDR-010: tratamento manual é o único caminho).
+                 STORY-066 (SCREEN-066 §B.1) generalizou: Pix + liberação de pré-autorização. --}}
             @php($pixFalhasPendentes = \App\Models\PixFalha::pendentes()->count())
             <a href="{{ route('pix-falhas') }}" class="sb-item {{ request()->routeIs('pix-falhas') ? 'active' : '' }}" wire:navigate data-testid="nav-pix-falhas">
-                <span class="ic"></span> Pix com falha
+                <span class="ic"></span> Falhas de pagamento
                 @if ($pixFalhasPendentes > 0)
                     <span class="sb-count" style="background:var(--error);color:#fff" data-testid="nav-pix-falhas-count">{{ $pixFalhasPendentes }}</span>
                 @endif
