@@ -2137,6 +2137,29 @@
       "created_at": "2026-06-03",
       "updated_at": "2026-06-06",
       "note": "requires_design era false; Alexandro pediu fluxo designer→programador em 2026-06-06 (spec leve: linha de status do Pix no card de valor + fila 'Pix com falha' no admin)."
+    },
+    {
+      "id": "STORY-066",
+      "epic_id": "EPIC-003",
+      "title": "Cancelamento antes do check-in + no_show_pro + liberação da pré-autorização",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-066-cancelamento",
+      "status": "in_progress",
+      "owner_agent": "claude-opus-4-8-2026-06-06",
+      "sprint_id": "SPRINT-2026-W28",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-066-cancelamento-no-show-liberacao-preauth.md",
+      "blocked_by": [
+        "STORY-058",
+        "STORY-056",
+        "STORY-060"
+      ],
+      "blocks": [],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-03",
+      "updated_at": "2026-06-06"
     }
   ],
   "sprints": [
@@ -3893,6 +3916,41 @@
           "toast",
           "empty-state",
           "skeleton"
+        ],
+        "owner_designer": "claude-opus-4-8",
+        "created_at": "2026-06-06",
+        "updated_at": "2026-06-06"
+      },
+      {
+        "id": "SCREEN-STORY-066-cancelamento",
+        "story": "STORY-066",
+        "epic": "EPIC-003",
+        "status": "ready",
+        "path": "design/screens/SCREEN-STORY-066-cancelamento.md",
+        "viewports": [
+          "mobile",
+          "desktop"
+        ],
+        "related_ddrs": [
+          "DDR-001",
+          "DDR-002"
+        ],
+        "related_idrs": [],
+        "ds_components_used": [
+          "surface.card",
+          "badge.status",
+          "timeline.event",
+          "dialog.confirm",
+          "button.text",
+          "snackbar",
+          "banner",
+          "sidebar.admin",
+          "panel",
+          "data-table",
+          "chip",
+          "btn.outline",
+          "dialog-confirm",
+          "toast"
         ],
         "owner_designer": "claude-opus-4-8",
         "created_at": "2026-06-06",

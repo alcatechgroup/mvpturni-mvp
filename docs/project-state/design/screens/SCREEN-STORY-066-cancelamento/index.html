@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<!--
+  PROTÓTIPO DE VALIDAÇÃO — NÃO É CÓDIGO DE PRODUÇÃO.
+  SCREEN-STORY-066 — Cancelar turno (detalhe) + estados terminais + fila de falhas generalizada.
+  HTML/CSS/JS vanilla, sem rede, sem build. Abra clicando no arquivo.
+  Tokens reais (DDR-001: profissional verde-sage / contratante mostarda / admin navy).
+  Locale pt-BR / 24h (DDR-002). Microcopy = §5 do spec, palavra por palavra. data-testid = §7.
+  WebApp: dialog de cancelamento funcional (motivo opcional; confirmar simula ~1s de chamada
+  e cai no estado terminal com snackbar). Chips "simular erro de rede" / "simular 422"
+  armam o PRÓXIMO confirmar. Backoffice: fila da 065 generalizada (caso Pix + caso Liberação).
+-->
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCREEN-STORY-066 — Cancelar turno + fila de falhas</title>
+<style>
+  :root{
+    --b:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --m:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-full:999px;
+    --s-xs:4px; --s-sm:8px; --s-md:16px; --s-lg:24px; --s-xl:32px;
+    --page:#F7F4EC; --surface:#FFFFFF;
+    --border-subtle:#E0DDD3; --border-strong:#C8C5BB;
+    --text-strong:#0F1B2D; --text-muted:#42504A;
+    --brand:#00A868;
+    --error:#B83A3A; --error-soft:#FBE2E2;
+    --warn-ink:#6E4E12; --warn-soft:#FBEED1; --warn-border:#DCB96A;
+    --success:#2D7A4F; --success-soft:#E2F0E5; --success-border:#9cc7ad;
+  }
+  body.papel-profissional { --accent:#2D5F3F; --accent-ink:#2D5F3F; --on-accent:#FFFFFF; }
+  body.papel-contratante  { --accent:#9A6E25; --accent-ink:#6E4E12; --on-accent:#FFFFFF; }
+  /* Backoffice admin navy — claro/escuro */
+  [data-theme="light"]{
+    --bo-page:#F7F4EC; --bo-surface:#FFFFFF; --bo-sunken:#F0EDE3; --bo-muted-s:#E8E5DB;
+    --bo-border:#E0DDD3; --bo-border-strong:#C8C5BB;
+    --bo-text:#0F1B2D; --bo-text-muted:#42504A; --bo-text-subtle:#6F7C72;
+    --bo-shadow:0 1px 2px rgba(15,27,45,.04),0 8px 24px rgba(15,27,45,.06);
+    --bo-success:#2D7A4F; --bo-success-soft:#E2F0E5;
+    --bo-error:#B83A3A; --bo-error-soft:#FBE2E2;
+    --bo-accent:#2A4D8F; --bo-on-accent:#FFFFFF; --bo-chrome:#15233B; --bo-tint:transparent;
+  }
+  [data-theme="dark"]{
+    --bo-page:#0B1018; --bo-surface:#141B26; --bo-sunken:#1B2433; --bo-muted-s:#26303F;
+    --bo-border:#24324A; --bo-border-strong:#34466A;
+    --bo-text:#ECEDE5; --bo-text-muted:#AFB8C6; --bo-text-subtle:#8893A3;
+    --bo-shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+    --bo-success:#5FA37C; --bo-success-soft:rgba(95,163,124,.16);
+    --bo-error:#D85A5A; --bo-error-soft:rgba(216,90,90,.16);
+    --bo-accent:#5B8DEF; --bo-on-accent:#0E1626; --bo-chrome:#122039;
+    --bo-tint:radial-gradient(900px 500px at 100% 0,rgba(91,141,239,.12),transparent 60%);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--b);background:#EAE6DA;color:var(--text-strong);line-height:1.5;-webkit-font-smoothing:antialiased}
+
+  /* ───────── barra do protótipo ───────── */
+  .proto{position:sticky;top:0;z-index:80;background:#1A2018;color:#ECEDE5;display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 14px;font-size:12px}
+  .proto b{font-family:var(--m);font-size:10px;letter-spacing:1px;text-transform:uppercase;opacity:.7}
+  .proto button{font-family:var(--b);font-size:12px;background:#232b25;color:#d8ded6;border:1px solid #3a4a3f;border-radius:var(--r-full);padding:5px 11px;cursor:pointer}
+  .proto button.on{background:#00A868;color:#fff;border-color:transparent}
+  .proto button.armado{background:#B83A3A;color:#fff;border-color:transparent}
+  .proto .sep{width:1px;height:20px;background:#3a4a3f}
+  .proto .sp{margin-left:auto;font-family:var(--m);font-size:10px;opacity:.6}
+
+  /* ═══════════ SUPERFÍCIE A — WebApp ═══════════ */
+  .wa-stage{display:flex;justify-content:center;padding:28px 16px 60px}
+  .frame{background:var(--page);width:100%;max-width:412px;min-height:760px;border-radius:var(--r-lg);box-shadow:0 8px 30px rgba(0,0,0,.18);overflow:hidden;position:relative;display:flex;flex-direction:column}
+  body.desktop .frame{max-width:980px}
+  .appbar{display:flex;align-items:center;gap:var(--s-sm);padding:10px var(--s-sm) 10px var(--s-xs);background:var(--surface);border-bottom:1px solid var(--border-subtle)}
+  .appbar .back{background:none;border:none;cursor:pointer;font-size:20px;min-width:48px;min-height:48px;border-radius:var(--r-full);display:inline-flex;align-items:center;justify-content:center;color:var(--text-strong)}
+  .appbar .title{font-size:18px;font-weight:700;flex:1}
+  body.desktop .appbar{display:none}
+  .brand{font-family:"Bebas Neue",Impact,"Arial Narrow Bold",sans-serif;color:var(--brand);font-size:30px;letter-spacing:1px;text-align:center;padding:10px 0 0;display:none}
+  body.desktop .brand{display:block}
+  .header-row{display:none}
+  body.desktop .header-row{display:flex;align-items:center;gap:var(--s-sm);margin-bottom:var(--s-md)}
+  body.desktop .header-row .back{background:none;border:none;cursor:pointer;font-size:20px;min-width:44px;min-height:44px;border-radius:var(--r-full)}
+  body.desktop .header-row .title{font-size:22px;font-weight:700;flex:1}
+  .scroll{flex:1;overflow-y:auto;padding:var(--s-md);position:relative}
+  body.desktop .scroll{padding:var(--s-lg) var(--s-xl) 60px}
+  .detalhe-grid{display:flex;flex-direction:column}
+  body.desktop .detalhe-grid{display:grid;grid-template-columns:420px 1fr;gap:var(--s-xl);align-items:start}
+  .card{background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--r-md);padding:var(--s-md);margin-bottom:var(--s-md)}
+  .funcao{font-size:21px;font-weight:700;margin-top:var(--s-sm)}
+  .onde,.quando{color:var(--text-muted);font-size:15px;margin-top:3px}
+  .quem-prof{font-size:15px;margin-top:3px}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:var(--r-full);border:1px solid;white-space:nowrap}
+  .badge.confirmado{background:var(--success-soft);color:#1d5235;border-color:var(--success-border)}
+  .badge.encerrado{background:#F4E9E9;color:#9c5454;border-color:#d8b8b8}
+  .valor-titulo{font-size:13px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-muted)}
+  .valor-destaque{font-size:30px;font-weight:800;margin:6px 0 4px}
+  .valor-nota{font-size:13px;color:var(--text-muted)}
+  .valor-linha{display:flex;justify-content:space-between;font-size:15px;margin-top:10px}
+  .valor-linha .rotulo{color:var(--text-muted)}
+  .valor-linha.total{border-top:1px solid var(--border-subtle);padding-top:10px;margin-top:12px;font-weight:800;font-size:17px}
+  .valor-linha.total .rotulo{color:var(--text-strong)}
+  .aceite-link{display:flex;align-items:center;gap:var(--s-sm);min-height:48px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:600;color:var(--accent-ink);padding:0 var(--s-xs);margin-bottom:var(--s-sm);text-align:left}
+  .aceite-link:hover{text-decoration:underline}
+  .aceite-link .chev{margin-left:auto;color:var(--text-muted)}
+  /* área de ações — card de PIN da 061 (profissional) / placeholder 060 (contratante) */
+  .acoes-pin .t{font-size:15px;font-weight:700}
+  .acoes-pin .s{font-size:13.5px;color:var(--text-muted);margin-top:4px;line-height:1.45;margin-bottom:var(--s-md)}
+  .btn-primary{background:var(--accent);color:var(--on-accent);border:none;cursor:pointer;border-radius:var(--r-full);padding:14px 24px;font-size:16px;font-weight:700;font-family:inherit;min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%}
+  .acoes-placeholder{border-style:dashed;text-align:center;padding:var(--s-lg) var(--s-md)}
+  .acoes-placeholder .t{font-size:15px;font-weight:700}
+  .acoes-placeholder .s{font-size:13.5px;color:var(--text-muted);margin-top:4px;line-height:1.45}
+  /* gatilho de cancelar — button.text destrutivo (§A.3) */
+  .cancelar-trigger{display:flex;align-items:center;justify-content:center;min-height:48px;width:100%;background:none;border:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:600;color:var(--error);margin-bottom:var(--s-sm);text-align:center}
+  .cancelar-trigger:hover{text-decoration:underline}
+  .cancelar-trigger:focus-visible{outline:2px solid var(--error);outline-offset:2px;border-radius:var(--r-sm)}
+  /* timeline */
+  .group-header{font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);margin:var(--s-sm) 2px var(--s-sm)}
+  body.desktop .col-historico .group-header{margin-top:0}
+  .timeline{list-style:none;margin:0;padding:0}
+  .tl-evento{display:flex;gap:12px;position:relative;padding-bottom:var(--s-md)}
+  .tl-rail{display:flex;flex-direction:column;align-items:center;width:14px;flex:0 0 auto}
+  .tl-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);margin-top:5px;flex:0 0 auto}
+  .tl-line{width:2px;flex:1;background:var(--border-strong);margin-top:4px}
+  .tl-evento:last-child .tl-line{display:none}
+  .tl-titulo{font-size:15px;font-weight:700}
+  .tl-desc{font-size:14px;color:var(--text-muted);margin-top:2px;line-height:1.4}
+  .tl-motivo{font-size:14px;color:var(--text-muted);font-style:italic;margin-top:2px}
+  .tl-quando{font-size:13px;color:var(--text-muted);margin-top:3px}
+  /* dialog.confirm (§A.4) */
+  .dlg-scrim{position:absolute;inset:0;background:rgba(15,27,45,.45);z-index:30;display:none;align-items:center;justify-content:center;padding:20px}
+  .dlg{background:var(--surface);border-radius:var(--r-lg);max-width:400px;width:100%;padding:var(--s-lg);box-shadow:0 12px 40px rgba(0,0,0,.25)}
+  .dlg h2{font-size:18px;font-weight:700}
+  .dlg .corpo{font-size:14px;color:var(--text-muted);margin:10px 0 14px;line-height:1.5}
+  .dlg label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+  .dlg textarea{width:100%;min-height:74px;border:1px solid var(--border-strong);border-radius:var(--r-md);padding:10px 12px;font-family:var(--b);font-size:14px;color:var(--text-strong);background:var(--surface);resize:vertical}
+  .dlg textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .dlg .erro{display:none;color:var(--error);font-size:13px;margin-top:10px}
+  .dlg .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  .dlg .btn-voltar{background:none;border:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:600;color:var(--accent-ink);min-height:48px;padding:0 16px;border-radius:var(--r-full)}
+  .dlg .btn-destrutivo{background:var(--error);color:#fff;border:none;cursor:pointer;border-radius:var(--r-full);padding:0 20px;font-size:15px;font-weight:700;font-family:inherit;min-height:48px;display:inline-flex;align-items:center;gap:8px}
+  .dlg .btn-destrutivo:disabled{opacity:.7;cursor:default}
+  .dlg .spin{width:16px;height:16px;border-radius:var(--r-full);border:2px solid rgba(255,255,255,.4);border-top-color:#fff;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion: reduce){.spin{animation:none}}
+  /* snackbar */
+  .snackbar{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:#1A2018;color:#ECEDE5;border-radius:var(--r-md);padding:12px 22px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:40;display:none;white-space:nowrap}
+
+  /* ═══════════ SUPERFÍCIE B — Backoffice (herdado da 065) ═══════════ */
+  .bo{display:none}
+  .bo .shell{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 38px)}
+  .bo .sidebar{background:var(--bo-chrome);color:#ECEDE5;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.08)}
+  .bo .sb-head{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .bo .sb-logo{font-weight:700;letter-spacing:2px;font-size:22px}.bo .sb-logo .i{color:#00A868}
+  .bo .sb-tag{font-family:var(--m);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(236,237,229,.55);margin-top:6px}
+  .bo .sb-sec{font-family:var(--m);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(236,237,229,.45);padding:18px 20px 6px}
+  .bo .sb-item{display:flex;align-items:center;gap:12px;margin:0 12px 2px;padding:10px 14px;border-radius:10px;color:rgba(236,237,229,.85);font-size:14px;font-weight:500;cursor:pointer}
+  .bo .sb-item:hover{background:rgba(255,255,255,.06)}
+  .bo .sb-item.active{background:rgba(91,141,239,.30);color:#fff}
+  .bo .sb-item .ic{width:16px;height:16px;border-radius:5px;background:currentColor;opacity:.55;flex-shrink:0}
+  .bo .sb-count{margin-left:auto;font-family:var(--m);font-size:11px;background:rgba(255,255,255,.1);padding:2px 8px;border-radius:var(--r-full)}
+  .bo .sb-count.alert{background:var(--bo-error);color:#fff}
+  .bo .sb-foot{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.08)}
+  .bo .logout{width:100%;border:1px solid rgba(255,255,255,.16);background:transparent;color:rgba(236,237,229,.75);border-radius:var(--r-full);padding:9px;font-size:13px;cursor:pointer}
+  .bo .main{padding:28px 40px 64px;background:var(--bo-page);background-image:var(--bo-tint);color:var(--bo-text)}
+  .bo .crumb{font-family:var(--m);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bo-text-subtle)}
+  .bo .main-h{font-size:28px;font-weight:600;letter-spacing:-.4px;margin-top:6px}
+  .bo .main-d{font-size:14px;color:var(--bo-text-muted);margin-top:4px;margin-bottom:22px}
+  .bo .seg{display:inline-flex;background:var(--bo-surface);border:1px solid var(--bo-border);border-radius:var(--r-full);padding:3px;margin-bottom:16px}
+  .bo .seg button{border:none;background:transparent;color:var(--bo-text-muted);font-size:13px;font-weight:500;padding:7px 14px;border-radius:var(--r-full);cursor:pointer;font-family:var(--b)}
+  .bo .seg button.on{background:var(--bo-accent);color:var(--bo-on-accent)}
+  .bo .panel{background:var(--bo-surface);border:1px solid var(--bo-border);border-radius:var(--r-lg);box-shadow:var(--bo-shadow);overflow:hidden}
+  .bo .panel-h{padding:14px 20px;border-bottom:1px solid var(--bo-border)}
+  .bo .panel-h h3{font-size:16px;font-weight:600}
+  .bo table{width:100%;border-collapse:collapse;font-size:14px}
+  .bo th{text-align:left;font-family:var(--m);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--bo-text-subtle);font-weight:500;padding:11px 20px;border-bottom:1px solid var(--bo-border)}
+  .bo td{padding:14px 20px;border-bottom:1px solid var(--bo-border);color:var(--bo-text);vertical-align:top}
+  .bo tr:last-child td{border-bottom:0}
+  .bo tbody tr:hover td{background:var(--bo-sunken)}
+  .bo .chip{display:inline-flex;align-items:center;gap:6px;border-radius:var(--r-full);padding:4px 11px;font-size:12px;font-weight:500;margin-bottom:7px}
+  .bo .chip .dot{width:8px;height:8px;border-radius:var(--r-full);flex-shrink:0}
+  .bo .chip.falha{background:var(--bo-error-soft);color:var(--bo-text)}.bo .chip.falha .dot{background:var(--bo-error)}
+  .bo .chip.res{background:var(--bo-success-soft);color:var(--bo-text)}.bo .chip.res .dot{background:var(--bo-success)}
+  .bo .cell-name{font-weight:500}
+  .bo .cell-sub{font-size:12px;color:var(--bo-text-subtle);margin-top:2px}
+  .bo .razao{font-family:var(--m);font-size:12px;color:var(--bo-text-subtle);max-width:260px}
+  .bo .valor{font-family:var(--m);font-weight:600;white-space:nowrap}
+  .bo .chave{font-family:var(--m);font-size:12.5px;white-space:nowrap;display:inline-flex;align-items:center;gap:8px}
+  .bo .ts{font-size:13px;color:var(--bo-text-muted);white-space:nowrap}
+  .bo .btn{border-radius:var(--r-full);padding:8px 16px;font-family:var(--b);font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px}
+  .bo .btn-outline{background:transparent;color:var(--bo-text);border-color:var(--bo-border-strong)}
+  .bo .btn-outline:hover{border-color:var(--bo-text-muted)}
+  .bo .btn-primary-bo{background:var(--bo-accent);color:var(--bo-on-accent)}
+  .bo .btn-copy{background:transparent;border:1px solid var(--bo-border);border-radius:var(--r-sm);padding:3px 8px;font-size:11px;color:var(--bo-text-muted);cursor:pointer;font-family:var(--b)}
+  .bo .btn-copy.ok{color:var(--bo-success);border-color:var(--bo-success)}
+  .bo .pager{display:flex;align-items:center;gap:14px;justify-content:center;margin-top:18px;font-size:13px;color:var(--bo-text-muted)}
+  .bo .pager button{background:var(--bo-surface);border:1px solid var(--bo-border);border-radius:var(--r-full);padding:7px 14px;font-size:13px;cursor:pointer;color:var(--bo-text)}
+  .bo .empty{text-align:center;padding:56px 24px}
+  .bo .empty .mark{width:56px;height:56px;border-radius:var(--r-full);background:var(--bo-success-soft);color:var(--bo-success);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px}
+  .bo .empty .mark.neutral{background:var(--bo-sunken);color:var(--bo-text-subtle)}
+  .bo .empty h4{font-size:18px;font-weight:600}
+  .bo .empty p{font-size:14px;color:var(--bo-text-muted);margin:8px auto 0;max-width:400px}
+  .bo .resol{font-size:13px;color:var(--bo-text);max-width:280px}
+  .bo .resol .by{font-size:12px;color:var(--bo-text-subtle);margin-top:3px}
+  /* dialog do backoffice */
+  .bo-dlg-scrim{position:fixed;inset:0;background:rgba(15,27,45,.5);z-index:70;display:none;align-items:center;justify-content:center;padding:20px}
+  .bo-dlg{background:var(--bo-surface);color:var(--bo-text);border-radius:var(--r-lg);box-shadow:var(--bo-shadow);max-width:460px;width:100%;padding:24px}
+  .bo-dlg h4{font-size:18px;font-weight:600}
+  .bo-dlg p{font-size:14px;color:var(--bo-text-muted);margin:10px 0 14px}
+  .bo-dlg .resumo{background:var(--bo-sunken);border:1px solid var(--bo-border);border-radius:var(--r-md);padding:10px 14px;font-size:13.5px;margin-bottom:14px}
+  .bo-dlg .resumo .l2{color:var(--bo-text-muted);font-size:12.5px;margin-top:2px;font-family:var(--m)}
+  .bo-dlg label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+  .bo-dlg textarea{width:100%;min-height:74px;border:1px solid var(--bo-border-strong);border-radius:var(--r-md);padding:10px 12px;font-family:var(--b);font-size:14px;background:var(--bo-surface);color:var(--bo-text);resize:vertical}
+  .bo-dlg .erro{display:none;color:var(--bo-error);font-size:12.5px;margin-top:6px}
+  .bo-dlg .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bo-chrome);color:#ECEDE5;border-radius:var(--r-md);padding:12px 20px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:75;display:none;max-width:90vw}
+  .hidden{display:none !important}
+</style>
+</head>
+<body class="mobile papel-profissional">
+
+<!-- barra do protótipo -->
+<div class="proto" role="toolbar" aria-label="Controles do protótipo">
+  <b>Protótipo 066</b>
+  <span class="sep"></span>
+  <b>Superfície</b>
+  <button id="sfA" class="on" onclick="setSurface('wa')">WebApp</button>
+  <button id="sfB" onclick="setSurface('bo')">Backoffice · admin</button>
+  <span class="sep"></span>
+  <span id="waCtl">
+    <b>Papel</b>
+    <button data-papel="profissional" class="on" onclick="setPapel('profissional')">Profissional</button>
+    <button data-papel="contratante" onclick="setPapel('contratante')">Contratante</button>
+    <span class="sep"></span>
+    <b>Viewport</b>
+    <button data-vp="mobile" class="on" onclick="setVp('mobile')">mobile</button>
+    <button data-vp="desktop" onclick="setVp('desktop')">desktop</button>
+    <span class="sep"></span>
+    <b>Estado</b>
+    <button data-st="confirmado" class="on" onclick="setState('confirmado')">confirmado (com cancelar)</button>
+    <button data-st="cancelado-pro" onclick="setState('cancelado-pro')">cancelado_pro</button>
+    <button data-st="cancelado-emp" onclick="setState('cancelado-emp')">cancelado_emp</button>
+    <button data-st="no-show" onclick="setState('no-show')">no_show_pro</button>
+    <span class="sep"></span>
+    <button id="armErro" onclick="armar('erro')">simular erro de rede</button>
+    <button id="arm422" onclick="armar('422')">simular 422</button>
+  </span>
+  <span id="boCtl" style="display:none">
+    <b>Estado</b>
+    <button data-bo="lista" class="on" onclick="setBo('lista')">lista</button>
+    <button data-bo="vazio" onclick="setBo('vazio')">vazio</button>
+    <button data-bo="resolvidos" onclick="setBo('resolvidos')">resolvidos</button>
+    <span class="sep"></span>
+    <button onclick="toggleTheme()">tema claro/escuro</button>
+  </span>
+  <span class="sp">PROTÓTIPO DE VALIDAÇÃO — NÃO É PRODUÇÃO</span>
+</div>
+
+<!-- ═══════════ SUPERFÍCIE A — WebApp ═══════════ -->
+<div id="surfWa">
+  <div class="wa-stage">
+    <div class="frame" data-testid="turno-detalhe-screen">
+      <div class="brand">TURNI.</div>
+      <div class="appbar">
+        <button class="back" aria-label="Voltar">←</button>
+        <span class="title">Detalhe do turno</span>
+      </div>
+      <div class="scroll">
+        <div class="header-row">
+          <button class="back" aria-label="Voltar">←</button>
+          <span class="title">Detalhe do turno</span>
+        </div>
+        <div class="detalhe-grid">
+          <div class="col-turno">
+            <!-- header do turno -->
+            <div class="card">
+              <span class="badge confirmado" id="estado-badge" data-testid="turno-detalhe-estado">● Confirmado</span>
+              <div class="funcao" data-testid="turno-detalhe-funcao">Garçom</div>
+              <div class="quem-prof hidden" id="linha-profissional">Pedro Alves</div>
+              <div class="onde" data-testid="turno-detalhe-onde">Restaurante Vela</div>
+              <div class="quando" data-testid="turno-detalhe-quando">Dom, 08/06 · 11:00–17:00</div>
+            </div>
+            <!-- card de valor — PROFISSIONAL -->
+            <div class="card" id="valor-prof">
+              <div class="valor-titulo">Você recebe</div>
+              <div class="valor-destaque">R$ 240,00</div>
+              <div class="valor-nota">valor integral · taxa Turni cobrada do contratante</div>
+            </div>
+            <!-- card de valor — CONTRATANTE -->
+            <div class="card hidden" id="valor-contr">
+              <div class="valor-titulo">Pagamento deste turno</div>
+              <div class="valor-linha"><span class="rotulo">Valor do profissional</span><span>R$ 240,00</span></div>
+              <div class="valor-linha"><span class="rotulo">Taxa Turni</span><span>R$ 36,00</span></div>
+              <div class="valor-linha total"><span class="rotulo">Total</span><span>R$ 276,00</span></div>
+            </div>
+            <button class="aceite-link">
+              <span aria-hidden="true">📄</span> Ver aceite eletrônico <span class="chev" aria-hidden="true">›</span>
+            </button>
+            <!-- área de ações: card de PIN (profissional, 061) -->
+            <div class="card acoes-pin" id="acoes-pin">
+              <div class="t">Chegou ao local?</div>
+              <div class="s">Gere o PIN de check-in e mostre ao contratante para confirmar sua chegada.</div>
+              <button class="btn-primary">Gerar PIN de check-in</button>
+            </div>
+            <!-- área de ações: placeholder (contratante, 060) -->
+            <div class="card acoes-placeholder hidden" id="acoes-placeholder">
+              <div class="t">Nenhuma ação disponível no momento</div>
+              <div class="s">As ações deste turno aparecem aqui conforme ele avança.</div>
+            </div>
+            <!-- gatilho de cancelar (§A.3) -->
+            <button class="cancelar-trigger" id="cancelar-btn" data-testid="turno-detalhe-cancelar-btn" onclick="abrirDialog()">
+              Não vai poder comparecer? Cancelar turno
+            </button>
+          </div>
+          <!-- timeline -->
+          <div class="col-historico">
+            <h2 class="group-header">Histórico</h2>
+            <ul class="timeline" id="timeline" data-testid="turno-detalhe-timeline"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- dialog.confirm (§A.4) -->
+      <div class="dlg-scrim" id="dlg-scrim" onclick="fecharPorScrim(event)">
+        <div class="dlg" id="cancelar-dialog" data-testid="cancelar-dialog" role="alertdialog" aria-modal="true" aria-labelledby="dlg-titulo">
+          <h2 id="dlg-titulo">Cancelar este turno?</h2>
+          <p class="corpo" id="dlg-corpo">A reserva do pagamento será liberada e o contratante será avisado. Essa ação não pode ser desfeita.</p>
+          <label for="dlg-motivo">Motivo (opcional)</label>
+          <textarea id="dlg-motivo" maxlength="280" data-testid="cancelar-dialog-motivo" placeholder="Ex.: tive um imprevisto e não poderei comparecer"></textarea>
+          <div class="erro" id="dlg-erro" data-testid="cancelar-dialog-erro" aria-live="polite"></div>
+          <div class="acts">
+            <button class="btn-voltar" id="dlg-voltar" data-testid="cancelar-dialog-voltar" onclick="fecharDialog()">Voltar</button>
+            <button class="btn-destrutivo" id="dlg-confirmar" data-testid="cancelar-dialog-confirmar" onclick="confirmarCancelamento()">Cancelar turno</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- snackbar de sucesso -->
+      <div class="snackbar" id="snackbar" role="status" aria-live="polite" data-testid="turno-cancelado-snackbar">Turno cancelado.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SUPERFÍCIE B — Backoffice (fila generalizada §B) ═══════════ -->
+<div class="bo" id="surfBo">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sb-head">
+        <div class="sb-logo">TURN<span class="i">I</span>.</div>
+        <div class="sb-tag">Backoffice</div>
+      </div>
+      <div class="sb-sec">Operação</div>
+      <div class="sb-item"><span class="ic"></span> Visão geral</div>
+      <div class="sb-item"><span class="ic"></span> Cadastros pendentes</div>
+      <div class="sb-item active" data-testid="nav-pix-falhas"><span class="ic"></span> Falhas de pagamento
+        <span class="sb-count alert" id="sbCount" data-testid="nav-pix-falhas-count">2</span></div>
+      <div class="sb-sec">Cadastro</div>
+      <div class="sb-item"><span class="ic"></span> Templates contratuais</div>
+      <div class="sb-foot"><button class="logout">Sair</button></div>
+    </aside>
+    <main class="main" data-testid="screen-pix-falhas">
+      <div class="crumb">Backoffice · Admin</div>
+      <h1 class="main-h">Falhas de pagamento</h1>
+      <p class="main-d" id="boSubt">2 casos aguardando tratamento manual</p>
+
+      <div class="seg" role="tablist" aria-label="Filtro de casos">
+        <button id="tabPend" class="on" role="tab" aria-selected="true" data-testid="pixfalhas-tab-pendentes" onclick="setBo('lista')">Pendentes (<span id="tabPendN">2</span>)</button>
+        <button id="tabRes" role="tab" aria-selected="false" data-testid="pixfalhas-tab-resolvidos" onclick="setBo('resolvidos')">Resolvidos</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h"><h3 id="panelTitle">Fila de tratamento manual</h3></div>
+
+        <!-- vazio (pendentes) -->
+        <div id="boVazio" class="empty" style="display:none" data-testid="pixfalhas-empty">
+          <div class="mark">✓</div>
+          <h4>Nenhuma falha de pagamento</h4>
+          <p>Falhas de transferência e de liberação aparecem aqui assim que o gateway reportar. Por enquanto, tudo certo.</p>
+        </div>
+
+        <!-- lista pendentes: 1 caso Pix + 1 caso Liberação -->
+        <table id="boLista" data-testid="pixfalhas-list" aria-live="polite">
+          <thead><tr><th>Turno</th><th>Valor</th><th>Chave Pix</th><th>Razão</th><th>Falhou em</th><th></th></tr></thead>
+          <tbody>
+            <tr id="row1" data-testid="pixfalhas-item-t1">
+              <td>
+                <span class="chip falha" data-testid="pixfalhas-item-t1-badge"><span class="dot"></span>Liberação falhou — tratamento manual</span>
+                <div class="cell-name">Garçom · Restaurante Vela</div>
+                <div class="cell-sub">Pedro Alves</div>
+              </td>
+              <td class="valor" data-testid="pixfalhas-item-t1-valor">R$ 276,00</td>
+              <td><span class="chave" data-testid="pixfalhas-item-t1-chave">—</span></td>
+              <td class="razao" data-testid="pixfalhas-item-t1-razao">release_failed — pré-autorização não encontrada no gateway</td>
+              <td class="ts">Qui 04/06 · 09:18</td>
+              <td><button class="btn btn-outline" data-testid="pixfalhas-item-t1-resolver" onclick="abreDialogBo('row1','Garçom · Restaurante Vela — R$ 276,00','Pedro Alves · liberação de pré-autorização')">Resolver</button></td>
+            </tr>
+            <tr id="row2" data-testid="pixfalhas-item-t2">
+              <td>
+                <span class="chip falha" data-testid="pixfalhas-item-t2-badge"><span class="dot"></span>Pix falhou — tratamento manual</span>
+                <div class="cell-name">Recepcionista · Hotel Aurora</div>
+                <div class="cell-sub">Diego Reis</div>
+              </td>
+              <td class="valor" data-testid="pixfalhas-item-t2-valor">R$ 340,00</td>
+              <td><span class="chave" data-testid="pixfalhas-item-t2-chave">d.reis…@pix.me
+                <button class="btn-copy" data-testid="pixfalhas-item-t2-copiar" aria-label="Copiar chave Pix de Diego Reis" onclick="copia(this)">⧉ Copiar</button></span></td>
+              <td class="razao" data-testid="pixfalhas-item-t2-razao">transfer_limit_exceeded — limite diário da conta de destino excedido</td>
+              <td class="ts">Qui 04/06 · 22:10</td>
+              <td><button class="btn btn-outline" data-testid="pixfalhas-item-t2-resolver" onclick="abreDialogBo('row2','Recepcionista · Hotel Aurora — R$ 340,00','Diego Reis · d.reis…@pix.me')">Resolver</button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- lista resolvidos -->
+        <table id="boListaRes" style="display:none">
+          <thead><tr><th>Turno</th><th>Valor</th><th>Chave Pix</th><th>Razão</th><th>Falhou em</th><th>Resolução</th></tr></thead>
+          <tbody id="resBody">
+            <tr>
+              <td>
+                <span class="chip res"><span class="dot"></span>Resolvido manualmente</span>
+                <div class="cell-name">Cozinheira · Restaurante Vila</div>
+                <div class="cell-sub">Marina Costa</div>
+              </td>
+              <td class="valor">R$ 280,00</td>
+              <td><span class="chave">marina…@pix.me</span></td>
+              <td class="razao">account_closed — conta de destino encerrada</td>
+              <td class="ts">Ter 02/06 · 19:05</td>
+              <td class="resol">Pix manual feito pela conta Turni após contato com a profissional (chave nova).
+                <div class="by">por Alexandro · 03/06 09:12</div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pager" id="boPager">
+        <button>‹ Anterior</button> Página 1 de 1 <button>Próxima ›</button>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- dialog de resolução (backoffice — herdado da 065) -->
+<div class="bo-dlg-scrim" id="boDlgScrim">
+  <div class="bo-dlg" role="alertdialog" aria-modal="true" aria-labelledby="boDlgT" data-testid="pixfalhas-dialog">
+    <h4 id="boDlgT">Marcar como resolvido manualmente?</h4>
+    <p>Confirme apenas depois de tratar a transferência fora da plataforma. O caso sai da fila e fica registrado no histórico de auditoria.</p>
+    <div class="resumo"><span id="boDlgL1">—</span><div class="l2" id="boDlgL2">—</div></div>
+    <label for="boDlgNota">O que foi feito (obrigatório)</label>
+    <textarea id="boDlgNota" maxlength="500" placeholder="Ex.: Pix manual feito pela conta Turni em 06/06 às 14:20" data-testid="pixfalhas-dialog-nota" aria-describedby="boDlgErro"></textarea>
+    <div class="erro" id="boDlgErro" data-testid="pixfalhas-dialog-nota-erro">Descreva o que foi feito antes de confirmar.</div>
+    <div class="acts">
+      <button class="btn btn-outline" data-testid="pixfalhas-dialog-cancelar" onclick="fechaDialogBo()">Cancelar</button>
+      <button class="btn btn-primary-bo" data-testid="pixfalhas-dialog-confirmar" onclick="confirmaResolucaoBo()">Confirmar resolução</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-testid="pixfalhas-toast"></div>
+
+<script>
+/* ───────── superfície ───────── */
+function setSurface(s){
+  document.getElementById('surfWa').style.display = s==='wa' ? 'block' : 'none';
+  document.getElementById('surfBo').style.display = s==='bo' ? 'block' : 'none';
+  document.getElementById('surfBo').classList.toggle('bo', true);
+  document.getElementById('sfA').classList.toggle('on', s==='wa');
+  document.getElementById('sfB').classList.toggle('on', s==='bo');
+  document.getElementById('waCtl').style.display = s==='wa' ? 'inline' : 'none';
+  document.getElementById('boCtl').style.display = s==='bo' ? 'inline' : 'none';
+}
+
+/* ───────── WebApp: dados ───────── */
+// Timeline filtrada por papel (servidor manda pronto — §10).
+// Motivo do cancelamento visível para os 2 lados (§A.5 — nota ao PO).
+const MOTIVO = '“Tive um imprevisto de saúde.”';
+const EVENTOS_BASE = [
+  { t:'Pagamento reservado', d:{prof:'O contratante garantiu o pagamento deste turno.', contr:'R$ 276,00 reservados no seu meio de pagamento.'}, q:'Qua, 03/06 · 15:47' },
+  { t:'Aceite eletrônico emitido', d:{prof:'',contr:''}, q:'Qua, 03/06 · 15:47' },
+  { t:'Turno confirmado', d:{prof:'Candidatura aprovada.',contr:'Candidatura aprovada.'}, q:'Qua, 03/06 · 15:46' },
+];
+function evCancelado(lado, quando){
+  return { t:'Turno cancelado',
+    d: lado==='pro'
+      ? {prof:'Você cancelou este turno.', contr:'Cancelado pelo profissional.'}
+      : {prof:'Cancelado pelo contratante.', contr:'Você cancelou este turno.'},
+    motivo: MOTIVO, q: quando };
+}
+const EV_LIBERADO = quando => ({ t:'Reserva de pagamento liberada',
+  d:{prof:'O contratante não foi cobrado.', contr:'R$ 276,00 liberados no seu meio de pagamento.'}, q:quando });
+const EV_NOSHOW = quando => ({ t:'Turno não realizado',
+  d:{prof:'O check-in não aconteceu em até 2 horas após o início previsto.',
+     contr:'O check-in não aconteceu em até 2 horas após o início previsto.'}, q:quando });
+
+const ESTADOS = {
+  'confirmado':    { badge:['confirmado','● Confirmado'], cancelavel:true,  tl: EVENTOS_BASE },
+  'cancelado-pro': { badge:['encerrado','⊘ Cancelado'],   cancelavel:false, tl: [EV_LIBERADO('Qui, 04/06 · 09:18'), evCancelado('pro','Qui, 04/06 · 09:18'), ...EVENTOS_BASE] },
+  'cancelado-emp': { badge:['encerrado','⊘ Cancelado'],   cancelavel:false, tl: [EV_LIBERADO('Qui, 04/06 · 10:02'), evCancelado('emp','Qui, 04/06 · 10:02'), ...EVENTOS_BASE] },
+  'no-show':       { badge:['encerrado','⊘ Não realizado'], cancelavel:false, tl: [EV_LIBERADO('Dom, 08/06 · 13:01'), EV_NOSHOW('Dom, 08/06 · 13:01'), ...EVENTOS_BASE] },
+};
+
+let papel = 'profissional';
+let estadoAtual = 'confirmado';
+let armado = null; // 'erro' | '422' | null
+
+function renderTimeline(){
+  const ul = document.getElementById('timeline');
+  const itens = ESTADOS[estadoAtual].tl;
+  ul.innerHTML = itens.map(ev => {
+    const desc = ev.d[papel==='profissional'?'prof':'contr'];
+    return `<li class="tl-evento">
+      <span class="tl-rail" aria-hidden="true"><span class="tl-dot"></span><span class="tl-line"></span></span>
+      <span>
+        <div class="tl-titulo">${ev.t}</div>
+        ${desc ? `<div class="tl-desc">${desc}</div>` : ''}
+        ${ev.motivo ? `<div class="tl-motivo">${ev.motivo}</div>` : ''}
+        <div class="tl-quando">${ev.q}</div>
+      </span>
+    </li>`;
+  }).join('');
+}
+
+function aplicarPapel(){
+  document.body.classList.toggle('papel-profissional', papel==='profissional');
+  document.body.classList.toggle('papel-contratante', papel==='contratante');
+  document.getElementById('valor-prof').classList.toggle('hidden', papel!=='profissional');
+  document.getElementById('valor-contr').classList.toggle('hidden', papel!=='contratante');
+  document.getElementById('linha-profissional').classList.toggle('hidden', papel!=='contratante');
+  // gatilho + dialog por papel (§5)
+  document.getElementById('cancelar-btn').textContent = papel==='profissional'
+    ? 'Não vai poder comparecer? Cancelar turno'
+    : 'Não precisa mais deste turno? Cancelar turno';
+  document.getElementById('dlg-corpo').textContent = papel==='profissional'
+    ? 'A reserva do pagamento será liberada e o contratante será avisado. Essa ação não pode ser desfeita.'
+    : 'A reserva do pagamento será liberada e o profissional será avisado. Essa ação não pode ser desfeita.';
+  document.getElementById('dlg-motivo').placeholder = papel==='profissional'
+    ? 'Ex.: tive um imprevisto e não poderei comparecer'
+    : 'Ex.: o evento foi cancelado';
+}
+
+function setPapel(p){
+  papel = p;
+  document.querySelectorAll('[data-papel]').forEach(c=>c.classList.toggle('on', c.dataset.papel===p));
+  aplicarPapel(); setState(estadoAtual);
+}
+function setVp(vp){
+  document.body.classList.remove('mobile','desktop');
+  document.body.classList.add(vp);
+  document.querySelectorAll('[data-vp]').forEach(c=>c.classList.toggle('on', c.dataset.vp===vp));
+}
+function setState(st){
+  estadoAtual = st;
+  document.querySelectorAll('[data-st]').forEach(c=>c.classList.toggle('on', c.dataset.st===st));
+  const e = ESTADOS[st];
+  const badge = document.getElementById('estado-badge');
+  badge.className = 'badge '+e.badge[0];
+  badge.textContent = e.badge[1];
+  // área de ações: PIN p/ profissional em confirmado; placeholder p/ contratante; nada em terminal (060 §4.1)
+  document.getElementById('acoes-pin').classList.toggle('hidden', !(e.cancelavel && papel==='profissional'));
+  document.getElementById('acoes-placeholder').classList.toggle('hidden', !(e.cancelavel && papel==='contratante'));
+  document.getElementById('cancelar-btn').classList.toggle('hidden', !e.cancelavel);
+  renderTimeline();
+}
+
+/* ───────── dialog de cancelamento (§A.4) ───────── */
+let emLoading = false, focoAnterior = null;
+function abrirDialog(){
+  focoAnterior = document.activeElement;
+  document.getElementById('dlg-motivo').value = '';
+  mostraErroDlg('');
+  document.getElementById('dlg-scrim').style.display = 'flex';
+  document.getElementById('dlg-voltar').focus(); // foco inicial em Voltar — nunca na destrutiva
+}
+function fecharDialog(){
+  if (emLoading) return;
+  document.getElementById('dlg-scrim').style.display = 'none';
+  if (focoAnterior) focoAnterior.focus();
+  // 422: ao fechar, a tela "recarrega" a verdade (o outro lado cancelou antes)
+  if (pos422) { pos422 = false; setState(papel==='profissional' ? 'cancelado-emp' : 'cancelado-pro'); }
+}
+function fecharPorScrim(e){ if (e.target===e.currentTarget) fecharDialog(); }
+document.addEventListener('keydown', e=>{
+  if (e.key==='Escape'){
+    if (document.getElementById('dlg-scrim').style.display==='flex') fecharDialog();
+    fechaDialogBo();
+  }
+});
+function mostraErroDlg(msg){
+  const el = document.getElementById('dlg-erro');
+  el.textContent = msg; el.style.display = msg ? 'block' : 'none';
+}
+function armar(tipo){
+  armado = (armado===tipo) ? null : tipo;
+  document.getElementById('armErro').classList.toggle('armado', armado==='erro');
+  document.getElementById('arm422').classList.toggle('armado', armado==='422');
+}
+let pos422 = false;
+function confirmarCancelamento(){
+  if (emLoading) return;
+  emLoading = true; mostraErroDlg('');
+  const btn = document.getElementById('dlg-confirmar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin" aria-hidden="true"></span> Cancelar turno';
+  setTimeout(()=>{ // simula a chamada (~1s)
+    emLoading = false; btn.disabled = false; btn.textContent = 'Cancelar turno';
+    if (armado==='erro'){ armar('erro'); mostraErroDlg('Não foi possível cancelar. Tente de novo.'); return; }
+    if (armado==='422'){ armar('422'); pos422 = true; mostraErroDlg('Este turno não pode mais ser cancelado.'); return; }
+    // sucesso: fecha, cai no terminal do lado de quem cancelou, snackbar
+    document.getElementById('dlg-scrim').style.display = 'none';
+    setState(papel==='profissional' ? 'cancelado-pro' : 'cancelado-emp');
+    const sb = document.getElementById('snackbar');
+    sb.style.display = 'block';
+    clearTimeout(sb._tm); sb._tm = setTimeout(()=>sb.style.display='none', 4000);
+  }, 1000);
+}
+
+/* ───────── Backoffice (herdado da 065; rótulos generalizados §B) ───────── */
+let pendentes = 2;
+function setBo(st){
+  document.querySelectorAll('[data-bo]').forEach(b=>b.classList.toggle('on', b.dataset.bo===st));
+  ['boVazio'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('boLista').style.display='none';
+  document.getElementById('boListaRes').style.display='none';
+  document.getElementById('tabPend').classList.toggle('on', st!=='resolvidos');
+  document.getElementById('tabRes').classList.toggle('on', st==='resolvidos');
+  document.getElementById('tabPend').setAttribute('aria-selected', st!=='resolvidos');
+  document.getElementById('tabRes').setAttribute('aria-selected', st==='resolvidos');
+  document.getElementById('panelTitle').textContent = st==='resolvidos' ? 'Casos resolvidos' : 'Fila de tratamento manual';
+  if (st==='lista'){ if (pendentes>0) document.getElementById('boLista').style.display=''; else document.getElementById('boVazio').style.display=''; }
+  if (st==='vazio') document.getElementById('boVazio').style.display='';
+  if (st==='resolvidos') document.getElementById('boListaRes').style.display='';
+  atualizaContagem();
+}
+function atualizaContagem(){
+  document.getElementById('sbCount').textContent = pendentes;
+  document.getElementById('sbCount').classList.toggle('alert', pendentes>0);
+  document.getElementById('tabPendN').textContent = pendentes;
+  document.getElementById('boSubt').textContent = pendentes>0
+    ? pendentes+' caso'+(pendentes>1?'s':'')+' aguardando tratamento manual'
+    : 'Nenhum caso aguardando tratamento';
+}
+function copia(btn){
+  btn.textContent='Copiada'; btn.classList.add('ok');
+  setTimeout(()=>{ btn.textContent='⧉ Copiar'; btn.classList.remove('ok'); }, 2000);
+}
+let alvoRowBo=null;
+function abreDialogBo(rowId,l1,l2){
+  alvoRowBo=rowId;
+  document.getElementById('boDlgL1').textContent=l1;
+  document.getElementById('boDlgL2').textContent=l2;
+  document.getElementById('boDlgNota').value='';
+  document.getElementById('boDlgErro').style.display='none';
+  document.getElementById('boDlgScrim').style.display='flex';
+  document.querySelector('[data-testid="pixfalhas-dialog-cancelar"]').focus();
+}
+function fechaDialogBo(){ document.getElementById('boDlgScrim').style.display='none'; }
+function confirmaResolucaoBo(){
+  const nota=document.getElementById('boDlgNota').value.trim();
+  if(!nota){ document.getElementById('boDlgErro').style.display='block'; document.getElementById('boDlgNota').focus(); return; }
+  fechaDialogBo();
+  const r=document.getElementById(alvoRowBo); if(!r) return;
+  const nome=r.querySelector('.cell-name').textContent, sub=r.querySelector('.cell-sub').textContent;
+  const val=r.querySelector('.valor').textContent, chave=r.querySelector('.chave').textContent.replace('⧉ Copiar','').trim();
+  const razao=r.querySelector('.razao').textContent, ts=r.querySelector('.ts').textContent;
+  const agora=new Date(); const dd=String(agora.getDate()).padStart(2,'0'), mm=String(agora.getMonth()+1).padStart(2,'0');
+  const hh=String(agora.getHours()).padStart(2,'0'), mi=String(agora.getMinutes()).padStart(2,'0');
+  document.getElementById('resBody').insertAdjacentHTML('afterbegin',
+    '<tr><td><span class="chip res"><span class="dot"></span>Resolvido manualmente</span>'+
+    '<div class="cell-name">'+nome+'</div><div class="cell-sub">'+sub+'</div></td>'+
+    '<td class="valor">'+val+'</td><td><span class="chave">'+chave+'</span></td>'+
+    '<td class="razao">'+razao+'</td><td class="ts">'+ts+'</td>'+
+    '<td class="resol">'+nota.replace(/</g,'&lt;')+'<div class="by">por Alexandro · '+dd+'/'+mm+' '+hh+':'+mi+'</div></td></tr>');
+  r.remove(); pendentes=Math.max(0,pendentes-1);
+  mostraToast('Caso resolvido. Registrado no histórico de auditoria.');
+  setBo('lista');
+}
+function mostraToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block';
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.style.display='none', 4000);
+}
+function toggleTheme(){
+  const h=document.documentElement;
+  h.setAttribute('data-theme', h.getAttribute('data-theme')==='light'?'dark':'light');
+}
+
+/* init — endereçável: ?surface=wa|bo&papel=...&vp=...&state=... */
+const q=new URLSearchParams(location.search);
+const sf=q.get('surface')==='bo'?'bo':'wa';
+setSurface(sf);
+if (['profissional','contratante'].includes(q.get('papel'))) papel=q.get('papel');
+document.querySelectorAll('[data-papel]').forEach(c=>c.classList.toggle('on', c.dataset.papel===papel));
+if (['mobile','desktop'].includes(q.get('vp'))) setVp(q.get('vp'));
+aplicarPapel();
+const st0=q.get('state');
+setState(['confirmado','cancelado-pro','cancelado-emp','no-show'].includes(st0)?st0:'confirmado');
+if (sf==='bo') setBo(['lista','vazio','resolvidos'].includes(st0)?st0:'lista');
+</script>
+</body>
+</html>
