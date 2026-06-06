@@ -2,7 +2,7 @@
 id: SCREEN-STORY-066-cancelamento
 story: STORY-066-cancelamento-no-show-liberacao-preauth
 epic: EPIC-003-aceite-pin-e-pix
-status: in_implementation    # draft | ready | in_implementation | shipped | superseded
+status: shipped              # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-06
 updated_at: 2026-06-06
 owner_designer: claude-opus-4-8
@@ -372,3 +372,4 @@ timeline já registrados, fila reusa SCREEN-065 por inteiro.
 | 2026-06-06 | criação (spec completo + protótipo v1) | claude-opus-4-8 (designer) | STORY-066; inclui generalização consciente da fila da 065 (§B.1) e copy mais específica do `no_show_pro` na timeline (060 §4.1 dizia "até o limite"; agora "em até 2 horas após o início previsto" — X decidido pelo PO em chat) |
 | 2026-06-06 | validação humana — aprovado sem ajustes | Alexandro | confirmou motivo visível aos 2 lados (§A.5) e rename "Pix com falha" → "Falhas de pagamento" (§B.1); X do no-show = 2h; `status: ready` |
 | 2026-06-06 | implementação + 1 ajuste consciente | claude-opus-4-8 (programador) | timeline do `cancelado` fala na VOZ de quem lê ("Você cancelou este turno." para o lado que cancelou) — refinamento sobre a tabela §A.5 (que só previa "Cancelado pelo {lado}"), coerente com tone-and-voice; copy do no-show usa `limite_horas` do payload (X dinâmico, não hardcoded); `status: in_implementation` |
+| 2026-06-06 | implementado + PO aprovou em homolog | claude-opus-4-8 / Alexandro | STORY-066 entregue (api 959 / admin 118+Playwright 14 / webapp 533; E2E cancelamento 2 lados + no-show com cron real; rc.79) e aprovada em chat após teste manual; `status: shipped` |

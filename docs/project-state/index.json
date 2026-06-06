@@ -2146,7 +2146,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-066-cancelamento",
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-opus-4-8-2026-06-06",
       "sprint_id": "SPRINT-2026-W28",
       "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-066-cancelamento-no-show-liberacao-preauth.md",
@@ -3925,7 +3925,7 @@
         "id": "SCREEN-STORY-066-cancelamento",
         "story": "STORY-066",
         "epic": "EPIC-003",
-        "status": "ready",
+        "status": "shipped",
         "path": "design/screens/SCREEN-STORY-066-cancelamento.md",
         "viewports": [
           "mobile",
@@ -3993,5 +3993,5 @@
       "note": "Inventário GCP homolog pós-rc.68 com previsão de custos (~$20–29/mês). Substitui gcp-inventory-2026-05-28.md (worker GCE→Cloud Run Job, fake de pagamento PDR-017). Alavanca de economia nº 1: alinhar scheduler do worker à janela do SQL."
     }
   ],
-  "next_action": "STORY-065 DONE em 2026-06-06 (rc.78): ciclo financeiro pós-turno vivo em homolog (captura + Pix via fake, 'Pix enviado em HH:MM' no card do profissional, fila 'Pix com falha' no Backoffice com resolução auditada); IDR-028 (chave Pix do snapshot com segredo compartilhado api+admin) accepted; métrica CA-7 20/20 ≤ 15min. Próximas da W28: STORY-066 (cancelamento/no-show → liberar pré-auth), STORY-067 (notificações), STORY-075 (banner global homolog), STORY-068 (validação final do épico)."
+  "next_action": "STORY-066 DONE em 2026-06-06 (rc.79): cancelamento antes do check-in (2 lados, motivo opcional visível a ambos) + no_show_pro automático (cron turnos:detectar-no-show, X=2h decidido pelo PO, 14ª transição confirmado→no_show_pro) + liberação da pré-autorização via ACL (idempotente; falha → fila do admin generalizada 'Falhas de pagamento'). Descoberta estrutural corrigida: event discovery do Laravel ativo junto com registro explícito (todo listener rodava 2× — withEvents(discover:false)). ATENÇÃO: cron de no-show NÃO dispara sozinho em homolog/prod até a STORY-073 (schedule:run) — one-off via job de migração com command override. Próximas da W28: STORY-067 (notificações — consome TurnoCancelado/TurnoNoShow já emitidos), STORY-075 (banner global homolog), STORY-073 (schedule:run — agora também desbloqueia o no-show automático), STORY-068 (validação final do épico)."
 }
