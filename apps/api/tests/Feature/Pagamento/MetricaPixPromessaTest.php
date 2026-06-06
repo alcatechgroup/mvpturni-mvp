@@ -14,6 +14,7 @@ use App\Domain\Pagamento\GatewayPagamento;
 use App\Domain\Pagamento\OperacaoIdempotente;
 use App\Domain\Pagamento\Webhook\PagarmeWebhookValidator;
 use App\Enums\StatusOperacaoPagamento;
+use App\Enums\TipoOperacaoPagamento;
 use App\Enums\TurnoStatus;
 use App\Jobs\CapturarEPagarTurnoJob;
 use App\Jobs\ProcessarWebhookPagarmeJob;
@@ -71,7 +72,7 @@ test('CA-7: 20 turnos seedados — 100% completam finalizado → Pix enviado den
         ]);
         // Pré-autorização da STORY-058 (aprovação da candidatura) — a captura precisa
         // da charge; acontece FORA da janela medida (a promessa conta do finalizado).
-        $runner->executar($t->id, \App\Enums\TipoOperacaoPagamento::PreAutorizacao,
+        $runner->executar($t->id, TipoOperacaoPagamento::PreAutorizacao,
             ['total_contratante' => '230.00'],
             fn () => $gateway->preAutorizar($t->id, '230.00', 'tok_metrica'));
     }
@@ -106,7 +107,7 @@ test('CA-7: 20 turnos seedados — 100% completam finalizado → Pix enviado den
     // Resultado anexável à estória (CA-7).
     fwrite(STDERR, sprintf(
         "\n[CA-7] 20 turnos: %d/20 ciclo completo (pix.enviado + 3 operações concluídas); ".
-        "%d/20 dentro da janela de %d min; pipeline max %d ms, média %d ms ".
+        '%d/20 dentro da janela de %d min; pipeline max %d ms, média %d ms '.
         "(simulação — SLA real do fake em homolog: ~30s)\n",
         $completos, $dentroDaJanela, JANELA_PROMESSA_MIN, $maxMs, $mediaMs,
     ));

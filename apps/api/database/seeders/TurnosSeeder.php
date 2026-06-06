@@ -3,12 +3,15 @@
 namespace Database\Seeders;
 
 use App\Enums\CandidaturaEstado;
+use App\Enums\StatusOperacaoPagamento;
+use App\Enums\TipoOperacaoPagamento;
 use App\Enums\TurnoStatus;
 use App\Enums\VagaEstado;
 use App\Models\AceiteEletronicoTurno;
 use App\Models\AuditLog;
 use App\Models\Candidatura;
 use App\Models\Funcao;
+use App\Models\PagamentoOperacao;
 use App\Models\ProfissionalProfile;
 use App\Models\TemplateVersao;
 use App\Models\Turno;
@@ -393,6 +396,7 @@ class TurnosSeeder extends Seeder
             if (in_array($existente->status, [TurnoStatus::Confirmado, TurnoStatus::AguardandoCheckin], true)) {
                 $existente->forceFill(['data_inicio' => $inicio, 'data_fim' => $fim])->save();
                 $existente->vaga?->update(['data_inicio' => $inicio, 'data_fim' => $fim]);
+                $this->garantePreAutorizacaoSintetica($existente); // STORY-065 — também no turno renovado
                 $this->command?->info("TurnosSeeder: janela do {$rotulo} renovada.");
 
                 return;
@@ -472,8 +476,34 @@ class TurnosSeeder extends Seeder
         ]);
 
         $this->seedTimeline($turno, $aceite, TurnoStatus::Confirmado);
+        $this->garantePreAutorizacaoSintetica($turno);
 
         $this->command?->info("TurnosSeeder: {$rotulo} (confirmado, na janela) criado.");
+    }
+
+    /**
+     * STORY-065 — pré-autorização SINTÉTICA: o fluxo real a cria na aprovação da
+     * candidatura (STORY-058 → PreAutorizarTurnoJob); o seed cria o turno direto e,
+     * sem charge_id, a captura pós-checkout falharia ("não tem pré-autorização para
+     * correlacionar") e o E2E do ciclo financeiro nunca veria o Pix. Sem rede no
+     * seed (deploy de homolog): o charge_id não existe no fake, então o webhook da
+     * CAPTURA volta sem external_reference (aceito sem evento — degradação inócua);
+     * a resposta síncrona e o Pix (que carrega o external_reference) saem normais.
+     * Vale para turno NOVO e para turno renovado de runs anteriores ao fix.
+     */
+    private function garantePreAutorizacaoSintetica(Turno $turno): void
+    {
+        PagamentoOperacao::updateOrCreate(
+            ['turno_id' => $turno->id, 'tipo_operacao' => TipoOperacaoPagamento::PreAutorizacao],
+            [
+                'idempotencia_chave' => TipoOperacaoPagamento::PreAutorizacao->chaveIdempotente($turno->id),
+                'status' => StatusOperacaoPagamento::Concluida,
+                'request_payload' => ['seed' => true, 'total_contratante' => '230.00'],
+                'response_payload' => ['id' => 'or_seed', 'status' => 'pending'],
+                'pagarme_order_id' => 'or_seed_'.$turno->id,
+                'pagarme_charge_id' => 'ch_seed_'.$turno->id,
+            ],
+        );
     }
 
     /** STORY-060 — anexa a trilha aos turnos do seed criados antes da timeline existir. */

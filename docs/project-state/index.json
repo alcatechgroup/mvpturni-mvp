@@ -3867,7 +3867,7 @@
         "id": "SCREEN-STORY-065-pix-enviado-e-fila-falhas",
         "story": "STORY-065",
         "epic": "EPIC-003",
-        "status": "ready",
+        "status": "in_implementation",
         "path": "design/screens/SCREEN-STORY-065-pix-enviado-e-fila-falhas.md",
         "viewports": [
           "mobile",

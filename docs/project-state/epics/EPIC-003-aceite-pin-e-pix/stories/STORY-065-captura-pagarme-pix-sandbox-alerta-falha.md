@@ -91,14 +91,155 @@ NÃO decide: 1 tentativa de Pix (PDR-010); que webhook é fonte de verdade (ADR-
 
 ## Notas do agente
 
+### Plano inicial (2026-06-06, antes de codar)
+
+**Documentos lidos:** estória inteira; PDR-017/PDR-010/PDR-004 (via estória + pagamento.md);
+ADR-016 + `integrations/pagarme/contract.md`; `domain/pagamento.md`; STORY-056 (notas completas
+— fake, idempotência, webhook, achado do fake stateless); STORY-064 (evento `TurnoFinalizado`);
+SCREEN-STORY-065 (spec aprovado 2026-06-06); código existente: `GatewayPagamento`,
+`OperacaoIdempotente`, `PagarmeGateway`, `ProcessarWebhookPagarmeJob`, `PreAutorizarTurnoJob`
+(template), eventos `Pagamento/*`, `TurnoDetalheController` (whitelist da timeline JÁ tem
+`pagamento.capturado`/`pix.enviado`), `pagarme-mock/index.php`, `ProfissionalProfile`
+(`chave_pix_encrypted`), shell do admin + FilaAprovacao.
+
+**Entendimento consolidado:** a 056 deixou pronta a ACL (capturar/transferirPix), a
+idempotência e o pipeline de webhook (fake → HMAC → `ProcessarWebhookPagarmeJob` → eventos de
+domínio `CapturaConfirmada`/`PixEnviado`/`PixFalhou`). A 065 liga as pontas: (1) consumir
+`TurnoFinalizado` e disparar captura+Pix em job; (2) materializar os webhooks em audit log
+(fonte de verdade — CA-6) e na fila de falhas do admin; (3) expor o status do Pix ao
+profissional no detalhe; (4) tornar o fake configurável (SLA + falha determinística).
+
+**Plano:**
+1. `TurnoFinalizadoListener` (thin) → `CapturarEPagarTurnoJob` (fila database): guard
+   estado `finalizado` (CA-9) → `capturar` idempotente → audit `pagamento.capturado` +
+   evento `PagamentoCapturado` (novo, com charge_id/valor/timestamp — CA-2) → em sequência
+   `transferirPix` (chave do perfil; PDR-010 1 tentativa).
+2. Webhook (CA-6): `HandlePixEnviado` → audit `pix.enviado` (é o que liga timeline + card —
+   o timestamp do "Pix enviado em HH:MM" é o do webhook, não o da resposta síncrona);
+   `HandlePixFalhou` → audit `pix.falhou` + linha em `pix_falhas` (alerta admin; cobre
+   também falha reportada após sucesso aparente).
+3. Tabela `pix_falhas` (api é dono — ownership do banco): UUIDv7 PK, `turno_id` FK,
+   razão (código+mensagem do gateway), `falhou_em`, resolução (`resolvido_em/por/nota`).
+4. Fake: `PAGARME_MOCK_PIX_RESULTADO=sucesso|falha` + `PAGARME_MOCK_PIX_SLA_SEGUNDOS`
+   (default 0; atraso sem bloquear a resposta). contract.md atualizado junto.
+5. Detalhe (CA-4): payload `pix { status, enviado_em }` p/ profissional em `finalizado`
+   (decisão SCREEN-065 §A.4: `pix_falhou` chega como `a_caminho`).
+6. WebApp: linha no card de valor + polling vivo em `finalizado` enquanto `a_caminho`
+   (ajuste consciente sobre a 064 §4.11 "polling morto" — sem isso o CA-4 não atualiza
+   sem refresh; registrado também no histórico da SCREEN-064 na implementação).
+7. Admin: Livewire `PixFalhas` (rota `/pix-falhas`, AdminOnly) conforme SCREEN-065 §B.
+8. E2E + métrica CA-7 + fechamento.
+
+**Dúvidas/ambiguidade:** nomenclatura do evento síncrono de captura — a estória pede
+`PagamentoCapturado`; a 056 já criou `CapturaConfirmada` (webhook). Decisão local: manter
+os DOIS com papéis distintos (síncrono = iniciativa; webhook = confirmação/fonte de
+verdade), documentado nos docblocks. Não é ambiguidade de produto — não bloqueia.
+
+**Mapeamento CA → testes planejados (api Pest, webapp widget/integration, admin Pest):**
+- CA-1: `test_listener_turno_finalizado_enfileira_job` (feliz);
+  `test_job_nao_captura_turno_nao_finalizado` (CA-9/inválido);
+  `test_job_idempotente_em_redispatch_nao_duplica_captura` (borda, clique-duplo);
+  `test_job_retenta_em_gateway_indisponivel` (exceção).
+- CA-2: `test_captura_sucesso_emite_pagamento_capturado_e_audita` (feliz);
+  `test_captura_falha_fatal_audita_sem_pix` (exceção).
+- CA-3: `test_pix_disparado_em_sequencia_com_chave_do_perfil` (feliz);
+  `test_pix_falha_sem_chave_pix_no_perfil_vira_alerta` (inválido).
+- CA-4: `test_webhook_pix_enviado_audita_pix_enviado` + payload `pix{}` no detalhe
+  (3 testes: a_caminho/enviado/contratante-sem-pix) + widget tests da linha no card.
+- CA-5: `test_webhook_pix_falhou_cria_caso_na_fila_com_razao` (feliz);
+  `test_pix_falhou_apos_sucesso_aparente_atualiza_alerta` (CA-6/borda);
+  fake: teste de container coberto pelo E2E local (`CicloPagamentoLocalTest` estendido).
+- CA-6: `test_audit_pix_enviado_vem_do_webhook_nao_da_resposta_sincrona`.
+- CA-8: admin Pest: lista desc, paginação, resolver com nota (feliz), nota vazia
+  (inválido), race entre admins (exceção), fila vazia (borda) + E2E Playwright.
+- CA-7: métrica 20 turnos (teste dedicado, resultado anexado aqui).
+- CA-9: coberto no guard do job + teste de cancelamento não dispara captura.
+- CA-10: gate de cobertura ≥98% núcleo / ≥80% geral no `make test-api`.
+
 ### Decisões tomadas
+- **Dois eventos de captura com papéis distintos:** `PagamentoCapturado` (novo — desfecho
+  síncrono da iniciativa do job, com charge_id/valor/timestamp, CA-2) ≠ `CapturaConfirmada`
+  (056 — webhook, fonte de verdade assíncrona, CA-6). Documentado nos docblocks.
+- **`pix.enviado` NASCE do webhook, nunca da resposta síncrona** (CA-6): o timestamp do
+  "Pix enviado em HH:MM" é o da confirmação do gateway. A resposta síncrona de `/transfers`
+  passou a `processing` no contrato (fake atualizado junto — regra do projeto).
+- **Snapshot operacional em `pix_falhas`** (aprovado por Alexandro em chat): o caso carrega
+  profissional/função/estabelecimento/valor/chave do INSTANTE da falha → o Backoffice lê
+  uma tabela, sem replicar turnos/vagas nos testes do admin; registro arquivístico.
+- **Chave Pix cifrada com segredo dedicado compartilhado api+admin (IDR-028)**: as
+  APP_KEYs são distintas (correto) e o Backoffice precisa LER a chave (CA-5). Gap da
+  ADR-009 5A (chave dedicada nunca implementada em EPIC-001) apontado ao Arquiteto no IDR.
+- **Falha de Pix para o profissional = "Pix a caminho"** (SCREEN-065 §A.4, confirmado por
+  Alexandro): PDR-010 define comunicação manual; o payload nem distingue.
+- **Polling silencioso do detalhe em `finalizado`** enquanto `pix.status == a_caminho`
+  (10s; morre na confirmação) — ajuste consciente sobre a 064 §4.11, registrado nos
+  históricos das SCREEN-064/065. Refresh sem skeleton (erro de tick mantém a verdade
+  anterior).
+- **Resolução humana é final**: `PixEnviado` tardio NÃO fecha caso aberto; `PixFalhou`
+  tardio NÃO reabre caso resolvido. Nota obrigatória (CA-8 — audit conta a história).
+- **Fake:** `PAGARME_MOCK_PIX_RESULTADO=sucesso|falha` + `PAGARME_MOCK_PIX_SLA_SEGUNDOS`
+  (CA-5: nome decidido aqui). SLA via resposta-antecipada + sleep; em Cloud Run exige
+  `cpu_idle=false` (senão o throttle congela o webhook atrasado).
+
 ### Descobertas
+- **Gap ADR-009 5A:** a "chave de criptografia distinta da APP_KEY em Secret Manager"
+  decidida na ADR nunca foi implementada — EPIC-001 usou o cast `encrypted` nativo
+  (APP_KEY). Pendência formal ao Arquiteto registrada no IDR-028.
+- **Turnos do seed não têm pré-autorização** (TurnosSeeder cria o turno direto, pulando a
+  058) → a captura falhava ("não tem pré-autorização com charge_id para correlacionar") e
+  o E2E do ciclo nunca via o Pix. Fix: pré-auth SINTÉTICA no seeder (sem rede; webhook de
+  captura degrada sem external_reference — inócuo; Pix sai normal).
+- Turnos `finalizado` ANTIGOS (consumidos antes da 065 existir) ficam "Pix a caminho" para
+  sempre no detalhe — sem evento, sem job, honesto e esperado; não confundir com bug.
+- Worker `queue:work` precisa de restart para enxergar classe de Job nova (gotcha da 056,
+  reconfirmado).
+
 ### Bloqueios encontrados
+- Nenhum bloqueante. A decisão da chave compartilhada (acima) foi escalada a Alexandro em
+  chat e resolvida na hora (sem `blocked`).
+
 ### IDRs criados
+- **IDR-028** — chave Pix do snapshot de `pix_falhas` cifrada com segredo dedicado
+  compartilhado api+admin (`accepted` — aprovado em chat).
+
 ### Cobertura final
-- Unitários:
-- E2E:
+- Suítes completas locais (CA-10): **api 916 verdes** (gate `--min=80` EXIT 0);
+  **admin 114 verdes**; **webapp 516 verdes**. Núcleo da 065: `CapturarEPagarTurnoJob`
+  **100%**, `HandlePixEnviado`/`HandlePixFalhou`/`TurnoFinalizadoListener` **100%**,
+  `ChavePixCompartilhada` **100%**, `PixFalha` 96,55% linhas (única linha descoberta:
+  a relação declarativa `turno()` — Eloquent puro, sem lógica; justificada aqui).
+- E2E (browser real): webapp integration_test **All tests passed** — ciclo
+  `confirmado → finalizado → Pix enviado` ponta a ponta contra api+worker+fake reais
+  (fase 4 nova: linha do card troca por polling silencioso + trilha); smoke Playwright
+  verde; admin Playwright **14/14** (inclui os 2 cenários novos da pix-falhas).
+- Flake observado e diagnosticado: sincronia bilateral do cronômetro (063) estourou 2s
+  numa execução COM a máquina sob carga (3 processos paralelos meus); verde nas execuções
+  em repouso. Não relacionado à 065; registrado para ciência do PO (sem skip).
+- CA-7 (métrica anexada): **20/20 turnos com ciclo completo** (pix.enviado + 3 operações
+  concluídas) e **20/20 dentro da janela de 15 min** — pipeline max 23ms / média 9ms no CI
+  (simulação PDR-017; SLA real do fake em homolog: ~30s via env).
+
+### Mapeamento CA → teste (nominal)
+- CA-1: `CA-1: evento TurnoFinalizado enfileira CapturarEPagarTurnoJob na fila database`
+  + `CA-1: job roda na fila database (ADR-002)` (CapturarEPagarTurnoJobTest).
+- CA-2: `CA-2/CA-3: sucesso → captura + Pix em sequência, audit pagamento.capturado +
+  evento PagamentoCapturado`; falha: `captura falha fatal (CapturaFalhou) → …`.
+- CA-3: idem CA-2 (valor integral + chave do perfil) + `CA-3: perfil SEM chave Pix → …`.
+- CA-4: `CA-4/CA-6: webhook PixEnviado grava audit pix.enviado…` (WebhookPixHandlersTest);
+  payload: 5 testes `CA-4 (065): …` (TurnoDetalheTest); UI: 8 widget tests
+  (turno_detalhe_pix_test.dart); E2E fase 4 do ciclo (checkout_test.dart).
+- CA-5: `CA-5: webhook PixFalhou cria caso na fila com a razão do gateway…`,
+  `PDR-010: Pix falha fatal…`, snapshot (2 testes); admin: 14 testes (PixFalhasTest) +
+  E2E Playwright (pix-falhas.spec.ts); fake `falha` verificado em container real.
+- CA-6: `CA-6: a resposta síncrona do Pix NÃO grava pix.enviado…`, `CA-6: PixFalhou após
+  pix.enviado (sucesso aparente)…`, `CA-6: PixEnviado redelivery…`.
+- CA-7: `CA-7: 20 turnos seedados — 100% completam…` (MetricaPixPromessaTest).
+- CA-8: PixFalhasTest (lista desc/resolução/nota/race/vazios/paginação/contador) +
+  pix-falhas.spec.ts.
+- CA-9: `CA-9: turno fora de finalizado NÃO dispara captura` (3 datasets).
+- CA-10: gate `--min=80` da suíte + cobertura do módulo (fechamento).
+
 ### Links de evidência
-- PR:
-- Pipeline:
-- Deploy de homologação:
+- PR: n/a (workflow Turni — commits TDD direto na `main`)
+- Pipeline: (preencher no fechamento)
+- Deploy de homologação: (preencher no fechamento)
