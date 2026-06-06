@@ -2160,6 +2160,26 @@
       "produces_idr": null,
       "created_at": "2026-06-03",
       "updated_at": "2026-06-06"
+    },
+    {
+      "id": "STORY-073",
+      "epic_id": "EPIC-002",
+      "title": "Fix — `php artisan schedule:run` em homolog/prod (F-NB-1 do EPIC-002 — auto-retirada de candidatura em limbo)",
+      "type": "bugfix",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "in_progress",
+      "owner_agent": "claude-opus-4-8-2026-06-06",
+      "sprint_id": "SPRINT-2026-W28",
+      "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-073-fix-schedule-run-homolog-prod.md",
+      "blocked_by": [],
+      "blocks": [],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "renumbered_from": "STORY-069",
+      "created_at": "2026-06-03",
+      "updated_at": "2026-06-06"
     }
   ],
   "sprints": [

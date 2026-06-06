@@ -8,10 +8,10 @@ type: bugfix
 target_role: programador
 requires_design: false
 design_screen_id: null
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8-2026-06-06
 created_at: 2026-06-03
-updated_at: 2026-06-03
+updated_at: 2026-06-06
 estimated_session_size: M
 produces_idr: null  # possivelmente produz IDR de "Scheduler como Cloud Run Job + Cloud Scheduler"
 renumbered_from: STORY-069  # numeração original colidiu com EPIC-010 STORY-069 (spike UUID/ADR-018) criada pelo Arquiteto no mesmo 2026-06-03 — renumerada para STORY-073 (próximo livre após 069..072 do EPIC-010)
@@ -124,11 +124,37 @@ Se durante a execução perceber que precisa propor IDR (ex: "scheduler-job: pad
 
 ## Notas do agente (preenchido durante/após execução)
 
+### Entrada inicial (2026-06-06, antes de codar)
+
+**Documentos lidos:** estória inteira; `apps/api/routes/console.php` (agora são **4** agendamentos — STORY-066 adicionou `turnos:detectar-no-show` everyMinute, também dependente desta estória); `infra/modules/worker-job/{main,variables,outputs}.tf`; `infra/envs/homolog/main.tf` (bloco `module "worker_job"`); `infra/envs/prod/main.tf` (scaffolded, ainda usa `worker-vm`, "NÃO aplicar antes do EPIC-006"); `.github/workflows/release.yml` (passo "Atualizar imagem do worker job"); `validation/report.md` F-NB-1; `runbook-homolog.md` §worker.
+
+**Entendimento consolidado:** o ambiente implantado só roda `queue:work` (Cloud Run Job `turni-worker-job-homolog` + Cloud Scheduler 1/min). Nenhum processo invoca `php artisan schedule:run`, então os 4 `Schedule::command()` declarados nunca disparam. O fix é provisionar um segundo Cloud Run Job + Cloud Scheduler (mesmo padrão IDR-016) rodando `schedule:run` 1/min, separado do worker (kill-switch independente — explicitamente fora de escopo unificar).
+
+**Plano (5 bullets):**
+1. Parametrizar nomes do módulo `worker-job` (vars com default preservando os nomes atuais → zero churn de estado no worker existente) e instanciar `module "scheduler_job"` em homolog com `command = ["php","artisan","schedule:run"]`.
+2. Espelhar em `envs/prod/main.tf` (CA-2 — documentado, gated; prod não é aplicado nesta estória).
+3. `release.yml`: atualizar imagem do scheduler job a cada release (igual ao worker job).
+4. CA-8/CA-9: runbook + comentário do `console.php`. CA-7: estimativa de custo.
+5. Apply homolog + verificação ao vivo (CA-3..CA-6) com logs anexados.
+
+**Mapeamento CA → verificação** (estória de infra — sem regra de negócio nova; a regra já é coberta pelos testes da STORY-052, ex. `CicloEdicaoMaterialE2ETest` com `travel(25h)`):
+- CA-1/CA-2 → `terraform fmt -check` + `terraform validate` + `terraform plan` (homolog e prod) com saída esperada; revisão do diff.
+- CA-3 → cenário real em homolog (editar vaga materialmente com candidato pendente; observar transição automática p/ `retirada` + audit `candidatura.retirada_por_edicao_auto`).
+- CA-4 → log query `resource.labels.job_name="turni-scheduler-job-homolog"` na janela de 60 min; amostra anexada.
+- CA-5 → log de execução real de `candidaturas:auto-retirar-apos-edicao` com candidatura elegível seedada.
+- CA-6 → log do `lembretes:cadastro` às 09:00 BRT do dia seguinte.
+- CA-7 → memória de cálculo anexada (abaixo).
+- CA-8/CA-9 → diff do runbook e do `console.php`.
+- CA-10 → não há código de app novo; cobertura existente inalterada (suíte completa roda antes do push).
+
+**Dúvidas/ambiguidades:** nenhuma que bloqueie. Atenção operacional: Cloud SQL de homolog desliga sáb+dom (scheduler de economia) — hoje é sábado 2026-06-06; para a verificação ao vivo vou ligar a instância (`activation-policy=ALWAYS`) e devolver ao normal depois, como o `release.yml` já faz.
+
 ### Decisões tomadas
 - 
 
 ### Descobertas
-- 
+- Entrada da STORY-073 estava **ausente** de `stories[]` no `index.json` (presente só nas listas de sprint/épico e em `addressed_by` da F-NB-1). Criada ao assumir a estória.
+- `routes/console.php` agora tem **4** agendamentos (a estória citava 3): STORY-066 adicionou `turnos:detectar-no-show` everyMinute, que também passa a disparar com este fix (o índice já anotava essa dependência).
 
 ### Bloqueios encontrados
 - 
