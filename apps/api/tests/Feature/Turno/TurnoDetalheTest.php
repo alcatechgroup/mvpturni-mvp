@@ -330,3 +330,78 @@ test('STORY-062: checkin_recusado e checkin_pin_expirado aparecem na timeline (w
     $recusado = collect($timeline)->firstWhere('evento', 'checkin_recusado');
     expect(json_encode($recusado))->not->toContain('não chegou');
 });
+
+// ------------------------------------------------------- status do Pix (STORY-065 CA-4)
+
+// (a) feliz — Pix confirmado pelo webhook: card mostra "Pix enviado em HH:MM".
+test('CA-4 (065): profissional em finalizado COM pix.enviado vê pix{status: enviado, enviado_em}', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
+    auditDoTurno($turno, 'pix.enviado', ['pagarme_transfer_id' => 'tr_1'], '2026-06-05T18:32:00Z');
+
+    $json = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json();
+
+    expect($json['pix']['status'])->toBe('enviado')
+        ->and($json['pix']['enviado_em'])->toBe('2026-06-05T18:32:00+00:00');
+});
+
+// (a) feliz — entre finalizado e o webhook: "Pix a caminho".
+test('CA-4 (065): profissional em finalizado SEM pix.enviado vê pix{status: a_caminho}', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
+
+    $json = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json();
+
+    expect($json['pix']['status'])->toBe('a_caminho')
+        ->and($json['pix']['enviado_em'])->toBeNull();
+});
+
+// (b) decisão SCREEN-065 §A.4 — falha de Pix NÃO muda a linha do profissional (PDR-010).
+test('CA-4 (065): pix.falhou aparece ao profissional como a_caminho (PDR-010 — tratamento é da operação)', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
+    auditDoTurno($turno, 'pix.falhou', ['razao' => 'invalid_pix_key — chave não encontrada']);
+
+    $json = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json();
+
+    expect($json['pix']['status'])->toBe('a_caminho');
+    // A razão da falha NUNCA vaza para as partes (trilha do admin).
+    expect(json_encode($json))->not->toContain('invalid_pix_key');
+});
+
+// (b) inválido — fora de finalizado não existe pix{} (estado terminal é pré-condição).
+test('CA-4 (065): turno fora de finalizado NÃO carrega pix{}', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Ativo)->create();
+
+    $json = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json();
+
+    expect($json)->not->toHaveKey('pix');
+});
+
+// (b) RBAC — contratante não recebe pix{} (visibilidade é do profissional — CA-4).
+test('CA-4 (065): contratante em finalizado NÃO recebe pix{}', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
+    auditDoTurno($turno, 'pix.enviado', [], '2026-06-05T18:32:00Z');
+
+    $json = $this->actingAs($turno->contratante)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json();
+
+    expect($json)->not->toHaveKey('pix');
+});
+
+// (d) borda — timeline do profissional ganha o pix_enviado com o valor dele (já era da 060;
+// garante que a 065, ao emitir o audit de verdade, conversa com o mapa existente).
+test('CA-4 (065): timeline do profissional traz pix_enviado com o valor integral', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create([
+        'valor' => 200.00, 'taxa_turni' => 30.00, 'total_contratante' => 230.00,
+    ]);
+    auditDoTurno($turno, 'pix.enviado', ['pagarme_transfer_id' => 'tr_1']);
+
+    $timeline = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json('timeline');
+
+    $evento = collect($timeline)->firstWhere('evento', 'pix_enviado');
+    expect($evento)->not->toBeNull()
+        ->and($evento['valor'])->toEqual(200.0);
+});
