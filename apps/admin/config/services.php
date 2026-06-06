@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    // STORY-065 (IDR-028) — segredo DEDICADO da chave Pix do snapshot de pix_falhas,
+    // COMPARTILHADO com o app api (que o escreve; aqui só leitura para o tratamento
+    // manual — CA-5). Default só para dev/CI; homolog injeta via Secret Manager.
+    'pix_falha' => [
+        'chave_key' => env('PIX_FALHA_CHAVE_KEY', 'base64:QSaMggP0jJQeXLjsVeaVSbzjYRuI/jafz7urwOGT7Mg='),
+    ],
+
 ];

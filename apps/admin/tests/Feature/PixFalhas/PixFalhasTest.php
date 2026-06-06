@@ -178,12 +178,18 @@ test('aba resolvidos vazia mostra estado neutro', function () {
         ->assertSee('Nenhum caso resolvido ainda');
 });
 
-test('paginação: mais de 20 casos paginam (borda)', function () {
+test('paginação: 21º caso (mais antigo, ordem desc) cai para a página 2 (borda)', function () {
     $admin = User::factory()->admin()->create();
-    PixFalha::factory()->count(21)->create();
+    PixFalha::factory()->count(20)->create(['falhou_em' => now()->subHour()]);
+    PixFalha::factory()->create([
+        'profissional_nome' => 'Fora Da Página Um',
+        'falhou_em' => now()->subDays(3), // o mais antigo — último na ordem desc
+    ]);
 
     Livewire::actingAs($admin)->test(PixFalhas::class)
-        ->assertSee('Próxima');
+        ->assertDontSee('Fora Da Página Um')
+        ->set('paginators.page', 2)
+        ->assertSee('Fora Da Página Um');
 });
 
 // ──────────────────────────────────────────────────────────────

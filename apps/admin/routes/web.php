@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\AdminOnly;
 use App\Livewire\FilaAprovacao;
+use App\Livewire\PixFalhas;
 use App\Livewire\TemplateDetalhe;
 use App\Livewire\TemplateEditor;
 use App\Livewire\TemplatesCatalogo;
@@ -50,6 +51,9 @@ Route::middleware([AdminOnly::class])->group(function () {
 
     // STORY-019 — Fila de aprovação (componente Livewire full-page).
     Route::get('/aprovacoes', FilaAprovacao::class)->name('aprovacoes');
+
+    // STORY-065 — Fila "Pix com falha" (PDR-010: tratamento manual; SCREEN-065 §B).
+    Route::get('/pix-falhas', PixFalhas::class)->name('pix-falhas');
 
     // STORY-020 — Editor de templates contratuais (catálogo · detalhe · editor de nova versão).
     Route::get('/templates', TemplatesCatalogo::class)->name('templates.catalogo');

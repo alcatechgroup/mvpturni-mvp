@@ -11,8 +11,10 @@ use App\Events\Pagamento\PixEnviado;
 use App\Events\Pagamento\PixFalhou;
 use App\Models\AuditLog;
 use App\Models\PixFalha;
+use App\Models\ProfissionalProfile;
 use App\Models\Turno;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -136,7 +138,7 @@ test('PixFalhou com turno inexistente não explode (defensivo)', function () {
 
 test('caso da fila carrega snapshot operacional + chave Pix cifrada com a chave COMPARTILHADA', function () {
     $turno = Turno::factory()->create(['valor' => 200.00, 'taxa_turni' => 30.00, 'total_contratante' => 230.00]);
-    \App\Models\ProfissionalProfile::factory()->create([
+    ProfissionalProfile::factory()->create([
         'user_id' => $turno->profissional_id,
         'chave_pix_encrypted' => 'carlos@pix.me',
     ]);
@@ -152,7 +154,7 @@ test('caso da fila carrega snapshot operacional + chave Pix cifrada com a chave 
         ->and($falha->chave_pix)->toBe('carlos@pix.me');
 
     // …mas em REPOUSO a chave nunca aparece em claro (ADR-016 g / ADR-009 5A).
-    $cru = \Illuminate\Support\Facades\DB::table('pix_falhas')->where('turno_id', $turno->id)->first();
+    $cru = DB::table('pix_falhas')->where('turno_id', $turno->id)->first();
     expect((string) $cru->chave_pix)->not->toContain('carlos@pix.me');
 });
 
