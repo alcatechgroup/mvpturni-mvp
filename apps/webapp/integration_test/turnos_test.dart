@@ -3,6 +3,7 @@
 // Mantém o entrypoint no topo de `integration_test/` para que os arquivos em `turnos/`
 // resolvam `../helpers/...` (mesma razão de auth_test.dart/vagas_test.dart). Roda
 // SAME-ORIGIN sob o harness (proxy reverso + --web-launch-url) — fluxo autenticado.
+import 'turnos/cancelar_turno_test.dart' as cancelar_turno;
 import 'turnos/checkout_test.dart' as checkout;
 import 'turnos/cronometro_test.dart' as cronometro;
 import 'turnos/detalhe_turno_test.dart' as detalhe_turno;
@@ -23,4 +24,8 @@ void main() {
   // STORY-064: ciclo completo confirmado→finalizado sobre o par exclusivo
   // *.checkout.seed (CONSOME o turno; o seeder recria — recriaConsumido).
   checkout.main();
+  // STORY-066: cancelamento dos 2 lados + no-show (pares exclusivos
+  // *.cancelarpro/*.cancelaremp/*.noshow.seed; todos recriaConsumido). Por último:
+  // o no-show depende do worker ter processado a liberação disparada no _e2e-seed.
+  cancelar_turno.main();
 }

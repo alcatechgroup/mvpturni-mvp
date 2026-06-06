@@ -9,6 +9,7 @@ import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
+import 'cancelar_turno_service.dart';
 import 'cronometro_card.dart';
 import 'cronometro_service.dart';
 import 'geofencing_copy.dart';
@@ -39,12 +40,14 @@ class TurnoDetalheScreen extends StatefulWidget {
     CronometroService? cronometroService,
     PinCheckoutService? pinCheckoutService,
     ValidarCheckoutService? validarCheckoutService,
+    CancelarTurnoService? cancelarService,
   }) : _service = service,
        _pinService = pinService,
        _validarService = validarService,
        _cronometroService = cronometroService,
        _pinCheckoutService = pinCheckoutService,
-       _validarCheckoutService = validarCheckoutService;
+       _validarCheckoutService = validarCheckoutService,
+       _cancelarService = cancelarService;
 
   final String turnoId;
   final TurnoDetalheService? _service;
@@ -53,6 +56,7 @@ class TurnoDetalheScreen extends StatefulWidget {
   final CronometroService? _cronometroService;
   final PinCheckoutService? _pinCheckoutService;
   final ValidarCheckoutService? _validarCheckoutService;
+  final CancelarTurnoService? _cancelarService;
 
   @override
   State<TurnoDetalheScreen> createState() => _TurnoDetalheScreenState();
@@ -73,6 +77,8 @@ class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
       widget._pinCheckoutService ?? PinCheckoutService();
   late final ValidarCheckoutService _validarCheckoutService =
       widget._validarCheckoutService ?? ValidarCheckoutService();
+  late final CancelarTurnoService _cancelarService =
+      widget._cancelarService ?? CancelarTurnoService();
 
   _Phase _phase = _Phase.loading;
   TurnoDetalhe? _turno;
@@ -204,6 +210,7 @@ class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
           cronometroService: _cronometroService,
           pinCheckoutService: _pinCheckoutService,
           validarCheckoutService: _validarCheckoutService,
+          cancelarService: _cancelarService,
           avisoCheckin: _avisoCheckin,
           onAvisoCheckin: (msg) => setState(() => _avisoCheckin = msg),
           onRecarregar: _load,
@@ -263,6 +270,7 @@ class _DetalheView extends StatelessWidget {
     required this.cronometroService,
     required this.pinCheckoutService,
     required this.validarCheckoutService,
+    required this.cancelarService,
     required this.avisoCheckin,
     required this.onAvisoCheckin,
     required this.onRecarregar,
@@ -276,6 +284,7 @@ class _DetalheView extends StatelessWidget {
   final CronometroService cronometroService;
   final PinCheckoutService pinCheckoutService;
   final ValidarCheckoutService validarCheckoutService;
+  final CancelarTurnoService cancelarService;
   final String? avisoCheckin;
   final ValueChanged<String> onAvisoCheckin;
   final Future<void> Function() onRecarregar;
@@ -388,6 +397,18 @@ class _DetalheView extends StatelessWidget {
             )
           else
             _AcoesPlaceholder(isDark: isDark),
+        ],
+        // STORY-066 (CA-1 / SCREEN-066 §A.3) — gatilho de cancelar: baixa ênfase
+        // destrutiva, abaixo da área de ações, SÓ em `confirmado` (PDR-007), ambos
+        // os papéis. Nunca compete com a ação primária.
+        if (turno.estadoRaw == 'confirmado') ...[
+          const SizedBox(height: TurniSpacing.sm),
+          _CancelarTrigger(
+            turno: turno,
+            isDark: isDark,
+            cancelarService: cancelarService,
+            onRecarregar: onRecarregar,
+          ),
         ],
       ],
     );
@@ -1795,6 +1816,232 @@ class _RecusaDialogState extends State<_RecusaDialog> {
   }
 }
 
+// ───────────── Cancelamento do turno (STORY-066 / SCREEN-066 §A) ─────────────
+
+/// Gatilho "…? Cancelar turno" — `button.text` destrutivo de baixa ênfase
+/// (SCREEN-066 §A.3, padrão "pergunta? ação" das 061/062). Só em `confirmado`
+/// (PDR-007); o sucesso recarrega a verdade e mostra snackbar discreto.
+class _CancelarTrigger extends StatelessWidget {
+  const _CancelarTrigger({
+    required this.turno,
+    required this.isDark,
+    required this.cancelarService,
+    required this.onRecarregar,
+  });
+
+  final TurnoDetalhe turno;
+  final bool isDark;
+  final CancelarTurnoService cancelarService;
+  final Future<void> Function() onRecarregar;
+
+  Future<void> _abrir(BuildContext context) async {
+    final cancelou = await showDialog<bool>(
+      context: context,
+      builder: (_) => _CancelarDialog(
+        turnoId: turno.id,
+        souContratante: turno.souContratante,
+        cancelarService: cancelarService,
+      ),
+    );
+    if (cancelou == null || !context.mounted) return;
+
+    // true = cancelado com sucesso; false com 422 também recarrega (a verdade
+    // mudou debaixo do usuário — SCREEN-066 §A.6). Voltar puro devolve null.
+    await onRecarregar();
+    if (cancelou && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          key: Key('turno-cancelado-snackbar'),
+          content: Text('Turno cancelado.'),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final errorColor = isDark ? TurniColors.errorDark : TurniColors.errorLight;
+
+    return TextButton(
+      key: const Key('turno-detalhe-cancelar-btn'),
+      onPressed: () => _abrir(context),
+      style: TextButton.styleFrom(
+        foregroundColor: errorColor,
+        minimumSize: const Size.fromHeight(48),
+        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+      ),
+      child: Text(
+        turno.souContratante
+            ? 'Não precisa mais deste turno? Cancelar turno'
+            : 'Não vai poder comparecer? Cancelar turno',
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
+
+/// Dialog de confirmação do cancelamento (CA-1 / SCREEN-066 §A.4 — dialog.confirm,
+/// 3º uso). Motivo OPCIONAL ≤280; consequência explícita no corpo; erro inline
+/// (o dialog NÃO fecha em erro). Devolve `true` no sucesso; `false` quando o 422
+/// foi visto (a tela recarrega ao fechar); `null` em Voltar/ESC/scrim.
+class _CancelarDialog extends StatefulWidget {
+  const _CancelarDialog({
+    required this.turnoId,
+    required this.souContratante,
+    required this.cancelarService,
+  });
+
+  final String turnoId;
+  final bool souContratante;
+  final CancelarTurnoService cancelarService;
+
+  @override
+  State<_CancelarDialog> createState() => _CancelarDialogState();
+}
+
+class _CancelarDialogState extends State<_CancelarDialog> {
+  final _motivoController = TextEditingController();
+  bool _enviando = false;
+  String? _erro;
+
+  /// 422 visto: o próximo fechamento devolve `false` (recarregar a verdade).
+  bool _estadoInvalido = false;
+
+  @override
+  void dispose() {
+    _motivoController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _confirmar() async {
+    setState(() {
+      _enviando = true;
+      _erro = null;
+    });
+
+    final motivo = _motivoController.text.trim();
+    final result = await widget.cancelarService.cancelar(
+      widget.turnoId,
+      motivo: motivo.isEmpty ? null : motivo,
+    );
+    if (!mounted) return;
+
+    switch (result) {
+      case CancelamentoOk():
+        Navigator.of(context).pop(true);
+      case CancelamentoEstadoInvalido():
+        setState(() {
+          _enviando = false;
+          _estadoInvalido = true;
+          _erro = 'Este turno não pode mais ser cancelado.';
+        });
+      case CancelamentoErro():
+        setState(() {
+          _enviando = false;
+          _erro = 'Não foi possível cancelar. Tente de novo.';
+        });
+    }
+  }
+
+  void _voltar() => Navigator.of(context).pop(_estadoInvalido ? false : null);
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textMuted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+    final errorColor = isDark ? TurniColors.errorDark : TurniColors.errorLight;
+
+    return PopScope(
+      // ESC/back do browser também precisa honrar o pós-422 (recarregar).
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && !_enviando) _voltar();
+      },
+      child: AlertDialog(
+        key: const Key('cancelar-dialog'),
+        title: const Text('Cancelar este turno?'),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 432),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.souContratante
+                    ? 'A reserva do pagamento será liberada e o profissional '
+                          'será avisado. Essa ação não pode ser desfeita.'
+                    : 'A reserva do pagamento será liberada e o contratante '
+                          'será avisado. Essa ação não pode ser desfeita.',
+                style: TextStyle(fontSize: 14, color: textMuted, height: 1.5),
+              ),
+              const SizedBox(height: TurniSpacing.md),
+              const Text(
+                'Motivo (opcional)',
+                style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                key: const Key('cancelar-dialog-motivo'),
+                controller: _motivoController,
+                enabled: !_enviando && !_estadoInvalido,
+                maxLines: 3,
+                maxLength: 280,
+                decoration: InputDecoration(
+                  counterText: '',
+                  hintText: widget.souContratante
+                      ? 'Ex.: o evento foi cancelado'
+                      : 'Ex.: tive um imprevisto e não poderei comparecer',
+                  hintMaxLines: 2,
+                ),
+              ),
+              if (_erro != null) ...[
+                const SizedBox(height: TurniSpacing.sm),
+                Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    _erro!,
+                    key: const Key('cancelar-dialog-erro'),
+                    style: TextStyle(fontSize: 13.5, color: errorColor),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            key: const Key('cancelar-dialog-voltar'),
+            onPressed: _enviando ? null : _voltar,
+            child: const Text('Voltar'),
+          ),
+          FilledButton(
+            key: const Key('cancelar-dialog-confirmar'),
+            onPressed: _enviando || _estadoInvalido ? null : _confirmar,
+            style: FilledButton.styleFrom(
+              backgroundColor: errorColor,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(0, 48),
+              shape: const StadiumBorder(),
+            ),
+            child: _enviando
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Cancelar turno'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ───────────── Check-out: geração pelo profissional (STORY-064 / SCREEN-064 §3.1) ─────────────
 
 /// Bloco do PIN de check-out na área de ações — espelho da _AcoesCheckin SEM janela
@@ -2605,12 +2852,29 @@ class _TimelineEventoTile extends StatelessWidget {
           : evento.valor != null
           ? '${formatBRL(evento.valor!)} enviados para você.'
           : null,
+    // STORY-066 (SCREEN-066 §A.5) — quem cancelou, na voz de quem lê ("Você
+    // cancelou…" para o lado que cancelou); o motivo entra como linha própria.
     TimelineEventoTipo.cancelado => switch (evento.lado) {
-      'pro' => 'Cancelado pelo profissional.',
-      'emp' => 'Cancelado pelo contratante.',
+      'pro' =>
+        souContratante
+            ? 'Cancelado pelo profissional.'
+            : 'Você cancelou este turno.',
+      'emp' =>
+        souContratante
+            ? 'Você cancelou este turno.'
+            : 'Cancelado pelo contratante.',
       _ => null,
     },
-    TimelineEventoTipo.noShowPro => 'O check-in não aconteceu até o limite.',
+    TimelineEventoTipo.noShowPro =>
+      evento.limiteHoras != null
+          ? 'O check-in não aconteceu em até ${evento.limiteHoras} '
+                '${evento.limiteHoras == 1 ? 'hora' : 'horas'} após o início '
+                'previsto.'
+          : 'O check-in não aconteceu até o limite.',
+    TimelineEventoTipo.pagamentoLiberado =>
+      souContratante && evento.valor != null
+          ? '${formatBRL(evento.valor!)} liberados no seu meio de pagamento.'
+          : 'O contratante não foi cobrado.',
     _ => null,
   };
 
@@ -2684,6 +2948,21 @@ class _TimelineEventoTile extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           color: textMuted,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                    // STORY-066 (§A.5) — motivo do cancelamento, visível aos 2
+                    // lados (decisão do PO), entre aspas e em itálico.
+                    if (evento.tipo == TimelineEventoTipo.cancelado &&
+                        evento.motivo != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        '“${evento.motivo}”',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: textMuted,
+                          fontStyle: FontStyle.italic,
                           height: 1.4,
                         ),
                       ),

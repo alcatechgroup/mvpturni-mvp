@@ -31,6 +31,8 @@ enum TimelineEventoTipo {
   pixEnviado('pix_enviado', 'Pix enviado'),
   cancelado('cancelado', 'Turno cancelado'),
   noShowPro('no_show_pro', 'Turno não realizado'),
+  // STORY-066 (SCREEN-066 §A.5) — liberação da pré-autorização (cancelamento/no-show).
+  pagamentoLiberado('pagamento_liberado', 'Reserva de pagamento liberada'),
   desconhecido('', 'Atualização do turno');
 
   const TimelineEventoTipo(this.slug, this.titulo);
@@ -95,6 +97,14 @@ class TimelineEvento {
   /// Quem cancelou (`pro`|`emp`) — presente só em `cancelado` (STORY-066).
   final String? lado;
 
+  /// Motivo do cancelamento — visível aos DOIS lados (SCREEN-066 §A.5,
+  /// decisão do PO 2026-06-06); null quando quem cancelou não informou.
+  final String? motivo;
+
+  /// X horas do no-show — presente só em `no_show_pro` (STORY-066; a copy usa
+  /// "em até {X} horas"; seeds antigos sem o campo degradam para copy genérica).
+  final int? limiteHoras;
+
   /// Nota de geofencing — presente em `checkin_solicitado` (STORY-061) e
   /// `checkout_solicitado` (STORY-064 — único lugar onde o geo de check-out aparece;
   /// seeds antigos não a têm — a timeline degrada para título sem descrição).
@@ -106,6 +116,8 @@ class TimelineEvento {
     required this.ocorridoEm,
     this.valor,
     this.lado,
+    this.motivo,
+    this.limiteHoras,
     this.geofencing,
   });
 
@@ -115,6 +127,8 @@ class TimelineEvento {
     ocorridoEm: TurniDateTime.parseRequired(json['ocorrido_em'] as String),
     valor: (json['valor'] as num?)?.toDouble(),
     lado: json['lado'] as String?,
+    motivo: json['motivo'] as String?,
+    limiteHoras: (json['limite_horas'] as num?)?.toInt(),
     geofencing: json['geofencing'] == null
         ? null
         : GeofencingCheckin.fromJson(

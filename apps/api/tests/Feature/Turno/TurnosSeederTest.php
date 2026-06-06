@@ -50,14 +50,14 @@ test('seeder cria exatamente um turno em cada um dos 11 estados', function () {
 test('seeder anexa um aceite imutável a cada turno', function () {
     seedTurnosComDependencias();
     // 11 do universo turnos.seed + turno PIN (061) + turno validar (062) + turno cronômetro (063).
-    expect(AceiteEletronicoTurno::count())->toBe(15);
+    expect(AceiteEletronicoTurno::count())->toBe(18);
 });
 
 test('seeder é idempotente (rodar 2x não duplica)', function () {
     seedTurnosComDependencias();
     test()->seed(TurnosSeeder::class);
     expect(turnosDoSeedPrincipal()->count())->toBe(11)
-        ->and(Turno::count())->toBe(15); // + PIN (061) + validar (062) + cronômetro (063) + checkout (064)
+        ->and(Turno::count())->toBe(18); // + PIN (061) + validar (062) + cronômetro (063) + checkout (064) + cancelar-pro/emp + no-show (066)
 });
 
 test('o turno confirmado do seed demonstra o override de habitualidade (PJ)', function () {
@@ -289,4 +289,43 @@ test('STORY-062: turno PIN (061) consumido NÃO é recriado (recriação é só 
     test()->seed(TurnosSeeder::class);
 
     expect(Turno::where('profissional_id', $pro->id)->count())->toBe(1);
+});
+
+// ──────────────────────────────────────────────────────────────
+// STORY-066 — pares de cancelamento + no-show vencido
+// ──────────────────────────────────────────────────────────────
+
+test('STORY-066: pares cancelar-pro/emp nascem confirmados na janela; no-show nasce VENCIDO', function () {
+    seedTurnosComDependencias();
+
+    foreach (['cancelarpro', 'cancelaremp'] as $par) {
+        $pro = User::where('email', "profissional.{$par}.seed@turni.local")->first();
+        $turno = Turno::where('profissional_id', $pro->id)->first();
+        expect($turno->status)->toBe(TurnoStatus::Confirmado, "{$par} deveria estar confirmado")
+            ->and($turno->data_inicio->isAfter(now()))->toBeTrue();
+    }
+
+    $proNoShow = User::where('email', 'profissional.noshow.seed@turni.local')->first();
+    $vencido = Turno::where('profissional_id', $proNoShow->id)->first();
+    expect($vencido->status)->toBe(TurnoStatus::Confirmado)
+        // início há 3h > X=2h: o cron transita na primeira rodada após o seed
+        ->and($vencido->data_inicio->isBefore(now()->subHours(2)))->toBeTrue();
+});
+
+test('STORY-066: cron transita o no-show seed e o turno consumido é recriado vencido no próximo seed', function () {
+    seedTurnosComDependencias();
+
+    test()->artisan('turnos:detectar-no-show')->assertSuccessful();
+
+    $pro = User::where('email', 'profissional.noshow.seed@turni.local')->first();
+    expect(Turno::where('profissional_id', $pro->id)->first()->status)->toBe(TurnoStatus::NoShowPro);
+
+    // Próximo seed: par consumido (terminal) → recria um novo turno vencido.
+    test()->seed(TurnosSeeder::class);
+    expect(Turno::where('profissional_id', $pro->id)->count())->toBe(2)
+        ->and(
+            Turno::where('profissional_id', $pro->id)
+                ->where('status', TurnoStatus::Confirmado)->first()
+                ->data_inicio->isBefore(now()->subHours(2)),
+        )->toBeTrue();
 });

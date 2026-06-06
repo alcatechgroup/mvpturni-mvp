@@ -335,6 +335,35 @@ class TurnosSeeder extends Seeder
             rotulo: 'turno checkout seed',
             recriaConsumido: true,
         );
+
+        // STORY-066: o cancelamento CONSOME o turno (terminal). Um par por lado — o E2E
+        // cancela como profissional num e como contratante no outro (CA-8).
+        $this->seedTurnoNaJanela(
+            emailPrefixo: 'cancelarpro.seed',
+            nomeBase: 'Cancelar Pro Seed',
+            observacao: 'Vaga seed do cancelamento pelo profissional (STORY-066)',
+            rotulo: 'turno cancelar-pro seed',
+            recriaConsumido: true,
+        );
+        $this->seedTurnoNaJanela(
+            emailPrefixo: 'cancelaremp.seed',
+            nomeBase: 'Cancelar Emp Seed',
+            observacao: 'Vaga seed do cancelamento pelo contratante (STORY-066)',
+            rotulo: 'turno cancelar-emp seed',
+            recriaConsumido: true,
+        );
+
+        // STORY-066 (CA-5): turno confirmado VENCIDO (início há 3h > X=2h) — o cron real
+        // `turnos:detectar-no-show` o transita para no_show_pro (no gate E2E o Makefile
+        // roda o comando logo após o seed; em homolog, execução manual até a STORY-073).
+        $this->seedTurnoNaJanela(
+            emailPrefixo: 'noshow.seed',
+            nomeBase: 'No-show Seed',
+            observacao: 'Vaga seed do no-show automático (STORY-066)',
+            rotulo: 'turno no-show seed (vencido)',
+            recriaConsumido: true,
+            inicio: now()->subHours(3)->startOfMinute(),
+        );
     }
 
     private function seedTurnoNaJanela(
@@ -343,6 +372,7 @@ class TurnosSeeder extends Seeder
         string $observacao,
         string $rotulo,
         bool $recriaConsumido,
+        ?\DateTimeInterface $inicio = null,
     ): void {
         $contratante = User::updateOrCreate(
             ['email' => "contratante.{$emailPrefixo}@turni.local"],
@@ -382,8 +412,12 @@ class TurnosSeeder extends Seeder
             ],
         );
 
-        $inicio = now()->addMinutes(15)->startOfMinute();
-        $fim = (clone $inicio)->addHours(6);
+        // Default: dentro da janela de check-in (+15min). O par no-show da 066 passa um
+        // início NO PASSADO (vencido) para o cron transitar de verdade.
+        $inicio = \Carbon\CarbonImmutable::instance(
+            $inicio ?? now()->addMinutes(15)->startOfMinute(),
+        );
+        $fim = $inicio->addHours(6);
 
         // Mais recente por `id`: UUIDv7 é ordenável no tempo com precisão sub-segundo
         // (created_at empata quando dois seeds rodam no mesmo segundo — ADR-018).
@@ -546,9 +580,21 @@ class TurnosSeeder extends Seeder
             TurnoStatus::DisputaResolvidaSemPagamento => ['turno.checkin_solicitado', 'turno.checkin_validado', 'turno.checkout_solicitado'],
             TurnoStatus::Finalizado,
             TurnoStatus::FinalizadoAjustado => ['turno.checkin_solicitado', 'turno.checkin_validado', 'turno.checkout_solicitado', 'turno.checkout_validado', 'pagamento.capturado', 'pix.enviado'],
-            TurnoStatus::CanceladoPro => [['turno.cancelado', ['lado' => 'pro']]],
-            TurnoStatus::CanceladoEmp => [['turno.cancelado', ['lado' => 'emp']]],
-            TurnoStatus::NoShowPro => ['turno.no_show_pro'],
+            // STORY-066 — terminais de exceção: cancelamento (com motivo visível aos 2
+            // lados no caso pro — espelha o fluxo real) e no-show (X horas no payload),
+            // ambos seguidos da liberação da pré-autorização (timeline completa CA-7).
+            TurnoStatus::CanceladoPro => [
+                ['turno.cancelado', ['lado' => 'pro', 'motivo' => 'Tive um imprevisto de saúde.', 'antecedencia_horas' => 12]],
+                ['pagamento.liberado', ['motivo' => 'cancelamento', 'total_liberado' => (float) $turno->total_contratante]],
+            ],
+            TurnoStatus::CanceladoEmp => [
+                ['turno.cancelado', ['lado' => 'emp', 'motivo' => null, 'antecedencia_horas' => 12]],
+                ['pagamento.liberado', ['motivo' => 'cancelamento', 'total_liberado' => (float) $turno->total_contratante]],
+            ],
+            TurnoStatus::NoShowPro => [
+                ['turno.no_show_pro', ['limite_horas' => (int) config('turno.no_show_horas')]],
+                ['pagamento.liberado', ['motivo' => 'no_show', 'total_liberado' => (float) $turno->total_contratante]],
+            ],
         };
 
         $eventos = [
@@ -602,7 +648,8 @@ class TurnosSeeder extends Seeder
 
         return [
             'lado' => $status === TurnoStatus::CanceladoPro ? 'pro' : 'emp',
-            'motivo' => null,
+            // Espelha a trilha do seedTimeline (066): o pro informou motivo; o emp não.
+            'motivo' => $status === TurnoStatus::CanceladoPro ? 'Tive um imprevisto de saúde.' : null,
             'antecedencia_horas' => 12,
             'em' => now()->toIso8601String(),
         ];

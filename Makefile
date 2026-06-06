@@ -147,6 +147,9 @@ e2e: ## E2E local completo (gate antes de tag rc.N — IDR-004): WebApp (híbrid
 _e2e-seed: # Garante migrações + usuários de teste do CA-13 no banco de dev
 	$(DC) exec -T api php artisan migrate --force
 	$(DC) exec -T api php artisan db:seed --force
+	# STORY-066 (CA-5/CA-8) — o seed cria o turno noshow.seed VENCIDO (início há 3h);
+	# o cron real o transita para no_show_pro aqui (em dev não há schedule:run — STORY-073).
+	$(DC) exec -T api php artisan turnos:detectar-no-show
 
 # E2E híbrido do WebApp (IDR-010): integration_test (UI Flutter) + smoke HTTP (Playwright).
 # Ordem: build fresco (IDR-006 §c) → seed → integration_test → smoke. Sai !=0 no 1º fail.

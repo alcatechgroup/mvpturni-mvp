@@ -172,6 +172,11 @@ class TurnoDetalheController extends Controller
                     $item['motivo'] = $log->payload['motivo'];
                 }
             }
+            // X do no-show na copy da timeline ("em até {X} horas" — SCREEN-066 §A.5);
+            // o front degrada para copy genérica quando ausente (seeds antigos).
+            if ($evento === 'no_show_pro' && isset($log->payload['limite_horas'])) {
+                $item['limite_horas'] = (int) $log->payload['limite_horas'];
+            }
             // STORY-061 — nota de geofencing no evento de PIN (PDR-008: ambos os lados veem
             // o que foi registrado). Tolerante a seeds antigos sem o snapshot no payload.
             if ($evento === 'checkin_solicitado' && isset($log->payload['geofencing_check_in'])) {
