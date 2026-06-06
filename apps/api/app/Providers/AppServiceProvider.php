@@ -6,7 +6,9 @@ use App\Email\MailEnviaEmailTransacional;
 use App\Events\CandidaturaEnviada;
 use App\Events\Pagamento\PixEnviado;
 use App\Events\Pagamento\PixFalhou;
+use App\Events\TurnoCancelado;
 use App\Events\TurnoFinalizado;
+use App\Events\TurnoNoShow;
 use App\Events\VagaCancelada;
 use App\Events\VagaEditadaMaterialmente;
 use App\Listeners\HandleCandidaturaEnviada;
@@ -14,7 +16,9 @@ use App\Listeners\HandlePixEnviado;
 use App\Listeners\HandlePixFalhou;
 use App\Listeners\HandleVagaCancelada;
 use App\Listeners\HandleVagaEditadaMaterialmente;
+use App\Listeners\TurnoCanceladoListener;
 use App\Listeners\TurnoFinalizadoListener;
+use App\Listeners\TurnoNoShowListener;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Turni\Domain\Email\EnviaEmailTransacional;
@@ -55,5 +59,10 @@ class AppServiceProvider extends ServiceProvider
         // admin (`pix_falhas`) — inclusive falha reportada após sucesso aparente.
         Event::listen(PixEnviado::class, HandlePixEnviado::class);
         Event::listen(PixFalhou::class, HandlePixFalhou::class);
+
+        // STORY-066 (CA-2/CA-6) — cancelamento e no-show liberam a pré-autorização em job
+        // na fila database (listeners finos; o job re-verifica o estado e é idempotente).
+        Event::listen(TurnoCancelado::class, TurnoCanceladoListener::class);
+        Event::listen(TurnoNoShow::class, TurnoNoShowListener::class);
     }
 }

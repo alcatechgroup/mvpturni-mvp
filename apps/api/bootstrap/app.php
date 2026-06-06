@@ -12,6 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // STORY-066 (descoberta): o auto-discovery de listeners estava ATIVO junto com o
+    // registro explícito do AppServiceProvider — todo listener rodava 2× por evento
+    // (ex.: `pix.falhou` da 065 duplicava o audit; jobs idempotentes mascaravam o resto).
+    // O registro explícito é a única fonte (comentário do provider já prometia isso).
+    ->withEvents(discover: false)
     ->withMiddleware(function (Middleware $middleware): void {
         // Cloud Run termina o TLS na borda e encaminha HTTP com X-Forwarded-Proto=https.
         // Confia no proxy serverless para o Laravel gerar URLs https:// (links de e-mail,

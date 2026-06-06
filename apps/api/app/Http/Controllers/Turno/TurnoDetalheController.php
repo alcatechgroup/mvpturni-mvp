@@ -50,6 +50,10 @@ class TurnoDetalheController extends Controller
         'pix.enviado' => 'pix_enviado',
         'turno.cancelado' => 'cancelado',
         'turno.no_show_pro' => 'no_show_pro',
+        // STORY-066 (CA-3/CA-6) — liberação da pré-autorização (cancelamento/no-show).
+        // A FALHA da liberação (`pagamento.liberacao_falhou`) fica fora da timeline das
+        // partes (operacional — fila do admin; SCREEN-066 §A.5).
+        'pagamento.liberado' => 'pagamento_liberado',
         // STORY-061 — cancelamento do PIN pelo profissional (aguardando_checkin→confirmado).
         'turno.checkin_cancelado' => 'checkin_cancelado',
         // STORY-062 (SCREEN-062 §4.11) — recusa pelo contratante e expiração por excesso de
@@ -154,15 +158,19 @@ class TurnoDetalheController extends Controller
             ];
 
             // Visibilidade financeira na timeline (SCREEN-060 §4.1, validada pelo PO).
-            if (! $souProfissional && in_array($evento, ['pagamento_pre_autorizado', 'pagamento_capturado'], true)) {
+            if (! $souProfissional && in_array($evento, ['pagamento_pre_autorizado', 'pagamento_capturado', 'pagamento_liberado'], true)) {
                 $item['valor'] = (float) $turno->total_contratante;
             }
             if ($souProfissional && $evento === 'pix_enviado') {
                 $item['valor'] = (float) $turno->valor;
             }
             // Quem cancelou (STORY-066 grava `lado` no payload; tolerante à ausência).
+            // Motivo visível aos DOIS lados (SCREEN-066 §A.5 — decisão do PO 2026-06-06).
             if ($evento === 'cancelado' && isset($log->payload['lado'])) {
                 $item['lado'] = $log->payload['lado'];
+                if (isset($log->payload['motivo']) && $log->payload['motivo'] !== null && $log->payload['motivo'] !== '') {
+                    $item['motivo'] = $log->payload['motivo'];
+                }
             }
             // STORY-061 — nota de geofencing no evento de PIN (PDR-008: ambos os lados veem
             // o que foi registrado). Tolerante a seeds antigos sem o snapshot no payload.

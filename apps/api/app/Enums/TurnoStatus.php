@@ -11,6 +11,9 @@ namespace App\Enums;
  * máquina de estados também é INVARIANTE DE BANCO: o trigger `enforce_turno_transition`
  * (migration) é a garantia dura (CA-4); este enum é a camada ergonômica (fail-closed) usada
  * pelo domínio e pelos testes. Os dois devem concordar — qualquer divergência é bug.
+ *
+ * STORY-066 adicionou a 14ª transição (`confirmado → no_show_pro`): o cron de no-show
+ * (CA-5) vence turnos cujo profissional nunca gerou o PIN, não só os `aguardando_checkin`.
  */
 enum TurnoStatus: string
 {
@@ -26,15 +29,17 @@ enum TurnoStatus: string
     case CanceladoEmp = 'cancelado_emp';
     case NoShowPro = 'no_show_pro';
 
-    /** Uma transição é válida apenas se mapeada aqui (fail-closed) — as 13 de turno.md. */
+    /** Uma transição é válida apenas se mapeada aqui (fail-closed) — as 14 de turno.md. */
     public function canTransitionTo(self $to): bool
     {
         return match ($this) {
             // confirmado → aguardando_checkin (gera PIN) | cancelado_pro | cancelado_emp
+            //            | no_show_pro (cron — STORY-066: PIN nunca gerado e janela vencida)
             self::Confirmado => in_array($to, [
                 self::AguardandoCheckin,
                 self::CanceladoPro,
                 self::CanceladoEmp,
+                self::NoShowPro,
             ], true),
             // aguardando_checkin → ativo (valida) | confirmado (recusa, novo PIN) | no_show_pro (timeout)
             self::AguardandoCheckin => in_array($to, [

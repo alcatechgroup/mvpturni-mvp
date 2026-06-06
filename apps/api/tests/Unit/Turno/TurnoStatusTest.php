@@ -1,7 +1,9 @@
 <?php
 
 // STORY-055 / ADR-015 (CA-4, CA-8 núcleo ≥98%) — máquina de estados do Turno
-// (domain/turno.md). Testes puros (sem DB) das 13 transições válidas + inválidas.
+// (domain/turno.md). Testes puros (sem DB) das 14 transições válidas + inválidas.
+// (Eram 13; a STORY-066 CA-5 adicionou `confirmado → no_show_pro` — cron de no-show
+// vence turnos cujo profissional nunca gerou o PIN.)
 
 use App\Enums\TurnoStatus;
 
@@ -22,11 +24,12 @@ test('os 11 estados batem com o tipo Postgres turno_status (CA-2)', function () 
         ]);
 });
 
-// ── As 13 transições válidas (domain/turno.md) ──
+// ── As 14 transições válidas (domain/turno.md) ──
 dataset('transicoes_validas', [
     'confirmado → aguardando_checkin' => [TurnoStatus::Confirmado, TurnoStatus::AguardandoCheckin],
     'confirmado → cancelado_pro' => [TurnoStatus::Confirmado, TurnoStatus::CanceladoPro],
     'confirmado → cancelado_emp' => [TurnoStatus::Confirmado, TurnoStatus::CanceladoEmp],
+    'confirmado → no_show_pro (cron, PIN nunca gerado — STORY-066)' => [TurnoStatus::Confirmado, TurnoStatus::NoShowPro],
     'aguardando_checkin → ativo' => [TurnoStatus::AguardandoCheckin, TurnoStatus::Ativo],
     'aguardando_checkin → confirmado (recusa)' => [TurnoStatus::AguardandoCheckin, TurnoStatus::Confirmado],
     'aguardando_checkin → no_show_pro (timeout)' => [TurnoStatus::AguardandoCheckin, TurnoStatus::NoShowPro],
@@ -43,7 +46,7 @@ test('transição válida é aceita', function (TurnoStatus $de, TurnoStatus $pa
     expect($de->canTransitionTo($para))->toBeTrue();
 })->with('transicoes_validas');
 
-test('existem exatamente 13 transições válidas no total', function () {
+test('existem exatamente 14 transições válidas no total', function () {
     $total = 0;
     foreach (TurnoStatus::cases() as $de) {
         foreach (TurnoStatus::cases() as $para) {
@@ -52,7 +55,7 @@ test('existem exatamente 13 transições válidas no total', function () {
             }
         }
     }
-    expect($total)->toBe(13);
+    expect($total)->toBe(14);
 });
 
 // ── Transições inválidas representativas ──

@@ -31,3 +31,12 @@ Schedule::command('candidaturas:auto-retirar-apos-edicao')
 Schedule::command('notificacoes:enviar-emails')
     ->everyMinute()
     ->withoutOverlapping();
+
+// Detecção de no-show (STORY-066 CA-5): turnos `confirmado`/`aguardando_checkin` sem
+// check-in até X horas após o início previsto (X = config turno.no_show_horas — 2h,
+// decisão do PO 2026-06-06) viram `no_show_pro` e liberam a pré-autorização. everyMinute
+// no worker da STORY-034; idempotente (`no_show_pro` é terminal), withoutOverlapping é
+// higiene. ATENÇÃO: depende do `schedule:run` plumbado em homolog/prod (STORY-073).
+Schedule::command('turnos:detectar-no-show')
+    ->everyMinute()
+    ->withoutOverlapping();

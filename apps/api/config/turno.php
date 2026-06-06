@@ -17,6 +17,11 @@ return [
     // o limite de domínio — 3 erros expiram o PIN — é fixo no ValidarCheckoutService).
     'checkout_validacao_max_por_minuto' => (int) env('TURNI_CHECKOUT_VALIDACAO_MAX_POR_MINUTO', 5),
 
+    // STORY-066 (CA-5) — X horas após `data_inicio` sem check-in → `no_show_pro` (cron
+    // turnos:detectar-no-show). Default 2h decidido pelo PO em chat (2026-06-06);
+    // configurável por env sem deploy de código.
+    'no_show_horas' => (int) env('TURNI_NO_SHOW_HORAS', 2),
+
     // STORY-063 (CA-1) — janela de reconciliação do cronômetro bilateral (ADR-017): o
     // cliente tica LOCALMENTE a cada 1s e faz polling nesta janela só para corrigir o
     // offset de relógio e detectar a saída de `ativo`. Configurável por env sem deploy

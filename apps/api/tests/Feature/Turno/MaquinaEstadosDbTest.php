@@ -45,11 +45,13 @@ test('trigger NÃO interfere em UPDATE que não muda o status (carimba check_in_
     expect($turno->fresh()->check_in_at)->not->toBeNull();
 });
 
-test('todas as 13 transições válidas passam pelo trigger', function () {
+test('todas as 14 transições válidas passam pelo trigger', function () {
     $validas = [
         [TurnoStatus::Confirmado, TurnoStatus::AguardandoCheckin],
         [TurnoStatus::Confirmado, TurnoStatus::CanceladoPro],
         [TurnoStatus::Confirmado, TurnoStatus::CanceladoEmp],
+        // STORY-066 (CA-5) — cron de no-show vence turno cujo PIN nunca foi gerado.
+        [TurnoStatus::Confirmado, TurnoStatus::NoShowPro],
         [TurnoStatus::AguardandoCheckin, TurnoStatus::Ativo],
         [TurnoStatus::AguardandoCheckin, TurnoStatus::Confirmado],
         [TurnoStatus::AguardandoCheckin, TurnoStatus::NoShowPro],

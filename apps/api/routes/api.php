@@ -16,6 +16,7 @@ use App\Http\Controllers\Candidatura\CandidaturaController;
 use App\Http\Controllers\Feed\FeedController;
 use App\Http\Controllers\Feed\VagaDetalheController;
 use App\Http\Controllers\Notificacao\NotificacaoController;
+use App\Http\Controllers\Turno\CancelarTurnoController;
 use App\Http\Controllers\Turno\CheckinGeoController;
 use App\Http\Controllers\Turno\CronometroController;
 use App\Http\Controllers\Turno\PinCheckinController;
@@ -196,6 +197,11 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     Route::post('/turnos/{turno}/cancelar-pin-checkout', [PinCheckoutController::class, 'cancelar']);
     Route::post('/turnos/{turno}/validar-checkout', [ValidarCheckoutController::class, 'validar']);
     Route::post('/turnos/{turno}/recusar-checkout', [ValidarCheckoutController::class, 'recusar']);
+
+    // Cancelamento antes do check-in (STORY-066 CA-2, PDR-007) — rota compartilhada pelos
+    // 2 papéis; RBAC no controller decide o lado (cancelado_pro|cancelado_emp); 422 fora
+    // de `confirmado`; libera a pré-autorização via ACL pós-commit (CA-2/CA-3).
+    Route::post('/turnos/{turno}/cancelar', [CancelarTurnoController::class, 'cancelar']);
 
     // Detalhe do turno (STORY-060) — rota compartilhada pelos 2 papéis (RBAC no controller:
     // cruzados 403, CA-1). Atributos + valor por papel (CA-2) + timeline filtrada (CA-3) +
