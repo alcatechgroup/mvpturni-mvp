@@ -4,11 +4,13 @@ namespace App\Providers;
 
 use App\Email\MailEnviaEmailTransacional;
 use App\Events\CandidaturaEnviada;
+use App\Events\TurnoFinalizado;
 use App\Events\VagaCancelada;
 use App\Events\VagaEditadaMaterialmente;
 use App\Listeners\HandleCandidaturaEnviada;
 use App\Listeners\HandleVagaCancelada;
 use App\Listeners\HandleVagaEditadaMaterialmente;
+use App\Listeners\TurnoFinalizadoListener;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Turni\Domain\Email\EnviaEmailTransacional;
@@ -39,5 +41,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(CandidaturaEnviada::class, HandleCandidaturaEnviada::class);
         Event::listen(VagaEditadaMaterialmente::class, HandleVagaEditadaMaterialmente::class);
         Event::listen(VagaCancelada::class, HandleVagaCancelada::class);
+
+        // STORY-065 (CA-1) — fim do turno dispara o ciclo financeiro (captura + Pix) em
+        // job na fila database; o listener é fino e o job re-verifica o estado (CA-9).
+        Event::listen(TurnoFinalizado::class, TurnoFinalizadoListener::class);
     }
 }
