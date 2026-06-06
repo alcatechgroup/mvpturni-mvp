@@ -1,14 +1,18 @@
 import { test, expect, Page } from '@playwright/test';
 
 /**
- * STORY-065 — CA-5/CA-8 — E2E em browser real da fila "Pix com falha".
+ * STORY-065 — CA-5/CA-8 — E2E em browser real da fila de falhas, generalizada pela
+ * STORY-066 (CA-4) para "Falhas de pagamento": casos de LIBERAÇÃO de pré-autorização
+ * convivem com os de Pix (badge por tipo; liberação sem chave Pix).
  *
- * Pré-requisito: `make _e2e-seed` (PixFalhaSeeder reabre o caso determinístico
- * "Carlos Pix Falho (seed)"). Roda contra localhost:8002 (ou BASE_URL).
+ * Pré-requisito: `make _e2e-seed` (PixFalhaSeeder reabre os casos determinísticos
+ * "Carlos Pix Falho (seed)" [pix] e "Pedro Liberação Falha (seed)" [liberacao]).
+ * Roda contra localhost:8002 (ou BASE_URL). Com 2+ casos na fila, toda ação por
+ * linha ancora na LINHA do caso (lição da 066: `.first()` resolvia o caso errado).
  *
  * Caminhos mapeados (cada um vira cenário — disciplina E2E):
- * (a) feliz: fila lista o caso com badge/valor/chave/razão; copiar chave; resolver
- *     com nota → caso some de Pendentes e aparece em Resolvidos com nota+autor;
+ * (a) feliz: fila lista os 2 casos com badge/valor/chave/razão por tipo; copiar
+ *     chave; resolver o caso Pix com nota → some de Pendentes, vai a Resolvidos;
  * (b) exceção do usuário: confirmar SEM nota → erro de validação, caso não resolve;
  * (c) alternativo: aba Resolvidos ↔ Pendentes (estado vazio positivo quando zera).
  */
@@ -59,14 +63,24 @@ test.describe('Backoffice — fila "Pix com falha" (STORY-065)', () => {
     await expect(page.getByText('carlos.seed@pix.turni.local')).toBeVisible();
     await expect(page.getByText(/invalid_pix_key/).first()).toBeVisible();
 
-    // Copiar chave Pix (parte do trabalho real do admin).
-    await page.locator('[data-testid$="-copiar"]').first().click();
+    // STORY-066 (CA-4) — caso de LIBERAÇÃO na mesma fila: badge próprio, sem chave
+    // Pix (célula "—"), valor = total reservado, razão do gateway.
+    const linhaLiberacao = page.locator('tr', { hasText: 'Pedro Liberação Falha (seed)' });
+    await expect(linhaLiberacao.getByText('Liberação falhou — tratamento manual')).toBeVisible();
+    await expect(linhaLiberacao.locator('[data-testid$="-chave"]')).toHaveText('—');
+    await expect(linhaLiberacao.getByText('R$ 230,00')).toBeVisible();
+    await expect(linhaLiberacao.getByText(/release_failed/)).toBeVisible();
+
+    // Copiar chave Pix (parte do trabalho real do admin) — só o caso Pix a tem.
+    const linhaPix = page.locator('tr', { hasText: 'Carlos Pix Falho (seed)' });
+    await linhaPix.locator('[data-testid$="-copiar"]').click();
     await expect(page.getByText('Copiada')).toBeVisible();
     expect(await page.evaluate(() => navigator.clipboard.readText()))
       .toBe('carlos.seed@pix.turni.local');
 
-    // Resolver com nota (CA-8) → toast + sai de Pendentes.
-    await page.locator('[data-testid$="-resolver"]').first().click();
+    // Resolver o caso PIX com nota (CA-8) → toast + sai de Pendentes. Ancorado na
+    // linha: com a fila generalizada (066) há 2+ casos e .first() seria o errado.
+    await linhaPix.locator('[data-testid$="-resolver"]').click();
     await page.locator('[data-testid="pixfalhas-dialog-nota"]')
       .fill('Pix manual feito pela conta Turni (E2E)');
     await page.locator('[data-testid="pixfalhas-dialog-confirmar"]').click();

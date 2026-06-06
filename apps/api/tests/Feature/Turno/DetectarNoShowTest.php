@@ -12,6 +12,7 @@ use App\Events\TurnoNoShow;
 use App\Jobs\LiberarPreAutorizacaoJob;
 use App\Models\AuditLog;
 use App\Models\Turno;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
 
-function turnoComInicio(TurnoStatus $status, \DateTimeInterface $inicio): Turno
+function turnoComInicio(TurnoStatus $status, DateTimeInterface $inicio): Turno
 {
     return Turno::factory()->status($status)->create([
         'data_inicio' => $inicio,
@@ -185,7 +186,7 @@ test('corrida: turno some entre a query e o lock → guard re-verificado, sem er
 });
 
 test('agendado em everyMinute no scheduler (reusa worker da STORY-034)', function () {
-    $events = collect(app(Illuminate\Console\Scheduling\Schedule::class)->events());
+    $events = collect(app(Schedule::class)->events());
     $evento = $events->first(fn ($e) => str_contains((string) $e->command, 'turnos:detectar-no-show'));
 
     expect($evento)->not->toBeNull()

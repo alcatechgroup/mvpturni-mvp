@@ -17,6 +17,7 @@ use App\Models\TemplateVersao;
 use App\Models\Turno;
 use App\Models\User;
 use App\Models\Vaga;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -414,7 +415,7 @@ class TurnosSeeder extends Seeder
 
         // Default: dentro da janela de check-in (+15min). O par no-show da 066 passa um
         // início NO PASSADO (vencido) para o cron transitar de verdade.
-        $inicio = \Carbon\CarbonImmutable::instance(
+        $inicio = CarbonImmutable::instance(
             $inicio ?? now()->addMinutes(15)->startOfMinute(),
         );
         $fim = $inicio->addHours(6);
