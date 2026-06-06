@@ -1,12 +1,15 @@
-# Worker da fila como Cloud Run Job + Cloud Scheduler (IDR-016, substitui worker-vm).
-# Cloud Scheduler dispara o Job a cada 1 min; o Job roda `queue:work --stop-when-empty`
-# e termina quando a fila esvazia. Herda a fiação do cloud-run (Direct VPC egress +
-# volumes.cloud_sql_instance + secret_env_vars) provada pelo turni-migrate-homolog (IDR-007).
+# Job artisan periódico como Cloud Run Job + Cloud Scheduler (IDR-016, substitui worker-vm).
+# Cloud Scheduler dispara o Job a cada tick do cron; o Job roda o comando artisan de
+# `var.command` e termina. Instâncias em uso (STORY-073 parametrizou `var.name`):
+#   - worker    → `queue:work --stop-when-empty` (default — IDR-016)
+#   - scheduler → `schedule:run` (Scheduler do Laravel em homolog/prod — STORY-073)
+# Herda a fiação do cloud-run (Direct VPC egress + volumes.cloud_sql_instance +
+# secret_env_vars) provada pelo turni-migrate-homolog (IDR-007).
 
 # ── Cloud Run Job ──────────────────────────────────────────────────────────────
 resource "google_cloud_run_v2_job" "worker" {
   project  = var.project_id
-  name     = "turni-worker-job-${var.env}"
+  name     = "turni-${var.name}-job-${var.env}"
   location = var.region
 
   # Homolog é recriável do zero (CA-11: terraform destroy + apply). Sem isto o
@@ -88,8 +91,8 @@ resource "google_cloud_run_v2_job" "worker" {
 # ── SA dedicada do Scheduler (menor privilégio: só roles/run.invoker no Job) ──────
 resource "google_service_account" "worker_scheduler" {
   project      = var.project_id
-  account_id   = "turni-wrk-sched-${var.env}"
-  display_name = "Turni Worker Job Scheduler (${var.env})"
+  account_id   = "turni-${var.sa_account_short}-sched-${var.env}"
+  display_name = "Turni ${title(var.name)} Job Scheduler (${var.env})"
 }
 
 resource "google_cloud_run_v2_job_iam_member" "scheduler_invoker" {
@@ -107,8 +110,8 @@ resource "google_cloud_run_v2_job_iam_member" "scheduler_invoker" {
 resource "google_cloud_scheduler_job" "worker_tick" {
   project     = var.project_id
   region      = var.region
-  name        = "turni-worker-scheduler-${var.env}"
-  description = "Dispara o worker job ${var.env} a cada 1 min (queue:work --stop-when-empty)"
+  name        = "turni-${var.name}-scheduler-${var.env}"
+  description = "Dispara o ${var.name} job ${var.env} no cron '${var.schedule}' (${join(" ", var.command)})"
   schedule    = var.schedule
   time_zone   = var.time_zone
 

@@ -12,6 +12,22 @@ variable "env" {
   description = "homolog | prod"
 }
 
+# ── Identidade do Job (STORY-073) ────────────────────────────────────────────
+# Defaults preservam os nomes originais do worker (IDR-016) — instanciar com
+# name = "scheduler" cria o par turni-scheduler-job-<env> / turni-scheduler-scheduler-<env>
+# sem tocar o estado do worker existente.
+variable "name" {
+  type        = string
+  description = "Papel do Job nos nomes dos recursos: turni-<name>-job-<env> e turni-<name>-scheduler-<env>."
+  default     = "worker"
+}
+
+variable "sa_account_short" {
+  type        = string
+  description = "Abreviação no account_id da SA do Scheduler (turni-<short>-sched-<env>; account_id tem limite de 30 chars)."
+  default     = "wrk"
+}
+
 variable "image" {
   type        = string
   description = "URI completo da imagem da api no Artifact Registry (worker usa o mesmo código). O pipeline gerencia a imagem em runtime (ignore_changes)."
@@ -38,7 +54,7 @@ variable "vpc_subnetwork" {
 
 variable "command" {
   type        = list(string)
-  description = "Comando + args do container (queue:work --stop-when-empty)."
+  description = "Comando + args do container. Default = worker da fila; a instância scheduler (STORY-073) sobrescreve com [\"php\", \"artisan\", \"schedule:run\"]."
   default = [
     "php", "artisan", "queue:work", "database",
     "--stop-when-empty", "--tries=3", "--sleep=2", "--timeout=60",

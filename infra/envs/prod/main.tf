@@ -35,6 +35,7 @@ resource "google_project_service" "apis" {
     "logging.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     "servicenetworking.googleapis.com",
+    "cloudscheduler.googleapis.com",
   ])
   project            = var.project_id
   service            = each.value
@@ -86,13 +87,14 @@ module "artifact_registry" {
 }
 
 module "secrets" {
-  source        = "../../modules/secrets"
-  project_id    = var.project_id
-  env           = local.env
-  app_key_api   = var.app_key_api
-  app_key_admin = var.app_key_admin
-  db_password   = var.db_password
-  depends_on    = [google_project_service.apis]
+  source         = "../../modules/secrets"
+  project_id     = var.project_id
+  env            = local.env
+  app_key_api    = var.app_key_api
+  app_key_admin  = var.app_key_admin
+  db_password    = var.db_password
+  resend_api_key = var.resend_api_key
+  depends_on     = [google_project_service.apis]
 }
 
 module "cloud_sql" {
@@ -173,17 +175,72 @@ module "cloud_run_admin" {
   depends_on = [module.cloud_sql, module.secrets]
 }
 
-module "worker" {
-  source                   = "../../modules/worker-vm"
+# ── Worker da fila + Scheduler do Laravel (Cloud Run Jobs — IDR-016/STORY-073) ─
+# O scaffold original usava worker-vm, superado pela IDR-016 (Cloud Run Job +
+# Cloud Scheduler) em homolog — e a chamada nem validava mais contra o módulo
+# atual. Reconciliado na STORY-073 para espelhar homolog: worker (queue:work) e
+# scheduler (schedule:run) como Jobs SEPARADOS — kill-switch independente.
+# GATED como todo este ambiente: prod só é aplicado com aprovação manual (header
+# deste arquivo / EPIC-006); o deploy de prod NÃO é requisito da STORY-073 (CA-2).
+# Env mínima em paridade com o cloud_run_api de prod (sem MAIL/PAGARME — esses
+# entram aqui junto com o go-live, quando entrarem no cloud_run_api).
+locals {
+  job_env_vars = {
+    APP_ENV              = "production"
+    APP_DEBUG            = "false"
+    LOG_CHANNEL          = "stderr"
+    DB_CONNECTION        = "pgsql"
+    DB_SOCKET            = local.cloudsql_socket
+    DB_DATABASE          = "turni"
+    DB_USERNAME          = "turni"
+    QUEUE_CONNECTION     = "database"
+    LOG_STDERR_FORMATTER = "Monolog\\Formatter\\JsonFormatter"
+  }
+
+  job_secret_env_vars = {
+    APP_KEY     = { secret = module.secrets.app_key_api_secret_id, version = "latest" }
+    DB_PASSWORD = { secret = module.secrets.db_password_secret_id, version = "latest" }
+  }
+}
+
+module "worker_job" {
+  source                   = "../../modules/worker-job"
   project_id               = var.project_id
   region                   = var.region
   env                      = local.env
   image                    = var.api_image
   service_account_email    = module.iam.apps_service_account_email
   cloudsql_connection_name = module.cloud_sql.connection_name
-  vpc_network              = google_compute_network.main.self_link
-  subnetwork               = google_compute_subnetwork.main.self_link
-  depends_on               = [module.cloud_sql]
+  vpc_network              = google_compute_network.main.name
+  vpc_subnetwork           = google_compute_subnetwork.main.name
+
+  env_vars        = local.job_env_vars
+  secret_env_vars = local.job_secret_env_vars
+
+  depends_on = [module.cloud_sql, module.secrets]
+}
+
+# Invoca `php artisan schedule:run` a cada 1 min, ativando os Schedule::command()
+# de routes/console.php (auto-retirada PDR-009, lembretes, sweeper de e-mail,
+# no-show). Espelho do scheduler_job de homolog (módulo worker-job parametrizado).
+module "scheduler_job" {
+  source                   = "../../modules/worker-job"
+  project_id               = var.project_id
+  region                   = var.region
+  env                      = local.env
+  name                     = "scheduler"
+  sa_account_short         = "schd"
+  command                  = ["php", "artisan", "schedule:run"]
+  image                    = var.api_image
+  service_account_email    = module.iam.apps_service_account_email
+  cloudsql_connection_name = module.cloud_sql.connection_name
+  vpc_network              = google_compute_network.main.name
+  vpc_subnetwork           = google_compute_subnetwork.main.name
+
+  env_vars        = local.job_env_vars
+  secret_env_vars = local.job_secret_env_vars
+
+  depends_on = [module.cloud_sql, module.secrets]
 }
 
 module "firebase" {

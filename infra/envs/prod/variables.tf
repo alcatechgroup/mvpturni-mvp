@@ -30,6 +30,14 @@ variable "app_key_admin" {
   sensitive = true
 }
 
+# Chave do Resend (ADR-011). O módulo secrets passou a exigi-la quando homolog ganhou
+# e-mail transacional (STORY-021) e este scaffold ficou para trás — `terraform validate`
+# quebrava. Detectado/corrigido na STORY-073.
+variable "resend_api_key" {
+  type      = string
+  sensitive = true
+}
+
 variable "api_image" {
   type    = string
   default = ""

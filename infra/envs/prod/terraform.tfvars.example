@@ -9,3 +9,6 @@ alert_email = "xandroalmeida@gmail.com"
 app_key_api   = "base64:GERE_COM_PHP_ARTISAN"
 app_key_admin = "base64:GERE_COM_PHP_ARTISAN"
 db_password   = "SENHA_FORTE_PROD_AQUI"
+
+# E-mail transacional (ADR-011) — chave do Resend de PRODUÇÃO (não reusar a de homolog)
+resend_api_key = "re_CHAVE_RESEND_PROD_AQUI"

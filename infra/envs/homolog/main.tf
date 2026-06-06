@@ -204,9 +204,9 @@ module "cloud_run_admin" {
   }
 
   secret_env_vars = {
-    APP_KEY     = { secret = module.secrets.app_key_admin_secret_id, version = "latest" }
+    APP_KEY             = { secret = module.secrets.app_key_admin_secret_id, version = "latest" }
     PIX_FALHA_CHAVE_KEY = { secret = google_secret_manager_secret.pix_falha_chave_key.secret_id, version = "latest" } # IDR-028 — lê a chave Pix do snapshot
-    DB_PASSWORD = { secret = module.secrets.db_password_secret_id, version = "latest" }
+    DB_PASSWORD         = { secret = module.secrets.db_password_secret_id, version = "latest" }
   }
 
   depends_on = [module.cloud_sql, module.secrets]
@@ -218,19 +218,12 @@ module "cloud_run_admin" {
 # `queue:work --stop-when-empty` e sai quando a fila esvazia. Mesma fiação do
 # cloud_run_api (Direct VPC egress + Cloud SQL socket + secret_env_vars).
 # Reversão: trocar este bloco por `module "worker"` (worker-vm, mantido desabilitado).
-module "worker_job" {
-  source                   = "../../modules/worker-job"
-  project_id               = var.project_id
-  region                   = var.region
-  env                      = local.env
-  image                    = var.api_image
-  service_account_email    = module.iam.apps_service_account_email
-  cloudsql_connection_name = module.cloud_sql.connection_name
-  vpc_network              = google_compute_network.main.name
-  vpc_subnetwork           = google_compute_subnetwork.main.name
 
-  # Paridade de ambiente com o cloud_run_api (o worker roda o mesmo código).
-  env_vars = {
+# Ambiente compartilhado worker + scheduler (STORY-073): os dois Jobs rodam a MESMA
+# imagem da api e precisam de paridade total — os comandos agendados enviam e-mail
+# (Resend), enfileiram jobs e chamam a ACL de pagamento, igual ao worker.
+locals {
+  job_env_vars = {
     APP_ENV           = "production"
     APP_DEBUG         = "false"
     APP_URL           = "https://${local.webapp_host}"
@@ -253,7 +246,7 @@ module "worker_job" {
     PAGARME_BASE_URL = google_cloud_run_v2_service.pagarme_mock.uri
   }
 
-  secret_env_vars = {
+  job_secret_env_vars = {
     APP_KEY                = { secret = module.secrets.app_key_api_secret_id, version = "latest" }
     DB_PASSWORD            = { secret = module.secrets.db_password_secret_id, version = "latest" }
     RESEND_API_KEY         = { secret = module.secrets.resend_api_key_secret_id, version = "latest" }
@@ -261,6 +254,52 @@ module "worker_job" {
     PAGARME_WEBHOOK_SECRET = { secret = google_secret_manager_secret.pagarme_webhook_secret.secret_id, version = "latest" }
     PIX_FALHA_CHAVE_KEY    = { secret = google_secret_manager_secret.pix_falha_chave_key.secret_id, version = "latest" } # IDR-028
   }
+}
+
+module "worker_job" {
+  source                   = "../../modules/worker-job"
+  project_id               = var.project_id
+  region                   = var.region
+  env                      = local.env
+  image                    = var.api_image
+  service_account_email    = module.iam.apps_service_account_email
+  cloudsql_connection_name = module.cloud_sql.connection_name
+  vpc_network              = google_compute_network.main.name
+  vpc_subnetwork           = google_compute_subnetwork.main.name
+
+  # Paridade de ambiente com o cloud_run_api (o worker roda o mesmo código).
+  env_vars        = local.job_env_vars
+  secret_env_vars = local.job_secret_env_vars
+
+  depends_on = [module.cloud_sql, module.secrets]
+}
+
+# ── Scheduler do Laravel (Cloud Run Job + Cloud Scheduler — STORY-073) ────────
+# Quita a F-NB-1 do EPIC-002: nada invocava `php artisan schedule:run` no ambiente
+# implantado, então os `Schedule::command(...)` de routes/console.php (auto-retirada
+# pós-edição PDR-009, lembretes de cadastro, sweeper de e-mail, detecção de no-show)
+# nunca disparavam. Mesmo padrão do worker (IDR-016), Job SEPARADO de propósito:
+# kill-switch independente — pausar a fila não desliga o cron e vice-versa.
+# `schedule:run` avalia o que está "due" no minuto corrente e sai; o tick de 1 min
+# vem do everyMinute() declarado no código (STORY-052). withoutOverlapping (mutex em
+# cache=database) protege contra sobreposição se uma execução passar de 60s.
+module "scheduler_job" {
+  source                   = "../../modules/worker-job"
+  project_id               = var.project_id
+  region                   = var.region
+  env                      = local.env
+  name                     = "scheduler"
+  sa_account_short         = "schd"
+  command                  = ["php", "artisan", "schedule:run"]
+  image                    = var.api_image
+  service_account_email    = module.iam.apps_service_account_email
+  cloudsql_connection_name = module.cloud_sql.connection_name
+  vpc_network              = google_compute_network.main.name
+  vpc_subnetwork           = google_compute_subnetwork.main.name
+
+  # Mesma paridade do worker: os comandos agendados rodam o mesmo código da api.
+  env_vars        = local.job_env_vars
+  secret_env_vars = local.job_secret_env_vars
 
   depends_on = [module.cloud_sql, module.secrets]
 }
