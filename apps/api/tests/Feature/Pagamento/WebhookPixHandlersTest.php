@@ -131,3 +131,35 @@ test('PixFalhou com turno inexistente não explode (defensivo)', function () {
 
     expect(PixFalha::count())->toBe(0);
 });
+
+// ─── Snapshot operacional do caso (decisão da sessão: admin lê UMA tabela) ───
+
+test('caso da fila carrega snapshot operacional + chave Pix cifrada com a chave COMPARTILHADA', function () {
+    $turno = Turno::factory()->create(['valor' => 200.00, 'taxa_turni' => 30.00, 'total_contratante' => 230.00]);
+    \App\Models\ProfissionalProfile::factory()->create([
+        'user_id' => $turno->profissional_id,
+        'chave_pix_encrypted' => 'carlos@pix.me',
+    ]);
+
+    event(new PixFalhou($turno->id, 'evt_s1', ['data' => ['reason' => 'invalid_pix_key', 'message' => 'x']]));
+
+    $falha = PixFalha::where('turno_id', $turno->id)->firstOrFail();
+    expect($falha->profissional_nome)->toBe($turno->profissional->name)
+        ->and($falha->funcao)->toBe($turno->vaga->funcao->nome)
+        ->and($falha->estabelecimento)->not->toBeNull()
+        ->and($falha->valor)->toBe('200.00')
+        // O cast compartilhado decifra para exibição no Backoffice (IDR desta estória)…
+        ->and($falha->chave_pix)->toBe('carlos@pix.me');
+
+    // …mas em REPOUSO a chave nunca aparece em claro (ADR-016 g / ADR-009 5A).
+    $cru = \Illuminate\Support\Facades\DB::table('pix_falhas')->where('turno_id', $turno->id)->first();
+    expect((string) $cru->chave_pix)->not->toContain('carlos@pix.me');
+});
+
+test('perfil sem chave Pix → snapshot sem chave (admin vê o caso mesmo assim)', function () {
+    $turno = Turno::factory()->create();
+
+    event(new PixFalhou($turno->id, 'evt_s2', ['data' => ['reason' => 'invalid_pix_key', 'message' => 'x']]));
+
+    expect(PixFalha::where('turno_id', $turno->id)->firstOrFail()->chave_pix)->toBeNull();
+});
