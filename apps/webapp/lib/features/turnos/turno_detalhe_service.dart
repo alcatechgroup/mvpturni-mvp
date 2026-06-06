@@ -139,6 +139,22 @@ class AceiteDoTurno {
   );
 }
 
+/// STORY-065 (CA-4 / SCREEN-065 §A) — status do Pix pós-turno. Só chega para o
+/// PROFISSIONAL em `finalizado`. O servidor já decide o que o profissional vê:
+/// falha de Pix chega como `a_caminho` (§A.4 — PDR-010, tratamento é da operação);
+/// o front nem sabe distinguir.
+class PixDoTurno {
+  final bool enviado;
+  final DateTime? enviadoEm;
+
+  const PixDoTurno({required this.enviado, this.enviadoEm});
+
+  factory PixDoTurno.fromJson(Map<String, dynamic> json) => PixDoTurno(
+    enviado: json['status'] == 'enviado',
+    enviadoEm: TurniDateTime.parse(json['enviado_em'] as String?),
+  );
+}
+
 /// Detalhe do turno (STORY-060 CA-2). O payload é filtrado por papel no servidor:
 /// `taxaTurni`/`totalContratante`/`profissional` chegam null para o profissional (que
 /// nunca os vê — PDR-004) e preenchidos para o contratante.
@@ -166,6 +182,10 @@ class TurnoDetalhe {
   /// `aguardando_checkin` (STORY-062 CA-5: alimenta o card de aviso da validação).
   final GeofencingCheckin? geofencingCheckin;
 
+  /// Status do Pix pós-turno — só chega para o PROFISSIONAL em `finalizado`
+  /// (STORY-065 CA-4: linha do card de valor).
+  final PixDoTurno? pix;
+
   const TurnoDetalhe({
     required this.id,
     required this.funcao,
@@ -182,6 +202,7 @@ class TurnoDetalhe {
     required this.timeline,
     this.checkinJanela,
     this.geofencingCheckin,
+    this.pix,
   });
 
   /// O payload do contratante carrega o total — é assim que a tela sabe o papel sem
@@ -229,6 +250,9 @@ class TurnoDetalhe {
         : GeofencingCheckin.fromJson(
             json['geofencing_check_in'] as Map<String, dynamic>,
           ),
+    pix: json['pix'] == null
+        ? null
+        : PixDoTurno.fromJson(json['pix'] as Map<String, dynamic>),
   );
 }
 

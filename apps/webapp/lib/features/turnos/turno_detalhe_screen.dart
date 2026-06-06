@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -88,10 +90,23 @@ class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
   String get _listaDoPapel =>
       _ehContratante ? '/contratante/turnos' : '/profissional/turnos';
 
+  /// STORY-065 (CA-4) — polling SILENCIOSO do Pix: o profissional em `finalizado`
+  /// vê "Pix a caminho…" e a linha troca sozinha quando o webhook confirma (sem
+  /// refresh manual). Ajuste consciente sobre a 064 §4.11 ("polling morto em
+  /// terminal"): vivo APENAS enquanto `pix.status == a_caminho`; morre quando o
+  /// Pix confirma. Refresh silencioso — nada de skeleton a cada tick.
+  Timer? _pixPoll;
+
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _pixPoll?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -109,6 +124,34 @@ class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
           _phase = _Phase.erro;
       }
     });
+    _agendarPixPoll();
+  }
+
+  /// Tick do polling do Pix: atualiza `_turno` por baixo da tela montada. Erro de
+  /// rede é ignorado — a verdade anterior continua de pé e o próximo tick retenta.
+  Future<void> _refreshSilencioso() async {
+    final result = await _service.fetch(widget.turnoId);
+    if (!mounted) return;
+    if (result is TurnoDetalheSuccess) {
+      setState(() => _turno = result.turno);
+    }
+    _agendarPixPoll();
+  }
+
+  bool get _pixACaminho =>
+      _phase == _Phase.pronto &&
+      _turno != null &&
+      !_turno!.souContratante &&
+      _turno!.estadoRaw == 'finalizado' &&
+      _turno!.pix != null &&
+      !_turno!.pix!.enviado;
+
+  void _agendarPixPoll() {
+    _pixPoll?.cancel();
+    _pixPoll = null;
+    if (_pixACaminho) {
+      _pixPoll = Timer(const Duration(seconds: 10), _refreshSilencioso);
+    }
   }
 
   Color _accent(bool isDark) => _ehContratante
@@ -581,6 +624,16 @@ class _ValorCard extends StatelessWidget {
                 'valor integral · taxa Turni cobrada do contratante',
                 style: TextStyle(fontSize: 13, color: textMuted),
               ),
+              // STORY-065 (CA-4 / SCREEN-065 §A) — status do Pix pós-turno: o
+              // dinheiro chegou? A resposta mora onde o profissional já olha o valor.
+              if (turno.pix != null) ...[
+                const SizedBox(height: 14),
+                _PixStatusLinha(
+                  pix: turno.pix!,
+                  isDark: isDark,
+                  textMuted: textMuted,
+                ),
+              ],
             ],
           );
 
@@ -598,6 +651,102 @@ class _ValorCard extends StatelessWidget {
       Text(valor, style: TextStyle(fontSize: 15, color: strong)),
     ],
   );
+}
+
+/// STORY-065 (CA-4 / SCREEN-065 §A.3–A.5) — linha de status do Pix dentro do card de
+/// valor do profissional. Dois sub-estados: "a caminho" (entre `finalizado` e o webhook;
+/// inclui falha — §A.4) e "enviado" (microcopy fixado pelo CA-4, hora 24h DDR-002;
+/// dd/MM quando o dia ≠ corrente). `liveRegion`: o leitor de tela anuncia a chegada do
+/// dinheiro quando o polling troca a linha. Ícone ESTÁTICO de propósito: animação
+/// contínua nunca aquieta o frame scheduler (mesmo racional do _DotVivo da 063) — o
+/// protótipo usava spinner; mudança consciente registrada no spec.
+class _PixStatusLinha extends StatelessWidget {
+  const _PixStatusLinha({
+    required this.pix,
+    required this.isDark,
+    required this.textMuted,
+  });
+
+  final PixDoTurno pix;
+  final bool isDark;
+  final Color textMuted;
+
+  String get _labelEnviado {
+    final em = pix.enviadoEm;
+    if (em == null) return 'Pix enviado';
+    final l = em.toLocal();
+    final agora = DateTime.now();
+    final mesmoDia =
+        l.year == agora.year && l.month == agora.month && l.day == agora.day;
+    final hora = TurniDateTime.formatHora(em);
+    return mesmoDia
+        ? 'Pix enviado em $hora'
+        : 'Pix enviado em ${TurniDateTime.formatDataCurta(em)} · $hora';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final divisor = isDark
+        ? TurniColors.borderSubtleDark
+        : TurniColors.borderSubtleLight;
+    // Dark sem token success próprio: accentDark cumpre o papel (precedente da 061).
+    final success = isDark ? TurniColors.accentDark : TurniColors.successLight;
+
+    final conteudo = pix.enviado
+        ? Row(
+            key: const Key('turno-detalhe-pix-enviado'),
+            children: [
+              ExcludeSemantics(
+                child: Icon(Icons.check, size: 15, color: success),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  _labelEnviado,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: success,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          )
+        : Row(
+            key: const Key('turno-detalhe-pix-acaminho'),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ExcludeSemantics(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(Icons.schedule, size: 15, color: textMuted),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'Pix a caminho — normalmente chega em até 15 min.',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    color: textMuted,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          );
+
+    return Container(
+      key: const Key('turno-detalhe-pix-status'),
+      padding: const EdgeInsets.only(top: 12),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: divisor)),
+      ),
+      // O flip a_caminho → enviado chega pelo polling silencioso: anuncia ao leitor.
+      child: Semantics(liveRegion: true, child: conteudo),
+    );
+  }
 }
 
 class _AceiteLink extends StatelessWidget {

@@ -73,40 +73,49 @@ Widget _comRouter(_FakeService svc) {
 void main() {
   // ───────────── (a) caminho feliz — os dois sub-estados ─────────────
 
-  testWidgets('profissional finalizado: linha "Pix a caminho" no card de valor', (
-    tester,
-  ) async {
-    final svc = _FakeService(
-      () => TurnoDetalheSuccess(_turno(pix: const PixDoTurno(enviado: false))),
-    );
-    await tester.pumpWidget(_comRouter(svc));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'profissional finalizado: linha "Pix a caminho" no card de valor',
+    (tester) async {
+      final svc = _FakeService(
+        () =>
+            TurnoDetalheSuccess(_turno(pix: const PixDoTurno(enviado: false))),
+      );
+      await tester.pumpWidget(_comRouter(svc));
+      await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('turno-detalhe-pix-acaminho')), findsOneWidget);
-    expect(
-      find.text('Pix a caminho — normalmente chega em até 15 min.'),
-      findsOneWidget,
-    );
-    expect(find.byKey(const Key('turno-detalhe-pix-enviado')), findsNothing);
-  });
+      expect(
+        find.byKey(const Key('turno-detalhe-pix-acaminho')),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Pix a caminho — normalmente chega em até 15 min.'),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('turno-detalhe-pix-enviado')), findsNothing);
+    },
+  );
 
-  testWidgets('CA-4: "Pix enviado em HH:MM" quando o webhook confirmou (hoje)', (
-    tester,
-  ) async {
-    final agora = DateTime.now();
-    final enviadoEm = DateTime(agora.year, agora.month, agora.day, 18, 32);
-    final svc = _FakeService(
-      () => TurnoDetalheSuccess(
-        _turno(pix: PixDoTurno(enviado: true, enviadoEm: enviadoEm)),
-      ),
-    );
-    await tester.pumpWidget(_comRouter(svc));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'CA-4: "Pix enviado em HH:MM" quando o webhook confirmou (hoje)',
+    (tester) async {
+      final agora = DateTime.now();
+      final enviadoEm = DateTime(agora.year, agora.month, agora.day, 18, 32);
+      final svc = _FakeService(
+        () => TurnoDetalheSuccess(
+          _turno(pix: PixDoTurno(enviado: true, enviadoEm: enviadoEm)),
+        ),
+      );
+      await tester.pumpWidget(_comRouter(svc));
+      await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('turno-detalhe-pix-enviado')), findsOneWidget);
-    expect(find.text('Pix enviado em 18:32'), findsOneWidget);
-    expect(find.byKey(const Key('turno-detalhe-pix-acaminho')), findsNothing);
-  });
+      expect(
+        find.byKey(const Key('turno-detalhe-pix-enviado')),
+        findsOneWidget,
+      );
+      expect(find.text('Pix enviado em 18:32'), findsOneWidget);
+      expect(find.byKey(const Key('turno-detalhe-pix-acaminho')), findsNothing);
+    },
+  );
 
   // ───────────── (d) borda — data ≠ dia corrente ─────────────
 
