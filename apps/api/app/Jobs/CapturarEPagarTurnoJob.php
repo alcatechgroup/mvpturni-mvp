@@ -188,7 +188,7 @@ class CapturarEPagarTurnoJob implements ShouldQueue
     /** Falha de Pix → audit `pix.falhou` + caso na fila do admin (CA-5/PDR-010). */
     private function registrarPixFalha(Turno $turno, string $razao): void
     {
-        PixFalha::registrar($turno->id, $razao);
+        PixFalha::registrar($turno, $razao);
 
         AuditLog::create([
             'actor_id' => null,

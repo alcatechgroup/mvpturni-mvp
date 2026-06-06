@@ -21,14 +21,16 @@ class HandlePixFalhou
 {
     public function handle(PixFalhou $event): void
     {
-        if (! Turno::whereKey($event->turnoId)->exists()) {
+        $turno = Turno::find($event->turnoId);
+
+        if ($turno === null) {
             return; // defensivo: referência desconhecida não derruba o worker
         }
 
         $data = $event->payload['data'] ?? [];
         $razao = $this->razao($data);
 
-        PixFalha::registrar($event->turnoId, $razao, $data);
+        PixFalha::registrar($turno, $razao, $data);
 
         AuditLog::create([
             'actor_id' => null, // reporte do gateway (webhook)

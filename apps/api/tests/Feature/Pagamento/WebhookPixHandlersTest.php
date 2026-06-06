@@ -54,7 +54,7 @@ test('PixEnviado com turno inexistente não explode nem audita (defensivo)', fun
 
 test('PixEnviado NÃO fecha caso aberto em pix_falhas (resolução é decisão humana — PDR-010)', function () {
     $turno = Turno::factory()->create();
-    PixFalha::registrar($turno->id, 'invalid_pix_key — chave não encontrada');
+    PixFalha::registrar($turno, 'invalid_pix_key — chave não encontrada');
 
     event(new PixEnviado($turno->id, 'evt_1', ['data' => ['transfer_id' => 'tr_abc']]));
 
@@ -116,7 +116,7 @@ test('CA-6: PixFalhou após pix.enviado (sucesso aparente) cria o caso mesmo ass
 
 test('PixFalhou em caso já RESOLVIDO não reabre (resolução humana é final)', function () {
     $turno = Turno::factory()->create();
-    $caso = PixFalha::registrar($turno->id, 'motivo antigo');
+    $caso = PixFalha::registrar($turno, 'motivo antigo');
     $caso->update(['resolvido_em' => now(), 'nota_resolucao' => 'Pix manual feito']);
 
     event(new PixFalhou($turno->id, 'evt_f4', ['data' => ['reason' => 'novo_motivo', 'message' => 'x']]));

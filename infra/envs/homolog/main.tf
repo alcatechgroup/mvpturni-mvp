@@ -163,6 +163,7 @@ module "cloud_run_api" {
     RESEND_API_KEY         = { secret = module.secrets.resend_api_key_secret_id, version = "latest" }
     PAGARME_SECRET_KEY     = { secret = google_secret_manager_secret.pagarme_secret_key.secret_id, version = "latest" }
     PAGARME_WEBHOOK_SECRET = { secret = google_secret_manager_secret.pagarme_webhook_secret.secret_id, version = "latest" }
+    PIX_FALHA_CHAVE_KEY    = { secret = google_secret_manager_secret.pix_falha_chave_key.secret_id, version = "latest" } # IDR-028
   }
 
   depends_on = [module.cloud_sql, module.secrets]
@@ -204,6 +205,7 @@ module "cloud_run_admin" {
 
   secret_env_vars = {
     APP_KEY     = { secret = module.secrets.app_key_admin_secret_id, version = "latest" }
+    PIX_FALHA_CHAVE_KEY = { secret = google_secret_manager_secret.pix_falha_chave_key.secret_id, version = "latest" } # IDR-028 — lê a chave Pix do snapshot
     DB_PASSWORD = { secret = module.secrets.db_password_secret_id, version = "latest" }
   }
 
@@ -257,6 +259,7 @@ module "worker_job" {
     RESEND_API_KEY         = { secret = module.secrets.resend_api_key_secret_id, version = "latest" }
     PAGARME_SECRET_KEY     = { secret = google_secret_manager_secret.pagarme_secret_key.secret_id, version = "latest" }
     PAGARME_WEBHOOK_SECRET = { secret = google_secret_manager_secret.pagarme_webhook_secret.secret_id, version = "latest" }
+    PIX_FALHA_CHAVE_KEY    = { secret = google_secret_manager_secret.pix_falha_chave_key.secret_id, version = "latest" } # IDR-028
   }
 
   depends_on = [module.cloud_sql, module.secrets]
@@ -294,6 +297,22 @@ resource "google_secret_manager_secret" "pagarme_webhook_secret" {
 resource "google_secret_manager_secret_version" "pagarme_webhook_secret" {
   secret      = google_secret_manager_secret.pagarme_webhook_secret.id
   secret_data = var.pagarme_webhook_secret
+}
+
+# STORY-065 (IDR-028) — segredo DEDICADO da chave Pix do snapshot de pix_falhas,
+# COMPARTILHADO entre api/worker (escreve) e admin (lê para o tratamento manual).
+# Distinto das APP_KEYs dos dois apps (espírito da ADR-009 5A).
+resource "google_secret_manager_secret" "pix_falha_chave_key" {
+  project   = var.project_id
+  secret_id = "turni-${local.env}-pix-falha-chave-key"
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "pix_falha_chave_key" {
+  secret      = google_secret_manager_secret.pix_falha_chave_key.id
+  secret_data = var.pix_falha_chave_key
 }
 
 resource "google_cloud_run_v2_service" "pagarme_mock" {

@@ -30,6 +30,19 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('turno_id')->unique()->constrained('turnos')->restrictOnDelete();
 
+            // Snapshot operacional do caso no instante da falha (decisão da sessão,
+            // aprovada em chat): o Backoffice lê UMA tabela, sem joins com turnos/vagas
+            // (e sem replicar essas migrações para os testes do admin). O caso é um
+            // registro arquivístico — vale o estado de quando a falha aconteceu.
+            $table->text('profissional_nome')->nullable();
+            $table->text('funcao')->nullable();
+            $table->text('estabelecimento')->nullable();
+            $table->decimal('valor', 10, 2)->nullable(); // o que o admin vai transferir
+
+            // Chave Pix cifrada com segredo DEDICADO compartilhado api+admin (IDR-028;
+            // App\Casts\ChavePixCompartilhada) — nunca em claro em repouso (ADR-016 g).
+            $table->text('chave_pix')->nullable();
+
             $table->text('razao');                       // erro do gateway (Pagar.me-compatível)
             $table->jsonb('payload_gateway')->nullable(); // snapshot do data do webhook (sem PII)
             $table->timestampTz('falhou_em');

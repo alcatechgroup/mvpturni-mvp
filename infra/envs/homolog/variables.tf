@@ -95,3 +95,9 @@ variable "pagarme_webhook_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "pix_falha_chave_key" {
+  description = "STORY-065 (IDR-028) — chave de criptografia da chave Pix do snapshot de pix_falhas, compartilhada api/worker/admin; formato base64:<32 bytes>. SEGREDO — gerar valor aleatório (php -r \"echo 'base64:'.base64_encode(random_bytes(32));\"); nunca em git versionado."
+  type        = string
+  sensitive   = true
+}

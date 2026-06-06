@@ -60,6 +60,11 @@ return [
         'timeout' => (int) env('PAGARME_TIMEOUT', 15),
         // Segredo compartilhado da assinatura HMAC do webhook entrante (ADR-016 e).
         'webhook_secret' => env('PAGARME_WEBHOOK_SECRET', 'whsec_mock'),
+        // STORY-065 (IDR-028) — segredo DEDICADO da chave Pix do snapshot de pix_falhas,
+        // COMPARTILHADO com o app admin (cada app tem APP_KEY própria; o Backoffice precisa
+        // ler a chave para o tratamento manual — CA-5). Default só para dev/CI (mesmo
+        // racional do sk_mock); homolog injeta via Secret Manager.
+        'pix_falha_chave_key' => env('PIX_FALHA_CHAVE_KEY', 'base64:QSaMggP0jJQeXLjsVeaVSbzjYRuI/jafz7urwOGT7Mg='),
     ],
 
 ];

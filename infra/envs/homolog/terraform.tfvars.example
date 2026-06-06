@@ -15,3 +15,6 @@ db_password = "SENHA_FORTE_AQUI"
 # Fake de pagamento em homolog (PDR-017 / ADR-016 d) — gerar com: openssl rand -hex 24
 pagarme_secret_key     = "sk_homolog_GERE_ALEATORIO"
 pagarme_webhook_secret = "whsec_homolog_GERE_ALEATORIO"
+# IDR-028 — chave da criptografia da chave Pix do snapshot de pix_falhas (api+worker+admin).
+# Gerar: php -r "echo 'base64:'.base64_encode(random_bytes(32));"
+pix_falha_chave_key = "base64:GERAR_VALOR_ALEATORIO"
