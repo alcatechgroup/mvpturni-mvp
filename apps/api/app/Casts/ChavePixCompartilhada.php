@@ -3,8 +3,10 @@
 namespace App\Casts;
 
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Encryption\Encrypter;
+use Illuminate\Support\Facades\Log;
 
 /**
  * STORY-065 (IDR-028) — criptografia da chave Pix do snapshot de `pix_falhas` com segredo
@@ -20,7 +22,19 @@ class ChavePixCompartilhada implements CastsAttributes
 {
     public function get(Model $model, string $key, mixed $value, array $attributes): ?string
     {
-        return $value === null ? null : self::encrypter()->decryptString($value);
+        if ($value === null) {
+            return null;
+        }
+
+        try {
+            return self::encrypter()->decryptString($value);
+        } catch (DecryptException) {
+            // Linha cifrada com OUTRO segredo (ex.: seed que rodou sem a env — rc.77) não
+            // pode derrubar quem lê: degrada como "sem chave" e avisa a operação.
+            Log::warning('pix_falha.chave_indecifravel', ['pix_falha_id' => $model->getKey()]);
+
+            return null;
+        }
     }
 
     public function set(Model $model, string $key, mixed $value, array $attributes): ?string

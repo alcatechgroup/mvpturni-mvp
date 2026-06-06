@@ -10,6 +10,7 @@ use App\Models\AdminAuditLog;
 use App\Models\PixFalha;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -87,6 +88,21 @@ test('chave Pix ausente no snapshot degrada para indicação honesta', function 
     Livewire::actingAs($admin)->test(PixFalhas::class)
         ->assertSee('Sem Chave')
         ->assertSee('chave não cadastrada');
+});
+
+test('chave INDECIFRÁVEL (cifrada com outro segredo) NÃO derruba a fila — degrada como ausente', function () {
+    // Cenário real de homolog (rc.77): seeder rodou sem PIX_FALHA_CHAVE_KEY e cifrou com o
+    // default de dev; o admin, com o segredo certo, explodia em DecryptException → 500 na
+    // fila INTEIRA. Uma linha ruim não pode cegar a operação (PDR-010: a fila é o único
+    // caminho de tratamento).
+    $admin = User::factory()->admin()->create();
+    $caso = casoPixFalha(['chave_pix' => null, 'profissional_nome' => 'Chave Corrompida']);
+    DB::table('pix_falhas')->where('id', $caso->id)
+        ->update(['chave_pix' => 'lixo-que-nao-decifra==']);
+
+    Livewire::actingAs($admin)->test(PixFalhas::class)
+        ->assertSee('Chave Corrompida')
+        ->assertSee('chave não cadastrada'); // mesmo fallback honesto; warning vai pro log
 });
 
 // ──────────────────────────────────────────────────────────────
