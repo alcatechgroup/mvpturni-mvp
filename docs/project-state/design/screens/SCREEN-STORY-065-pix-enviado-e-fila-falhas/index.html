@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<!--
+  PROTÓTIPO DE VALIDAÇÃO — NÃO É CÓDIGO DE PRODUÇÃO.
+  SCREEN-STORY-065 — Pix pós-turno: status no card de valor (WebApp, profissional)
+  + fila "Pix com falha" no Backoffice (admin).
+  HTML/CSS/JS vanilla, sem rede, sem build. Abra clicando no arquivo.
+  Tokens reais (DDR-001: profissional verde-sage / admin navy); 24h pt-BR (DDR-002).
+  Microcopy = §5 do spec, palavra por palavra. data-testid = §7.
+  WebApp: o estado "Pix a caminho" troca SOZINHO para "Pix enviado" após ~6s
+  (simula o webhook do fake — no produto, o polling do detalhe faz isso).
+  Backoffice: dialog de resolução funcional (nota obrigatória), copiar chave,
+  race simulável pelo chip "race" da barra.
+-->
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCREEN-STORY-065 — Pix pós-turno + fila Pix com falha</title>
+<style>
+  /* ───────── tokens (DDR-001) ───────── */
+  :root{
+    --b:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --m:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-full:999px;
+  }
+  /* WebApp (perfil profissional) — sempre claro como nas 060–064 */
+  .wa{ --page:#F7F4EC; --surface:#FFFFFF; --border-subtle:#E0DDD3; --border-strong:#C8C5BB;
+       --text-strong:#0F1B2D; --text-muted:#42504A; --brand:#00A868;
+       --success:#2D7A4F; --success-soft:#E2F0E5;
+       --accent:#2D5F3F; --on-accent:#fff; }
+  /* Backoffice admin navy — claro/escuro */
+  [data-theme="light"]{
+    --bo-page:#F7F4EC; --bo-surface:#FFFFFF; --bo-sunken:#F0EDE3; --bo-muted-s:#E8E5DB;
+    --bo-border:#E0DDD3; --bo-border-strong:#C8C5BB;
+    --bo-text:#0F1B2D; --bo-text-muted:#42504A; --bo-text-subtle:#6F7C72;
+    --bo-shadow:0 1px 2px rgba(15,27,45,.04),0 8px 24px rgba(15,27,45,.06);
+    --bo-success:#2D7A4F; --bo-success-soft:#E2F0E5;
+    --bo-error:#B83A3A; --bo-error-soft:#FBE2E2;
+    --bo-sem-on:#FFFFFF;
+    --bo-accent:#2A4D8F; --bo-on-accent:#FFFFFF; --bo-accent-soft:#E4EAF6; --bo-chrome:#15233B;
+    --bo-tint:transparent;
+  }
+  [data-theme="dark"]{
+    --bo-page:#0B1018; --bo-surface:#141B26; --bo-sunken:#1B2433; --bo-muted-s:#26303F;
+    --bo-border:#24324A; --bo-border-strong:#34466A;
+    --bo-text:#ECEDE5; --bo-text-muted:#AFB8C6; --bo-text-subtle:#8893A3;
+    --bo-shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+    --bo-success:#5FA37C; --bo-success-soft:rgba(95,163,124,.16);
+    --bo-error:#D85A5A; --bo-error-soft:rgba(216,90,90,.16);
+    --bo-sem-on:#0E1626;
+    --bo-accent:#5B8DEF; --bo-on-accent:#0E1626; --bo-accent-soft:rgba(91,141,239,.18); --bo-chrome:#122039;
+    --bo-tint:radial-gradient(900px 500px at 100% 0,rgba(91,141,239,.12),transparent 60%);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--b);background:#EAE6DA;color:#0F1B2D;line-height:1.5}
+
+  /* ───────── barra do protótipo ───────── */
+  .proto{position:sticky;top:0;z-index:80;background:#3D2A0E;color:#ECEDE5;display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 14px;font-size:12px}
+  .proto b{font-family:var(--m);font-size:10px;letter-spacing:1px;text-transform:uppercase;opacity:.7}
+  .proto button{font-family:var(--b);font-size:12px;background:#2e2310;color:#e7ddc9;border:1px solid #5a452a;border-radius:var(--r-full);padding:5px 11px;cursor:pointer}
+  .proto button.on{background:#00A868;color:#fff;border-color:transparent}
+  .proto .sep{width:1px;height:20px;background:#5a452a}
+  .proto .sp{margin-left:auto}
+
+  /* ═══════════ SUPERFÍCIE A — WebApp ═══════════ */
+  .wa-stage{display:flex;justify-content:center;padding:28px 16px 60px}
+  .wa .frame{background:var(--page);width:100%;max-width:412px;min-height:720px;border-radius:var(--r-lg);box-shadow:0 8px 30px rgba(0,0,0,.18);overflow:hidden;display:flex;flex-direction:column}
+  body.wa-desktop .wa .frame{max-width:980px}
+  .wa .appbar{display:flex;align-items:center;gap:8px;padding:10px 8px 10px 4px;background:var(--surface);border-bottom:1px solid var(--border-subtle)}
+  .wa .appbar .back{background:none;border:none;font-size:20px;min-width:48px;min-height:48px;border-radius:var(--r-full);display:inline-flex;align-items:center;justify-content:center;color:var(--text-strong);cursor:pointer}
+  .wa .appbar .title{font-size:18px;font-weight:700;flex:1}
+  body.wa-desktop .wa .appbar{display:none}
+  .wa .brandline{display:none;font-family:"Bebas Neue",Impact,"Arial Narrow Bold",sans-serif;color:var(--brand);font-size:30px;letter-spacing:1px;text-align:center;padding:10px 0 0}
+  body.wa-desktop .wa .brandline{display:block}
+  .wa .scroll{flex:1;overflow-y:auto;padding:16px}
+  body.wa-desktop .wa .scroll{padding:24px 32px 60px}
+  .wa .grid{display:flex;flex-direction:column}
+  body.wa-desktop .wa .grid{display:grid;grid-template-columns:420px 1fr;gap:32px;align-items:start}
+  .wa .card{background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--r-md);padding:16px;margin-bottom:16px}
+  .wa .badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:var(--r-full);border:1px solid var(--border-strong);background:#EFEDE4;color:var(--text-muted);white-space:nowrap}
+  .wa .funcao{font-size:21px;font-weight:700;margin-top:8px}
+  .wa .onde,.wa .quando{color:var(--text-muted);font-size:15px;margin-top:3px}
+  /* cronômetro final (064 §4.11) */
+  .wa .crono-t{display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-muted)}
+  .wa .crono-d{font-family:var(--m);font-variant-numeric:tabular-nums;font-size:40px;font-weight:600;text-align:center;margin:6px 0 2px;color:var(--text-strong)}
+  .wa .crono-l{text-align:center;font-size:13px;color:var(--text-muted)}
+  /* card de valor */
+  .wa .valor-t{font-size:13px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-muted)}
+  .wa .valor-v{font-size:32px;font-weight:700;letter-spacing:-.5px;margin-top:4px}
+  .wa .valor-n{font-size:12.5px;color:var(--text-muted);margin-top:2px}
+  .wa .pix-status{border-top:1px solid var(--border-subtle);margin-top:14px;padding-top:12px;display:flex;align-items:flex-start;gap:8px;font-size:13.5px}
+  .wa .pix-status.acaminho{color:var(--text-muted)}
+  .wa .pix-status.enviado{color:var(--success);font-weight:600}
+  .wa .spin{width:14px;height:14px;border-radius:var(--r-full);border:2px solid var(--border-strong);border-top-color:var(--accent);animation:spin 1s linear infinite;flex-shrink:0;margin-top:2px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion: reduce){.wa .spin{animation:none}}
+  .wa .check{flex-shrink:0;font-size:14px;line-height:20px}
+  /* timeline */
+  .wa .sec-h{font-family:var(--m);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin:24px 0 8px}
+  .wa .tl{list-style:none}
+  .wa .tl li{position:relative;padding:0 0 18px 22px}
+  .wa .tl li::before{content:"";position:absolute;left:4px;top:6px;width:8px;height:8px;border-radius:var(--r-full);background:var(--accent)}
+  .wa .tl li:not(:last-child)::after{content:"";position:absolute;left:7px;top:18px;bottom:-2px;width:2px;background:var(--border-subtle)}
+  .wa .tl .t{font-size:14.5px;font-weight:600}
+  .wa .tl .d{font-size:13px;color:var(--text-muted)}
+  .wa .tl .ts{font-size:12px;color:var(--text-muted);margin-top:2px;font-family:var(--m)}
+
+  /* ═══════════ SUPERFÍCIE B — Backoffice ═══════════ */
+  .bo{display:none}
+  .bo .shell{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 38px)}
+  .bo .sidebar{background:var(--bo-chrome);color:#ECEDE5;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.08)}
+  .bo .sb-head{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .bo .sb-logo{font-weight:700;letter-spacing:2px;font-size:22px}.bo .sb-logo .i{color:#00A868}
+  .bo .sb-tag{font-family:var(--m);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(236,237,229,.55);margin-top:6px}
+  .bo .sb-sec{font-family:var(--m);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(236,237,229,.45);padding:18px 20px 6px}
+  .bo .sb-item{display:flex;align-items:center;gap:12px;margin:0 12px 2px;padding:10px 14px;border-radius:10px;color:rgba(236,237,229,.85);font-size:14px;font-weight:500;cursor:pointer}
+  .bo .sb-item:hover{background:rgba(255,255,255,.06)}
+  .bo .sb-item.active{background:rgba(91,141,239,.30);color:#fff}
+  .bo .sb-item .ic{width:16px;height:16px;border-radius:5px;background:currentColor;opacity:.55;flex-shrink:0}
+  .bo .sb-count{margin-left:auto;font-family:var(--m);font-size:11px;background:rgba(255,255,255,.1);padding:2px 8px;border-radius:var(--r-full)}
+  .bo .sb-count.alert{background:var(--bo-error);color:#fff}
+  .bo .sb-foot{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.08)}
+  .bo .logout{width:100%;border:1px solid rgba(255,255,255,.16);background:transparent;color:rgba(236,237,229,.75);border-radius:var(--r-full);padding:9px;font-size:13px;cursor:pointer}
+  .bo .main{padding:28px 40px 64px;background:var(--bo-page);background-image:var(--bo-tint);color:var(--bo-text)}
+  .bo .crumb{font-family:var(--m);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bo-text-subtle)}
+  .bo .main-h{font-size:28px;font-weight:600;letter-spacing:-.4px;margin-top:6px}
+  .bo .main-d{font-size:14px;color:var(--bo-text-muted);margin-top:4px;margin-bottom:22px}
+  .bo .seg{display:inline-flex;background:var(--bo-surface);border:1px solid var(--bo-border);border-radius:var(--r-full);padding:3px;margin-bottom:16px}
+  .bo .seg button{border:none;background:transparent;color:var(--bo-text-muted);font-size:13px;font-weight:500;padding:7px 14px;border-radius:var(--r-full);cursor:pointer;font-family:var(--b)}
+  .bo .seg button.on{background:var(--bo-accent);color:var(--bo-on-accent)}
+  .bo .panel{background:var(--bo-surface);border:1px solid var(--bo-border);border-radius:var(--r-lg);box-shadow:var(--bo-shadow);overflow:hidden}
+  .bo .panel-h{padding:14px 20px;border-bottom:1px solid var(--bo-border)}
+  .bo .panel-h h3{font-size:16px;font-weight:600}
+  .bo table{width:100%;border-collapse:collapse;font-size:14px}
+  .bo th{text-align:left;font-family:var(--m);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--bo-text-subtle);font-weight:500;padding:11px 20px;border-bottom:1px solid var(--bo-border)}
+  .bo td{padding:14px 20px;border-bottom:1px solid var(--bo-border);color:var(--bo-text);vertical-align:top}
+  .bo tr:last-child td{border-bottom:0}
+  .bo tbody tr:hover td{background:var(--bo-sunken)}
+  .bo .chip{display:inline-flex;align-items:center;gap:6px;border-radius:var(--r-full);padding:4px 11px;font-size:12px;font-weight:500;margin-bottom:7px}
+  .bo .chip .dot{width:8px;height:8px;border-radius:var(--r-full);flex-shrink:0}
+  .bo .chip.falha{background:var(--bo-error-soft);color:var(--bo-text)}.bo .chip.falha .dot{background:var(--bo-error)}
+  .bo .chip.res{background:var(--bo-success-soft);color:var(--bo-text)}.bo .chip.res .dot{background:var(--bo-success)}
+  .bo .cell-name{font-weight:500}
+  .bo .cell-sub{font-size:12px;color:var(--bo-text-subtle);margin-top:2px}
+  .bo .razao{font-family:var(--m);font-size:12px;color:var(--bo-text-subtle);max-width:260px}
+  .bo .valor{font-family:var(--m);font-weight:600;white-space:nowrap}
+  .bo .chave{font-family:var(--m);font-size:12.5px;white-space:nowrap;display:inline-flex;align-items:center;gap:8px}
+  .bo .ts{font-size:13px;color:var(--bo-text-muted);white-space:nowrap}
+  .bo .btn{border-radius:var(--r-full);padding:8px 16px;font-family:var(--b);font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px}
+  .bo .btn-outline{background:transparent;color:var(--bo-text);border-color:var(--bo-border-strong)}
+  .bo .btn-outline:hover{border-color:var(--bo-text-muted)}
+  .bo .btn-primary{background:var(--bo-accent);color:var(--bo-on-accent)}
+  .bo .btn-copy{background:transparent;border:1px solid var(--bo-border);border-radius:var(--r-sm);padding:3px 8px;font-size:11px;color:var(--bo-text-muted);cursor:pointer;font-family:var(--b)}
+  .bo .btn-copy.ok{color:var(--bo-success);border-color:var(--bo-success)}
+  .bo .pager{display:flex;align-items:center;gap:14px;justify-content:center;margin-top:18px;font-size:13px;color:var(--bo-text-muted)}
+  .bo .pager button{background:var(--bo-surface);border:1px solid var(--bo-border);border-radius:var(--r-full);padding:7px 14px;font-size:13px;cursor:pointer;color:var(--bo-text)}
+  .bo .sk{height:14px;border-radius:6px;background:var(--bo-muted-s);animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .bo .empty{text-align:center;padding:56px 24px}
+  .bo .empty .mark{width:56px;height:56px;border-radius:var(--r-full);background:var(--bo-success-soft);color:var(--bo-success);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px}
+  .bo .empty .mark.neutral{background:var(--bo-sunken);color:var(--bo-text-subtle)}
+  .bo .empty h4{font-size:18px;font-weight:600}
+  .bo .empty p{font-size:14px;color:var(--bo-text-muted);margin:8px auto 0;max-width:400px}
+  .bo .err-banner{display:flex;align-items:center;gap:12px;background:var(--bo-error-soft);border-bottom:1px solid var(--bo-error);padding:14px 20px;font-size:14px;color:var(--bo-text)}
+  .bo .resol{font-size:13px;color:var(--bo-text);max-width:280px}
+  .bo .resol .by{font-size:12px;color:var(--bo-text-subtle);margin-top:3px}
+  /* dialog */
+  .dlg-scrim{position:fixed;inset:0;background:rgba(15,27,45,.5);z-index:70;display:none;align-items:center;justify-content:center;padding:20px}
+  .dlg{background:var(--bo-surface);color:var(--bo-text);border-radius:var(--r-lg);box-shadow:var(--bo-shadow);max-width:460px;width:100%;padding:24px}
+  .dlg h4{font-size:18px;font-weight:600}
+  .dlg p{font-size:14px;color:var(--bo-text-muted);margin:10px 0 14px}
+  .dlg .resumo{background:var(--bo-sunken);border:1px solid var(--bo-border);border-radius:var(--r-md);padding:10px 14px;font-size:13.5px;margin-bottom:14px}
+  .dlg .resumo .l2{color:var(--bo-text-muted);font-size:12.5px;margin-top:2px;font-family:var(--m)}
+  .dlg label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+  .dlg textarea{width:100%;min-height:74px;border:1px solid var(--bo-border-strong);border-radius:var(--r-md);padding:10px 12px;font-family:var(--b);font-size:14px;background:var(--bo-surface);color:var(--bo-text);resize:vertical}
+  .dlg textarea:focus{outline:2px solid var(--bo-accent);outline-offset:1px}
+  .dlg .erro{display:none;color:var(--bo-error);font-size:12.5px;margin-top:6px}
+  .dlg .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  /* toast */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bo-chrome);color:#ECEDE5;border-radius:var(--r-md);padding:12px 20px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:75;display:none;max-width:90vw}
+  .toast.err{background:var(--bo-error)}
+</style>
+</head>
+<body class="wa-mobile">
+
+<!-- barra do protótipo -->
+<div class="proto" role="toolbar" aria-label="Controles do protótipo">
+  <b>Protótipo 065</b>
+  <span class="sep"></span>
+  <b>Superfície</b>
+  <button id="sfA" class="on" onclick="setSurface('wa')">WebApp · profissional</button>
+  <button id="sfB" onclick="setSurface('bo')">Backoffice · admin</button>
+  <span class="sep"></span>
+  <span id="waCtl">
+    <b>Estado</b>
+    <button data-wa="acaminho" class="on" onclick="setWa('acaminho')">pix-acaminho (troca sozinho)</button>
+    <button data-wa="enviado" onclick="setWa('enviado')">pix-enviado</button>
+    <span class="sep"></span>
+    <b>Viewport</b>
+    <button id="vpM" class="on" onclick="setVp('mobile')">mobile</button>
+    <button id="vpD" onclick="setVp('desktop')">desktop</button>
+  </span>
+  <span id="boCtl" style="display:none">
+    <b>Estado</b>
+    <button data-bo="lista" class="on" onclick="setBo('lista')">lista</button>
+    <button data-bo="loading" onclick="setBo('loading')">loading</button>
+    <button data-bo="vazio" onclick="setBo('vazio')">vazio</button>
+    <button data-bo="erro" onclick="setBo('erro')">erro</button>
+    <button data-bo="resolvidos" onclick="setBo('resolvidos')">resolvidos</button>
+    <button onclick="simRace()">race</button>
+    <span class="sep"></span>
+    <button onclick="toggleTheme()">tema claro/escuro</button>
+  </span>
+  <span class="sp" style="font-family:var(--m);font-size:10px;opacity:.6">PROTÓTIPO DE VALIDAÇÃO — NÃO É PRODUÇÃO</span>
+</div>
+
+<!-- ═══════════ SUPERFÍCIE A — WebApp ═══════════ -->
+<div class="wa" id="surfWa">
+  <div class="wa-stage">
+    <div class="frame">
+      <div class="appbar">
+        <button class="back" aria-label="Voltar">←</button>
+        <div class="title">Detalhe do turno</div>
+      </div>
+      <div class="brandline">TURNI.</div>
+      <div class="scroll">
+        <div class="grid">
+          <div>
+            <!-- header (060) -->
+            <div class="card">
+              <span class="badge">✓ Finalizado</span>
+              <div class="funcao">Garçom</div>
+              <div class="onde">Bar do Zé</div>
+              <div class="quando">Sex, 05/06 · 18:00–23:00</div>
+            </div>
+            <!-- cronômetro final (064 §4.11) -->
+            <div class="card">
+              <div class="crono-t">Turno finalizado</div>
+              <div class="crono-d">05:04:27</div>
+              <div class="crono-l">Turno finalizado — duração: 05:04:27</div>
+            </div>
+            <!-- card de valor + linha de status do Pix (CA-4) -->
+            <div class="card" data-testid="turno-detalhe-valor">
+              <div class="valor-t">Você recebe</div>
+              <div class="valor-v">R$ 200,00</div>
+              <div class="valor-n">valor integral · taxa Turni cobrada do contratante</div>
+              <div class="pix-status acaminho" id="pixACaminho" data-testid="turno-detalhe-pix-acaminho" aria-live="polite">
+                <span class="spin" aria-hidden="true"></span>
+                <span>Pix a caminho — normalmente chega em até 15 min.</span>
+              </div>
+              <div class="pix-status enviado" id="pixEnviado" data-testid="turno-detalhe-pix-enviado" style="display:none">
+                <span class="check" aria-hidden="true">✓</span>
+                <span>Pix enviado em <span id="pixHora">18:32</span></span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <!-- timeline (060 — eventos que a 065 passa a emitir) -->
+            <div class="sec-h">Histórico</div>
+            <ul class="tl" id="tlList">
+              <li id="tlPix" style="display:none">
+                <div class="t">Pix enviado</div>
+                <div class="d">R$ 200,00 enviados para você.</div>
+                <div class="ts">Sex, 05/06 · 18:32</div>
+              </li>
+              <li>
+                <div class="t">Check-out validado</div>
+                <div class="d">Turno encerrado.</div>
+                <div class="ts">Sex, 05/06 · 18:31</div>
+              </li>
+              <li>
+                <div class="t">Check-in validado</div>
+                <div class="d">Turno iniciado.</div>
+                <div class="ts">Sex, 05/06 · 13:27</div>
+              </li>
+              <li>
+                <div class="t">Pagamento reservado</div>
+                <div class="d">O contratante garantiu o pagamento deste turno.</div>
+                <div class="ts">Qua, 03/06 · 15:47</div>
+              </li>
+              <li>
+                <div class="t">Turno confirmado</div>
+                <div class="d">Candidatura aprovada.</div>
+                <div class="ts">Qua, 03/06 · 15:46</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SUPERFÍCIE B — Backoffice ═══════════ -->
+<div class="bo" id="surfBo">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sb-head">
+        <div class="sb-logo">TURN<span class="i">I</span>.</div>
+        <div class="sb-tag">Backoffice</div>
+      </div>
+      <div class="sb-sec">Operação</div>
+      <div class="sb-item"><span class="ic"></span> Visão geral</div>
+      <div class="sb-item"><span class="ic"></span> Cadastros pendentes</div>
+      <div class="sb-item active" data-testid="nav-pix-falhas"><span class="ic"></span> Pix com falha
+        <span class="sb-count alert" id="sbCount" data-testid="nav-pix-falhas-count">2</span></div>
+      <div class="sb-sec">Cadastro</div>
+      <div class="sb-item"><span class="ic"></span> Templates contratuais</div>
+      <div class="sb-foot"><button class="logout">Sair</button></div>
+    </aside>
+    <main class="main" data-testid="screen-pix-falhas">
+      <div class="crumb">Backoffice · Admin</div>
+      <h1 class="main-h">Pix com falha</h1>
+      <p class="main-d" id="boSubt">2 transferências aguardando tratamento manual</p>
+
+      <div class="seg" role="tablist" aria-label="Filtro de casos">
+        <button id="tabPend" class="on" role="tab" aria-selected="true" data-testid="pixfalhas-tab-pendentes" onclick="setBo('lista')">Pendentes (<span id="tabPendN">2</span>)</button>
+        <button id="tabRes" role="tab" aria-selected="false" data-testid="pixfalhas-tab-resolvidos" onclick="setBo('resolvidos')">Resolvidos</button>
+      </div>
+
+      <div class="panel">
+        <div class="err-banner" id="boErro" style="display:none" data-testid="pixfalhas-erro-banner">
+          ⚠ Não foi possível carregar a fila.
+          <button class="btn btn-outline" onclick="setBo('lista')">Tentar de novo</button>
+        </div>
+        <div class="panel-h"><h3 id="panelTitle">Fila de tratamento manual</h3></div>
+
+        <!-- loading -->
+        <div id="boLoading" style="display:none;padding:8px 0">
+          <table><tbody>
+            <tr><td><div class="sk" style="width:240px"></div><div class="sk" style="width:140px;margin-top:8px"></div></td><td><div class="sk" style="width:70px"></div></td><td><div class="sk" style="width:150px"></div></td><td><div class="sk" style="width:90px"></div></td><td></td></tr>
+            <tr><td><div class="sk" style="width:220px"></div><div class="sk" style="width:120px;margin-top:8px"></div></td><td><div class="sk" style="width:70px"></div></td><td><div class="sk" style="width:150px"></div></td><td><div class="sk" style="width:90px"></div></td><td></td></tr>
+            <tr><td><div class="sk" style="width:250px"></div><div class="sk" style="width:130px;margin-top:8px"></div></td><td><div class="sk" style="width:70px"></div></td><td><div class="sk" style="width:150px"></div></td><td><div class="sk" style="width:90px"></div></td><td></td></tr>
+          </tbody></table>
+        </div>
+
+        <!-- vazio (pendentes) -->
+        <div id="boVazio" class="empty" style="display:none" data-testid="pixfalhas-empty">
+          <div class="mark">✓</div>
+          <h4>Nenhum Pix com falha</h4>
+          <p>Falhas de transferência aparecem aqui assim que o gateway reportar. Por enquanto, tudo certo.</p>
+        </div>
+
+        <!-- vazio (resolvidos) -->
+        <div id="boVazioRes" class="empty" style="display:none" data-testid="pixfalhas-empty-resolvidos">
+          <div class="mark neutral">·</div>
+          <h4>Nenhum caso resolvido ainda</h4>
+          <p>Casos tratados manualmente ficam registrados aqui.</p>
+        </div>
+
+        <!-- lista pendentes -->
+        <table id="boLista" data-testid="pixfalhas-list" aria-live="polite">
+          <thead><tr><th>Turno</th><th>Valor</th><th>Chave Pix</th><th>Razão</th><th>Falhou em</th><th></th></tr></thead>
+          <tbody>
+            <tr id="row1" data-testid="pixfalhas-item-t1">
+              <td>
+                <span class="chip falha" data-testid="pixfalhas-item-t1-badge"><span class="dot"></span>Pix falhou — tratamento manual</span>
+                <div class="cell-name">Garçom · Bar do Zé</div>
+                <div class="cell-sub">Carlos Henrique Silva</div>
+              </td>
+              <td class="valor" data-testid="pixfalhas-item-t1-valor">R$ 200,00</td>
+              <td><span class="chave" data-testid="pixfalhas-item-t1-chave">carlos…@pix.me
+                <button class="btn-copy" data-testid="pixfalhas-item-t1-copiar" aria-label="Copiar chave Pix de Carlos Henrique Silva" onclick="copia(this)">⧉ Copiar</button></span></td>
+              <td class="razao" data-testid="pixfalhas-item-t1-razao">invalid_pix_key — chave não encontrada na instituição de destino</td>
+              <td class="ts">Sex 05/06 · 18:47</td>
+              <td><button class="btn btn-outline" data-testid="pixfalhas-item-t1-resolver" onclick="abreDialog('row1','Garçom · Bar do Zé — R$ 200,00','Carlos Henrique Silva · carlos…@pix.me')">Resolver</button></td>
+            </tr>
+            <tr id="row2" data-testid="pixfalhas-item-t2">
+              <td>
+                <span class="chip falha" data-testid="pixfalhas-item-t2-badge"><span class="dot"></span>Pix falhou — tratamento manual</span>
+                <div class="cell-name">Recepcionista · Hotel Aurora</div>
+                <div class="cell-sub">Diego Reis</div>
+              </td>
+              <td class="valor" data-testid="pixfalhas-item-t2-valor">R$ 340,00</td>
+              <td><span class="chave" data-testid="pixfalhas-item-t2-chave">d.reis…@pix.me
+                <button class="btn-copy" data-testid="pixfalhas-item-t2-copiar" aria-label="Copiar chave Pix de Diego Reis" onclick="copia(this)">⧉ Copiar</button></span></td>
+              <td class="razao" data-testid="pixfalhas-item-t2-razao">transfer_limit_exceeded — limite diário da conta de destino excedido</td>
+              <td class="ts">Qui 04/06 · 22:10</td>
+              <td><button class="btn btn-outline" data-testid="pixfalhas-item-t2-resolver" onclick="abreDialog('row2','Recepcionista · Hotel Aurora — R$ 340,00','Diego Reis · d.reis…@pix.me')">Resolver</button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- lista resolvidos -->
+        <table id="boListaRes" style="display:none">
+          <thead><tr><th>Turno</th><th>Valor</th><th>Chave Pix</th><th>Razão</th><th>Falhou em</th><th>Resolução</th></tr></thead>
+          <tbody id="resBody">
+            <tr>
+              <td>
+                <span class="chip res"><span class="dot"></span>Resolvido manualmente</span>
+                <div class="cell-name">Cozinheira · Restaurante Vila</div>
+                <div class="cell-sub">Marina Costa</div>
+              </td>
+              <td class="valor">R$ 280,00</td>
+              <td><span class="chave">marina…@pix.me</span></td>
+              <td class="razao">account_closed — conta de destino encerrada</td>
+              <td class="ts">Ter 02/06 · 19:05</td>
+              <td class="resol">Pix manual feito pela conta Turni após contato com a profissional (chave nova).
+                <div class="by">por Alexandro · 03/06 09:12</div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pager" id="boPager">
+        <button>‹ Anterior</button> Página 1 de 1 <button>Próxima ›</button>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- dialog de resolução -->
+<div class="dlg-scrim" id="dlgScrim">
+  <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlgT" data-testid="pixfalhas-dialog">
+    <h4 id="dlgT">Marcar como resolvido manualmente?</h4>
+    <p>Confirme apenas depois de tratar a transferência fora da plataforma. O caso sai da fila e fica registrado no histórico de auditoria.</p>
+    <div class="resumo"><span id="dlgL1">—</span><div class="l2" id="dlgL2">—</div></div>
+    <label for="dlgNota">O que foi feito (obrigatório)</label>
+    <textarea id="dlgNota" maxlength="500" placeholder="Ex.: Pix manual feito pela conta Turni em 06/06 às 14:20" data-testid="pixfalhas-dialog-nota" aria-describedby="dlgErro"></textarea>
+    <div class="erro" id="dlgErro" data-testid="pixfalhas-dialog-nota-erro">Descreva o que foi feito antes de confirmar.</div>
+    <div class="acts">
+      <button class="btn btn-outline" data-testid="pixfalhas-dialog-cancelar" onclick="fechaDialog()">Cancelar</button>
+      <button class="btn btn-primary" data-testid="pixfalhas-dialog-confirmar" onclick="confirmaResolucao()">Confirmar resolução</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-testid="pixfalhas-toast"></div>
+
+<script>
+/* ── superfície ── */
+function setSurface(s){
+  document.getElementById('surfWa').style.display = s==='wa' ? 'block' : 'none';
+  document.getElementById('surfBo').style.display = s==='bo' ? 'block' : 'none';
+  document.getElementById('sfA').classList.toggle('on', s==='wa');
+  document.getElementById('sfB').classList.toggle('on', s==='bo');
+  document.getElementById('waCtl').style.display = s==='wa' ? 'inline' : 'none';
+  document.getElementById('boCtl').style.display = s==='bo' ? 'inline' : 'none';
+}
+/* ── WebApp ── */
+let waTimer = null;
+function setWa(st){
+  clearTimeout(waTimer);
+  document.querySelectorAll('[data-wa]').forEach(b=>b.classList.toggle('on', b.dataset.wa===st));
+  const ac = document.getElementById('pixACaminho'), en = document.getElementById('pixEnviado'), tl = document.getElementById('tlPix');
+  if(st==='acaminho'){
+    ac.style.display='flex'; en.style.display='none'; tl.style.display='none';
+    /* simula o webhook do fake (~6s) — no produto, o polling do detalhe troca a linha */
+    waTimer = setTimeout(()=>{ setWa('enviado');
+      document.querySelectorAll('[data-wa]').forEach(b=>b.classList.toggle('on', b.dataset.wa==='enviado')); }, 6000);
+  } else {
+    ac.style.display='none'; en.style.display='flex'; tl.style.display='block';
+  }
+}
+function setVp(v){
+  document.body.classList.toggle('wa-desktop', v==='desktop');
+  document.getElementById('vpM').classList.toggle('on', v==='mobile');
+  document.getElementById('vpD').classList.toggle('on', v==='desktop');
+}
+/* ── Backoffice ── */
+let pendentes = 2;
+function setBo(st){
+  document.querySelectorAll('[data-bo]').forEach(b=>b.classList.toggle('on', b.dataset.bo===st));
+  const show = id => document.getElementById(id).style.display='';
+  ['boLoading','boVazio','boVazioRes','boErro'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('boLista').style.display='none';
+  document.getElementById('boListaRes').style.display='none';
+  document.getElementById('tabPend').classList.toggle('on', st!=='resolvidos');
+  document.getElementById('tabRes').classList.toggle('on', st==='resolvidos');
+  document.getElementById('tabPend').setAttribute('aria-selected', st!=='resolvidos');
+  document.getElementById('tabRes').setAttribute('aria-selected', st==='resolvidos');
+  document.getElementById('panelTitle').textContent = st==='resolvidos' ? 'Casos resolvidos' : 'Fila de tratamento manual';
+  document.getElementById('boPager').style.display = (st==='lista'||st==='resolvidos') ? 'flex' : 'none';
+  if(st==='lista'){ if(pendentes>0){ show('boLista'); } else { show('boVazio'); } }
+  if(st==='loading') show('boLoading');
+  if(st==='vazio') show('boVazio');
+  if(st==='erro'){ show('boErro'); if(pendentes>0) show('boLista'); }
+  if(st==='resolvidos') show('boListaRes');
+  atualizaContagem();
+}
+function atualizaContagem(){
+  document.getElementById('sbCount').textContent = pendentes;
+  document.getElementById('sbCount').classList.toggle('alert', pendentes>0);
+  document.getElementById('tabPendN').textContent = pendentes;
+  document.getElementById('boSubt').textContent = pendentes>0
+    ? pendentes + ' transferência' + (pendentes>1?'s':'') + ' aguardando tratamento manual'
+    : 'Nenhuma transferência aguardando tratamento';
+}
+function copia(btn){
+  btn.textContent='Copiada'; btn.classList.add('ok');
+  setTimeout(()=>{ btn.textContent='⧉ Copiar'; btn.classList.remove('ok'); }, 2000);
+}
+/* dialog */
+let alvoRow=null, raceArmado=false;
+function abreDialog(rowId,l1,l2){
+  alvoRow=rowId;
+  document.getElementById('dlgL1').textContent=l1;
+  document.getElementById('dlgL2').textContent=l2;
+  document.getElementById('dlgNota').value='';
+  document.getElementById('dlgErro').style.display='none';
+  document.getElementById('dlgScrim').style.display='flex';
+  document.querySelector('[data-testid="pixfalhas-dialog-cancelar"]').focus(); /* foco inicial em Cancelar */
+}
+function fechaDialog(){ document.getElementById('dlgScrim').style.display='none'; }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') fechaDialog(); });
+function confirmaResolucao(){
+  const nota=document.getElementById('dlgNota').value.trim();
+  if(!nota){ document.getElementById('dlgErro').style.display='block'; document.getElementById('dlgNota').focus(); return; }
+  fechaDialog();
+  if(raceArmado){ raceArmado=false; mostraToast('Este caso já foi resolvido por outro admin.', true);
+    const r=document.getElementById(alvoRow); if(r) r.remove(); pendentes=Math.max(0,pendentes-1); setBo('lista'); return; }
+  const r=document.getElementById(alvoRow); if(!r) return;
+  /* move para resolvidos */
+  const nome=r.querySelector('.cell-name').textContent, sub=r.querySelector('.cell-sub').textContent;
+  const val=r.querySelector('.valor').textContent, chave=r.querySelector('.chave').textContent.replace('⧉ Copiar','').trim();
+  const razao=r.querySelector('.razao').textContent, ts=r.querySelector('.ts').textContent;
+  const agora=new Date(); const dd=String(agora.getDate()).padStart(2,'0'), mm=String(agora.getMonth()+1).padStart(2,'0');
+  const hh=String(agora.getHours()).padStart(2,'0'), mi=String(agora.getMinutes()).padStart(2,'0');
+  document.getElementById('resBody').insertAdjacentHTML('afterbegin',
+    '<tr><td><span class="chip res"><span class="dot"></span>Resolvido manualmente</span>'+
+    '<div class="cell-name">'+nome+'</div><div class="cell-sub">'+sub+'</div></td>'+
+    '<td class="valor">'+val+'</td><td><span class="chave">'+chave+'</span></td>'+
+    '<td class="razao">'+razao+'</td><td class="ts">'+ts+'</td>'+
+    '<td class="resol">'+nota.replace(/</g,'&lt;')+'<div class="by">por Alexandro · '+dd+'/'+mm+' '+hh+':'+mi+'</div></td></tr>');
+  r.remove(); pendentes=Math.max(0,pendentes-1);
+  mostraToast('Caso resolvido. Registrado no histórico de auditoria.');
+  setBo('lista');
+}
+function simRace(){ raceArmado=true; mostraToast('Race armado: a PRÓXIMA confirmação simula outro admin resolvendo antes.', false); }
+function mostraToast(msg, isErr){
+  const t=document.getElementById('toast'); t.textContent=msg;
+  t.classList.toggle('err', !!isErr); t.style.display='block';
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.style.display='none', 4000);
+}
+function toggleTheme(){
+  const h=document.documentElement;
+  h.setAttribute('data-theme', h.getAttribute('data-theme')==='light'?'dark':'light');
+}
+/* init — estados endereçáveis: ?surface=wa|bo&state=...&vp=mobile|desktop */
+const q=new URLSearchParams(location.search);
+const sf=q.get('surface')==='bo'?'bo':'wa';
+setSurface(sf);
+if(sf==='wa'){ setWa(q.get('state')==='enviado'?'enviado':'acaminho'); setVp(q.get('vp')==='desktop'?'desktop':'mobile'); }
+else { setBo(['lista','loading','vazio','erro','resolvidos'].includes(q.get('state'))?q.get('state'):'lista'); }
+</script>
+</body>
+</html>

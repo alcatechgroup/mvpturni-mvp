@@ -6,12 +6,12 @@ epic_id: EPIC-003
 sprint_id: SPRINT-2026-W28
 type: implementation
 target_role: programador
-requires_design: false  # admin reusa fila padrão; usuário vê confirmação simples no detalhe
-design_screen_id: null
-status: ready
-owner_agent: null
+requires_design: true  # [2026-06-06] Alexandro pediu fluxo designer→programador em chat; era false ("admin reusa fila padrão") — o spec formaliza o card de valor (CA-4) e a aba "Pix com falha" (CA-5/8)
+design_screen_id: SCREEN-STORY-065-pix-enviado-e-fila-falhas
+status: in_progress
+owner_agent: claude-opus-4-8-2026-06-06
 created_at: 2026-06-03
-updated_at: 2026-06-03
+updated_at: 2026-06-06
 estimated_session_size: M
 produces_idr: null
 ---
