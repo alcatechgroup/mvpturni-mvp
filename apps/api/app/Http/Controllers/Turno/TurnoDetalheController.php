@@ -100,7 +100,7 @@ class TurnoDetalheController extends Controller
                     'abre_em' => $abre->toIso8601String(),
                     'fecha_em' => $fecha->toIso8601String(),
                 ],
-            ]);
+            ] + $this->pix($turno));
         }
 
         $contratante = [
@@ -189,6 +189,33 @@ class TurnoDetalheController extends Controller
 
             return $item;
         })->values()->all();
+    }
+
+    /**
+     * STORY-065 (CA-4 / SCREEN-065 §A) — status do Pix para a linha do card de valor do
+     * PROFISSIONAL, só em `finalizado`. Fonte: audit `pix.enviado` (gravado pelo webhook —
+     * CA-6 fonte de verdade; o timestamp exibido é o da confirmação do gateway).
+     * `pix.falhou` chega como `a_caminho` (decisão §A.4 validada: PDR-010 — comunicação em
+     * falha é manual da operação; a razão jamais vaza para as partes).
+     *
+     * @return array<string, mixed>
+     */
+    private function pix(Turno $turno): array
+    {
+        if ($turno->status !== TurnoStatus::Finalizado) {
+            return [];
+        }
+
+        $enviadoEm = AuditLog::query()
+            ->where('action', 'pix.enviado')
+            ->where('target_type', 'Turno')
+            ->where('target_id', $turno->id)
+            ->value('created_at');
+
+        return ['pix' => [
+            'status' => $enviadoEm === null ? 'a_caminho' : 'enviado',
+            'enviado_em' => $enviadoEm?->toIso8601String(),
+        ]];
     }
 
     /** Mesma regra de exibição das listas (STORY-059/049): apelido > nome > name do contratante. */
