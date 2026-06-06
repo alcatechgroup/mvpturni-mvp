@@ -37,14 +37,14 @@ Sem cancelamento, a pré-autorização do contratante fica ativa consumindo limi
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Botão "Cancelar turno" no detalhe quando estado é `confirmado`. Modal de confirmação com mensagem clara ("Cancelar este turno libera a pré-autorização do pagamento e notifica o outro lado") + textarea opcional de motivo.
-- [ ] **CA-2:** `POST /api/turnos/{id}/cancelar` recebe `{ motivo?: string }`, valida estado `confirmado` (outros 422), transita para `cancelado_pro` ou `cancelado_emp` conforme RBAC, grava `cancelamento`, dispara `liberar(turno_id)` via ACL com idempotência `liberar:{turno_id}`.
-- [ ] **CA-3:** Sucesso da liberação: audit log `pagamento.liberado`; emissão de evento `TurnoCancelado` (consumido por STORY-067 notificação).
-- [ ] **CA-4:** Falha da liberação: audit log `pagamento.liberacao_falhou` com motivo; alerta destacado na fila operacional do admin (mesma fila da STORY-065).
-- [ ] **CA-5:** Cron job `turnos:detectar-no-show` em `everyMinute` (reusa worker da STORY-034) detecta turnos cujo `data_inicio + X horas < now() AND status IN ('confirmado', 'aguardando_checkin')` e os transita para `no_show_pro`. Decisão do **X**: documentar no IDR ou na própria estória (sugestão inicial PO: **2h** — discutir com Alexandro em chat antes de codificar). Notifica ambos os lados (STORY-067).
-- [ ] **CA-6:** `no_show_pro` libera pré-autorização igual cancelamento (audit log `pagamento.liberado` com `motivo: 'no_show'`).
-- [ ] **CA-7:** Telas (STORY-059 lista, STORY-060 detalhe) mostram turnos terminais (`cancelado_*`, `no_show_pro`) com badge visual e timeline completa.
-- [ ] **CA-8:** Cobertura ≥ 98% no núcleo (regra de cancelamento, regra de no-show, idempotência da liberação); ≥ 80% no resto. E2E cobre cancelamento dos 2 lados + no-show por travel-time-jump.
+- [x] **CA-1:** Botão "Cancelar turno" no detalhe quando estado é `confirmado` (gatilho de baixa ênfase destrutiva, ambos os papéis — SCREEN-066 §A.3). Modal `dialog.confirm` com consequência explícita ("A reserva do pagamento será liberada e o {outro lado} será avisado. Essa ação não pode ser desfeita.") + textarea opcional de motivo (≤280).
+- [x] **CA-2:** `POST /api/turnos/{id}/cancelar` recebe `{ motivo?: string }`, valida estado `confirmado` (outros → 422 `estado_invalido`), transita para `cancelado_pro`/`cancelado_emp` conforme RBAC (403 cruzado fail-secure), grava `cancelamento { lado, motivo, antecedencia_horas, em }`, dispara `liberar(turno_id)` via ACL com idempotência **`liberacao:{turno_id}`** (chave da convenção `{tipo}:{turno_id}` do TipoOperacaoPagamento da 056 — semanticamente o `liberar:{turno_id}` do CA).
+- [x] **CA-3:** Sucesso da liberação: audit `pagamento.liberado` (com motivo `cancelamento|no_show`, charge_id e total) UMA vez (curto-circuito idempotente não duplica); evento `TurnoCancelado` (turno_id UUID string, lado, motivo) emitido pós-commit para a STORY-067.
+- [x] **CA-4:** Falha da liberação: audit `pagamento.liberacao_falhou` com motivo; caso tipo `liberacao` na MESMA fila da 065, generalizada para "Falhas de pagamento" (rename validado pelo PO; rota `/pix-falhas` e testids preservados) com badge "Liberação falhou — tratamento manual", valor = total reservado, sem chave Pix.
+- [x] **CA-5:** Cron `turnos:detectar-no-show` em `everyMinute` (worker da STORY-034) detecta `data_inicio + X < now() AND status IN (confirmado, aguardando_checkin)` → `no_show_pro`. **X = 2 horas** (decidido por Alexandro em chat 2026-06-06; config `turno.no_show_horas` / env `TURNI_NO_SHOW_HORAS`). Lock por linha (corrida com validação de PIN re-verificada); evento `TurnoNoShow` para a 067. Exigiu a **14ª transição** `confirmado → no_show_pro` (enum + trigger — `domain/turno.md` atualizado).
+- [x] **CA-6:** `no_show_pro` libera igual cancelamento (mesmo job, audit `pagamento.liberado` com `motivo: 'no_show'`).
+- [x] **CA-7:** Lista (059) e detalhe (060) mostram terminais com badge (`⊘ Cancelado` / `⊘ Não realizado` — já existiam) e timeline completa: `cancelado` (voz de quem lê + motivo visível aos 2 lados — decisão PO), `no_show_pro` (copy com o X real via `limite_horas` do payload) e `pagamento_liberado` (novo na whitelist; valor para o contratante).
+- [x] **CA-8:** Núcleo: CancelarTurnoService/Controller/TurnoStatus/DetectarNoShowCommand 100%, LiberarPreAutorizacaoJob 98% linhas; api total 93,9% (≥80). E2E: cancelamento dos 2 lados + no-show com turno vencido no seed + cron real no gate (`_e2e-seed` roda o comando); travel coberto no Pest (`travel(Xh+1m)` + X configurável).
 
 ## Fora de escopo
 
@@ -88,13 +88,33 @@ NÃO decide: motor de penalidade (PDR-007 — fora MVP); que cancelamento depois
 ## Notas do agente
 
 ### Decisões tomadas
+- **X do no-show = 2h** — decidido por Alexandro em chat (2026-06-06) ANTES do código, como a DoD pedia. Documentado aqui + `config/turno.php` (`TURNI_NO_SHOW_HORAS`) + `domain/turno.md` (lacuna resolvida). Sem IDR: é parâmetro de produto configurável, não decisão técnica transversal.
+- **14ª transição** `confirmado → no_show_pro` (enum TurnoStatus + trigger `enforce_turno_transition` mudados JUNTOS, migration própria): o CA-5 detecta turnos vencidos também em `confirmado` (PIN nunca gerado), e a máquina da STORY-055 só previa no-show a partir de `aguardando_checkin`. `domain/turno.md` atualizado.
+- **Chave de idempotência `liberacao:{turno_id}`** (não `liberar:` do texto do CA): segue a convenção `{tipo}:{turno_id}` do TipoOperacaoPagamento (STORY-056/ADR-016) — `Liberacao` já existia no enum desde a 056.
+- **Fila do admin generalizada** ("Pix com falha" → "Falhas de pagamento") — validada por Alexandro junto com o protótipo; rota e testids preservados (Playwright da 065 intacto); casos distinguidos por coluna `tipo` (`pix|liberacao`).
+- **Motivo do cancelamento visível aos 2 lados** na timeline (decisão de Alexandro na validação do spec); timeline fala na voz de quem lê ("Você cancelou este turno.").
+- **Falha de liberação invisível ao usuário final** (espelho da decisão §A.4 da 065): o turno cancela normalmente; o tratamento é operacional (fila). Sem evento `pagamento_liberado` na timeline até resolver.
+- Cancelamento sucede MESMO se a liberação falhar depois (liberação é assíncrona no worker, pós-commit) — o estado do turno nunca fica refém do gateway.
+
 ### Descobertas
+- **[BUG pré-existente corrigido] Listeners registrados em DOBRO**: o auto-discovery de eventos do Laravel estava ativo junto com o registro explícito do AppServiceProvider (cujo comentário prometia "sem event discovery"). TODO listener rodava 2× por evento — `HandlePixFalhou` da 065 duplicava o audit `pix.falhou`; `TurnoFinalizadoListener` enfileirava 2 `CapturarEPagarTurnoJob` (a idempotência da 056 mascarava o dano financeiro). Fix: `withEvents(discover: false)` em `bootstrap/app.php`. Pego pelo teste de lote do cron (4 jobs em vez de 2).
+- O teste de corrida do cron pegou um bug real do meu próprio comando: o evento `TurnoNoShow` disparava mesmo quando o guard re-verificado abortava a transição — corrigido (dispatch condicionado ao commit da transição).
+- `schedule:run` NÃO roda em homolog/prod (gap da STORY-073, ainda `ready`): o cron de no-show está agendado mas não dispara sozinho lá. Para o teste de homolog, executar `php artisan turnos:detectar-no-show` manualmente (job one-off no Cloud Run). Registrado no agendamento (routes/console.php).
+- Gate E2E: o `_e2e-seed` do Makefile agora roda o cron real após o seed — o par `noshow.seed` nasce vencido (início −3h) e o E2E encontra o turno já transitado com a liberação processada pelo worker contra o fake.
+
 ### Bloqueios encontrados
+- Nenhum.
+
 ### IDRs criados
+- Nenhum (decisões locais; X do no-show é config de produto documentada na estória + domain doc).
+
 ### Cobertura final
-- Unitários:
-- E2E:
+- Unitários/integração (api): **957→987 testes verdes** (suíte completa), total **93,9%**; núcleo da estória: CancelarTurnoService 100%, CancelarTurnoController 100%, TurnoStatus 100%, DetectarNoShowCommand 100%, LiberarPreAutorizacaoJob 98% (linhas), PixFalha 94%.
+- Admin: 118 testes verdes (fila generalizada + 3 cenários novos de liberação).
+- WebApp: 533 widget tests verdes (17 novos da 066: gatilho por papel/estado, dialog, erro/422, timeline dos terminais, service HTTP).
+- E2E: cancelamento dos 2 lados + no-show (cron real + worker + fake) — ver evidência abaixo.
+
 ### Links de evidência
-- PR:
-- Pipeline:
-- Deploy de homologação:
+- PR: commit direto na main (workflow do projeto) — d897315 (design), f4860df (api), 21b54b5 (admin), 8414b85 (webapp/E2E).
+- Pipeline: (preencher após push)
+- Deploy de homologação: (preencher após rc)

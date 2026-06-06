@@ -36,6 +36,7 @@ class PixFalhaSeeder extends Seeder
         PixFalha::updateOrCreate(
             ['turno_id' => $turno->id],
             [
+                'tipo' => 'pix',
                 'profissional_nome' => 'Carlos Pix Falho (seed)',
                 'funcao' => 'Garçom',
                 'estabelecimento' => 'Bar do Zé (seed)',
@@ -52,6 +53,34 @@ class PixFalhaSeeder extends Seeder
             ],
         );
 
-        $this->command?->info('PixFalhaSeeder: caso aberto na fila "Pix com falha".');
+        // STORY-066 (CA-4) — caso de LIBERAÇÃO na fila generalizada "Falhas de
+        // pagamento": ancora num turno cancelado (terminal estável); valor = total
+        // reservado do contratante, sem chave Pix (tratamento é no gateway).
+        $cancelado = Turno::query()
+            ->whereIn('status', [TurnoStatus::CanceladoPro, TurnoStatus::CanceladoEmp])
+            ->orderBy('id')
+            ->first();
+
+        if ($cancelado !== null) {
+            PixFalha::updateOrCreate(
+                ['turno_id' => $cancelado->id],
+                [
+                    'tipo' => 'liberacao',
+                    'profissional_nome' => 'Pedro Liberação Falha (seed)',
+                    'funcao' => 'Garçom',
+                    'estabelecimento' => 'Bar do Zé (seed)',
+                    'valor' => 230.00,
+                    'chave_pix' => null,
+                    'razao' => 'release_failed — pré-autorização não encontrada no gateway (seed E2E)',
+                    'payload_gateway' => ['charge_id' => 'ch_seed_e2e', 'reason' => 'release_failed'],
+                    'falhou_em' => now()->subHour(),
+                    'resolvido_em' => null,
+                    'resolvido_por' => null,
+                    'nota_resolucao' => null,
+                ],
+            );
+        }
+
+        $this->command?->info('PixFalhaSeeder: casos abertos na fila "Falhas de pagamento" (pix + liberação).');
     }
 }

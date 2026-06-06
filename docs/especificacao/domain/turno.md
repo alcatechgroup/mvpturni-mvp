@@ -37,10 +37,11 @@ Turno é a unidade central do produto. Nasce quando uma candidatura é aprovada 
                      │ confirmado  │
                      └─────┬───────┘
                            │
-       ┌───────────────────┼─────────────────────┐
-       │                   │                     │
-       ▼                   ▼                     ▼
-  [cancelado_pro]   [cancelado_emp]    [profissional gera PIN check-in]
+       ┌─────────────┬─────┼─────────────────────┐
+       │             │     │                     │
+       ▼             ▼     ▼                     ▼
+  [cancelado_pro] [cancelado_emp] [no_show_pro*] [profissional gera PIN check-in]
+                                   *vencimento sem PIN gerado (STORY-066)
                                                   │
                                                   ▼
                                       ┌─────────────────────┐
@@ -101,7 +102,7 @@ Turno é a unidade central do produto. Nasce quando uma candidatura é aprovada 
 | `disputa_resolvida_sem_pagamento` | Disputa resolvida sem pagamento; trilha registrada; impacta score de ambos. |
 | `cancelado_pro` | Profissional cancelou (antes de `ativo`). |
 | `cancelado_emp` | Contratante cancelou (antes de `ativo`). |
-| `no_show_pro` | Profissional não fez check-in até X horas após início previsto (X a definir em spike). |
+| `no_show_pro` | Profissional não fez check-in até **2 horas** após o início previsto (X decidido pelo PO em 2026-06-06 — STORY-066; config `turno.no_show_horas`). Alcançável de `confirmado` (PIN nunca gerado) e de `aguardando_checkin` (PIN gerado, nunca validado). |
 
 Após avaliação recíproca completa em `finalizado` ou `finalizado_ajustado`, o turno não muda mais de estado — fica apenas histórico.
 
@@ -152,6 +153,6 @@ Após avaliação recíproca completa em `finalizado` ou `finalizado_ajustado`, 
 
 ## Lacunas conhecidas
 
-- Definição numérica de `no_show_pro` (quantas horas após início previsto sem check-in viram no-show?) — spike pendente.
+- ~~Definição numérica de `no_show_pro`~~ — **resolvida na STORY-066** (2026-06-06): X = 2 horas após o início previsto, decidido pelo PO em chat; configurável por env (`TURNI_NO_SHOW_HORAS`) sem deploy.
 - Tratamento de turno que ultrapassa `data_fim` previsto significativamente — hoje cronômetro continua, mas não há regra de horas extras.
 - Política de retorno de pré-autorização Pagar.me em janelas longas — depende de spike técnico Pagar.me.
