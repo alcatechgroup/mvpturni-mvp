@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-066-cancelamento
-status: in_progress
+status: in_review
 owner_agent: claude-opus-4-8-2026-06-06
 created_at: 2026-06-03
 updated_at: 2026-06-06
@@ -115,6 +115,7 @@ NÃO decide: motor de penalidade (PDR-007 — fora MVP); que cancelamento depois
 - E2E: cancelamento dos 2 lados + no-show (cron real + worker + fake) — ver evidência abaixo.
 
 ### Links de evidência
-- PR: commit direto na main (workflow do projeto) — d897315 (design), f4860df (api), 21b54b5 (admin), 8414b85 (webapp/E2E).
+- PR: commit direto na main (workflow do projeto) — d897315 (design), f4860df (api), 21b54b5 (admin), 8414b85 (webapp/E2E), 66ae05b (docs/seed), 5f26a75 (spec Playwright + pint).
+- Gates locais (2026-06-06): api 959 ✓ / 93,9% total / núcleo 98–100%; admin 118 ✓ + Playwright 14 ✓ (fila mista pix+liberação); webapp 533 ✓ + analyze + format; E2E integração "All tests passed" (cancelamento dos 2 lados + no-show com cron real e liberação processada pelo worker contra o fake); smoke webapp 4 ✓.
 - Pipeline: (preencher após push)
-- Deploy de homologação: (preencher após rc)
+- Deploy de homologação: (preencher após rc.79)
