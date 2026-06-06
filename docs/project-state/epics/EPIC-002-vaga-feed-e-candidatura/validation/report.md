@@ -158,6 +158,16 @@ por uma asserção de smoke obsoleta. Nenhum desses pontos é um defeito oculto;
   explicitamente a verificação por relógio forçado no CI, que está cumprida.
 - **Evidência**: ver Apêndice A.7 e A.3.
 
+> **Atualização 2026-06-06 — F-NB-1 endereçada pela STORY-073 (verificada em homolog, rc.80):**
+> `php artisan schedule:run` passou a rodar 1×/min em homolog via Cloud Run Job
+> `turni-scheduler-job-homolog` + Cloud Scheduler (espelho gated em prod). Cenário original do
+> validador reproduzido ao vivo com timestamps reais: edição material 22:02:58Z → prazo 22:07:58Z →
+> auto-retirada + audit `candidatura.retirada_por_edicao_auto` às 22:08:11Z (13s após o prazo).
+> Logs de 60/60 minutos com tick anexados à estória. Colaterais (`lembretes:cadastro`, sweeper de
+> e-mail, `turnos:detectar-no-show`) ativados pelo mesmo fix. Quitação formal (index.json
+> `quitada_por: STORY-073`) ao marcar a estória `done` — pende só a evidência do CA-6
+> (lembretes às 09:00 BRT de 2026-06-07) e aprovação do PO.
+
 > **Nota**: nenhum fail inclui "sugestão", "estória de correção", "próximo passo" ou estimativa de
 > tamanho — planejamento é do PO.
 

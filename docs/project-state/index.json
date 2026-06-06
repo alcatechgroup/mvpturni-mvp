@@ -2169,7 +2169,7 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_progress",
+      "status": "in_review",
       "owner_agent": "claude-opus-4-8-2026-06-06",
       "sprint_id": "SPRINT-2026-W28",
       "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-073-fix-schedule-run-homolog-prod.md",
