@@ -2121,7 +2121,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-065-pix-enviado-e-fila-falhas",
-      "status": "in_progress",
+      "status": "in_review",
       "owner_agent": "claude-opus-4-8-2026-06-06",
       "sprint_id": "SPRINT-2026-W28",
       "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-065-captura-pagarme-pix-sandbox-alerta-falha.md",

@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true  # [2026-06-06] Alexandro pediu fluxo designer→programador em chat; era false ("admin reusa fila padrão") — o spec formaliza o card de valor (CA-4) e a aba "Pix com falha" (CA-5/8)
 design_screen_id: SCREEN-STORY-065-pix-enviado-e-fila-falhas
-status: in_progress
+status: in_review  # aguardando teste manual do Alexandro em homolog (rc.77)
 owner_agent: claude-opus-4-8-2026-06-06
 created_at: 2026-06-03
 updated_at: 2026-06-06
@@ -240,6 +240,13 @@ verdade), documentado nos docblocks. Não é ambiguidade de produto — não blo
 - CA-10: gate `--min=80` da suíte + cobertura do módulo (fechamento).
 
 ### Links de evidência
-- PR: n/a (workflow Turni — commits TDD direto na `main`)
-- Pipeline: (preencher no fechamento)
-- Deploy de homologação: (preencher no fechamento)
+- PR: n/a (workflow Turni — commits TDD direto na `main`; design `2ecf26a` → ciclo
+  red/green por CA até `bba8961`)
+- Pipeline: release.yml run **27064489299** (tag `v0.1.0-rc.77`) — build api/admin/
+  pagarme-mock/webapp + migrate&seed + 4 deploys + smoke pós-deploy, tudo verde
+- Deploy de homologação: **rc.77** — migração `create_pix_falhas_table` DONE;
+  `PixFalhaSeeder` abriu caso na fila; `TurnosSeeder` recriou o par de checkout (com
+  chave Pix + pré-auth sintética); fake com `PIX_RESULTADO=sucesso`,
+  `SLA_SEGUNDOS=30`, `cpu-throttling=false` (verificado via gcloud); infra IDR-028
+  aplicada por Terraform (secret `turni-homolog-pix-falha-chave-key` + envs em
+  api/worker/admin)
