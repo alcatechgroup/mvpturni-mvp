@@ -135,7 +135,7 @@ jobs:
         run: |
           set -euo pipefail
           firebase deploy --only hosting:landing-homolog \
-            --project turni-mvp --non-interactive \
+            --project ${{ secrets.GCP_PROJECT_ID }} --non-interactive \
             --message "${GITHUB_REF_NAME}"
 
       - name: Smoke test pós-deploy (5 checks) + rollback automático em falha
@@ -216,5 +216,5 @@ jobs:
           set -euo pipefail
           # Falha esperada se landing_prod_enabled=false (site turni-landing-prod inexistente) — go-public é fora do EPIC-006.
           firebase deploy --only hosting:landing-prod \
-            --project turni-mvp --non-interactive \
+            --project ${{ secrets.GCP_PROJECT_ID }} --non-interactive \
             --message "${GITHUB_REF_NAME}"

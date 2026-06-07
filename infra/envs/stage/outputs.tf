@@ -35,6 +35,6 @@ output "landing_default_url" {
 }
 
 output "dns_name_servers" {
-  description = "Nameservers da zona homolog.turni.com.br — preencher na var `delegations` do env prod (apex) para o registro NS de delegação"
+  description = "Nameservers da zona stage.turni.com.br — preencher na var `delegations` do env prod (apex) para o registro NS de delegação"
   value       = module.dns.name_servers
 }

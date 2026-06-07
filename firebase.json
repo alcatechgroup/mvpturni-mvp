@@ -94,6 +94,54 @@
         { "source": "**", "destination": "/index.html" }
       ]
     },
+    {
+      "//": "STAGE (projeto turni-stage) — espelho do homolog; rewrites apontam para turni-api-stage.",
+      "target": "stage",
+      "public": "apps/webapp/build/web",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "headers": [
+        {
+          "source": "/index.html",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+          ]
+        },
+        {
+          "source": "/version.json",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+          ]
+        },
+        {
+          "source": "/health.json",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+            { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+          ]
+        },
+        {
+          "source": "**/*.@(js|css|wasm)",
+          "headers": [
+            { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+          ]
+        },
+        {
+          "//": "Entry chain do Flutter (nomes FIXOS): no-cache para não pinar o app desatualizado (STORY-037). Vem DEPOIS do glob **/*.js (last-wins).",
+          "source": "/@(main.dart|flutter|flutter_bootstrap|flutter_service_worker).js",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+          ]
+        }
+      ],
+      "rewrites": [
+        { "source": "/health", "destination": "/health.json" },
+        { "source": "/api/**", "run": { "serviceId": "turni-api-stage", "region": "southamerica-east1" } },
+        { "source": "/sanctum/**", "run": { "serviceId": "turni-api-stage", "region": "southamerica-east1" } },
+        { "source": "/forgot-password", "run": { "serviceId": "turni-api-stage", "region": "southamerica-east1" } },
+        { "source": "/reset-password", "run": { "serviceId": "turni-api-stage", "region": "southamerica-east1" } },
+        { "source": "**", "destination": "/index.html" }
+      ]
+    },
 
     {
       "//": "Landing institucional (EPIC-006 / ADR-012). SEM rewrite genérico ** → /index.html (seria leak): path desconhecido cai no 404.html. O <path-secreto> NUNCA aparece aqui — a pasta _lp/ é renomeada em build-time pelo workflow (ADR-012 §2); os headers usam globs path-agnósticos.",

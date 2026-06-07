@@ -10,7 +10,19 @@ variable "create_zone" {
 
 variable "dns_zone_name" {
   type        = string
-  description = "Nome da zona no Cloud DNS (ex: turni-com-br)"
+  description = "Nome do recurso da zona no Cloud DNS (ex: turni-com-br, homolog-turni-com-br)"
+}
+
+variable "zone_dns_name" {
+  type        = string
+  default     = "turni.com.br."
+  description = "Sufixo DNS da zona criada quando create_zone=true (ex: homolog.turni.com.br.). Com ponto final."
+}
+
+variable "delegations" {
+  type        = map(list(string))
+  default     = {}
+  description = "Mapa subdomínio FQDN → nameservers, para registros NS de delegação. Só a zona apex (prod) preenche; filhos deixam vazio."
 }
 
 variable "webapp_subdomain" {

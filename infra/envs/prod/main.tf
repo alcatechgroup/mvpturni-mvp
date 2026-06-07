@@ -103,9 +103,13 @@ module "cloud_sql" {
   region      = var.region
   env         = local.env
   db_password = var.db_password
-  db_tier     = "db-g1-small" # produção: tier maior
-  vpc_network = google_compute_network.main.self_link
-  depends_on  = [google_service_networking_connection.private_vpc_connection]
+  db_tier     = "db-g1-small" # produção: tier maior (não cobra enquanto STOPPED)
+  # PROD PARADO: sobe a instância STOPPED (só disco + IP, sem vCPU/RAM). activation_policy
+  # tem ignore_changes no módulo, então no go-live o start é manual
+  # (`gcloud sql instances patch turni-prod --activation-policy=ALWAYS`).
+  activation_policy = "NEVER"
+  vpc_network       = google_compute_network.main.self_link
+  depends_on        = [google_service_networking_connection.private_vpc_connection]
 }
 
 module "cloud_run_api" {
@@ -119,7 +123,9 @@ module "cloud_run_api" {
   cloudsql_connection_name = module.cloud_sql.connection_name
   ingress                  = "INGRESS_TRAFFIC_ALL"
   allow_unauthenticated    = true
-  min_instances            = 1 # prod: sem cold start (ADR-004 Negativas)
+  # PROD PARADO: 0 = sem custo enquanto parado. No go-live (prod_live_enabled=true)
+  # vira 1 (sem cold start — ADR-004 Negativas).
+  min_instances = var.prod_live_enabled ? 1 : 0
 
   env_vars = {
     APP_ENV          = "production"
@@ -151,7 +157,7 @@ module "cloud_run_admin" {
   cloudsql_connection_name = module.cloud_sql.connection_name
   ingress                  = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
   allow_unauthenticated    = false
-  min_instances            = 1
+  min_instances            = var.prod_live_enabled ? 1 : 0 # PROD PARADO
 
   env_vars = {
     APP_ENV   = "production"
@@ -205,6 +211,7 @@ locals {
 
 module "worker_job" {
   source                   = "../../modules/worker-job"
+  scheduler_paused         = !var.prod_live_enabled # PROD PARADO: Job existe, Scheduler não dispara
   project_id               = var.project_id
   region                   = var.region
   env                      = local.env
@@ -225,6 +232,7 @@ module "worker_job" {
 # no-show). Espelho do scheduler_job de homolog (módulo worker-job parametrizado).
 module "scheduler_job" {
   source                   = "../../modules/worker-job"
+  scheduler_paused         = !var.prod_live_enabled # PROD PARADO
   project_id               = var.project_id
   region                   = var.region
   env                      = local.env
@@ -251,6 +259,22 @@ module "firebase" {
   depends_on       = [google_project_service.apis]
 }
 
+# ── DNS apex — turni.com.br vive no turni-prod (modelo de 3 projetos independentes) ─
+# Esta é a zona RAIZ do domínio: o registro.br delega turni.com.br para os nameservers
+# desta zona (output dns_name_servers). Ela publica os NS de DELEGAÇÃO dos subdomínios
+# homolog.turni.com.br (turni-homol) e stage.turni.com.br (turni-stage) — preencher
+# var.delegations com os outputs `dns_name_servers` daqueles envs. Os CNAMEs de app/api
+# de prod e o apex/www da landing entram no go-live (módulo dns_landing, gated abaixo).
+module "dns" {
+  source        = "../../modules/dns"
+  project_id    = var.project_id
+  create_zone   = true
+  dns_zone_name = "turni-com-br"
+  # zone_dns_name usa o default "turni.com.br." (apex)
+  delegations = var.delegations
+  depends_on  = [google_project_service.apis]
+}
+
 # ── DNS da landing prod (apex A/AAAA + www redirect) ──────────────────────────
 # Zona turni-com-br já existe (criada em homolog com create_zone=true). Aqui só os
 # registros do apex e www, gated pelo go-public. Com landing_prod_enabled=false o
@@ -266,10 +290,13 @@ module "dns_landing" {
   apex_aaaa_records = var.firebase_apex_aaaa_records
   www_subdomain     = local.www_host
   www_cname_target  = module.firebase.additional_cname_targets["www_redirect"]
-  depends_on        = [google_project_service.apis, module.firebase]
+  depends_on        = [google_project_service.apis, module.firebase, module.dns]
 }
 
 module "monitoring" {
+  # PROD PARADO: sem uptime checks/alertas enquanto parado (uptime contra api parada
+  # dispararia "indisponível" sem parar). Ligado no go-live (prod_live_enabled=true).
+  count       = var.prod_live_enabled ? 1 : 0
   source      = "../../modules/monitoring"
   project_id  = var.project_id
   env         = local.env

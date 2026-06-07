@@ -1,15 +1,16 @@
-# Ambiente de homologação do Turni.
-# Provisiona: VPC, Cloud SQL, Cloud Run (api + admin), worker (Cloud Run Job — IDR-016),
-# Firebase Hosting (webapp), DNS, Secret Manager, Monitoring.
-# Recriar do zero: `terraform apply` (ver runbook docs/operacao/runbook-homolog.md).
+# Ambiente de STAGE do Turni (projeto GCP independente turni-stage).
+# Espelha o homolog em estrutura (paridade): VPC, Cloud SQL, Cloud Run (api + admin),
+# worker + scheduler (Cloud Run Jobs — IDR-016/STORY-073), fake de pagamento,
+# Firebase Hosting (webapp + landing), DNS (subdomínio stage.turni.com.br), Secrets, Monitoring.
+# Recriar do zero: `terraform apply` (ver runbook docs/operacao/runbook-setup-prod-e-stage.md).
 
 locals {
-  env                = "homolog"
-  api_host           = "api.homolog.turni.com.br"
-  admin_host         = "admin.homolog.turni.com.br"
-  webapp_host        = "app.homolog.turni.com.br"
-  landing_host       = "landing.homolog.turni.com.br"
-  mail_sender_domain = "mail.homolog.turni.com.br" # remetente Resend (ADR-011 §e)
+  env                = "stage"
+  api_host           = "api.stage.turni.com.br"
+  admin_host         = "admin.stage.turni.com.br"
+  webapp_host        = "app.stage.turni.com.br"
+  landing_host       = "landing.stage.turni.com.br"
+  mail_sender_domain = "mail.stage.turni.com.br" # remetente Resend (ADR-011 §e)
   mail_from_address  = "no-reply@${local.mail_sender_domain}"
   cloudsql_socket    = "/cloudsql/${module.cloud_sql.connection_name}"
 }
@@ -52,7 +53,7 @@ resource "google_compute_subnetwork" "main" {
   region        = var.region
   name          = "turni-${local.env}-${var.region}"
   network       = google_compute_network.main.self_link
-  ip_cidr_range = "10.1.0.0/24"
+  ip_cidr_range = "10.3.0.0/24"
 }
 
 # Private Service Connection para Cloud SQL sem IP público
@@ -207,7 +208,7 @@ module "cloud_run_admin" {
     # teste — pagamentos simulados" no Backoffice. Dedicada porque APP_ENV aqui
     # é "production" (otimizações do Laravel) e não distingue homolog de prod.
     # NÃO replicar em infra/envs/prod — a ausência é o que desliga o banner.
-    TURNI_ENV = "homolog"
+    TURNI_ENV = "stage"
   }
 
   secret_env_vars = {
@@ -485,7 +486,7 @@ module "firebase" {
   additional_sites = {
     landing = {
       site_id       = "turni-landing-${local.env}" # turni-landing-homolog
-      custom_domain = local.landing_host           # landing.homolog.turni.com.br
+      custom_domain = local.landing_host           # landing.stage.turni.com.br
     }
   }
   depends_on = [google_project_service.apis]
@@ -505,19 +506,18 @@ module "sql_scheduler" {
 
 # ── DNS (Cloud DNS) ──────────────────────────────────────────────────────────
 # Fase 1 (feita): zona criada, NS configurados no registro.br.
-# Fase 2 (esta): CNAME webapp → Firebase (app.homolog.turni.com.br).
+# Fase 2 (esta): CNAME webapp → Firebase (app.stage.turni.com.br).
 # API: Cloud Run domain mapping não é suportado em southamerica-east1.
 #      Em homolog: acesso via URL direta do Cloud Run.
 #      Em prod: provisionar HTTPS LB + Serverless NEG.
 module "dns" {
   source     = "../../modules/dns"
   project_id = var.project_id
-  # Modelo de 3 projetos independentes: o turni-homol é dono da zona do SUBDOMÍNIO
-  # homolog.turni.com.br (delegada pela apex turni.com.br no turni-prod). Todos os
-  # FQDNs (app./api./mail.homolog...) seguem idênticos — só a fronteira da zona muda.
+  # Modelo de 3 projetos independentes: o turni-stage é dono da zona do SUBDOMÍNIO
+  # stage.turni.com.br (delegada pela apex turni.com.br no turni-prod).
   create_zone          = true
-  dns_zone_name        = "homolog-turni-com-br"
-  zone_dns_name        = "homolog.turni.com.br."
+  dns_zone_name        = "stage-turni-com-br"
+  zone_dns_name        = "stage.turni.com.br."
   webapp_subdomain     = local.webapp_host
   webapp_cname_target  = module.firebase.cname_target
   landing_subdomain    = local.landing_host

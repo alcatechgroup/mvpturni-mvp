@@ -114,6 +114,7 @@ resource "google_cloud_scheduler_job" "worker_tick" {
   description = "Dispara o ${var.name} job ${var.env} no cron '${var.schedule}' (${join(" ", var.command)})"
   schedule    = var.schedule
   time_zone   = var.time_zone
+  paused      = var.scheduler_paused
 
   attempt_deadline = "320s"
 

@@ -1,10 +1,17 @@
 # Runbook — Homologação Turni (GCP)
 
 > Versão: STORY-007. Ambiente: `app.homolog.turni.com.br` / `admin.homolog.turni.com.br` / `api.homolog.turni.com.br`.
+>
+> **Modelo de 3 projetos independentes** (ver `runbook-setup-prod-e-stage.md`): o homolog
+> vive no projeto GCP **`turni-homol`** (billing Créditos RHHUB), state em
+> `gs://turni-homol-tfstate` (prefix `homolog`), e a zona DNS é o **subdomínio
+> `homolog.turni.com.br`** (zona própria, delegada pela apex `turni.com.br` que mora no
+> `turni-prod`) — não mais a zona apex.
 
 ## Pré-requisitos (1x, feitos pelo Alexandro)
 
-1. **Conta GCP com créditos ativos** e projeto criado (ex: `turni-homolog-XXXXXX`).
+1. **Projeto GCP `turni-homol`** criado e vinculado ao billing Créditos RHHUB
+   (`016CC2-FEFBB5-8F2968`) — ver bootstrap em `runbook-setup-prod-e-stage.md`.
 2. **Terraform CLI ≥ 1.9** instalado localmente.
 3. **gcloud CLI** autenticado: `gcloud auth application-default login`.
 4. **Registro do domínio `turni.com.br`** — delegação de DNS será para o Cloud DNS.
@@ -16,13 +23,13 @@
 
 ```bash
 # 1. Crie o bucket do Terraform state (nome único global)
-gcloud storage buckets create gs://turni-terraform-state \
+gcloud storage buckets create gs://turni-homol-tfstate \
   --project=SEU_PROJECT_ID \
   --location=southamerica-east1 \
   --uniform-bucket-level-access
 
 # 2. Habilite o versionamento (segurança do state)
-gcloud storage buckets update gs://turni-terraform-state \
+gcloud storage buckets update gs://turni-homol-tfstate \
   --versioning
 
 # 3. Copie o exemplo de vars e preencha
@@ -47,26 +54,30 @@ terraform apply  # ~10-15 min na primeira vez (Cloud SQL demora)
 - `ci_service_account` → GitHub secret `GCP_SERVICE_ACCOUNT`
 - `firebase_site_id` → atualizar `.firebaserc` com o project_id real
 
-### Configurar GitHub secrets (1x)
+### Configurar GitHub secrets (1x) — por GitHub Environment
 
-No repositório GitHub → Settings → Secrets and variables → Actions:
+Modelo de 3 projetos: os secrets são do **GitHub Environment `homolog`** (não do repositório),
+para não colidir com `stage`/`prod`. Em Settings → Environments → `homolog`:
 
 | Secret | Valor (do terraform output) |
 |--------|-----------------------------|
-| `GCP_PROJECT_ID` | ID do projeto GCP |
+| `GCP_PROJECT_ID` | `turni-homol` |
 | `GCP_WORKLOAD_IDENTITY_PROVIDER` | `wif_provider` output |
 | `GCP_SERVICE_ACCOUNT` | `ci_service_account` output |
 | `FIREBASE_SERVICE_ACCOUNT` | JSON da service account CI (para firebase deploy) |
 
-### Configurar DNS (1x)
+### Configurar DNS (1x) — subdomínio delegado
 
-O Cloud DNS cria a zona `turni.com.br`. Após o apply:
+O Cloud DNS cria a zona **`homolog.turni.com.br`** (zona própria do `turni-homol`). Após o apply:
 ```bash
-gcloud dns managed-zones describe turni-com-br \
-  --project=SEU_PROJECT_ID \
-  --format='value(nameServers)'
+gcloud dns managed-zones describe homolog-turni-com-br \
+  --project=turni-homol \
+  --format='value(nameServers)'   # = output `dns_name_servers`
 ```
-Configure esses name servers no registrador do domínio `turni.com.br`.
+Esses nameservers **NÃO** vão para o registro.br. Eles entram na var `delegations` do env
+`prod` (zona apex `turni.com.br` no `turni-prod`), que publica o registro NS de delegação
+`homolog.turni.com.br NS …`. Reaplique o `turni-prod` para criar a delegação. Detalhes em
+`runbook-setup-prod-e-stage.md`.
 
 ### Configurar Firebase targets (1x)
 
@@ -176,7 +187,7 @@ gcloud run services update-traffic turni-api-homolog \
 
 **Via Firebase CLI** (se autenticado com conta com acesso ao projeto):
 ```bash
-firebase hosting:rollback --site=turni-webapp-homolog --project=turni-mvp
+firebase hosting:rollback --site=turni-webapp-homolog --project=turni-homol
 ```
 
 **Via REST API** (sempre disponível com `gcloud auth`):
@@ -184,17 +195,17 @@ firebase hosting:rollback --site=turni-webapp-homolog --project=turni-mvp
 # 1. Listar releases para identificar a versão anterior
 ACCESS_TOKEN=$(gcloud auth print-access-token)
 curl -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-  -H "x-goog-user-project: turni-mvp" \
-  "https://firebasehosting.googleapis.com/v1beta1/projects/turni-mvp/sites/turni-webapp-homolog/releases?pageSize=5"
+  -H "x-goog-user-project: turni-homol" \
+  "https://firebasehosting.googleapis.com/v1beta1/projects/turni-homol/sites/turni-webapp-homolog/releases?pageSize=5"
 
 # 2. Criar nova release apontando para a versão anterior
-PREV_VERSION="projects/turni-mvp/sites/turni-webapp-homolog/versions/XXXXXXXXXXXXXXXXX"
+PREV_VERSION="projects/turni-homol/sites/turni-webapp-homolog/versions/XXXXXXXXXXXXXXXXX"
 curl -X POST \
   -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-  -H "x-goog-user-project: turni-mvp" \
+  -H "x-goog-user-project: turni-homol" \
   -H "Content-Type: application/json" \
   -d '{}' \
-  "https://firebasehosting.googleapis.com/v1beta1/projects/turni-mvp/sites/turni-webapp-homolog/releases?versionName=${PREV_VERSION}"
+  "https://firebasehosting.googleapis.com/v1beta1/projects/turni-homol/sites/turni-webapp-homolog/releases?versionName=${PREV_VERSION}"
 ```
 
 ### Evidência de execução — 2026-05-28
@@ -206,7 +217,7 @@ curl -X POST \
   ```
   gcloud run services update-traffic turni-admin-homolog \
     --to-revisions=turni-admin-homolog-00025-yuh=100 \
-    --region=southamerica-east1 --project=turni-mvp
+    --region=southamerica-east1 --project=turni-homol
   ```
 - **Resultado**: curl /health → 200, `{"version":"v0.1.0-rc.9","service":"backoffice"}` ✅
 
@@ -322,7 +333,7 @@ release (`gcloud run jobs update`, mesmo contrato do api/admin). Latência de pi
 até ~60s (cabe nos SLOs de e-mail e Pix — ver IDR-016).
 
 ```bash
-P=turni-mvp; R=southamerica-east1
+P=turni-homol; R=southamerica-east1
 
 # Listar execuções do worker
 gcloud run jobs executions list --job=turni-worker-job-homolog --region=$R --project=$P
@@ -369,7 +380,7 @@ cada release; mesma imagem da api).
 **Verificar que está rodando:**
 
 ```bash
-P=turni-mvp; R=southamerica-east1
+P=turni-homol; R=southamerica-east1
 
 # Execuções do tick (deve haver ~1/min, estado Succeeded)
 gcloud run jobs executions list --job=turni-scheduler-job-homolog --region=$R --project=$P

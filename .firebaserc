@@ -1,14 +1,26 @@
 {
   "projects": {
-    "default": "turni-mvp"
+    "default": "turni-homol",
+    "homolog": "turni-homol",
+    "stage": "turni-stage",
+    "prod": "turni-prod"
   },
   "targets": {
-    "turni-mvp": {
+    "turni-homol": {
       "hosting": {
         "homolog": ["turni-webapp-homolog"],
-        "prod":    ["turni-webapp-prod"],
-        "landing-homolog":   ["turni-landing-homolog"],
-        "landing-prod":      ["turni-landing-prod"],
+        "landing-homolog": ["turni-landing-homolog"]
+      }
+    },
+    "turni-stage": {
+      "hosting": {
+        "stage": ["turni-webapp-stage"]
+      }
+    },
+    "turni-prod": {
+      "hosting": {
+        "prod": ["turni-webapp-prod"],
+        "landing-prod": ["turni-landing-prod"],
         "www-redirect-prod": ["turni-www-redirect-prod"]
       }
     }

@@ -48,6 +48,27 @@ variable "admin_image" {
   default = ""
 }
 
+# ── Postura "prod parado" (3 projetos independentes) ─────────────────────────
+# false (default) = projeto turni-prod aplicado mas PARADO (custo ~zero): Cloud Run
+# min=0, worker/scheduler com Cloud Scheduler pausado, monitoring desligado. SQL sobe
+# STOPPED (activation_policy=NEVER no módulo). No go-live (EPIC-006), virar true e
+# reaplicar — e ligar o SQL manualmente (gcloud sql instances patch ... ALWAYS).
+variable "prod_live_enabled" {
+  type        = bool
+  default     = false
+  description = "true = liga os recursos de prod (min_instances=1, schedulers ativos, monitoring). Default false = parado."
+}
+
+# Delegação de subdomínio: mapa FQDN → nameservers das zonas filhas, publicado como
+# registros NS na zona apex turni.com.br. Preencher com os `dns_name_servers` de:
+#   homolog.turni.com.br → output do env homolog (projeto turni-homol)
+#   stage.turni.com.br   → output do env stage   (projeto turni-stage)
+variable "delegations" {
+  type        = map(list(string))
+  default     = {}
+  description = "Ex: { \"homolog.turni.com.br\" = [\"ns-cloud-a1...\", ...], \"stage.turni.com.br\" = [...] }"
+}
+
 # ── Landing institucional (EPIC-006 / ADR-012) ───────────────────────────────
 # Gate de go-public: tudo da landing prod (sites Firebase + apex/www no DNS) fica
 # codificado mas NÃO aplicado enquanto false. O comercial autoriza o go-public via

@@ -1,0 +1,27 @@
+# STAGE — projeto GCP independente turni-stage (ligado).
+# Copie para terraform.tfvars e preencha com os valores reais.
+# NUNCA commite terraform.tfvars — está no .gitignore.
+
+project_id  = "turni-stage"
+github_repo = "alcatechgroup/mvpturni-mvp"
+alert_email = "xandroalmeida@gmail.com"
+
+# Gerar com: php artisan key:generate --show (valores PRÓPRIOS do stage, não reusar homolog)
+app_key_api   = "base64:GERE_COM_PHP_ARTISAN"
+app_key_admin = "base64:GERE_COM_PHP_ARTISAN"
+
+# Senha forte para o banco PostgreSQL de stage
+db_password = "SENHA_FORTE_AQUI"
+
+# E-mail transacional (ADR-011) — chave do Resend para o stage
+resend_api_key = "re_CHAVE_RESEND_STAGE_AQUI"
+
+# Fake de pagamento (PDR-017 / ADR-016 d) — gerar com: openssl rand -hex 24
+pagarme_secret_key     = "sk_stage_GERE_ALEATORIO"
+pagarme_webhook_secret = "whsec_stage_GERE_ALEATORIO"
+# IDR-028 — chave da criptografia da chave Pix do snapshot de pix_falhas (api+worker+admin).
+# Gerar: php -r "echo 'base64:'.base64_encode(random_bytes(32));"
+pix_falha_chave_key = "base64:GERAR_VALOR_ALEATORIO"
+
+# Two-phase: preencher após o 1º apply com `terraform output api_url` (webhook do fake).
+# api_public_url = "https://turni-api-stage-XXXX.run.app"

@@ -11,6 +11,7 @@ resource "google_sql_database_instance" "main" {
   settings {
     tier              = var.db_tier
     edition           = "ENTERPRISE"
+    activation_policy = var.activation_policy
     availability_type = var.env == "prod" ? "REGIONAL" : "ZONAL"
     disk_autoresize   = true
     disk_size         = 10
@@ -38,6 +39,13 @@ resource "google_sql_database_instance" "main" {
       name  = "max_connections"
       value = "100"
     }
+  }
+
+  lifecycle {
+    # activation_policy é aplicado só na CRIAÇÃO (NEVER no prod parado; ALWAYS nos demais).
+    # Depois quem alterna é o sql-scheduler (homolog/stage, liga/desliga via REST) ou um
+    # patch manual no go-live do prod — o Terraform não deve reverter esse toggle de runtime.
+    ignore_changes = [settings[0].activation_policy]
   }
 }
 

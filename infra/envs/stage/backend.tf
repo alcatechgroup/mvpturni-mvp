@@ -1,9 +1,9 @@
 terraform {
-  # Estado remoto em GCS (ADR-004 — recriação do zero viável).
-  # Bucket criado manualmente na bootstrap (ver runbook docs/operacao/runbook-homolog.md).
+  # Estado remoto em GCS — bucket próprio do projeto turni-stage (independência total;
+  # ver runbook docs/operacao/runbook-setup-prod-e-stage.md, criado na bootstrap).
   backend "gcs" {
-    bucket = "turni-homol-tfstate"
-    prefix = "homolog"
+    bucket = "turni-stage-tfstate"
+    prefix = "stage"
   }
 
   required_providers {

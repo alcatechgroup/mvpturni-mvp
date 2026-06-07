@@ -107,3 +107,10 @@ variable "time_zone" {
   type    = string
   default = "America/Sao_Paulo"
 }
+
+# Sobe o Cloud Scheduler PAUSADO (sem disparar o Job). Usado no prod "parado":
+# o Job existe mas nunca executa → custo zero. No go-live, reaplicar com false.
+variable "scheduler_paused" {
+  type    = bool
+  default = false
+}

@@ -1,8 +1,8 @@
 # Copie para terraform.tfvars e preencha com os valores reais.
 # NUNCA commite terraform.tfvars — está no .gitignore.
 
-project_id  = "SEU_PROJECT_ID_GCP"
-github_repo = "seu-usuario/mvpturni-mvp"
+project_id  = "turni-homol"
+github_repo = "alcatechgroup/mvpturni-mvp"
 alert_email = "xandroalmeida@gmail.com"
 
 # Gerar com: php artisan key:generate --show

@@ -61,7 +61,7 @@ variable "api_public_url" {
 }
 
 variable "mail_dkim_value" {
-  description = "DKIM público do Resend para mail.homolog.turni.com.br (dado público de DNS — STORY-021)"
+  description = "DKIM público do Resend para mail.stage.turni.com.br (dado público de DNS — STORY-021)"
   type        = string
   default     = null
 }

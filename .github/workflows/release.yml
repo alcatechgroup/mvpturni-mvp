@@ -15,6 +15,11 @@ permissions:
   contents: read
   id-token: write   # necessário para Workload Identity Federation
 
+# Modelo de 3 projetos GCP independentes: GCP_PROJECT_ID, GCP_WORKLOAD_IDENTITY_PROVIDER,
+# GCP_SERVICE_ACCOUNT e FIREBASE_SERVICE_ACCOUNT são secrets POR GitHub Environment
+# (homolog → turni-homol; prod → turni-prod). Todo job que toca o GCP declara
+# `environment:` para herdar o conjunto certo — sem isso cairia nos secrets de repositório.
+
 env:
   GCP_REGION: southamerica-east1
   REGISTRY: ${{ secrets.GCP_REGION != '' && secrets.GCP_REGION || 'southamerica-east1' }}-docker.pkg.dev
@@ -44,6 +49,10 @@ jobs:
     name: Build & push ${{ matrix.app }}
     runs-on: ubuntu-latest
     needs: [detect-env]
+    # Empurra para o Artifact Registry do projeto ALVO (homolog/prod). Em tags finais
+    # o gate do Environment prod também cobre o build (1 aprovação p/ todo o release).
+    environment:
+      name: ${{ needs.detect-env.outputs.environment }}
     strategy:
       matrix:
         # pagarme-mock: fake genérico de pagamento, deployado em homolog (PDR-017 / ADR-016 d).
@@ -121,6 +130,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build, detect-env]
     if: needs.detect-env.outputs.is_rc == 'true'
+    environment:
+      name: homolog
     timeout-minutes: 15
     steps:
       - name: Autenticar no GCP via WIF
@@ -359,6 +370,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy-api-homolog, deploy-admin-homolog, deploy-webapp-homolog, detect-env]
     if: needs.detect-env.outputs.is_rc == 'true'
+    environment:
+      name: homolog
     timeout-minutes: 5
     steps:
       - name: Autenticar no GCP via WIF

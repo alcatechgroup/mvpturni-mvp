@@ -1,8 +1,8 @@
 terraform {
   # PRODUÇÃO — aplicar somente no EPIC-006 (gate humano obrigatório antes de qualquer apply).
   backend "gcs" {
-    bucket = "turni-terraform-state"
-    prefix = "envs/prod"
+    bucket = "turni-prod-tfstate"
+    prefix = "prod"
   }
 
   required_providers {

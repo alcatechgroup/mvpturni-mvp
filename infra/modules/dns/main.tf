@@ -8,9 +8,23 @@
 resource "google_dns_managed_zone" "turni" {
   count       = var.create_zone ? 1 : 0
   project     = var.project_id
-  name        = "turni-com-br"
-  dns_name    = "turni.com.br."
-  description = "Zona DNS principal do Turni"
+  name        = var.dns_zone_name
+  dns_name    = var.zone_dns_name
+  description = "Zona DNS do Turni (${var.zone_dns_name})"
+}
+
+# Delegação por subdomínio (modelo de 3 projetos independentes): a zona apex
+# turni.com.br (no turni-prod) publica registros NS apontando para os nameservers
+# das zonas filhas homolog.turni.com.br (turni-homol) e stage.turni.com.br
+# (turni-stage). Vazio (default) nas zonas filhas — só a apex preenche.
+resource "google_dns_record_set" "delegation" {
+  for_each     = var.delegations
+  project      = var.project_id
+  managed_zone = var.dns_zone_name
+  name         = "${each.key}."
+  type         = "NS"
+  ttl          = 21600 # 6h — TTL típico de delegação
+  rrdatas      = each.value
 }
 
 # app.homolog.turni.com.br → Firebase Hosting
