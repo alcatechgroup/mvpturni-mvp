@@ -1963,7 +1963,7 @@
       "target_role": "arquiteto",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
+      "status": "abandoned",
       "owner_agent": null,
       "sprint_id": "SPRINT-2026-W28",
       "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-056-B-contract-test-pagarme-sandbox-ci-noturno.md",
@@ -1974,7 +1974,7 @@
       "estimated_session_size": "S",
       "produces_idr": null,
       "created_at": "2026-06-04",
-      "updated_at": "2026-06-04"
+      "updated_at": "2026-06-07"
     },
     {
       "id": "STORY-058",
@@ -2738,9 +2738,9 @@
     {
       "id": "SPRINT-2026-W28",
       "wave": "WAVE-2026-01",
-      "status": "active",
+      "status": "closed",
       "start_date": "2026-06-03",
-      "end_date": null,
+      "end_date": "2026-06-07",
       "soft_cap_date": "2026-07-04",
       "opened_at": "2026-06-03",
       "opened_by": "PO (Alexandro / Claude)",
@@ -2813,7 +2813,10 @@
         "STORY-075"
       ],
       "last_progress_update": "2026-06-07",
-      "progress_summary": "D+4 (2026-06-07): 14/16 done. Caminho crítico INTEIRO entregue em homolog — aceite + pré-auth fake (058, rc.70), listas (059, rc.71), detalhe + timeline (060, rc.72), PIN check-in + geofencing (061), validação + ativo (062), cronômetro bilateral âncora+polling ADR-017 (063), PIN check-out + finalizado (064), captura + Pix fake (065), cancelamento + no_show_pro (066, rc.79) e schedule:run via Cloud Run Job + Cloud Scheduler (073, rc.80 — F-NB-1 do EPIC-002 quitada). Gatilho de reescopo cedo (2026-06-20) SATISFEITO com 15 dias de folga: cronômetro vivo demonstrável em homolog desde 2026-06-05 — mini-sprint W29 descartada. STORY-067 DONE (2026-06-07, rc.83 — aprovada pelo PO sobre as evidências: 9/9 CAs, E2E 3×3 verde 0 flake, SLA p95=60s, núcleo 100%; cota Resend limita E2E a 1 run/dia; resíduo de teste em pix_falhas anotado para o validador). Restam: STORY-075 (banner global PDR-017, S, ortogonal — última implementação) e STORY-068 (validação final — destrava quando 067+075 fecharem). Housekeeping 2026-06-07: gap de indexação corrigido — STORY-057/068/075 reconstruídas no array stories (estavam só nos story_ids)."
+      "progress_summary": "D+4 (2026-06-07): 14/16 done. Caminho crítico INTEIRO entregue em homolog — aceite + pré-auth fake (058, rc.70), listas (059, rc.71), detalhe + timeline (060, rc.72), PIN check-in + geofencing (061), validação + ativo (062), cronômetro bilateral âncora+polling ADR-017 (063), PIN check-out + finalizado (064), captura + Pix fake (065), cancelamento + no_show_pro (066, rc.79) e schedule:run via Cloud Run Job + Cloud Scheduler (073, rc.80 — F-NB-1 do EPIC-002 quitada). Gatilho de reescopo cedo (2026-06-20) SATISFEITO com 15 dias de folga: cronômetro vivo demonstrável em homolog desde 2026-06-05 — mini-sprint W29 descartada. STORY-067 DONE (2026-06-07, rc.83 — aprovada pelo PO sobre as evidências: 9/9 CAs, E2E 3×3 verde 0 flake, SLA p95=60s, núcleo 100%; cota Resend limita E2E a 1 run/dia; resíduo de teste em pix_falhas anotado para o validador). Restam: STORY-075 (banner global PDR-017, S, ortogonal — última implementação) e STORY-068 (validação final — destrava quando 067+075 fecharem). Housekeeping 2026-06-07: gap de indexação corrigido — STORY-057/068/075 reconstruídas no array stories (estavam só nos story_ids).",
+      "closed_at": "2026-06-07",
+      "closed_by": "PO (Alexandro / Claude)",
+      "goal_outcome": "achieved"
     }
   ],
   "decisions": {
@@ -3433,6 +3436,16 @@
         "decided_by": "programador",
         "source_story": "STORY-070",
         "note": "Os enums nativos vaga_estado/candidatura_estado/notificacao_tipo (ADR-013) são criados via DB::statement e NÃO são removidos por migrate:fresh sem --drop-types — um 2º fresh falha em 'type already exists'. make fresh e o reset de homolog da STORY-070 (runbook §5) passam a usar --drop-types. migrate:rollback segue simétrico (down() dropa o tipo) sem a flag."
+      },
+      {
+        "id": "IDR-028",
+        "title": "Chave Pix do snapshot de pix_falhas cifrada com segredo dedicado compartilhado api+admin",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-028-chave-pix-do-snapshot-com-segredo-compartilhado.md",
+        "decided_at": "2026-06-06",
+        "decided_by": "programador",
+        "source_story": "STORY-065",
+        "note": "pix_falhas guarda snapshot operacional + chave Pix cifrada com segredo dedicado (PIX_FALHA_CHAVE_KEY) compartilhado entre api/worker (escreve) e admin (lê p/ tratamento manual) — as APP_KEYs dos 2 apps são distintas. Espírito da ADR-009 5A (chave dedicada nunca implementada no EPIC-001). Cast ChavePixCompartilhada espelhado nos 2 apps; linha indecifrável degrada p/ 'chave não cadastrada' sem derrubar a fila."
       }
     ],
     "ddr": [
@@ -4147,5 +4160,5 @@
       "note": "Inventário GCP homolog pós-rc.68 com previsão de custos (~$20–29/mês). Substitui gcp-inventory-2026-05-28.md (worker GCE→Cloud Run Job, fake de pagamento PDR-017). Alavanca de economia nº 1: alinhar scheduler do worker à janela do SQL."
     }
   ],
-  "next_action": "STORY-066 DONE em 2026-06-06 (rc.79): cancelamento antes do check-in (2 lados, motivo opcional visível a ambos) + no_show_pro automático (cron turnos:detectar-no-show, X=2h decidido pelo PO, 14ª transição confirmado→no_show_pro) + liberação da pré-autorização via ACL (idempotente; falha → fila do admin generalizada 'Falhas de pagamento'). Descoberta estrutural corrigida: event discovery do Laravel ativo junto com registro explícito (todo listener rodava 2× — withEvents(discover:false)). ATENÇÃO: cron de no-show NÃO dispara sozinho em homolog/prod até a STORY-073 (schedule:run) — one-off via job de migração com command override. Próximas da W28: STORY-067 (notificações — consome TurnoCancelado/TurnoNoShow já emitidos), STORY-075 (banner global homolog), STORY-073 (schedule:run — agora também desbloqueia o no-show automático), STORY-068 (validação final do épico)."
+  "next_action": "SPRINT-2026-W28 FECHADA por goal-atingido em 2026-06-07 (D+4): EPIC-003 done (16/16). Ciclo do turno ponta a ponta vivo em homolog com fake genérico (PDR-017), habitualidade PDR-002 nos 4 cenários, geofencing PDR-008, cancelamento/no_show_pro, 8 notificações, banner global; 3 ADRs aceitas (015/016/017). Validador (STORY-068) emitiu veredito rejected (1 F-B + 7 F-NB); PO aceitou F-B-1 (sincronia verificada viva) e corrigiu+deployou F-NB-1/2/3/5 na rc.86 antes de fechar; F-NB-4/6/7 carry-forward (índice IDR-028/056-B; PIN p95 509ms; SLA e-mail p95 61,6s). PRÓXIMO: pausa explícita entre épicos (compromisso da abertura), depois PO abre a próxima sprint (EPIC-004 — avaliação recíproca). Abertura deve incluir 1 estória S de dívidas: deflake do teste de sincronia do cronômetro (gate de release, flakeou 3× no dia do fechamento) + housekeeping F-NB-4. Working tree do PO (plano-ambiente-stage.md etc.) preservado."
 }

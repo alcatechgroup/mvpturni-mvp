@@ -1,10 +1,13 @@
 ---
 sprint_id: SPRINT-2026-W28
 wave: WAVE-2026-01
-status: active
+status: closed
 start_date: 2026-06-03  # ativada após SPRINT-2026-W27.5 fechar por goal-atingido (EPIC-010 done, STORY-072 approved)
 activated_by: "PO (Alexandro / chat)"
-end_date: null
+end_date: 2026-06-07
+closed_at: 2026-06-07
+closed_by: "PO (Alexandro / Claude)"
+goal_outcome: achieved  # goal-atingido em D+4; veredito do validador foi `rejected` (1 F-B + 7 F-NB) e o PO assumiu como goal-atingido: F-B-1 aceito (funcionalidade verificada viva), F-NB-1/2/3/5 corrigidos e deployados (rc.86) ANTES do fechamento, F-NB-4/6/7 carry-forward
 soft_cap_date: 2026-07-04  # ~31 dias corridos a partir da provável ativação; folga maior que W24/W25/W27 (21d) porque é o épico mais pesado da onda
 opened_at: 2026-06-03
 opened_by: "PO (Alexandro / Claude)"
@@ -60,9 +63,9 @@ A sprint **NÃO** abre frente nova fora do EPIC-003. EPIC-004 (avaliação recí
 | STORY-065 | Captura + Pix via gateway (fake — PDR-017) + alerta admin em falha (PDR-010)                                       | EPIC-003 | implementation | programador              | M       | **done** (2026-06-06) |
 | STORY-066 | Cancelamento antes do check-in + `no_show_pro` + liberação da pré-autorização                                      | EPIC-003 | implementation | programador (+ designer) | M       | **done** (2026-06-06, rc.79) |
 | STORY-067 | Notificações in-app + e-mail dos eventos do turno (8 templates via STORY-020)                                      | EPIC-003 | implementation | programador (+ designer) | M       | **done** (2026-06-07, rc.83 — aprovada pelo PO) |
-| STORY-068 | Validação final do EPIC-003                                                                                        | EPIC-003 | validation     | validador                | M       | ready (destrava com 067+075) |
+| STORY-068 | Validação final do EPIC-003                                                                                        | EPIC-003 | validation     | validador                | M       | **done** (2026-06-07 — veredito rejected; PO aceitou F-B-1 + correções F-NB-1/2/3/5 na mesma sessão) |
 | STORY-073 | Fix — `php artisan schedule:run` em homolog/prod (quita F-NB-1 do EPIC-002)                                        | EPIC-002 | bugfix         | programador              | M       | **done** (2026-06-06, rc.80) |
-| STORY-075 | Banner global em homolog "Ambiente de teste — pagamentos simulados" (PDR-017)                                      | EPIC-003 | implementation | programador              | S       | ready (próxima implementação) |
+| STORY-075 | Banner global em homolog "Ambiente de teste — pagamentos simulados" (PDR-017)                                      | EPIC-003 | implementation | programador              | S       | **done** (2026-06-07, rc.85) |
 
 **Sizing total**: **2 S + 12 M + 2 L (16 estórias)**. Mais pesada que W27 (2 S + 10 M + 1 L) por: 1 spike a mais (3 vs 2 da W27), 1 L a mais (2 vs 1), 1 bugfix carry-forward (STORY-073) e 1 estória S de banner (STORY-075, adicionada em 2026-06-04 por PDR-017). STORY-073 e STORY-075 são ortogonais ao caminho crítico do EPIC-003 e cabem em qualquer janela da sprint. STORY-056-B abandonada por PDR-017 — não conta.
 
@@ -201,6 +204,9 @@ Agente programador, arquiteto e designer carregam suas próprias skills + as dec
 | 2026-06-07 (D+4) | Acompanhamento diário do PO | **13/16 done.** Caminho crítico inteiro vivo em homolog desde 2026-06-06: `confirmado → aguardando_checkin → ativo → aguardando_checkout → finalizado → Pix (fake)`, incluindo cancelamento/`no_show_pro` (066) e scheduler plumbado (073 — F-NB-1 do EPIC-002 quitada). STORY-067 `in_review` (rc.83 — 8 notificações do turno, E2E homolog 3×3 verde 0 flake; cota Resend ~33 e-mails reais/execução limita a 1 run/dia). Restam STORY-075 (banner, S) e STORY-068 (validação final). Housekeeping: gap de indexação corrigido — STORY-057/068/075 estavam fora do array `stories` do `index.json`; reconstruídas a partir do frontmatter. |
 | 2026-06-07 | **Gatilho de reescopo cedo (2026-06-20) — antecipado** | **SATISFEITO com 15 dias de folga**: cronômetro bilateral vivo (STORY-063) demonstrável em homolog desde 2026-06-05. Mini-sprint W29 descartada; mid-sprint check formal de 2026-06-10 perde objeto (055/056/057 done e 058 já entregue). Soft-cap de 2026-07-04 sem risco aparente. |
 | 2026-06-07 | **Revisão de aceite da STORY-067 (PO)** | **APROVADA → done (14/16).** Evidências rc.83: 9/9 CAs com evidência verificável (33/33 e-mails conferidos no banco; E2E 3×3 verde 0 flake; SLA p95=60s ≤ 60s n=72; núcleo 100% cobertura); texto-seed validado em 2026-06-06 (gargalo da 053 não se repetiu); desvios documentados aceitos como decisão de produto (`no_show_pro` notifica os 2 lados; `motivo_texto` nunca vazio). Resíduo de teste: 3 casos "chave Pix ausente" em `pix_falhas` do admin homolog — o validador da STORY-068 deve ignorar/tratar. Próximos passos: programador executa STORY-075 (única implementação restante); depois validador roda STORY-068. Lembrete operacional: E2E da 067 consome ~33 e-mails reais (Resend free 100/dia) — máx 1 execução/dia. |
+| 2026-06-07 | **Revisão de aceite da STORY-075 (PO)** | **APROVADA → done (15/16, rc.85).** Banner global visível e legível nos 2 temas no WebApp + Backoffice; ausente em produção/local/pré-auth. Bug real pego só na verificação visual (tokens `*.soft` escuros translúcidos → fix rc.85) — reforça a DoD de verificação visual. STORY-068 destravada. |
+| 2026-06-07 | **STORY-068 (validador) + decisão do PO sobre o veredito** | Veredito **rejected** (1 F-B + 7 F-NB) com evidência extensa (report + evidence/). Decisão do PO na mesma sessão: F-B-1 (flake do teste de sincronia do cronômetro) **aceito** — a funcionalidade foi verificada viva ≤2s com screenshots; F-NB-1/2/3/5 **corrigidos imediatamente** (métricas financeiras vivas no GCP, request_id api→fila→worker, runbook, cobertura dos services de check-out) e **deployados na rc.86** (gate E2E re-rodado após 1 falha do flake conhecido); F-NB-4/6/7 carry-forward. **EPIC-003 → done (16/16).** |
+| 2026-06-07 | **Fechamento por goal-atingido (D+4)** | Goal integral demonstrável em homolog: ciclo do turno ponta a ponta com fake (PDR-017), habitualidade nos 4 cenários, geofencing, cancelamento/no-show, 8 notificações, banner global, 3 ADRs aceitas. 27 dias antes do soft-cap. |
 
 ## Disciplina herdada das sprints anteriores (aplicada sem nova negociação)
 
@@ -226,19 +232,43 @@ Agente programador, arquiteto e designer carregam suas próprias skills + as dec
 | 2026-06-04 | **STORY-056 (Pagar.me, L) QUEBRADA** no gatilho documentado: **056-A** (CA-1..7, 9-10 — ACL completa: interface `GatewayPagamento`, adapter, mock em container devolvendo webhook, idempotência `pagamento_operacoes`, webhook HMAC, observabilidade; ADR-016 `proposed`; núcleo+adapter 100% cobertura; 648 testes verdes; smoke em container real) e **056-B** (CA-8 — contract test consumer-driven contra o sandbox no CI noturno + alerta de divergência). | Decisão do PO em chat (2026-06-04): o adapter+mock+idempotência+webhook cabem numa sessão M, mas o **contract test exige credenciais Pagar.me sandbox que Alexandro ainda não proveu** — separar destrava 056-A agora sem inflar a sessão (exatamente o caminho de exceção previsto no risco "STORY-056 estoura sessão única"). | +1 estória (056-B, S) e bloqueio explícito por credencial; zero retrabalho — 056-A já entrega o desenho inteiro em ADR-016. |
 | 2026-06-04 | **PIVÔ MAIOR — PDR-017 aplicada.** (a) **STORY-056** reescopada (status mantido `in_review`, título passa de "ACL Pagar.me + adapter sandbox/mock" para "ACL de pagamento (provider-agnóstico) + fake genérico"; tudo já feito é preservado — o mock em container vira o próprio fake genérico, driver único em todos os ambientes do MVP); (b) **STORY-056-B abandonada** (sem sandbox real, contract test perde objeto); (c) **STORY-075 criada** (banner global em homolog "Ambiente de teste — pagamentos simulados", S); (d) **STORY-058/065/066/068 revisadas** (referências a "Pagar.me sandbox" trocadas por "gateway (fake — PDR-017)"; métrica primária do EPIC-003 ajustada: 100% dos turnos com fake em modo `success` em vez de ≥95% sandbox; promessa "Pix em 15 min" mantida como simulação); (e) **checklist do validador (STORY-068) atualizado** (sem painel sandbox Pagar.me; verifica banner; SLA do fake); (f) **EPIC-003 epic.md revisado** (outcome/métricas/fora de escopo refletem fake); (g) ADR-005 + ADR-016 marcadas para revisão pelo Arquiteto. | Integração Pagar.me real **não chega a tempo** do MVP (setup operacional do fornecedor — credenciais, conta sandbox aprovada, chave Pix, webhook URL — tem janela própria de calendário que não cabe na W28). PDR-017 troca por fake genérico atrás da mesma ACL para destravar a sprint sem perder a hipótese central da onda. ACL é o ativo arquitetural durável (ADR-005) — esta sprint exercita o propósito real dela (trocar adapter sem mudar domínio) já no MVP. | +1 estória (STORY-075, S); −1 estória (STORY-056-B abandonada); STORY-056 escopo reduzido (CA-8 e DoD de contract test caem); risco técnico nº 1 da onda **neutralizado** (sem dependência externa). Sizing total: 1 S + 12 M + 2 L (15) → **2 S + 12 M + 2 L (16)**. |
 
-## Fechamento do sprint (preencher no encerramento)
+## Fechamento do sprint (preenchido em 2026-06-07)
 
 ### O que foi entregue
--
+
+- **16/16 estórias `done` em D+4** (2026-06-03 → 2026-06-07; soft-cap era 2026-07-04 — 27 dias de folga). Mix executado: 2 S + 12 M + 2 L + 1 abandonada (STORY-056-B, por PDR-017, sem custo).
+- **EPIC-003 fechado**: ciclo do turno ponta a ponta **vivo e demonstrável em homolog** (rc.86) — aceite com habitualidade PDR-002 (4 cenários) + AceiteEletronico imutável + pré-autorização via ACL → PIN check-in com geofencing PDR-008 → cronômetro bilateral ≤2s (verificado com 2 navegadores, Δ=1s) → PIN check-out → captura + Pix simulado (10/10 ciclos reais ≪ 15min; 20/20 no CI) → cancelamento/`no_show_pro` liberando pré-autorização (27 no-shows pelo cron real) → 8 notificações (0 falhas de envio) → banner global "pagamentos simulados" nos 2 apps e 2 temas.
+- **Os 2 pilares restantes da promessa pública materializados pela primeira vez**: PIN Bilateral e "Pix em 15 min" (como simulação — PDR-017). A hipótese central da WAVE-2026-01 está demonstrável.
+- **3 ADRs aceitas** (ADR-015 modelo Turno/máquina de estados; ADR-016 ACL provider-agnóstica + fake; ADR-017 polling+âncora + Haversine) + IDR-028 + 14ª transição documentada em `domain/turno.md` + X do no-show decidido (2h).
+- **F-NB-1 do EPIC-002 quitada** (STORY-073 — `schedule:run` vivo em homolog).
+- **Validação independente com a maior bateria do projeto** (18 blocos): suítes api 986/94,2%, admin 127/94,8%, webapp 567/86,7% (núcleos críticos 100%); imutabilidade/máquina de estados/UUID sondados direto no Postgres de homolog; RBAC cruzado vivo; pipeline verde em todos os 24 deploys da sprint (rc.63→rc.86).
+- **Resposta ao veredito no mesmo dia**: F-NB-1/2/3/5 corrigidos e deployados (observabilidade financeira no Cloud Monitoring; `request_id` api→fila→worker via Context; runbook operacional do fake; cobertura dos services de check-out) — o épico fechou com as correções **no ar**, não prometidas.
 
 ### O que ficou para trás (e por quê)
--
+
+- **F-NB-4** — índice: IDR-028 fora do `index.json` + STORY-056-B `abandoned` no arquivo × `ready` no index. Housekeeping de documentação; corrigir na abertura da próxima sprint.
+- **F-NB-6** — validação de PIN p95 em homolog = 509ms vs alvo ≤500ms (n=30, medição nginx full-request; benchmark app-level no CI dentro do alvo). Marginal (1,8%); reavaliar com amostra maior antes de otimizar.
+- **F-NB-7** — SLA de e-mail p95 = 61,6s vs ≤60s (n=109; worker 1/min cola o p95 no teto estruturalmente). Alert policy ativa; decidir se o alvo é realista com tick de 1min ou se o tick muda.
+- **Flake do teste E2E de sincronia do cronômetro (F-B-1, aceito)** — 3 falhas em 7 execuções em 2026-06-07 (taxa do dia acima do histórico; re-run sempre verde; funcionalidade verificada viva). Aceito pelo PO **com dívida explícita**: deflake ou re-especificação da medição deve ser tratado cedo na próxima sprint (ver Ajustes).
+- **Integração Pagar.me real** — fora por desenho (PDR-017): épico dedicado na próxima wave atrás da mesma ACL.
 
 ### Aprendizados de produto
--
+
+- **PDR-017 (pivô cedo) foi a decisão mais valiosa da sprint**: trocar dependência externa de calendário (habilitação Pagar.me) por fake determinístico atrás da ACL neutralizou o risco nº 1 da onda no D+1, transformou a métrica primária em determinística (100%) e ainda exercitou o propósito real da ACL (trocar provedor sem tocar o domínio). O banner global (STORY-075) preservou a honestidade demonstrativa por 1 estória S.
+- **Verificação visual humana continua pegando o que teste não pega** (2ª vez: wire:click UUID na W27.5; agora tokens `*.soft` translúcidos no tema escuro). DoD com "PO olha no browser" não é cerimônia.
+- **A régua de evidência do validador em homolog é o banco/endpoint, não o Cloud Logging** — consolidado na 067 e confirmado na 068 (sondas one-off read-only via job de migração funcionaram muito bem como instrumento de validação).
 
 ### Aprendizados de processo
--
+
+- **Veredito `rejected` + correção imediata na mesma sessão funcionou melhor que `approved_with_pending`**: o validador aplicou a régua objetiva sem negociar, o PO decidiu com fatos na mão (F-B aceito com justificativa; 4 F-NBs corrigidos antes do fechamento). A separação de papéis segurou — o validador não consertou nada; o programador só entrou após decisão explícita do PO.
+- **Asserção de SLA de timing em build debug (flutter drive/DDC) é fonte estrutural de flake** — o teste do cronômetro mede ≤1s/lado num ambiente mais lento que produção e sensível a carga. 3 ocorrências no dia do fechamento. Não repetir o padrão em CAs futuros sem margem de ambiente.
+- **CA marcado `[x]` com componente "definido em docs/" não materializado passou por 2 gates** (CA-9 da 056: métricas "definidas em docs/operacao" nunca existiram; pego só pelo validador). Regra nova: CA de observabilidade/infra só fecha com o recurso **vivo e verificado** (gcloud/console), não com a promessa documental.
+- **Gotchas operacionais que viram regra**: test-api e test-admin compartilham `turni_test` — nunca paralelos; specs Playwright do admin mutam estado — sempre `_e2e-seed` antes (os "flakes" da 075 eram estado consumido); `orderBy(created_at)` com timestamp(0) empata — desempatar por `id` UUIDv7 (idioma 062).
+- **Throughput**: 16 estórias em 4 dias na sprint mais pesada do projeto, sem estourar nenhuma L (os gatilhos de quebra documentados + spikes na base seguram). A fadiga prevista no risco "Alexandro nos 5 papéis" não materializou em erro de decisão, mas a pausa entre épicos segue valendo.
 
 ### Ajustes para o próximo sprint
--
+
+1. **Pausa explícita entre EPIC-003 e EPIC-004** (compromisso da abertura — manter).
+2. **Na abertura da próxima sprint, 1 estória S de dívidas do veredito**: deflake/re-especificação do teste de sincronia do cronômetro (prioridade — é gate de release e flakeou 3× no dia do fechamento) + housekeeping F-NB-4 (índice). F-NB-6/7 só se a medição contínua confirmar (alertas já ativos).
+3. **Experimento concreto**: CA de observabilidade passa a exigir evidência `gcloud`/console no fechamento da estória (não "definido em docs") — aplicar já nas estórias do EPIC-004.
+4. **Codificar no Makefile a proteção contra suítes paralelas** (test-api+test-admin no mesmo banco) se voltar a morder — por ora, regra documentada.
