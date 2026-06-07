@@ -213,7 +213,9 @@
             "summary": "Comando agendado `candidaturas:auto-retirar-apos-edicao` (STORY-052 CA-9) nunca dispara em homolog/prod — só `queue:work` roda no ambiente implantado, `schedule:run` não é invocado. Candidaturas em `pendente_revisao_apos_edicao` ficam em limbo indefinidamente quando candidato ignora notificação de edição material. Comentário em `apps/api/routes/console.php:28-30` confirma a gap por escrito.",
             "blocking": false,
             "addressed_by": "STORY-073",
-            "addressed_in_sprint": "SPRINT-2026-W28"
+            "addressed_in_sprint": "SPRINT-2026-W28",
+            "quitada_por": "STORY-073",
+            "quitada_em": "2026-06-06"
           }
         ]
       },
@@ -2169,7 +2171,7 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-opus-4-8-2026-06-06",
       "sprint_id": "SPRINT-2026-W28",
       "path": "epics/EPIC-002-vaga-feed-e-candidatura/stories/STORY-073-fix-schedule-run-homolog-prod.md",
@@ -2582,7 +2584,9 @@
           "id": "F-NB-1",
           "summary": "Comando agendado `candidaturas:auto-retirar-apos-edicao` não dispara em homolog/prod — `schedule:run` não é invocado no ambiente implantado.",
           "addressed_by": "STORY-073",
-          "addressed_in_sprint": "SPRINT-2026-W28"
+          "addressed_in_sprint": "SPRINT-2026-W28",
+          "quitada_por": "STORY-073",
+          "quitada_em": "2026-06-06"
         }
       ],
       "last_progress_update": "2026-06-03",

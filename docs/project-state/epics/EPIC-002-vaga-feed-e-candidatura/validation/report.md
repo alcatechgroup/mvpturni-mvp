@@ -164,9 +164,9 @@ por uma asserção de smoke obsoleta. Nenhum desses pontos é um defeito oculto;
 > validador reproduzido ao vivo com timestamps reais: edição material 22:02:58Z → prazo 22:07:58Z →
 > auto-retirada + audit `candidatura.retirada_por_edicao_auto` às 22:08:11Z (13s após o prazo).
 > Logs de 60/60 minutos com tick anexados à estória. Colaterais (`lembretes:cadastro`, sweeper de
-> e-mail, `turnos:detectar-no-show`) ativados pelo mesmo fix. Quitação formal (index.json
-> `quitada_por: STORY-073`) ao marcar a estória `done` — pende só a evidência do CA-6
-> (lembretes às 09:00 BRT de 2026-06-07) e aprovação do PO.
+> e-mail, `turnos:detectar-no-show`) ativados pelo mesmo fix. **F-NB-1 quitada por STORY-073 em
+> 2026-06-06** (aprovada pelo PO em chat; index.json marcado `quitada_por: STORY-073`). Evidência
+> do colateral CA-6 (lembretes às 09:00 BRT de 2026-06-07) a anexar à estória quando a janela abrir.
 
 > **Nota**: nenhum fail inclui "sugestão", "estória de correção", "próximo passo" ou estimativa de
 > tamanho — planejamento é do PO.

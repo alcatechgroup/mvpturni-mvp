@@ -8,7 +8,7 @@ type: bugfix
 target_role: programador
 requires_design: false
 design_screen_id: null
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-2026-06-06
 created_at: 2026-06-03
 updated_at: 2026-06-06
@@ -62,7 +62,7 @@ Cada item é uma asserção testável. O agente DEVE escrever testes que cubram 
   - (c) Observar: candidatura transitou para `retirada` automaticamente; audit log capturou `candidatura.retirada_por_edicao_auto`; contratante não vê mais aquele candidato como "em revisão".
 - [x] **CA-4:** Logs JSON em homolog mostram `schedule:run` executando 1×/min nos últimos 60 minutos (extrair amostra; anexar à estória). *(60/60 minutos na janela 22:08–23:08Z — anexo CA-4.)*
 - [x] **CA-5:** Pelo menos 1 execução real de `candidaturas:auto-retirar-apos-edicao` observada nos logs de homolog em janela onde havia ao menos 1 candidatura elegível (cenário seedado para isso; logs anexados). *(RevisaoAposEdicaoSeeder + tick 22:08:10Z, 790ms; retirada confirmada no banco — anexo CA-3/CA-5.)*
-- [ ] **CA-6:** Colateral — `lembretes:cadastro` (STORY-021) registrado disparando às 09:00 BRT no log de homolog do dia seguinte ao deploy (verificação simples — extrair log). *(Janela só abre 2026-06-07 09:00 BRT — anexo CA-6 com a query pronta; único CA pendente.)*
+- [ ] **CA-6:** Colateral — `lembretes:cadastro` (STORY-021) registrado disparando às 09:00 BRT no log de homolog do dia seguinte ao deploy (verificação simples — extrair log). *(Janela só abre 2026-06-07 09:00 BRT — anexo CA-6 com a query pronta. PO aprovou a estória em 2026-06-06 ciente desta pendência de janela; evidência a anexar a posteriori.)*
 - [x] **CA-7:** Custo GCP do novo Cloud Run Job estimado e anexado à estória (Cloud Scheduler 1/min + Cloud Run Job de execução curta ~5s deve ficar abaixo de US$ 5/mês em homolog; se passar disso, escalar ao PO antes do deploy de prod). *(~US$ 9–18/mês — ACIMA do teto; escalado ao PO em 2026-06-06, decisão: manter assim por enquanto. Anexo CA-7.)*
 - [x] **CA-8:** `runbook-homolog.md` atualizado com seção "Scheduler do Laravel": como verificar que está rodando, como pausar (kill-switch via Cloud Scheduler), como retomar.
 - [x] **CA-9:** Comentário em `apps/api/routes/console.php:28-30` removido ou atualizado para refletir que `schedule:run` passou a rodar em homolog/prod.
@@ -243,6 +243,9 @@ Medição real em homolog (execuções do `turni-scheduler-job-homolog`, 2026-06
 ### Cobertura final
 - Unitários: seeder novo 100% (5 testes, 23 assertions); suíte completa verde local e no CI — api 964 + admin 118 + webapp 533. Sem regra de negócio nova (≥98% n/a).
 - Verificação observável: anexos CA-3/CA-4/CA-5 acima (logs + consulta ao banco em homolog).
+
+### Aprovação
+- **Aprovada por Alexandro (PO) em chat, 2026-06-06**, após verificação ao vivo em homolog (rc.80). Ciente: (a) CA-7 acima do teto — decisão "manter assim por enquanto"; (b) evidência do CA-6 pendente de janela (07/06 09:00 BRT), a anexar a posteriori.
 
 ### Links de evidência
 - PR: n/a — commit direto na main (workflow do projeto)
