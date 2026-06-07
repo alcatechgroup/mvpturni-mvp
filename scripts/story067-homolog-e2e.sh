@@ -15,6 +15,11 @@
 # Habitualidade: profs são MEI e homolog acumula execuções → aprovação sempre com override:true
 # (o carimbo só acontece quando há risco real — AprovarCandidaturaService).
 #
+# ⚠️ CUSTO DE COTA (alerta do PO 2026-06-07): cada execução dispara ~33 E-MAILS REAIS via
+# Resend (free tier: 100/dia) + ~27 da candidatura. NÃO rodar mais de 1×/dia; este script é
+# evidência de CA, não smoke de rotina. A asserção é pela caixa in-app (API) — o ENVIO de
+# e-mail se prova pelo banco (enviada_email_em/falha_envio_em), sem reenviar nada.
+#
 # Uso: scripts/story067-homolog-e2e.sh   (sai !=0 se algum run falhar a asserção)
 set -uo pipefail
 
