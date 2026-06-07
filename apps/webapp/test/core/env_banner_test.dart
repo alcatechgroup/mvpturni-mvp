@@ -163,7 +163,7 @@ void main() {
 
       final material = tester.widget<Material>(
         find.descendant(
-          of: find.byKey(const Key('env-banner')),
+          of: find.byType(EnvBanner),
           matching: find.byType(Material),
         ),
       );
@@ -190,7 +190,7 @@ void main() {
 
       final material = tester.widget<Material>(
         find.descendant(
-          of: find.byKey(const Key('env-banner')),
+          of: find.byType(EnvBanner),
           matching: find.byType(Material),
         ),
       );
@@ -212,9 +212,7 @@ void main() {
 
       final semantics = tester.widget<Semantics>(
         find.byWidgetPredicate(
-          (w) =>
-              w is Semantics &&
-              w.properties.label == 'Aviso: $_microcopy',
+          (w) => w is Semantics && w.properties.label == 'Aviso: $_microcopy',
         ),
       );
       expect(semantics.container, isTrue);

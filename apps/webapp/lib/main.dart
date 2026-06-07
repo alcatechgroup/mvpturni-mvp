@@ -4,6 +4,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 
 import 'core/app_update/app_update.dart';
 import 'core/app_update/widgets/update_banner.dart';
+import 'core/env/env_banner.dart';
 import 'core/install/install.dart';
 import 'ds/theme.dart';
 import 'features/auth/auth_service.dart';
@@ -61,7 +62,12 @@ class TurniApp extends StatelessWidget {
           child: child ?? const SizedBox.shrink(),
         );
         // Banner "Nova versão disponível" no topo de qualquer rota (STORY-037 CA-4).
-        return UpdateBannerHost(controller: appUpdate, child: pt24h);
+        final comUpdate = UpdateBannerHost(controller: appUpdate, child: pt24h);
+        // Banner persistente "Ambiente de teste — pagamentos simulados" em
+        // homolog, só em tela autenticada (STORY-075 / PDR-017). Externo ao
+        // UpdateBannerHost: este EMPURRA o conteúdo (faixa fixa no topo); o de
+        // update flutua por cima do conteúdo, abaixo da faixa.
+        return EnvBannerHost(auth: AuthService(), child: comUpdate);
       },
     );
   }
