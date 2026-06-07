@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: false  # microcopy + cor de aviso do DS — reuso sem nova SCREEN
 design_screen_id: null
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-programador
 created_at: 2026-06-04
 updated_at: 2026-06-07
@@ -81,8 +81,8 @@ Você NÃO decide: que o banner aparece em homolog (PDR-017 fixa); que não apar
 
 ## Definição de Pronto
 
-- [ ] CAs marcados; deploy em homolog verificado por Alexandro (banner visível em WebApp + Backoffice; ausente em landing).
-- [ ] Pipeline verde com cobertura exigida.
+- [x] CAs marcados; deploy em homolog verificado por Alexandro (banner visível em WebApp + Backoffice; ausente em landing) — aprovado em 2026-06-07 sobre a rc.85.
+- [x] Pipeline verde com cobertura exigida (rc.84 e rc.85).
 - [x] `index.json` atualizado.
 - [x] "Notas do agente" preenchida.
 
@@ -183,4 +183,4 @@ Bordas/exceções cobertas: ambiente desconhecido (`staging`) e vazio/null → f
 - PR: n/a — workflow do projeto é commit direto na main (sem PR); evidências nos commits `8d9dd2c` (red webapp), `1ad478c` (green webapp), `3c4c0d9` (red admin), `ec81bcc` (green admin), `6f9e56c` (plumbing).
 - Pipeline: v0.1.0-rc.84 verde — https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/27092409291 (build com `--dart-define=TURNI_ENV=homolog`; smoke pós-deploy ok; `version.json`=rc.84; microcopy + `env-banner` confirmados no `main.dart.js` servido).
 - Terraform aplicado em homolog (2026-06-07): `TURNI_ENV=homolog` na revisão ativa do `turni-admin-homolog` (00094-g89, 100% tráfego, mesma imagem rc.83→84); plan pós-apply sem drift.
-- Deploy de homologação (screenshot do banner): aguardando verificação visual do Alexandro (WebApp + Backoffice pós-login; ausente em landing e pré-auth).
+- Deploy de homologação: verificado visualmente pelo PO em 2026-06-07 (rc.85) — banner legível no tema escuro após o fix de opacidade; WebApp + Backoffice OK. Aprovação registrada no chat.
