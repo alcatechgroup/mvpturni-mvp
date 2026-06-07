@@ -3,10 +3,10 @@ epic_id: EPIC-003
 slug: aceite-pin-e-pix
 title: Aceite da candidatura, PIN bilateral e Pix (via fake genérico atrás de ACL — PDR-017)
 wave: WAVE-2026-01
-status: ready
+status: done  # fechado pelo PO em 2026-06-07 à luz do report da STORY-068 + correções F-NB-1/2/3/5 (F-B-1 aceito; F-NB-4/6/7 carry-forward)
 owner_role: po
 created_at: 2026-05-26
-updated_at: 2026-06-04
+updated_at: 2026-06-07
 target_completion: 2026-08-18  # estimativa orientativa
 sprint_id: SPRINT-2026-W28  # primeira (e potencialmente única) sprint do épico
 pivoted_by: PDR-017  # 2026-06-04 — Pagar.me real adiado para a próxima wave; MVP usa fake genérico atrás da mesma ACL
@@ -153,3 +153,6 @@ Critérios em `validation/checklist.md`. Relatório do validador em `validation/
 ## Histórico
 
 - 2026-05-26 — criado por PO durante planejamento da WAVE-2026-01.
+- 2026-06-04 — pivô PDR-017: Pagar.me sai do MVP; fake genérico atrás da mesma ACL; STORY-056-B abandonada; STORY-075 adicionada.
+- 2026-06-07 — validação final (STORY-068): veredito **rejected** (1 F-B + 7 F-NB) — report em `validation/report.md`.
+- 2026-06-07 — **fechado pelo PO**: F-B-1 aceito (sincronia verificada viva ≤2s; intermitência do teste assumida); F-NB-1/2/3/5 corrigidos na mesma sessão (métricas financeiras vivas no GCP, request_id api→fila→worker, runbook, cobertura dos services de check-out); F-NB-4/6/7 registrados como pendências (carry-forward). Deploy das correções de código: rc.86.

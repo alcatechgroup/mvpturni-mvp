@@ -8,10 +8,12 @@ type: validation
 target_role: validador
 requires_design: false
 design_screen_id: null
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-validador-2026-06-07
 created_at: 2026-06-03
 updated_at: 2026-06-07
+closed_at: 2026-06-07
+closed_by: "PO (Alexandro / chat) — aceite sobre o report (rejected): F-B-1 aceito como OK; F-NB-1/2/3/5 corrigidos na mesma sessão; F-NB-4/6/7 carry-forward; EPIC-003 fechado em seguida"
 estimated_session_size: M
 produces_idr: null
 ---

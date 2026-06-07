@@ -230,7 +230,7 @@
       "slug": "aceite-pin-e-pix",
       "title": "Aceite da candidatura, PIN bilateral e Pix (via fake genérico atrás de ACL — PDR-017)",
       "wave": "WAVE-2026-01",
-      "status": "in_review",
+      "status": "done",
       "activated_at": "2026-06-03",
       "path": "epics/EPIC-003-aceite-pin-e-pix/epic.md",
       "story_ids": [
@@ -1806,7 +1806,7 @@
       "target_role": "validador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_review",
+      "status": "done",
       "owner_agent": null,
       "sprint_id": "SPRINT-2026-W28",
       "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-068-validacao-final-epic-003.md",
