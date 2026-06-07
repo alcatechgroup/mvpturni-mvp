@@ -69,6 +69,7 @@ criar_vaga() { # jar di df valor obs outfile — funcao_id é UUID (ADR-018): va
 }
 
 INICIO=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+TURNOS_FULL=""; TURNOS_CANCEL=""
 RUNS_OK=0
 for RUN in 1 2 3; do
   echo ""
@@ -119,31 +120,51 @@ for RUN in 1 2 3; do
   echo "  cancelar turno prof2 → $code"
 
   echo "  ✓ ações do RUN $RUN disparadas (códigos 200/201 acima validam o caminho síncrono)"
+  TURNOS_FULL="$TURNOS_FULL $T1"
+  TURNOS_CANCEL="$TURNOS_CANCEL $T2"
   RUNS_OK=$((RUNS_OK+1))
 done
 
-# ── Asserção ÚNICA ao final (worker roda 1/min e a ingestão do Cloud Logging atrasa —
-# janelas por run subestimam; os totais acumulados desde INICIO são a medida correta). ──
+# ── Asserção ÚNICA ao final, via GET /api/notificacoes (CA-8 ao vivo): conta por tipo os
+# itens cujo payload.turno_id pertence a ESTA execução. Não usamos Cloud Logging aqui — a
+# ingestão atrasa/perde linhas e flakeia a asserção (aprendizado da 1ª execução); a régua
+# da ENTREGA do e-mail é o banco (enviada_email_em/falha_envio_em — conferir via runbook). ──
 echo ""
-echo "── asserção via Cloud Logging desde $INICIO (espera até ~10 min) ──"
+echo "── asserção via caixa in-app de cada papel (espera até ~8 min; Pix demora ~1-2 min) ──"
+conta() { # jar — imprime "tipo n" das notificações desta execução
+  getj "$1" "/api/notificacoes" /tmp/s67_inbox >/dev/null
+  python3 - "$TURNOS_FULL $TURNOS_CANCEL" <<'PY'
+import json, sys
+ids = set(sys.argv[1].split())
+d = json.load(open('/tmp/s67_inbox'))
+tipos = {}
+for n in d.get('notificacoes', []):
+    if (n.get('payload') or {}).get('turno_id') in ids:
+        tipos[n['tipo']] = tipos.get(n['tipo'], 0) + 1
+for t, c in sorted(tipos.items()):
+    print(t, c)
+PY
+}
 ok=0
-for try in $(seq 1 30); do
+for try in $(seq 1 24); do
   sleep 20
-  COUNTS=$(gcloud logging read "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"$WORKER_JOB\" AND jsonPayload.message=\"notificacao.email.sent\" AND timestamp>=\"$INICIO\"" \
-    --project="$PROJ" --limit=400 --format='value(jsonPayload.context.tipo)' 2>/dev/null | sort | uniq -c)
-  TC=$(echo "$COUNTS" | awk '/turno_confirmado/{print $1}'); TC=${TC:-0}
-  CI=$(echo "$COUNTS" | awk '/checkin_solicitado/{print $1}'); CI=${CI:-0}
-  TA=$(echo "$COUNTS" | awk '/turno_ativo/{print $1}'); TA=${TA:-0}
-  CO=$(echo "$COUNTS" | awk '/checkout_solicitado/{print $1}'); CO=${CO:-0}
-  TF=$(echo "$COUNTS" | awk '/turno_finalizado/{print $1}'); TF=${TF:-0}
-  PX=$(echo "$COUNTS" | awk '/pix_enviado/{print $1}'); PX=${PX:-0}
-  TX=$(echo "$COUNTS" | awk '/turno_cancelado/{print $1}'); TX=${TX:-0}
+  C1S=$(conta "$J1"); C2S=$(conta "$J2"); CCS=$(conta "$JC")
+  n() { echo "$1" | awk -v t="$2" '$1==t{print $2}' | head -1; }
+  TC1=$(n "$C1S" turno_confirmado); TC1=${TC1:-0}
+  TC2=$(n "$C2S" turno_confirmado); TC2=${TC2:-0}
+  TC=$((TC1 + TC2))
+  TA=$(n "$C1S" turno_ativo); TA=${TA:-0}
+  TF=$(n "$C1S" turno_finalizado); TF=${TF:-0}
+  PX=$(n "$C1S" pix_enviado); PX=${PX:-0}
+  TX=$(n "$C2S" turno_cancelado); TX=${TX:-0}
+  CI=$(n "$CCS" checkin_solicitado); CI=${CI:-0}
+  CO=$(n "$CCS" checkout_solicitado); CO=${CO:-0}
   echo "  try $try: confirmado=$TC/6 checkin=$CI/6 ativo=$TA/3 checkout=$CO/3 finalizado=$TF/3 pix=$PX/3 cancelado=$TX/3"
   if [ "$TC" -ge 6 ] && [ "$CI" -ge 6 ] && [ "$TA" -ge 3 ] && [ "$CO" -ge 3 ] \
      && [ "$TF" -ge 3 ] && [ "$PX" -ge 3 ] && [ "$TX" -ge 3 ]; then ok=1; break; fi
 done
 
 echo ""
-echo "════════ RESULTADO: $RUNS_OK/3 runs disparados; asserção de e-mails: $([ "$ok" = "1" ] && echo OK || echo FALHOU) ════════"
-[ "$RUNS_OK" = "3" ] && [ "$ok" = "1" ] && echo "CA-7: 3 runs × 7 tipos, 0 flake ✅" || echo "CA-7: NÃO atingiu 0 flake"
+echo "════════ RESULTADO: $RUNS_OK/3 runs disparados; asserção in-app: $([ "$ok" = "1" ] && echo OK || echo FALHOU) ════════"
+[ "$RUNS_OK" = "3" ] && [ "$ok" = "1" ] && echo "CA-7: 3 runs × 3 cenários (7 tipos), 0 flake ✅" || echo "CA-7: NÃO atingiu 0 flake"
 [ "$RUNS_OK" = "3" ] && [ "$ok" = "1" ]

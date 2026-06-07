@@ -2,7 +2,7 @@
 id: SCREEN-STORY-067-notificacoes-turno
 story: STORY-067-notificacoes-eventos-turno
 epic: EPIC-003-aceite-pin-e-pix
-status: ready                # draft | ready | in_implementation | shipped | superseded
+status: shipped              # draft | ready | in_implementation | shipped | superseded
 created_at: 2026-06-06
 updated_at: 2026-06-06
 owner_designer: claude-opus-4-8
