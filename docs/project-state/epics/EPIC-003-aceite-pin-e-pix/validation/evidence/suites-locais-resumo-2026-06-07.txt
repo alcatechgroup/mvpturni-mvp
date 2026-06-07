@@ -1,0 +1,5 @@
+  [90mTests:[39m    [32;1m982 passed[39;22m[90m (6246 assertions)[39m
+api: 982 passed / 94.2% total / gate --min=80 EXIT=0 (runs 2 e 3; run 1 exit 1 — diagnóstico perdido)
+admin: 127 passed (316 asserções) / 94.8% total / gate --min=80 EXIT=0
+webapp: 549 passed / 86.0% linhas (7186/8358 lcov) / cronometro_ancora 100% / pin_checkin_screen 100% / pin_checkout_service 5.7% / validar_checkout_service 6.2%
+e2e integration_test: 5 execuções — runs 2,3,4,5 'All tests passed'; run 1 falha única no teste de sincronia do cronômetro (display 2222s × servidor 2224s)
