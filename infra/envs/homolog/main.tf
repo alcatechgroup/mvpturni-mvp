@@ -201,6 +201,11 @@ module "cloud_run_admin" {
     DB_DATABASE    = "turni"
     DB_USERNAME    = "turni"
     SESSION_DRIVER = "cookie"
+    # Ambiente de NEGÓCIO (STORY-075 / PDR-017): habilita o banner "Ambiente de
+    # teste — pagamentos simulados" no Backoffice. Dedicada porque APP_ENV aqui
+    # é "production" (otimizações do Laravel) e não distingue homolog de prod.
+    # NÃO replicar em infra/envs/prod — a ausência é o que desliga o banner.
+    TURNI_ENV = "homolog"
   }
 
   secret_env_vars = {

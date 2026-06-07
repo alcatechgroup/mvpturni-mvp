@@ -95,9 +95,13 @@ jobs:
           # API_BASE_URL vazio = mesma origem: o WebApp chama /api e /sanctum no
           # próprio domínio e o Firebase Hosting faz rewrite p/ o Cloud Run da api
           # (firebase.json). Resolve o cookie cross-domain do Sanctum SPA. STORY-016.
+          # TURNI_ENV (STORY-075 / PDR-017): tag rc → homolog (banner "Ambiente de
+          # teste — pagamentos simulados" visível); tag final → production (sem
+          # banner). Build é por tag, então o define nunca vaza entre ambientes.
           flutter build web \
             --dart-define=APP_VERSION=${{ github.ref_name }} \
             --dart-define=API_BASE_URL= \
+            --dart-define=TURNI_ENV=${{ needs.detect-env.outputs.is_rc == 'true' && 'homolog' || 'production' }} \
             --no-tree-shake-icons \
             --release
       - name: Upload artefato web
