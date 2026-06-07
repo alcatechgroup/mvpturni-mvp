@@ -6,6 +6,11 @@ resource "google_cloud_run_v2_service" "service" {
   name     = "turni-${var.app}-${var.env}"
   location = var.region
 
+  # Service stateless (dados vivem no Cloud SQL, que tem sua própria deletion_protection).
+  # false permite o Terraform substituir uma revisão falha (ex: bootstrap com imagem
+  # inválida) sem bloqueio — mesmo padrão do pagarme-mock.
+  deletion_protection = false
+
   ingress = var.ingress # INGRESS_TRAFFIC_ALL (api) | INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER (admin)
 
   template {

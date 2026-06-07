@@ -4,8 +4,8 @@ output "job_name" {
 }
 
 output "scheduler_job_name" {
-  description = "Nome do Cloud Scheduler que dispara o Job (kill-switch: scheduler jobs pause)."
-  value       = google_cloud_scheduler_job.worker_tick.name
+  description = "Nome do Cloud Scheduler que dispara o Job (null se scheduler_enabled=false)."
+  value       = one(google_cloud_scheduler_job.worker_tick[*].name)
 }
 
 output "scheduler_service_account_email" {

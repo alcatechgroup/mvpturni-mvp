@@ -8,8 +8,8 @@
   "targets": {
     "turni-homol": {
       "hosting": {
-        "homolog": ["turni-webapp-homolog"],
-        "landing-homolog": ["turni-landing-homolog"]
+        "homolog": ["turni-homol-webapp"],
+        "landing-homolog": ["turni-homol-landing"]
       }
     },
     "turni-stage": {

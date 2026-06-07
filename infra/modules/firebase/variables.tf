@@ -1,6 +1,15 @@
 variable "project_id" { type = string }
 variable "env" { type = string }
 
+# site_id do WebApp. Default = turni-webapp-<env>. site_id do Firebase Hosting é ÚNICO
+# GLOBALMENTE; quando um ID já está reservado por outro projeto (ex: o turni-mvp ainda
+# detém turni-webapp-homolog mesmo após delete), passe um ID próprio aqui (ex:
+# turni-homol-webapp). Default null → usa o padrão por env.
+variable "webapp_site_id" {
+  type    = string
+  default = null
+}
+
 variable "custom_domain" {
   type        = string
   default     = null

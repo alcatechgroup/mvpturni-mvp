@@ -21,7 +21,8 @@ output "admin_url" {
 }
 
 output "firebase_site_id" {
-  value = module.firebase.site_id
+  description = "site_id do WebApp prod (null enquanto parado — firebase só sobe no go-live)"
+  value       = one(module.firebase[*].site_id)
 }
 
 # RAIZ do domínio: delegar turni.com.br para estes nameservers NO REGISTRO.BR (cutover

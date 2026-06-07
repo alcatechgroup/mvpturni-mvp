@@ -15,7 +15,7 @@ resource "google_firebase_project" "default" {
 resource "google_firebase_hosting_site" "webapp" {
   provider   = google-beta
   project    = var.project_id
-  site_id    = "turni-webapp-${var.env}"
+  site_id    = coalesce(var.webapp_site_id, "turni-webapp-${var.env}")
   depends_on = [google_firebase_project.default]
 }
 

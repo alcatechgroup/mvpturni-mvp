@@ -108,6 +108,7 @@ resource "google_cloud_run_v2_job_iam_member" "scheduler_invoker" {
 # oauth_token (escopo cloud-platform), não oidc_token. A autorização vem do
 # roles/run.invoker (que inclui run.jobs.run) acima. Ver IDR-016 §OAuth vs OIDC.
 resource "google_cloud_scheduler_job" "worker_tick" {
+  count       = var.scheduler_enabled ? 1 : 0
   project     = var.project_id
   region      = var.region
   name        = "turni-${var.name}-scheduler-${var.env}"

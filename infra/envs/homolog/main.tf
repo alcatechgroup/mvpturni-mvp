@@ -478,14 +478,18 @@ resource "google_cloud_run_v2_service_iam_member" "pagarme_mock_public" {
 # Site principal: WebApp. Site adicional: landing (ADR-012 — site único por ambiente
 # que serve "Em breve" no apex, landing AS IS no path secreto, robots.txt e 404).
 module "firebase" {
-  source        = "../../modules/firebase"
-  project_id    = var.project_id
-  env           = local.env
-  custom_domain = local.webapp_host
+  source     = "../../modules/firebase"
+  project_id = var.project_id
+  env        = local.env
+  # site_id próprio (prefixo do projeto): o turni-mvp ainda reserva globalmente
+  # turni-webapp-homolog / turni-landing-homolog mesmo após delete (IDR — site_id do
+  # Firebase é único no mundo e a liberação pós-delete não é imediata).
+  webapp_site_id = "turni-homol-webapp"
+  custom_domain  = local.webapp_host
   additional_sites = {
     landing = {
-      site_id       = "turni-landing-${local.env}" # turni-landing-homolog
-      custom_domain = local.landing_host           # landing.homolog.turni.com.br
+      site_id       = "turni-homol-landing" # único (turni-landing-homolog reservado pelo turni-mvp)
+      custom_domain = local.landing_host    # landing.homolog.turni.com.br
     }
   }
   depends_on = [google_project_service.apis]

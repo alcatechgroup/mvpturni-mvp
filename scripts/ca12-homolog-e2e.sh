@@ -12,9 +12,9 @@
 # Uso: scripts/ca12-homolog-e2e.sh   (sai !=0 se algum run falhar a asserção)
 set -uo pipefail
 
-API="https://turni-api-homolog-dnj2tcr2xa-rj.a.run.app"
+API="https://turni-api-homolog-tuhmw7pfwa-rj.a.run.app"
 ORIG="https://app.homolog.turni.com.br"
-PROJ="turni-mvp"
+PROJ="turni-homol"
 WORKER_JOB="turni-worker-job-homolog"
 PASS="turni-dev"
 CONTRATANTE="xandroalmeida+turni-homolog@gmail.com"

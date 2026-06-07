@@ -114,3 +114,11 @@ variable "scheduler_paused" {
   type    = bool
   default = false
 }
+
+# Cria (ou não) o Cloud Scheduler que dispara o Job. false = NÃO cria o trigger —
+# usado no prod "parado": trigger pausado seria inútil e o provider tem um race ao
+# pausar no create (cria o job e falha ao setar status). No go-live, reaplicar com true.
+variable "scheduler_enabled" {
+  type    = bool
+  default = true
+}

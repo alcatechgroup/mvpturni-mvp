@@ -104,10 +104,12 @@ module "cloud_sql" {
   env         = local.env
   db_password = var.db_password
   db_tier     = "db-g1-small" # produção: tier maior (não cobra enquanto STOPPED)
-  # PROD PARADO: sobe a instância STOPPED (só disco + IP, sem vCPU/RAM). activation_policy
-  # tem ignore_changes no módulo, então no go-live o start é manual
-  # (`gcloud sql instances patch turni-prod --activation-policy=ALWAYS`).
-  activation_policy = "NEVER"
+  # PROD PARADO: o Cloud SQL NÃO pode ser CRIADO já parado (a API rejeita
+  # activation_policy=NEVER no create). Cria-se RUNNABLE e o stop é um patch
+  # pós-apply: `gcloud sql instances patch turni-prod --activation-policy=NEVER`.
+  # O módulo tem ignore_changes em activation_policy, então o TF não reverte o stop
+  # (nem o start no go-live). Mantém-se ALWAYS aqui só para o momento do create.
+  activation_policy = "ALWAYS"
   vpc_network       = google_compute_network.main.self_link
   depends_on        = [google_service_networking_connection.private_vpc_connection]
 }
@@ -211,7 +213,7 @@ locals {
 
 module "worker_job" {
   source                   = "../../modules/worker-job"
-  scheduler_paused         = !var.prod_live_enabled # PROD PARADO: Job existe, Scheduler não dispara
+  scheduler_enabled        = var.prod_live_enabled # PROD PARADO: Job existe, trigger NÃO é criado
   project_id               = var.project_id
   region                   = var.region
   env                      = local.env
@@ -232,7 +234,7 @@ module "worker_job" {
 # no-show). Espelho do scheduler_job de homolog (módulo worker-job parametrizado).
 module "scheduler_job" {
   source                   = "../../modules/worker-job"
-  scheduler_paused         = !var.prod_live_enabled # PROD PARADO
+  scheduler_enabled        = var.prod_live_enabled # PROD PARADO: trigger NÃO é criado
   project_id               = var.project_id
   region                   = var.region
   env                      = local.env
@@ -251,7 +253,13 @@ module "scheduler_job" {
   depends_on = [module.cloud_sql, module.secrets]
 }
 
+# PROD PARADO: Firebase Hosting do prod só sobe no go-live (prod_live_enabled) ou no
+# go-public da landing (landing_prod_enabled). Enquanto parado não há WebApp/landing de
+# prod servindo, então não criamos os sites — também evita o resíduo de Hosting do
+# projeto turni-prod recuperado (channel `live` órfão da encarnação anterior), que será
+# tratado no go-live.
 module "firebase" {
+  count            = (var.prod_live_enabled || var.landing_prod_enabled) ? 1 : 0
   source           = "../../modules/firebase"
   project_id       = var.project_id
   env              = local.env
@@ -289,7 +297,7 @@ module "dns_landing" {
   apex_a_records    = var.firebase_apex_a_records
   apex_aaaa_records = var.firebase_apex_aaaa_records
   www_subdomain     = local.www_host
-  www_cname_target  = module.firebase.additional_cname_targets["www_redirect"]
+  www_cname_target  = module.firebase[0].additional_cname_targets["www_redirect"]
   depends_on        = [google_project_service.apis, module.firebase, module.dns]
 }
 
