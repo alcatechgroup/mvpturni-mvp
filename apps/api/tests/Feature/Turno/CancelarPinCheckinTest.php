@@ -119,9 +119,12 @@ test('cancelar e gerar de novo funciona (ciclo completo, novo PIN válido)', fun
         ->and(Hash::check($pin2, $turno->pin_checkin_hash))->toBeTrue();
 
     // Trilha completa: solicitado, cancelado, solicitado de novo (CA-7).
+    // Ordena por `id` (UUIDv7 ordena no tempo — idioma da STORY-062): os 3 audits
+    // podem cair no MESMO segundo e `created_at` (timestamp(0)) empata — a ordem
+    // do empate é indeterminada no Postgres (flake pego na validação da 068).
     $acoes = AuditLog::query()->where('target_id', $turno->id)
         ->whereIn('action', ['turno.checkin_solicitado', 'turno.checkin_cancelado'])
-        ->orderBy('created_at')->pluck('action')->all();
+        ->orderBy('id')->pluck('action')->all();
     expect($acoes)->toBe([
         'turno.checkin_solicitado', 'turno.checkin_cancelado', 'turno.checkin_solicitado',
     ]);
