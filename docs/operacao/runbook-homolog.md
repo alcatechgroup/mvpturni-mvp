@@ -404,6 +404,86 @@ gcloud run jobs execute turni-scheduler-job-homolog --region=$R --project=$P --w
 
 ---
 
+## Fake de pagamento em homolog (PDR-017 / ADR-016 / STORY-056+065) {#fake-pagamento}
+
+O gateway de pagamento **efetivo** do MVP em homolog é o fake genérico
+(`turni-pagarme-mock-homolog`, Cloud Run, imagem `pagarme-mock` na matrix do
+`release.yml`). Ele processa pré-auth/captura/Pix no contrato Pagar.me-compatível
+(`docs/project-state/integrations/pagarme/contract.md`) e devolve o **webhook
+assinado** ao `api`. Este bloco inteiro sai quando o PSP real entrar (próxima wave).
+
+**Deploy:** automático pela tag (`release.yml` → job "Deploy fake Pagar.me → homolog");
+o serviço em si é provisionado por Terraform (`infra/envs/homolog/main.tf`,
+resource `google_cloud_run_v2_service.pagarme_mock` — sem Cloud SQL/VPC).
+
+**Segredos (Secret Manager, ADR-004), compartilhados com api/worker:**
+
+- `turni-homolog-pagarme-secret-key` — Bearer; barra POST anônimo no fake (`401`).
+- `turni-homolog-pagarme-webhook-secret` — HMAC do webhook; o `api` valida a
+  assinatura em `POST /api/webhooks/pagarme` (assinatura inválida → 401).
+
+Rotacionar = nova `secret_version` via `terraform apply` (os 3 consumidores leem
+`latest`; forçar nova revisão dos serviços para recarregar).
+
+**Modos configuráveis** (variáveis Terraform → env do serviço):
+
+| Env | Valores | Efeito |
+|---|---|---|
+| `PAGARME_MOCK_PIX_RESULTADO` | `sucesso` (default) \| `falha` | `falha` emite `transfer.failed` determinístico → exercita a fila "Falhas de pagamento" do admin |
+| `PAGARME_MOCK_PIX_SLA_SEGUNDOS` | `30` em homolog | atraso do webhook do Pix (simula a promessa "Pix ≤ 15 min"); a resposta HTTP não espera |
+
+Mudar modo: editar `pagarme_mock_pix_resultado`/`pagarme_mock_pix_sla_segundos` em
+`terraform.tfvars` + `terraform apply`. Para um teste rápido vale
+`gcloud run services update turni-pagarme-mock-homolog --region=southamerica-east1 --update-env-vars=PAGARME_MOCK_PIX_RESULTADO=falha`,
+mas o próximo `apply`/deploy **restaura o tfvars** — não esquecer de voltar.
+
+> ⚠️ O sleep do SLA exige **CPU always-allocated** (`cpu_idle=false`) — com throttle o
+> webhook atrasado congela. Já configurado no Terraform; não "otimizar" de volta.
+
+## Cronômetro travado — diagnóstico e reset {#reset-cronometro}
+
+O cronômetro **não tem estado próprio**: é uma duração derivada da âncora
+(`GET /api/turnos/{id}/cronometro` → `iniciado_em` = `check_in_at` + `servidor_agora`;
+ADR-017). "Travado" portanto é sempre um destes casos:
+
+1. **Display congelado no browser** — perda de polling. O card mostra "Reconectando…
+   O tempo continua valendo." após 30s e se recupera sozinho no primeiro polling que
+   volta; hard-refresh resolve na hora. Sem ação de servidor.
+2. **Turno seed do E2E/demonstração envelheceu** (par `*.cronometro.seed` com
+   `check_in_at` antigo → duração gigante): re-executar o seed, que renova a âncora
+   (~35min decorridos):
+
+   ```bash
+   gcloud run jobs execute turni-migrate-homolog --region=southamerica-east1 --wait
+   ```
+
+   ⚠️ o reseed **derruba sessões abertas** no browser (relogar em `/login`).
+3. **Turno real preso em `ativo`** (check-out nunca aconteceu): o caminho correto é o
+   produto — profissional gera PIN de check-out e contratante valida (ou recusa).
+   Não force `UPDATE turnos SET status=…`: o trigger `enforce_turno_transition` barra
+   transições inválidas e o estado deve nascer das ações (PIN + audit). Se as partes
+   não puderem agir, escale ao PO — decisão de produto, não de operação.
+
+## Pix com falha — tratamento manual (PDR-010 / STORY-065) {#pix-com-falha}
+
+PDR-010: **uma tentativa de Pix, sem retry automático** — falha vira caso operacional.
+
+1. **Simular o cenário** (determinístico): fake com `PAGARME_MOCK_PIX_RESULTADO=falha`
+   (ver seção acima) e percorrer um ciclo até `finalizado`. O webhook `transfer.failed`
+   gera audit `pix.falhou` + caso aberto em `pix_falhas`.
+2. **Tratar**: Backoffice → **Falhas de pagamento** (`/pix-falhas`, contador vermelho na
+   sidebar). Cada caso traz badge (`Pix falhou` / `Liberação falhou`), valor, chave Pix
+   decifrada (IDR-028 — segredo `turni-homolog-pix-falha-chave-key`) e razão do gateway.
+   Resolver exige **nota obrigatória** → audit `pix_falha.resolvida` no
+   `admin_audit_log`; o caso migra para a aba "Resolvidos".
+3. **Regras**: `PixEnviado` tardio **não** fecha caso aberto; `PixFalhou` tardio **não**
+   reabre caso resolvido — resolução humana é final. Linha com chave indecifrável
+   degrada para "chave não cadastrada" (warning `pix_falha.chave_indecifravel`) sem
+   derrubar a fila.
+4. **Restaurar** o fake para `sucesso` ao terminar (tfvars + apply).
+
+---
+
 ## E-mail transacional — verificação do remetente (STORY-021 CA-3)
 
 Remetente: `no-reply@mail.homolog.turni.com.br` (Resend — ADR-011). SPF/DKIM/DMARC
