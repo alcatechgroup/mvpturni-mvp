@@ -483,3 +483,160 @@ resource "google_monitoring_alert_policy" "notificacao_email_failure" {
     auto_close = "1800s"
   }
 }
+
+# ── Operações financeiras (EPIC-003 / ADR-016 g / STORY-068 F-NB-1) ──────────
+# A ACL de pagamento emite uma linha JSON por operação (PagamentoEvents — ADR-008):
+# `pagamento.operacao_concluida|operacao_falhou` nos jobs do worker (pré-auth na
+# aprovação, captura+Pix no TurnoFinalizado, liberação no cancelamento/no-show) e
+# `pagamento.webhook_processado` na confirmação assíncrona do gateway (fonte de
+# verdade — ADR-016 e). Estas métricas alimentam o SLO de erro ≤ 1% e os p95 de
+# captura e de webhook prometidos pela ADR-016. Definição operacional em
+# `docs/operacao/observabilidade-financeira.md`.
+
+# Erros de operação financeira (counter). SLO ≤ 1% sobre o total de operações; o
+# alerta abaixo dispara em QUALQUER falha (volume atual é baixo — 1 falha já é
+# acionável e o PDR-010 não tem retry de Pix).
+resource "google_logging_metric" "pagamento_erros" {
+  project = var.project_id
+  name    = "turni_${var.env}_pagamento_erros"
+  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND jsonPayload.message=\"pagamento.operacao_falhou\""
+
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "INT64"
+    unit        = "1"
+    labels {
+      key         = "operacao"
+      value_type  = "STRING"
+      description = "Operação da ACL (pre_autorizacao | captura | pix | liberacao)"
+    }
+    labels {
+      key         = "recuperavel"
+      value_type  = "STRING"
+      description = "true = GatewayIndisponivel (job retenta); false = falha fatal de negócio"
+    }
+  }
+
+  label_extractors = {
+    "operacao"    = "EXTRACT(jsonPayload.context.operacao)"
+    "recuperavel" = "EXTRACT(jsonPayload.context.recuperavel)"
+  }
+}
+
+# Total de operações concluídas (counter) — denominador do SLO de erro ≤ 1%.
+resource "google_logging_metric" "pagamento_operacoes" {
+  project = var.project_id
+  name    = "turni_${var.env}_pagamento_operacoes"
+  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND jsonPayload.message=\"pagamento.operacao_concluida\""
+
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "INT64"
+    unit        = "1"
+    labels {
+      key         = "operacao"
+      value_type  = "STRING"
+      description = "Operação da ACL (pre_autorizacao | captura | pix | liberacao)"
+    }
+  }
+
+  label_extractors = {
+    "operacao" = "EXTRACT(jsonPayload.context.operacao)"
+  }
+}
+
+# Latência das operações da ACL (distribution, ms) — p95 de CAPTURA via label
+# `operacao=captura` (pix/liberação/pré-auth saem de graça pela mesma métrica).
+resource "google_logging_metric" "pagamento_latencia" {
+  project = var.project_id
+  name    = "turni_${var.env}_pagamento_latencia_ms"
+  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND jsonPayload.message=\"pagamento.operacao_concluida\""
+
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "DISTRIBUTION"
+    unit        = "ms"
+    labels {
+      key         = "operacao"
+      value_type  = "STRING"
+      description = "Operação da ACL (pre_autorizacao | captura | pix | liberacao)"
+    }
+  }
+
+  value_extractor = "EXTRACT(jsonPayload.context.latencia_ms)"
+
+  label_extractors = {
+    "operacao" = "EXTRACT(jsonPayload.context.operacao)"
+  }
+
+  bucket_options {
+    exponential_buckets {
+      num_finite_buckets = 20
+      growth_factor      = 2
+      scale              = 1
+    }
+  }
+}
+
+# Latência do processamento do webhook do gateway (distribution, ms) — p95 webhook.
+resource "google_logging_metric" "pagamento_webhook_latencia" {
+  project = var.project_id
+  name    = "turni_${var.env}_pagamento_webhook_latencia_ms"
+  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND jsonPayload.message=\"pagamento.webhook_processado\""
+
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "DISTRIBUTION"
+    unit        = "ms"
+    labels {
+      key         = "evento_dominio"
+      value_type  = "STRING"
+      description = "Evento de domínio emitido (PreAutorizacaoCriada | CapturaConfirmada | PixEnviado | PixFalhou | PreAutorizacaoLiberada)"
+    }
+  }
+
+  value_extractor = "EXTRACT(jsonPayload.context.latencia_ms)"
+
+  label_extractors = {
+    "evento_dominio" = "EXTRACT(jsonPayload.context.evento_dominio)"
+  }
+
+  bucket_options {
+    exponential_buckets {
+      num_finite_buckets = 20
+      growth_factor      = 2
+      scale              = 1
+    }
+  }
+}
+
+# Alerta: falha de operação financeira (PDR-010 — Pix sem retry; falha é caso
+# operacional imediato, espelha o padrão do notificacao_email_failure).
+resource "google_monitoring_alert_policy" "pagamento_erro" {
+  project      = var.project_id
+  display_name = "Turni falha de operação financeira (${var.env})"
+  combiner     = "OR"
+
+  conditions {
+    display_name = "pagamento.operacao_falhou registrado"
+    condition_threshold {
+      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_pagamento_erros\" AND resource.type=\"cloud_run_job\""
+      comparison      = "COMPARISON_GT"
+      threshold_value = 0
+      duration        = "0s"
+      trigger {
+        count = 1
+      }
+      aggregations {
+        alignment_period   = "300s"
+        per_series_aligner = "ALIGN_SUM"
+      }
+    }
+  }
+
+  notification_channels = [google_monitoring_notification_channel.email.name]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+}

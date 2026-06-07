@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\RequestContextMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
     // O registro explícito é a única fonte (comentário do provider já prometia isso).
     ->withEvents(discover: false)
     ->withMiddleware(function (Middleware $middleware): void {
+        // ADR-008 §f (STORY-068 F-NB-2) — request_id no Context em TODA requisição
+        // (web + api): logs da requisição e dos jobs enfileirados por ela carregam o
+        // mesmo id (extra.request_id), rastreando a cadeia api → fila → worker.
+        $middleware->append(RequestContextMiddleware::class);
+
         // Cloud Run termina o TLS na borda e encaminha HTTP com X-Forwarded-Proto=https.
         // Confia no proxy serverless para o Laravel gerar URLs https:// (links de e-mail,
         // cookies secure, redirects) e tratar o request como seguro. Paridade com o admin.
