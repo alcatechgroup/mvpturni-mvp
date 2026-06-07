@@ -65,8 +65,16 @@ class EnvBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    // warnSoftDark é translúcido (alpha 0x26) e pressupõe superfície escura
+    // atrás — aqui o banner é a PRIMEIRA camada (topo da Column do builder),
+    // então compõe sobre a página escura do DS para chegar opaco (#2C2A1C;
+    // texto 12.2:1 AAA, ícone 6.6:1). Sem isto o banner desbota sobre o fundo
+    // claro do documento (bug visto em homolog rc.84).
     final background = isDark
-        ? TurniColors.warnSoftDark
+        ? Color.alphaBlend(
+            TurniColors.warnSoftDark,
+            TurniColors.surfacePageDark,
+          )
         : TurniColors.warnSoftLight;
     final iconColor = isDark ? TurniColors.warnDark : TurniColors.warnLight;
     final textColor = isDark
