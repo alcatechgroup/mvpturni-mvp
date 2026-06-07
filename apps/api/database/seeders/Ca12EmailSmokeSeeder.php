@@ -151,6 +151,10 @@ class Ca12EmailSmokeSeeder extends Seeder
                 'nivel' => 'Elite',
                 'score' => 4.5,
                 'turnos_realizados' => 120,
+                // STORY-067: sem chave Pix o CapturarEPagarTurnoJob registra pix_falhas e o
+                // `pix_enviado` nunca nasce — o E2E do ciclo completo precisa dela (e-mail é
+                // chave Pix válida; cast encrypted no model).
+                'chave_pix_encrypted' => $user->email,
             ],
         );
     }
