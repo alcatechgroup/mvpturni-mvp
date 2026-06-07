@@ -45,6 +45,31 @@ it('lista as notificações do próprio usuário em criada_em DESC com contagem 
         ]);
 });
 
+// STORY-067 (CA-8) — os 8 tipos novos do turno saem pelo MESMO contrato, com o payload cru
+// (turno_id incluso) que o WebApp interpola e usa para navegar a /turnos/{id}.
+it('devolve os 8 tipos de turno com tipo e payload crus (CA-8 da STORY-067)', function () {
+    $user = usuarioAtivo();
+
+    $tiposTurno = [
+        NotificacaoTipo::TurnoConfirmado, NotificacaoTipo::CheckinSolicitado,
+        NotificacaoTipo::TurnoAtivo, NotificacaoTipo::CheckoutSolicitado,
+        NotificacaoTipo::TurnoFinalizado, NotificacaoTipo::PixEnviado,
+        NotificacaoTipo::TurnoCancelado, NotificacaoTipo::NoShowPro,
+    ];
+
+    foreach ($tiposTurno as $tipo) {
+        notif($user, ['tipo' => $tipo, 'payload' => ['turno_id' => 't-1', 'vaga_funcao' => 'Garçom']]);
+    }
+
+    $res = $this->actingAs($user)->getJson('/api/notificacoes')->assertStatus(200)
+        ->assertJsonCount(8, 'notificacoes')
+        ->assertJsonPath('notificacoes.0.payload.turno_id', 't-1');
+
+    $tiposDevolvidos = collect($res->json('notificacoes'))->pluck('tipo')->sort()->values();
+    expect($tiposDevolvidos->all())
+        ->toBe(collect($tiposTurno)->map(fn ($t) => $t->value)->sort()->values()->all());
+});
+
 it('filtra só as não-lidas com ?lidas=false', function () {
     $user = usuarioAtivo();
     notif($user, ['lida_em' => now()]);
