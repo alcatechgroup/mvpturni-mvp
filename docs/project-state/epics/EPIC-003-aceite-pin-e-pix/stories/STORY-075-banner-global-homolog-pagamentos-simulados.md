@@ -128,6 +128,7 @@ Você NÃO decide: que o banner aparece em homolog (PDR-017 fixa); que não apar
 
 - **Em homolog, API/Admin/jobs rodam com `APP_ENV=production`** (deliberado — otimizações do Laravel; `infra/envs/homolog/main.tf`). O pré-requisito da story ("APP_ENV herdada de STORY-007") **não distingue homolog de prod** no backend — daí a variável dedicada `TURNI_ENV`. Registrado para o validador (STORY-068).
 - O artefato Flutter web é **buildado por tag** (rc e final geram builds distintos no `release.yml`), então injetar ambiente via `--dart-define` no build é seguro — um build rc nunca é promovido a prod.
+- **Bug pego na verificação visual do PO (rc.84, tema escuro):** os tokens `*.soft` escuros do DDR-001 são **translúcidos** (alpha 0x26) e pressupõem superfície escura atrás. No topo da Column do builder global não há superfície — o banner compôs sobre o fundo claro do documento e o texto off-white ficou ilegível (CA-7 violado no dark). Fix na rc.85: `Color.alphaBlend(warnSoftDark, surfacePageDark)` → `#2C2A1C` opaco (texto 12.2:1 AAA, ícone 6.6:1) + 2 testes de regressão de opacidade (claro e escuro). **Lição para outros consumidores dos tokens:** `*.soft` escuro nunca como primeira camada — sempre sobre `surface`/`page` do tema. O teste de widget só comparava o token; o E2E asserta presença, não contraste — só o olho humano pegou (reforça a DoD de verificação visual).
 
 ### Plano (3–5 bullets)
 
