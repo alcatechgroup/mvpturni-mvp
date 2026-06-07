@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-06-06",
+  "generated_at": "2026-06-07",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W28",
     "last_closed_sprint": "SPRINT-2026-W27.5",
-    "phase": "wave-2026-01-sprint-w28-ATIVA-epic-003-pivotado-por-pdr-017-fake-generico-aguarda-revisao-adr-005-adr-016-pelo-arquiteto",
-    "next_action": "SPRINT-2026-W28 ATIVA com **pivô PDR-017 aplicado em 2026-06-04** (decisão do PO): MVP usa fake genérico atrás da mesma ACL desenhada em ADR-005; integração Pagar.me real adiada para a próxima wave atrás do mesmo contrato. Progresso real: STORY-055 + STORY-057 DONE; STORY-056 in_review (ACL completa: interface GatewayPagamento + mock em container que agora vira o fake genérico + idempotência + webhook HMAC + 648 testes verdes + núcleo 100% cobertura). STORY-056-B (contract test sandbox CI noturno) ABANDONADA (sem sandbox real, perde objeto). STORY-075 criada (banner global homolog 'Ambiente de teste — pagamentos simulados', S — renumerada de STORY-074 por colisão com EPIC-011/geocoding). STORY-058/065/066/068 + checklist do validador revisados para refletir gateway via fake. EPIC-003 epic.md atualizado. Sizing W28: 2 S + 12 M + 2 L = 16 estórias. Risco técnico nº 1 da onda (Pagar.me sandbox) NEUTRALIZADO. **Pendente do Arquiteto (escopo dele, não do PO):** revisar ADR-005 (alto nível) e ADR-016 (implementação concreta) pós-PDR-017 — desenho da ACL continua válido; escolha de PSP no MVP muda. Próxima ação do programador: aprovar ADR-016 revisada + deploy rc.N + iniciar STORY-058 (consome preAutorizar via fake). Em paralelo: STORY-075 (banner, ortogonal frontend) e STORY-073 (fix schedule:run, ortogonal carry-forward EPIC-002).",
-    "notes": "Snapshot 2026-06-04 pós-pivô PDR-017: W27 + W27.5 fechadas. W28 ATIVA (EPIC-003 + STORY-073 EPIC-002, 16 estórias). Pivô do dia: PDR-017 troca integração Pagar.me sandbox por fake genérico atrás da mesma ACL (ADR-005 preservada; ACL é o ativo arquitetural durável). 2 colisões de numeração resolvidas: STORY-069→073 (EPIC-010 reservou 069) e STORY-074→075 (EPIC-011/geocoding reservou 074). PDR-016 (formatação de entradas) também indexado retroativamente (gap pré-existente). Estado do índice consistente; ADR-005 + ADR-016 aguardam revisão pelo Arquiteto. EPIC-011 (geolocalização-estabelecimento, fast-follow spin-off da STORY-057) presente no índice e ready para sprint futura."
+    "phase": "wave-2026-01-sprint-w28-ATIVA-epic-003-reta-final-13-de-16-done-story-067-in-review-restam-075-e-068-validador",
+    "next_action": "SPRINT-2026-W28 na RETA FINAL (D+4, 2026-06-07): 13/16 done — ciclo completo do turno `confirmado → aguardando_checkin → ativo → aguardando_checkout → finalizado → Pix (fake)` vivo em homolog desde 2026-06-06, incluindo cancelamento/no_show_pro (066) e scheduler plumbado (073 — F-NB-1 do EPIC-002 quitada). Gatilho de reescopo cedo (2026-06-20) satisfeito com folga; soft-cap 2026-07-04 sem risco aparente. AGORA: (1) PO revisa/aprova STORY-067 (in_review, rc.83 — 8 notificações do turno, E2E verde 3×3; respeitar cota Resend ~33 e-mails/execução); (2) programador executa STORY-075 (banner global homolog, S, ortogonal); (3) com 067+075 done, validador roda STORY-068 (validação final do EPIC-003 — 4ª aparição) e o PO decide o fechamento da W28 por goal-atingido. Pendência de papel que NÃO bloqueia o validador conferir: revisão de ADR-005/ADR-016 pós-PDR-017 pelo Arquiteto (apontada desde 2026-06-04).",
+    "notes": "Snapshot 2026-06-07 (acompanhamento diário do PO): W28 ativa, 13/16 done, 067 in_review, 075+068 ready. Caminho crítico do EPIC-003 inteiro em homolog; risco 'sprint mais pesada estoura soft-cap' praticamente extinto. Gap de indexação detectado e corrigido: STORY-057/068/075 ausentes do array stories (presentes só em story_ids) — reconstruídas a partir do frontmatter dos arquivos. ADR-005 + ADR-016 seguem aguardando revisão do Arquiteto pós-PDR-017. EPIC-011 (geocoding) ready para sprint futura."
   },
   "product": {
     "vision": "product/vision.md",
@@ -220,10 +220,10 @@
         ]
       },
       "created_at": "2026-05-26",
-      "updated_at": "2026-06-03",
+      "updated_at": "2026-06-07",
       "sprint": "SPRINT-2026-W27",
       "carry_forward_to": "SPRINT-2026-W28",
-      "next_action": "EPIC-002 fechado com veredito `approved_with_pending` em 2026-06-03 (STORY-054). 1 F-NB-1 carregada para SPRINT-2026-W28 via STORY-073 (fix `schedule:run` em homolog/prod, plumbar Cloud Run Job + Cloud Scheduler invocando `php artisan schedule:run` a cada minuto)."
+      "next_action": "EPIC-002 fechado com veredito `approved_with_pending` em 2026-06-03 (STORY-054). F-NB-1 (schedule:run ausente em homolog/prod) QUITADA em 2026-06-06 pela STORY-073 (done, homolog rc.80 — Cloud Run Job + Cloud Scheduler 1/min; aprovada por Alexandro). Sem pendências remanescentes."
     },
     {
       "id": "EPIC-003",
@@ -255,10 +255,10 @@
       ],
       "validation_report": null,
       "created_at": "2026-05-26",
-      "updated_at": "2026-06-04",
+      "updated_at": "2026-06-07",
       "sprint": "SPRINT-2026-W28",
       "pivoted_by": "PDR-017",
-      "next_action": "EPIC-003 REESCOPADO em 2026-06-04 por PDR-017 — Pagar.me real adiado para a próxima wave; MVP usa fake genérico atrás da mesma ACL (ADR-005 preservada). STORY-056 reescopada (in_review; ACL provider-agnóstica + fake genérico; trabalho técnico já feito preservado — interface, mock em container, idempotência, webhook HMAC, cobertura 100% no núcleo, 648 testes verdes). STORY-056-B abandonada (sem sandbox real, contract test perde objeto). STORY-075 criada (banner global em homolog 'Ambiente de teste — pagamentos simulados', S, frontend — originalmente STORY-074, renumerada por colisão com EPIC-011/geocoding). STORY-058/065/066/068 + checklist do validador revisados para refletir gateway via fake. ADR-005 + ADR-016 marcadas para revisão pelo Arquiteto (escopo de ADR — PO só aponta). Métricas primárias ajustadas: 100% do ciclo com fake em modo `success` em vez de ≥95% sandbox; promessa Pix 15min mantida como simulação. Composição final: 3 spikes + 11 implementação + 1 validação = 15 estórias do EPIC-003; mix 2 S + 11 M + 2 L. Risco técnico nº 1 da onda (Pagar.me sandbox) neutralizado. Sprint W28 ainda aguarda fechamento da W27.5 (refator UUID — ADR-018) para ativar."
+      "next_action": "EPIC-003 na reta final (2026-06-07): 12/15 estórias do épico done (3 spikes + 058..066); ciclo completo do turno vivo em homolog com pagamento via fake genérico (PDR-017). STORY-067 in_review (8 notificações do turno, rc.83 — aguarda aprovação do PO). Restam STORY-075 (banner global, S) e STORY-068 (validação final — destrava quando 067+075 fecharem). ADR-015/016/017 produzidas pelos spikes; ADR-005 + ADR-016 aguardam revisão do Arquiteto pós-PDR-017 (não bloqueia a validação, mas o validador registra o estado)."
     },
     {
       "id": "EPIC-004",
@@ -1771,6 +1771,53 @@
       "updated_at": "2026-06-03"
     },
     {
+      "id": "STORY-057",
+      "epic_id": "EPIC-003",
+      "title": "Spike Arquiteto — tempo real do cronômetro bilateral + geolocalização Haversine no check-in",
+      "type": "spike",
+      "target_role": "arquiteto",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "done",
+      "owner_agent": "claude-opus-4-8",
+      "sprint_id": "SPRINT-2026-W28",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-057-spike-tempo-real-cronometro-geolocalizacao.md",
+      "blocked_by": [],
+      "blocks": [
+        "STORY-061",
+        "STORY-063"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-03",
+      "updated_at": "2026-06-04",
+      "note": "Entrada reconstruída no índice em 2026-06-07 pelo PO — a estória sempre existiu em arquivo, mas faltava no array `stories` (gap de indexação detectado no acompanhamento diário). Done desde 2026-06-04 (produziu ADR-017 — cronômetro por âncora-de-timestamp + polling curto, sem WebSocket/SSE; geolocalização via Geolocation API + Haversine reusado, sem PostGIS; spin-off EPIC-011 geocoding)."
+    },
+    {
+      "id": "STORY-068",
+      "epic_id": "EPIC-003",
+      "title": "Validação final do EPIC-003 — Aceite, PIN bilateral e Pix",
+      "type": "validation",
+      "target_role": "validador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W28",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-068-validacao-final-epic-003.md",
+      "blocked_by": [
+        "STORY-065",
+        "STORY-067",
+        "STORY-075"
+      ],
+      "blocks": [],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-03",
+      "updated_at": "2026-06-03",
+      "note": "Entrada reconstruída no índice em 2026-06-07 pelo PO — a estória sempre existiu em arquivo, mas faltava no array `stories` (gap de indexação detectado no acompanhamento diário). Última estória da sprint — só roda com todas as demais done e o último merge deployado em homolog."
+    },
+    {
       "id": "STORY-069",
       "epic_id": "EPIC-010",
       "title": "Spike Arquiteto — variante UUID, polimórficos, plano de execução (produz ADR-018 accepted)",
@@ -2188,8 +2235,8 @@
       "estimated_session_size": "M",
       "produces_idr": null,
       "created_at": "2026-06-03",
-      "updated_at": "2026-06-06",
-      "note": "requires_design era false; Alexandro pediu fluxo designer→programador em 2026-06-06 (mesmo padrão da STORY-065 — spec leve: 8 tipos novos de tile no centro de notificações da STORY-053: microcopy in-app, ícone e destino por tipo)."
+      "updated_at": "2026-06-07",
+      "note": "requires_design era false; Alexandro pediu fluxo designer→programador em 2026-06-06 (mesmo padrão da STORY-065 — spec leve: 8 tipos novos de tile no centro de notificações da STORY-053: microcopy in-app, ícone e destino por tipo). IN_REVIEW desde 2026-06-06 (rc.83): 8 listeners + 8 templates (texto-seed v1 aprovado) + 8 tiles no centro de notificações; E2E homolog verde 3×3 (0 flake), evidências CA-1..9. Aguarda aprovação do PO. Atenção: E2E dispara ~33 e-mails reais (Resend free tier 100/dia) — máx 1 execução/dia; conferência via banco/in-app."
     },
     {
       "id": "STORY-073",
@@ -2210,6 +2257,29 @@
       "renumbered_from": "STORY-069",
       "created_at": "2026-06-03",
       "updated_at": "2026-06-06"
+    },
+    {
+      "id": "STORY-075",
+      "epic_id": "EPIC-003",
+      "title": "Banner global em homolog — \"Ambiente de teste — pagamentos simulados\" (PDR-017)",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W28",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-075-banner-global-homolog-pagamentos-simulados.md",
+      "blocked_by": [],
+      "blocks": [
+        "STORY-068"
+      ],
+      "estimated_session_size": "S",
+      "produces_idr": null,
+      "renumbered_from": "STORY-074",
+      "created_at": "2026-06-04",
+      "updated_at": "2026-06-04",
+      "note": "Entrada reconstruída no índice em 2026-06-07 pelo PO — a estória sempre existiu em arquivo, mas faltava no array `stories` (gap de indexação detectado no acompanhamento diário). Ortogonal (frontend); criada por PDR-017; renumerada de STORY-074 (colisão com EPIC-011/geocoding)."
     }
   ],
   "sprints": [
@@ -2718,28 +2788,28 @@
       ],
       "delivered_story_ids": [
         "STORY-055",
+        "STORY-056",
         "STORY-057",
         "STORY-058",
         "STORY-059",
-        "STORY-060"
-      ],
-      "in_progress_story_ids": [
-        "STORY-056",
-        "STORY-067"
-      ],
-      "pending_story_ids": [
+        "STORY-060",
         "STORY-061",
         "STORY-062",
         "STORY-063",
         "STORY-064",
         "STORY-065",
         "STORY-066",
+        "STORY-073"
+      ],
+      "in_progress_story_ids": [
+        "STORY-067"
+      ],
+      "pending_story_ids": [
         "STORY-068",
-        "STORY-073",
         "STORY-075"
       ],
-      "last_progress_update": "2026-06-05",
-      "progress_summary": "D+2 (2026-06-05): STORY-055/057 done (spikes); STORY-056 in_review (ACL+fake, pivô PDR-017). STORY-058 DONE (aceitar candidatura + aceite imutável + pré-auth fake, rc.70). STORY-059 DONE (listas de turnos nos 2 papéis, rc.71). STORY-060 DONE (detalhe do turno + timeline + aceite em modal, rc.72 — aprovada por Alexandro; card da lista virou navegável; whitelist da timeline já mapeia eventos das 061+; TurnosSeeder ganhou trilha por estado com backfill idempotente). Caminho crítico destravado: STORY-061 (PIN check-in) é a próxima; 066 (cancelamento) também elegível."
+      "last_progress_update": "2026-06-07",
+      "progress_summary": "D+4 (2026-06-07): 13/16 done. Caminho crítico INTEIRO entregue em homolog — aceite + pré-auth fake (058, rc.70), listas (059, rc.71), detalhe + timeline (060, rc.72), PIN check-in + geofencing (061), validação + ativo (062), cronômetro bilateral âncora+polling ADR-017 (063), PIN check-out + finalizado (064), captura + Pix fake (065), cancelamento + no_show_pro (066, rc.79) e schedule:run via Cloud Run Job + Cloud Scheduler (073, rc.80 — F-NB-1 do EPIC-002 quitada). Gatilho de reescopo cedo (2026-06-20) SATISFEITO com 15 dias de folga: cronômetro vivo demonstrável em homolog desde 2026-06-05 — mini-sprint W29 descartada. STORY-067 in_review (rc.83): 8 notificações do turno vivas em homolog, E2E 3×3 verde (0 flake), evidências CA-1..9 — aguarda aprovação do PO (cota Resend: ~33 e-mails reais/execução do E2E, máx 1 run/dia). Restam: STORY-075 (banner global PDR-017, S, ortogonal — última implementação) e STORY-068 (validação final — destrava quando 067+075 fecharem). Housekeeping 2026-06-07: gap de indexação corrigido — STORY-057/068/075 reconstruídas no array stories (estavam só nos story_ids)."
     }
   ],
   "decisions": {
