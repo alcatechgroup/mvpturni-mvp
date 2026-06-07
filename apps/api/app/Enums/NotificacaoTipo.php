@@ -25,6 +25,16 @@ enum NotificacaoTipo: string
     case VagaEditadaMaterialCandidaturaMantida = 'vaga_editada_material_candidatura_mantida';
     case VagaEditadaMaterialCandidaturaRetirada = 'vaga_editada_material_candidatura_retirada';
 
+    // STORY-067 — eventos do turno (SCREEN-STORY-067 §2; texto-seed v1 aprovado 2026-06-06).
+    case TurnoConfirmado = 'turno_confirmado';
+    case CheckinSolicitado = 'checkin_solicitado';
+    case TurnoAtivo = 'turno_ativo';
+    case CheckoutSolicitado = 'checkout_solicitado';
+    case TurnoFinalizado = 'turno_finalizado';
+    case PixEnviado = 'pix_enviado';
+    case TurnoCancelado = 'turno_cancelado';
+    case NoShowPro = 'no_show_pro';
+
     /** Slug do template editável correspondente (STORY-020, categoria `email`). */
     public function templateSlug(): string
     {
@@ -42,6 +52,15 @@ enum NotificacaoTipo: string
             self::VagaCancelada => 'Vaga em que você se candidatou foi cancelada',
             self::VagaEditadaMaterialCandidaturaMantida => 'Candidato confirmou continuar na sua vaga editada',
             self::VagaEditadaMaterialCandidaturaRetirada => 'Candidato deixou sua vaga após a alteração',
+            // STORY-067 — texto-seed v1 (SCREEN-STORY-067 §5, aprovado pelo PO 2026-06-06).
+            self::TurnoConfirmado => 'Turno confirmado — {vaga_funcao} em {turno_data_inicio}',
+            self::CheckinSolicitado => 'Check-in aguardando sua validação — {vaga_funcao}',
+            self::TurnoAtivo => 'Check-in validado — seu turno está em andamento',
+            self::CheckoutSolicitado => 'Check-out aguardando sua validação — {vaga_funcao}',
+            self::TurnoFinalizado => 'Turno finalizado — pagamento em processamento',
+            self::PixEnviado => 'Pix enviado — R$ {valor} do turno de {vaga_funcao}',
+            self::TurnoCancelado => 'Turno de {vaga_funcao} cancelado',
+            self::NoShowPro => 'Turno encerrado — check-in não realizado',
         };
     }
 }

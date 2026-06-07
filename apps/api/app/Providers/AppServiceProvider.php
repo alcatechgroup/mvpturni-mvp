@@ -4,10 +4,14 @@ namespace App\Providers;
 
 use App\Email\MailEnviaEmailTransacional;
 use App\Events\CandidaturaEnviada;
+use App\Events\CheckinSolicitado;
+use App\Events\CheckoutSolicitado;
 use App\Events\Pagamento\PixEnviado;
 use App\Events\Pagamento\PixFalhou;
 use App\Events\TurnoCancelado;
+use App\Events\TurnoCriado;
 use App\Events\TurnoFinalizado;
+use App\Events\TurnoIniciado;
 use App\Events\TurnoNoShow;
 use App\Events\VagaCancelada;
 use App\Events\VagaEditadaMaterialmente;
@@ -16,6 +20,14 @@ use App\Listeners\HandlePixEnviado;
 use App\Listeners\HandlePixFalhou;
 use App\Listeners\HandleVagaCancelada;
 use App\Listeners\HandleVagaEditadaMaterialmente;
+use App\Listeners\NotificarCheckinSolicitado;
+use App\Listeners\NotificarCheckoutSolicitado;
+use App\Listeners\NotificarPixEnviado;
+use App\Listeners\NotificarTurnoCancelado;
+use App\Listeners\NotificarTurnoCriado;
+use App\Listeners\NotificarTurnoFinalizado;
+use App\Listeners\NotificarTurnoIniciado;
+use App\Listeners\NotificarTurnoNoShow;
 use App\Listeners\TurnoCanceladoListener;
 use App\Listeners\TurnoFinalizadoListener;
 use App\Listeners\TurnoNoShowListener;
@@ -64,5 +76,18 @@ class AppServiceProvider extends ServiceProvider
         // na fila database (listeners finos; o job re-verifica o estado e é idempotente).
         Event::listen(TurnoCancelado::class, TurnoCanceladoListener::class);
         Event::listen(TurnoNoShow::class, TurnoNoShowListener::class);
+
+        // STORY-067 (CA-1..3) — os 8 eventos do turno criam notificação in-app + e-mail na
+        // fila (reuso do CriarNotificacaoService/053). Idempotência por chave; eventos
+        // disparados pós-commit pelos services de origem. PixEnviado/TurnoFinalizado/
+        // TurnoCancelado/TurnoNoShow acumulam um 2º listener — responsabilidade separada.
+        Event::listen(TurnoCriado::class, NotificarTurnoCriado::class);
+        Event::listen(CheckinSolicitado::class, NotificarCheckinSolicitado::class);
+        Event::listen(TurnoIniciado::class, NotificarTurnoIniciado::class);
+        Event::listen(CheckoutSolicitado::class, NotificarCheckoutSolicitado::class);
+        Event::listen(TurnoFinalizado::class, NotificarTurnoFinalizado::class);
+        Event::listen(PixEnviado::class, NotificarPixEnviado::class);
+        Event::listen(TurnoCancelado::class, NotificarTurnoCancelado::class);
+        Event::listen(TurnoNoShow::class, NotificarTurnoNoShow::class);
     }
 }

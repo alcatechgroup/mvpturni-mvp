@@ -10,6 +10,7 @@ use App\Domain\Turno\GateHabitualidadeAceite;
 use App\Domain\Turno\HabitualidadeAceite;
 use App\Enums\CandidaturaEstado;
 use App\Enums\VagaEstado;
+use App\Events\TurnoCriado;
 use App\Jobs\PreAutorizarTurnoJob;
 use App\Models\AceiteEletronicoTurno;
 use App\Models\AuditLog;
@@ -172,6 +173,9 @@ class AprovarCandidaturaService
 
         // CA-6 — pré-autorização assíncrona, só depois do commit (nada de job para turno fantasma).
         PreAutorizarTurnoJob::dispatch($turno->id)->afterCommit();
+
+        // STORY-067 (CA-1) — pós-commit: notificação `turno_confirmado` ao profissional.
+        TurnoCriado::dispatch($turno->id);
 
         return AprovarCandidaturaResultado::aprovada($turno);
     }

@@ -4,12 +4,14 @@ namespace App\Services;
 
 use App\Domain\Turno\PinCheckin;
 use App\Enums\TurnoStatus;
+use App\Events\CheckinSolicitado;
 use App\Models\AuditLog;
 use App\Models\Turno;
 use App\Support\Geo\Geofencing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * STORY-061 — geração e cancelamento do PIN de check-in (PDR-008, ADR-015/017).
@@ -62,8 +64,11 @@ class PinCheckinService
         }
 
         $pin = PinCheckin::gerar();
+        // STORY-067 — identifica ESTA geração de PIN (chave de idempotência da notificação;
+        // re-geração = id novo = contratante re-notificado). Também vai à trilha.
+        $geracaoPinId = (string) Str::uuid7();
 
-        DB::transaction(function () use ($turno, $pin, $snapshot, $regeracao) {
+        DB::transaction(function () use ($turno, $pin, $snapshot, $regeracao, $geracaoPinId) {
             $turno->pin_checkin_hash = Hash::make($pin);
             $turno->pin_checkin_tentativas = 0; // STORY-062 (CA-3): PIN novo zera os erros de validação
             $turno->geofencing_check_in = $snapshot;
@@ -83,11 +88,15 @@ class PinCheckinService
                 'payload' => [
                     'geofencing_check_in' => $snapshot,
                     'pin_regerado' => $regeracao,
+                    'geracao_pin_id' => $geracaoPinId,
                 ],
                 'ip' => $this->request->ip(),
                 'user_agent' => $this->request->userAgent(),
             ]);
         });
+
+        // STORY-067 (CA-1) — pós-commit: notificação `checkin_solicitado` ao contratante.
+        CheckinSolicitado::dispatch($turno->id, $geracaoPinId);
 
         return [
             'pin' => $pin, // única vez em plaintext (CA-4)

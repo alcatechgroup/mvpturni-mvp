@@ -33,10 +33,11 @@ uses(RefreshDatabase::class);
 /** Turno coerente p/ os payloads: função nomeada, contratante com perfil, datas BRT fixas. */
 function turnoNotificavel(string $funcao = 'Garçom', TurnoStatus $status = TurnoStatus::Confirmado): Turno
 {
+    // Instante fixado em UTC (como o banco guarda); DataHora exibe BRT: 21:00Z → 18:00 local.
     $vaga = Vaga::factory()->create([
         'funcao_id' => Funcao::factory()->create(['nome' => $funcao])->id,
-        'data_inicio' => Carbon::parse('2026-07-01 18:00', 'America/Sao_Paulo'),
-        'data_fim' => Carbon::parse('2026-07-01 23:00', 'America/Sao_Paulo'),
+        'data_inicio' => Carbon::parse('2026-07-01 21:00', 'UTC'),
+        'data_fim' => Carbon::parse('2026-07-02 02:00', 'UTC'),
     ]);
 
     $turno = Turno::factory()->status($status)->create([

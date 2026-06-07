@@ -28,4 +28,10 @@ final class LinksWebApp
     {
         return self::base().'/feed';
     }
+
+    /** STORY-067 — CTA dos 8 e-mails do turno (destino único, SCREEN-STORY-067 §2). */
+    public static function detalheTurno(string $turnoId): string
+    {
+        return self::base()."/turnos/{$turnoId}";
+    }
 }
