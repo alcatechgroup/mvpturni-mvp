@@ -84,6 +84,89 @@ void main() {
       expect(notif(tipo: 'vaga_cancelada', vagaId: '7').rotaDestino, '/feed');
     });
 
+    // STORY-067 (SCREEN-067 §2) — os 8 tipos do turno.
+    test('título e resumo dos 8 tipos do turno interpolam o payload', () {
+      final payloadTurno = {
+        'turno_id': 't-1',
+        'vaga_funcao': 'Garçom',
+        'estabelecimento_nome': 'Vela Bar',
+        'turno_data_inicio': '01/07/2026 18:00',
+        'valor': '200,00',
+        'profissional_nome': 'Júlia Santos',
+        'cancelado_por': 'pelo contratante',
+      };
+      Notificacao deTurno(String tipo) =>
+          notif(tipo: tipo, vagaId: null, payload: payloadTurno);
+
+      expect(deTurno('turno_confirmado').titulo, 'Turno confirmado');
+      expect(
+        deTurno('turno_confirmado').resumo,
+        'Seu turno de Garçom no Vela Bar em 01/07/2026 18:00 está confirmado.',
+      );
+      expect(
+        deTurno('checkin_solicitado').titulo,
+        'Check-in aguardando validação',
+      );
+      expect(
+        deTurno('checkin_solicitado').resumo,
+        'Júlia Santos gerou o PIN de check-in do turno de Garçom. '
+        'Valide para iniciar.',
+      );
+      expect(deTurno('turno_ativo').titulo, 'Turno em andamento');
+      expect(
+        deTurno('checkout_solicitado').resumo,
+        contains('Valide para encerrar.'),
+      );
+      expect(
+        deTurno('turno_finalizado').resumo,
+        contains(r'R$ 200,00 está em processamento'),
+      );
+      expect(
+        deTurno('pix_enviado').resumo,
+        r'O Pix de R$ 200,00 do turno de Garçom foi enviado.',
+      );
+      expect(
+        deTurno('turno_cancelado').resumo,
+        contains('cancelado pelo contratante'),
+      );
+      expect(
+        deTurno('no_show_pro').titulo,
+        'Turno encerrado — check-in não realizado',
+      );
+      expect(
+        deTurno('no_show_pro').resumo,
+        contains('o check-in não aconteceu no prazo'),
+      );
+    });
+
+    test('destino dos 8 tipos do turno é /turnos/{id} do payload', () {
+      for (final tipo in [
+        'turno_confirmado',
+        'checkin_solicitado',
+        'turno_ativo',
+        'checkout_solicitado',
+        'turno_finalizado',
+        'pix_enviado',
+        'turno_cancelado',
+        'no_show_pro',
+      ]) {
+        expect(
+          notif(
+            tipo: tipo,
+            vagaId: null,
+            payload: {'turno_id': 't-9'},
+          ).rotaDestino,
+          '/turnos/t-9',
+          reason: tipo,
+        );
+      }
+      // Sem turno_id no payload → sem destino (não navega para lugar errado).
+      expect(
+        notif(tipo: 'pix_enviado', vagaId: '7', payload: {}).rotaDestino,
+        isNull,
+      );
+    });
+
     test('tempo relativo pt-BR (sem AM/PM)', () {
       final agora = DateTime(2026, 6, 3, 12, 0);
       expect(

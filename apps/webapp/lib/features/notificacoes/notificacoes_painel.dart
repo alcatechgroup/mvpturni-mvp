@@ -308,7 +308,8 @@ class NotificacoesPainel extends StatelessWidget {
             ),
             const SizedBox(height: TurniSpacing.xs),
             Text(
-              'Quando algo acontecer com suas vagas ou candidaturas, avisamos aqui.',
+              // SCREEN-STORY-067 §4 — o centro agora cobre o ciclo do turno.
+              'Quando algo acontecer com suas vagas, candidaturas ou turnos, avisamos aqui.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: textMuted),
             ),
