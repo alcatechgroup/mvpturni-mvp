@@ -14,7 +14,9 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Ref a construir e promover para o stage (tag, branch ou sha)"
+        # Vira a tag da imagem no Artifact Registry (:stage-<ref>) e a versão exibida —
+        # use tag, sha ou branch SEM "/" (caractere inválido em tag de imagem/artefato).
+        description: "Ref a construir e promover para o stage (tag, sha, ou branch sem '/')"
         required: true
         default: "main"
 
@@ -51,7 +53,7 @@ jobs:
           docker build \
             --file infra/docker/${{ matrix.app }}/Dockerfile.prod \
             --build-arg APP_VERSION=stage-${{ inputs.ref }} \
-            --tag "${IMAGE}:stage-${{ github.sha }}" \
+            --tag "${IMAGE}:stage-${{ inputs.ref }}" \
             --tag "${IMAGE}:latest" \
             --push \
             .
@@ -86,7 +88,7 @@ jobs:
       - name: Upload artefato web
         uses: actions/upload-artifact@v4
         with:
-          name: webapp-web-stage-${{ github.sha }}
+          name: webapp-web-stage-${{ inputs.ref }}
           path: apps/webapp/build/web/
           retention-days: 7
 
@@ -122,7 +124,7 @@ jobs:
           fi
       - name: Deploy + executa job de migração (migrate --force, SEM seed)
         run: |
-          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/api:stage-${{ github.sha }}"
+          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/api:stage-${{ inputs.ref }}"
           CONN="${{ secrets.GCP_PROJECT_ID }}:${{ env.GCP_REGION }}:turni-stage"
           gcloud run jobs deploy turni-migrate-stage \
             --image="$IMAGE" \
@@ -141,7 +143,7 @@ jobs:
             --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} --wait
       - name: Atualizar imagem do worker + scheduler jobs
         run: |
-          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/api:stage-${{ github.sha }}"
+          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/api:stage-${{ inputs.ref }}"
           for JOB in turni-worker-job-stage turni-scheduler-job-stage; do
             gcloud run jobs update "$JOB" \
               --image="$IMAGE" \
@@ -167,7 +169,7 @@ jobs:
       - name: Deploy Cloud Run — api (stage)
         run: |
           gcloud run deploy turni-api-stage \
-            --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/api:stage-${{ github.sha }}" \
+            --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/api:stage-${{ inputs.ref }}" \
             --region ${{ env.GCP_REGION }} \
             --project ${{ secrets.GCP_PROJECT_ID }} \
             --update-env-vars "SESSION_DRIVER=database,SESSION_COOKIE=__session" \
@@ -201,7 +203,7 @@ jobs:
       - name: Deploy Cloud Run — admin (stage)
         run: |
           gcloud run deploy turni-admin-stage \
-            --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/admin:stage-${{ github.sha }}" \
+            --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/admin:stage-${{ inputs.ref }}" \
             --region ${{ env.GCP_REGION }} \
             --project ${{ secrets.GCP_PROJECT_ID }} \
             --ingress=all \
@@ -224,7 +226,7 @@ jobs:
       - name: Deploy Cloud Run — pagarme-mock (stage)
         run: |
           gcloud run deploy turni-pagarme-mock-stage \
-            --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/pagarme-mock:stage-${{ github.sha }}" \
+            --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/pagarme-mock:stage-${{ inputs.ref }}" \
             --region ${{ env.GCP_REGION }} \
             --project ${{ secrets.GCP_PROJECT_ID }} \
             --quiet
@@ -248,7 +250,7 @@ jobs:
       - name: Download artefato web
         uses: actions/download-artifact@v4
         with:
-          name: webapp-web-stage-${{ github.sha }}
+          name: webapp-web-stage-${{ inputs.ref }}
           path: apps/webapp/build/web/
       # Keyless: firebase CLI usa a credencial WIF (ADC) do passo de auth acima.
       - name: Setup firebase-tools
@@ -257,4 +259,4 @@ jobs:
         run: |
           firebase deploy --only hosting:stage \
             --project ${{ secrets.GCP_PROJECT_ID }} --non-interactive \
-            --message "stage-${{ github.sha }}"
+            --message "stage-${{ inputs.ref }}"
