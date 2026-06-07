@@ -180,5 +180,6 @@ Bordas/exceções cobertas: ambiente desconhecido (`staging`) e vazio/null → f
 
 ### Links de evidência
 - PR: n/a — workflow do projeto é commit direto na main (sem PR); evidências nos commits `8d9dd2c` (red webapp), `1ad478c` (green webapp), `3c4c0d9` (red admin), `ec81bcc` (green admin), `6f9e56c` (plumbing).
-- Pipeline: (preencher após a tag rc)
-- Deploy de homologação (screenshot do banner): (verificação do Alexandro — requer `terraform apply` em `infra/envs/homolog` antes do deploy do admin + nova tag rc para o WebApp)
+- Pipeline: v0.1.0-rc.84 verde — https://github.com/alcatechgroup/mvpturni-mvp/actions/runs/27092409291 (build com `--dart-define=TURNI_ENV=homolog`; smoke pós-deploy ok; `version.json`=rc.84; microcopy + `env-banner` confirmados no `main.dart.js` servido).
+- Terraform aplicado em homolog (2026-06-07): `TURNI_ENV=homolog` na revisão ativa do `turni-admin-homolog` (00094-g89, 100% tráfego, mesma imagem rc.83→84); plan pós-apply sem drift.
+- Deploy de homologação (screenshot do banner): aguardando verificação visual do Alexandro (WebApp + Backoffice pós-login; ausente em landing e pré-auth).
