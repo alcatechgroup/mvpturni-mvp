@@ -34,7 +34,7 @@ E2E_HEADLESS_FLAG := $(if $(filter 0,$(E2E_HEADLESS)),--no-headless,--headless)
 .DEFAULT_GOAL := help
 .PHONY: help setup up down clean logs ps env build install key migrate seed \
         webapp-build hooks test test-api test-admin test-webapp lint fresh \
-        e2e e2e-webapp e2e-webapp-integration e2e-webapp-smoke \
+        e2e e2e-webapp e2e-webapp-integration e2e-webapp-banner e2e-webapp-smoke \
         e2e-webapp-app-update e2e-webapp-install e2e-admin
 
 help: ## Mostra os comandos disponíveis
@@ -155,6 +155,7 @@ _e2e-seed: # Garante migrações + usuários de teste do CA-13 no banco de dev
 # Ordem: build fresco (IDR-006 §c) → seed → integration_test → smoke. Sai !=0 no 1º fail.
 e2e-webapp: webapp-build ## E2E híbrido do WebApp: integration_test (UI) + smoke Playwright (IDR-010)
 	$(MAKE) e2e-webapp-integration
+	$(MAKE) e2e-webapp-banner
 	$(MAKE) e2e-webapp-smoke
 
 # Iteração em dev: cenários de UI em integration_test (Chrome headless via flutter drive),
@@ -187,6 +188,32 @@ e2e-webapp-integration: ## integration_test (UI) do WebApp no Chrome headless, s
 	    -d web-server --browser-name=chrome $(E2E_HEADLESS_FLAG) \
 	    --web-hostname=127.0.0.1 --web-port=$(E2E_APP_PORT) \
 	    --dart-define=E2E_FAKE_PICKER=true \
+	    --web-launch-url=http://localhost:$(E2E_PROXY_PORT)
+
+# STORY-075 — caminho feliz do banner global de homolog: o gate normal acima roda com
+# TURNI_ENV ausente (= local, banner invisível — CA-2 assertado lá); esta invocação
+# separada recompila o app com TURNI_ENV=homolog e verifica o banner VISÍVEL pós-login
+# (CA-1) + ausente em pré-auth (CA-4), no mesmo harness same-origin (IDR-021). Segunda
+# ocorrência do bloco chromedriver+proxy — na terceira, extrair template (regra de três).
+e2e-webapp-banner: ## E2E do banner de homolog (TURNI_ENV=homolog) no Chrome headless — STORY-075
+	@command -v flutter >/dev/null 2>&1 || { echo "ERRO: Flutter ausente no PATH"; exit 1; }
+	@command -v chromedriver >/dev/null 2>&1 || { echo "ERRO: chromedriver ausente. Instale um chromedriver com MAJOR == seu Chrome (README §Testes E2E)."; exit 1; }
+	@command -v node >/dev/null 2>&1 || { echo "ERRO: node ausente no PATH (proxy same-origin)"; exit 1; }
+	@curl -sS -o /dev/null http://localhost:$${API_PORT:-8001} || { echo "ERRO: API não responde em :$${API_PORT:-8001}. Rode 'make up' antes."; exit 1; }
+	$(MAKE) _e2e-seed
+	chromedriver --port=$(CHROMEDRIVER_PORT) >/tmp/turni-chromedriver.log 2>&1 & \
+	  CD_PID=$$!; \
+	  PROXY_PORT=$(E2E_PROXY_PORT) APP_PORT=$(E2E_APP_PORT) API_PORT=$${API_PORT:-8001} \
+	    node scripts/e2e-webapp-proxy.js >/tmp/turni-e2e-proxy.log 2>&1 & \
+	  PROXY_PID=$$!; \
+	  trap 'kill $$CD_PID $$PROXY_PID 2>/dev/null' EXIT INT TERM; \
+	  for i in $$(seq 1 20); do curl -fsS http://localhost:$(CHROMEDRIVER_PORT)/status >/dev/null 2>&1 && break; sleep 0.5; done; \
+	  for i in $$(seq 1 20); do curl -sS -o /dev/null http://localhost:$(E2E_PROXY_PORT)/ 2>/dev/null && break; sleep 0.3; done; \
+	  cd apps/webapp && flutter drive --driver=test_driver/integration_test.dart \
+	    --target=integration_test/env_banner_test.dart \
+	    -d web-server --browser-name=chrome $(E2E_HEADLESS_FLAG) \
+	    --web-hostname=127.0.0.1 --web-port=$(E2E_APP_PORT) \
+	    --dart-define=TURNI_ENV=homolog \
 	    --web-launch-url=http://localhost:$(E2E_PROXY_PORT)
 
 # Smoke HTTP do WebApp em Playwright (IDR-010): SÓ webapp-hello-world.spec.ts — título,
