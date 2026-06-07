@@ -121,7 +121,9 @@ class Ca12EmailSmokeSeeder extends Seeder
         $this->command?->info("Ca12EmailSmokeSeeder: contratante {$contratante->email} + vaga {$vaga->id} (valor ".self::VALOR_MARCADOR.') + 2 profissionais Gmail prontos.');
     }
 
-    private function profissionalEntregavel(string $alias, int $funcaoPrimaria): void
+    // STORY-067: `funcoes.id` virou UUIDv7 na W27.5 (ADR-018/STORY-070) — o seeder ficou fora
+    // do DatabaseSeeder após o CA-12 fechar e o tipo não foi atualizado junto.
+    private function profissionalEntregavel(string $alias, string $funcaoPrimaria): void
     {
         $user = User::updateOrCreate(
             ['email' => "xandroalmeida+{$alias}-homolog@gmail.com"],

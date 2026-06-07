@@ -55,8 +55,8 @@ getj "$JC" "/api/funcoes" /tmp/ca12_func >/dev/null
 FUNC=$(python3 -c "import json;d=json.load(open('/tmp/ca12_func'));fs=d.get('data') or d.get('funcoes') or d; print(min(f['id'] for f in fs))")
 echo "  funcao_id primária=$FUNC"
 
-criar_vaga() { # jar data_inicio data_fim valor obs outfile
-  post "$1" "/api/vagas" "{\"funcao_id\":$FUNC,\"data_inicio\":\"$2\",\"data_fim\":\"$3\",\"valor\":$4,\"posicoes\":2,\"observacoes\":\"$5\"}" "$6"
+criar_vaga() { # jar data_inicio data_fim valor obs outfile — funcao_id é UUID (ADR-018/W27.5)
+  post "$1" "/api/vagas" "{\"funcao_id\":\"$FUNC\",\"data_inicio\":\"$2\",\"data_fim\":\"$3\",\"valor\":$4,\"posicoes\":2,\"observacoes\":\"$5\"}" "$6"
 }
 candidatar() { # jar vagaid
   local out=/tmp/ca12_cand_$$; local c
@@ -92,7 +92,7 @@ for RUN in 1 2 3; do
 
   echo "  cenário 2: contratante edita V_edit (valor 200→260, material)"
   getj "$JC" "/api/vagas/$VE/editar" /tmp/ca12_ed >/dev/null
-  pe=$(patch "$JC" "/api/vagas/$VE" "{\"funcao_id\":$FUNC,\"data_inicio\":\"$DI_E\",\"data_fim\":\"$DF_E\",\"valor\":260,\"posicoes\":2,\"observacoes\":\"ca12-edit-r$RUN\"}" /tmp/ca12_pe)
+  pe=$(patch "$JC" "/api/vagas/$VE" "{\"funcao_id\":\"$FUNC\",\"data_inicio\":\"$DI_E\",\"data_fim\":\"$DF_E\",\"valor\":260,\"posicoes\":2,\"observacoes\":\"ca12-edit-r$RUN\"}" /tmp/ca12_pe)
   echo "    PATCH V_edit → $pe"
 
   echo "  cenário 3: contratante cancela V_cancel"

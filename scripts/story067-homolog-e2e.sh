@@ -64,8 +64,8 @@ iso_in() { # +minutos → ISO UTC
   python3 -c "from datetime import datetime,timedelta,timezone;print((datetime.now(timezone.utc)+timedelta(minutes=$1)).strftime('%Y-%m-%dT%H:%M:00Z'))"
 }
 
-criar_vaga() { # jar di df valor obs outfile
-  post "$1" "/api/vagas" "{\"funcao_id\":$FUNC,\"data_inicio\":\"$2\",\"data_fim\":\"$3\",\"valor\":$4,\"posicoes\":1,\"observacoes\":\"$5\"}" "$6"
+criar_vaga() { # jar di df valor obs outfile — funcao_id é UUID (ADR-018): vai entre aspas
+  post "$1" "/api/vagas" "{\"funcao_id\":\"$FUNC\",\"data_inicio\":\"$2\",\"data_fim\":\"$3\",\"valor\":$4,\"posicoes\":1,\"observacoes\":\"$5\"}" "$6"
 }
 
 RUNS_OK=0
