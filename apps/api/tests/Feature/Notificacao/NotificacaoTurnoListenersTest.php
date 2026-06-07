@@ -186,6 +186,21 @@ it('PixEnviado com turno desconhecido não cria notificação nem derruba o work
     expect(Notificacao::count())->toBe(0);
 });
 
+it('turno desconhecido é ignorado por TODOS os listeners (defensivo)', function () {
+    $fantasma = (string) Str::uuid7();
+    $geracao = (string) Str::uuid7();
+
+    TurnoCriado::dispatch($fantasma);
+    CheckinSolicitado::dispatch($fantasma, $geracao);
+    TurnoIniciado::dispatch($fantasma);
+    CheckoutSolicitado::dispatch($fantasma, $geracao);
+    TurnoFinalizado::dispatch($fantasma);
+    TurnoCancelado::dispatch($fantasma, 'pro', null);
+    TurnoNoShow::dispatch($fantasma);
+
+    expect(Notificacao::count())->toBe(0);
+});
+
 // ── turno_cancelado (TurnoCancelado → o OUTRO lado) ───────────────────────────
 
 it('cancelamento pelo profissional notifica o contratante, com motivo (CA-1)', function () {

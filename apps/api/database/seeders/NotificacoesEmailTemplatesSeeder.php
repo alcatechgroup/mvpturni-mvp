@@ -28,6 +28,15 @@ class NotificacoesEmailTemplatesSeeder extends Seeder
         NotificacaoTipo::VagaCancelada->value => 'E-mail — Vaga cancelada (profissional)',
         NotificacaoTipo::VagaEditadaMaterialCandidaturaMantida->value => 'E-mail — Candidato mantido após edição (contratante)',
         NotificacaoTipo::VagaEditadaMaterialCandidaturaRetirada->value => 'E-mail — Candidato saiu após edição (contratante)',
+        // STORY-067 — eventos do turno (texto-seed v1 aprovado pelo PO em 2026-06-06).
+        NotificacaoTipo::TurnoConfirmado->value => 'E-mail — Turno confirmado (profissional)',
+        NotificacaoTipo::CheckinSolicitado->value => 'E-mail — Check-in aguardando validação (contratante)',
+        NotificacaoTipo::TurnoAtivo->value => 'E-mail — Turno em andamento (profissional)',
+        NotificacaoTipo::CheckoutSolicitado->value => 'E-mail — Check-out aguardando validação (contratante)',
+        NotificacaoTipo::TurnoFinalizado->value => 'E-mail — Turno finalizado (profissional)',
+        NotificacaoTipo::PixEnviado->value => 'E-mail — Pix enviado (profissional)',
+        NotificacaoTipo::TurnoCancelado->value => 'E-mail — Turno cancelado (outro lado)',
+        NotificacaoTipo::NoShowPro->value => 'E-mail — Turno encerrado por check-in não realizado (ambos)',
     ];
 
     public function run(): void

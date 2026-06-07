@@ -1,7 +1,8 @@
 <?php
 
-// STORY-053 (CA-6, Path A) — NotificacoesEmailTemplatesSeeder: cria os 5 templates de e-mail
-// (categoria `email`) com v1 ativa, idempotente, e o slug 1:1 com NotificacaoTipo.
+// STORY-053 (CA-6, Path A) + STORY-067 (CA-5/CA-6) — NotificacoesEmailTemplatesSeeder: cria os
+// 13 templates de e-mail (5 candidatura + 8 turno) com v1 ativa, idempotente, slug 1:1 com
+// NotificacaoTipo. O loop usa NotificacaoTipo::cases() — tipo novo sem texto-seed quebra aqui.
 
 use App\Enums\NotificacaoTipo;
 use App\Models\Template;
@@ -15,7 +16,7 @@ beforeEach(function () {
     User::factory()->admin()->create();
 });
 
-it('cria os 5 templates de e-mail com v1 ativa e categoria email', function () {
+it('cria os 13 templates de e-mail com v1 ativa e categoria email (5 candidatura + 8 turno)', function () {
     $this->seed(NotificacoesEmailTemplatesSeeder::class);
 
     foreach (NotificacaoTipo::cases() as $tipo) {
@@ -28,7 +29,7 @@ it('cria os 5 templates de e-mail com v1 ativa e categoria email', function () {
             ->and($template->versaoAtiva->conteudo)->toContain('---'); // front-matter + corpo
     }
 
-    expect(Template::where('categoria', 'email')->count())->toBe(5);
+    expect(Template::where('categoria', 'email')->count())->toBe(13);
 });
 
 it('é idempotente — rodar 2× não duplica templates nem versões', function () {
