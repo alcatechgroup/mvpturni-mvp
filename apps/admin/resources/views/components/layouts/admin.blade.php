@@ -150,6 +150,11 @@
         .toast .dot{width:8px;height:8px;border-radius:999px;background:var(--success);flex-shrink:0}
         .toast.err .dot{background:#fff}
 
+        /* STORY-075 / PDR-017 — faixa persistente de homolog (tokens DDR-001 §4:
+           warning-soft de fundo + texto neutro alto-contraste + ícone var(--warning)).
+           Não-dispensável: sem botão de fechar, sem interação. */
+        .env-banner{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--warning-soft);color:var(--text);padding:8px 16px;font-size:13px;font-weight:500}
+        .env-banner .ic{width:12px;height:10px;background:var(--warning);clip-path:polygon(50% 0,100% 100%,0 100%);flex-shrink:0}
         .narrow-warn{display:none;background:var(--warning-soft);color:var(--text);padding:10px 16px;font-size:13px;text-align:center;border-radius:10px;margin-bottom:16px}
         @media(max-width:1023px){
             .shell{grid-template-columns:1fr}.sidebar{display:none}
@@ -202,6 +207,16 @@
     </style>
 </head>
 <body>
+    {{-- STORY-075 / PDR-017 — banner global de homolog. TURNI_ENV (não APP_ENV:
+         em homolog o runtime é production) vem do Terraform; ausente em prod/dev
+         → config default `local` e nada renderiza (fail-safe). Só neste layout
+         autenticado: login/forgot-password têm markup próprio (CA-4). --}}
+    @if (config('turni.env') === 'homolog')
+        <div class="env-banner" data-testid="env-banner" role="status">
+            <span class="ic" aria-hidden="true"></span>
+            Ambiente de teste — pagamentos simulados
+        </div>
+    @endif
     <div class="shell">
         <aside class="sidebar">
             <div class="sb-head">
