@@ -6,12 +6,12 @@ epic_id: EPIC-003
 sprint_id: SPRINT-2026-W28
 type: implementation
 target_role: programador
-requires_design: false  # reusa centro de notificações da STORY-053
-design_screen_id: null
-status: ready
-owner_agent: null
+requires_design: true  # era false; Alexandro pediu fluxo designer→programador em 2026-06-06 (8 tipos novos de tile no centro da STORY-053)
+design_screen_id: SCREEN-STORY-067-notificacoes-turno
+status: in_progress
+owner_agent: claude-opus-4-8
 created_at: 2026-06-03
-updated_at: 2026-06-03
+updated_at: 2026-06-06
 estimated_session_size: M
 produces_idr: null
 ---

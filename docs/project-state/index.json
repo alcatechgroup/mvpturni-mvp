@@ -2164,6 +2164,34 @@
       "updated_at": "2026-06-06"
     },
     {
+      "id": "STORY-067",
+      "epic_id": "EPIC-003",
+      "title": "Notificações in-app + e-mail dos eventos do turno (8 templates via STORY-020)",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-067-notificacoes-turno",
+      "status": "in_progress",
+      "owner_agent": "claude-opus-4-8-2026-06-06",
+      "sprint_id": "SPRINT-2026-W28",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-067-notificacoes-eventos-turno.md",
+      "blocked_by": [
+        "STORY-058",
+        "STORY-062",
+        "STORY-064",
+        "STORY-065",
+        "STORY-066"
+      ],
+      "blocks": [
+        "STORY-068"
+      ],
+      "estimated_session_size": "M",
+      "produces_idr": null,
+      "created_at": "2026-06-03",
+      "updated_at": "2026-06-06",
+      "note": "requires_design era false; Alexandro pediu fluxo designer→programador em 2026-06-06 (mesmo padrão da STORY-065 — spec leve: 8 tipos novos de tile no centro de notificações da STORY-053: microcopy in-app, ícone e destino por tipo)."
+    },
+    {
       "id": "STORY-073",
       "epic_id": "EPIC-002",
       "title": "Fix — `php artisan schedule:run` em homolog/prod (F-NB-1 do EPIC-002 — auto-retirada de candidatura em limbo)",
@@ -2696,7 +2724,8 @@
         "STORY-060"
       ],
       "in_progress_story_ids": [
-        "STORY-056"
+        "STORY-056",
+        "STORY-067"
       ],
       "pending_story_ids": [
         "STORY-061",
@@ -2705,7 +2734,6 @@
         "STORY-064",
         "STORY-065",
         "STORY-066",
-        "STORY-067",
         "STORY-068",
         "STORY-073",
         "STORY-075"
@@ -3976,6 +4004,34 @@
           "dialog-confirm",
           "toast"
         ],
+        "owner_designer": "claude-opus-4-8",
+        "created_at": "2026-06-06",
+        "updated_at": "2026-06-06"
+      },
+      {
+        "id": "SCREEN-STORY-067-notificacoes-turno",
+        "story": "STORY-067",
+        "epic": "EPIC-003",
+        "status": "ready",
+        "path": "design/screens/SCREEN-STORY-067-notificacoes-turno.md",
+        "viewports": [
+          "mobile",
+          "desktop"
+        ],
+        "related_ddrs": [
+          "DDR-001",
+          "DDR-002"
+        ],
+        "related_idrs": [],
+        "ds_components_used": [
+          "notification.bell",
+          "notification.panel",
+          "notification.tile",
+          "empty.state",
+          "error.state",
+          "skeleton"
+        ],
+        "extends": "SCREEN-STORY-053-notificacoes",
         "owner_designer": "claude-opus-4-8",
         "created_at": "2026-06-06",
         "updated_at": "2026-06-06"
