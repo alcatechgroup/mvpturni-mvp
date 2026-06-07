@@ -181,7 +181,9 @@ void main() {
       expect(text.style?.color, TurniColors.textStrongLight);
     });
 
-    testWidgets('tema escuro: tokens warning escuros (CA-6)', (tester) async {
+    testWidgets('tema escuro: tokens warning escuros com fundo OPACO (CA-6/'
+        'CA-7 — warnSoftDark é translúcido e some sobre página clara; bug '
+        'visto em homolog rc.84)', (tester) async {
       AuthService().debugSetSession(_sessaoAtiva());
 
       await tester.pumpWidget(
@@ -194,7 +196,14 @@ void main() {
           matching: find.byType(Material),
         ),
       );
-      expect(material.color, TurniColors.warnSoftDark);
+      // O token *.soft escuro tem alpha 0x26 e pressupõe superfície escura
+      // atrás; no topo da Column (builder global) não há nenhuma — o fundo
+      // precisa chegar OPACO, composto sobre a página escura do DS.
+      expect(material.color?.a, 1.0, reason: 'fundo do banner deve ser opaco');
+      expect(
+        material.color,
+        Color.alphaBlend(TurniColors.warnSoftDark, TurniColors.surfacePageDark),
+      );
 
       final icon = tester.widget<Icon>(
         find.descendant(
@@ -203,6 +212,21 @@ void main() {
         ),
       );
       expect(icon.color, TurniColors.warnDark);
+    });
+
+    testWidgets('tema claro: fundo também é opaco (regressão do bug de '
+        'composição)', (tester) async {
+      AuthService().debugSetSession(_sessaoAtiva());
+
+      await tester.pumpWidget(_app(ambiente: 'homolog'));
+
+      final material = tester.widget<Material>(
+        find.descendant(
+          of: find.byType(EnvBanner),
+          matching: find.byType(Material),
+        ),
+      );
+      expect(material.color?.a, 1.0);
     });
 
     testWidgets('expõe Semantics de status não-modal (CA-7)', (tester) async {
