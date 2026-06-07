@@ -8,10 +8,12 @@ type: implementation
 target_role: programador
 requires_design: true  # era false; Alexandro pediu fluxo designer→programador em 2026-06-06 (8 tipos novos de tile no centro da STORY-053)
 design_screen_id: SCREEN-STORY-067-notificacoes-turno
-status: in_review
+status: done
 owner_agent: claude-opus-4-8
 created_at: 2026-06-03
 updated_at: 2026-06-07
+closed_at: 2026-06-07
+closed_by: "PO (Alexandro / Claude) — aceite sobre evidências rc.83: 9/9 CAs com evidência, E2E homolog 3×3 verde (0 flake), SLA p95=60s, texto-seed validado em 2026-06-06; resíduo de teste (3 casos em pix_falhas) anotado para o validador da STORY-068"
 estimated_session_size: M
 produces_idr: null
 ---
