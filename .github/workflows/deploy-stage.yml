@@ -72,13 +72,13 @@ jobs:
         run: flutter pub get
       - name: Gerar version.json e health.json
         run: |
-          echo '{"version":"stage-${{ github.sha }}"}' > apps/webapp/web/version.json
-          echo '{"status":"ok","version":"stage-${{ github.sha }}","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","service":"webapp"}' > apps/webapp/web/health.json
+          echo '{"version":"${{ inputs.ref }}"}' > apps/webapp/web/version.json
+          echo '{"status":"ok","version":"${{ inputs.ref }}","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","service":"webapp"}' > apps/webapp/web/health.json
       - name: Build web (release)
         working-directory: apps/webapp
         run: |
           flutter build web \
-            --dart-define=APP_VERSION=stage-${{ github.sha }} \
+            --dart-define=APP_VERSION=${{ inputs.ref }} \
             --dart-define=API_BASE_URL= \
             --dart-define=TURNI_ENV=stage \
             --no-tree-shake-icons \
