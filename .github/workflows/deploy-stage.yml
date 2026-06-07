@@ -7,7 +7,8 @@ name: Deploy Stage
 # + WebApp (Firebase target stage). NÃO mexe no detect-env do release.yml (ADR-004).
 #
 # Secrets vêm do GitHub Environment `stage` (GCP_PROJECT_ID=turni-stage,
-# GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT, FIREBASE_SERVICE_ACCOUNT).
+# GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT). Deploy do Firebase é keyless
+# (firebase CLI usa a credencial WIF como ADC).
 
 on:
   workflow_dispatch:
@@ -249,11 +250,11 @@ jobs:
         with:
           name: webapp-web-stage-${{ github.sha }}
           path: apps/webapp/build/web/
+      # Keyless: firebase CLI usa a credencial WIF (ADC) do passo de auth acima.
+      - name: Setup firebase-tools
+        run: npm i -g firebase-tools@13.29.1
       - name: Deploy Firebase Hosting (stage)
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: ${{ secrets.GCP_PROJECT_ID }}
-          target: stage
-          channelId: live
+        run: |
+          firebase deploy --only hosting:stage \
+            --project ${{ secrets.GCP_PROJECT_ID }} --non-interactive \
+            --message "stage-${{ github.sha }}"

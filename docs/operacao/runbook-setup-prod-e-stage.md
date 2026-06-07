@@ -112,7 +112,11 @@ Crie os Environments `homolog`, `stage`, `prod` (e `landing-prod`), cada um com 
 | `GCP_PROJECT_ID` | `turni-homol` | `turni-stage` | `turni-prod` |
 | `GCP_WORKLOAD_IDENTITY_PROVIDER` | `wif_provider` | idem | idem |
 | `GCP_SERVICE_ACCOUNT` | `ci_service_account` | idem | idem |
-| `FIREBASE_SERVICE_ACCOUNT` | JSON da SA CI | idem | idem |
+
+O deploy do Firebase Hosting é **keyless** (o `firebase` CLI usa a credencial WIF como
+ADC) — **não** há `FIREBASE_SERVICE_ACCOUNT`. A SA `turni-github-ci` já tem
+`roles/firebasehosting.admin` (módulo `iam`). O Environment `landing-prod` também precisa
+das 3 secrets WIF (= valores do `turni-prod`).
 
 - `prod` → marcar **required reviewer** (gate humano do `release.yml`).
 - O WIF de cada projeto restringe ao repo `alcatechgroup/mvpturni-mvp` (módulo `iam`).

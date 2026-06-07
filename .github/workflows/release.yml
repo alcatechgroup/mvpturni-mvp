@@ -15,10 +15,11 @@ permissions:
   contents: read
   id-token: write   # necessário para Workload Identity Federation
 
-# Modelo de 3 projetos GCP independentes: GCP_PROJECT_ID, GCP_WORKLOAD_IDENTITY_PROVIDER,
-# GCP_SERVICE_ACCOUNT e FIREBASE_SERVICE_ACCOUNT são secrets POR GitHub Environment
-# (homolog → turni-homol; prod → turni-prod). Todo job que toca o GCP declara
-# `environment:` para herdar o conjunto certo — sem isso cairia nos secrets de repositório.
+# Modelo de 3 projetos GCP independentes: GCP_PROJECT_ID, GCP_WORKLOAD_IDENTITY_PROVIDER
+# e GCP_SERVICE_ACCOUNT são secrets POR GitHub Environment (homolog → turni-homol;
+# prod → turni-prod). Todo job que toca o GCP declara `environment:` para herdar o
+# conjunto certo. Deploy do Firebase é KEYLESS (firebase CLI usa a credencial WIF como
+# ADC) — sem FIREBASE_SERVICE_ACCOUNT.
 
 env:
   GCP_REGION: southamerica-east1
@@ -351,14 +352,16 @@ jobs:
         with:
           name: webapp-web-${{ github.ref_name }}
           path: apps/webapp/build/web/
+      # Keyless: o firebase CLI usa a credencial do passo WIF acima (ADC via
+      # GOOGLE_APPLICATION_CREDENTIALS exportado por google-github-actions/auth).
+      # Sem FIREBASE_SERVICE_ACCOUNT (chave de longa duração).
+      - name: Setup firebase-tools
+        run: npm i -g firebase-tools@13.29.1
       - name: Deploy Firebase Hosting (homolog)
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: ${{ secrets.GCP_PROJECT_ID }}
-          target: homolog
-          channelId: live
+        run: |
+          firebase deploy --only hosting:homolog \
+            --project ${{ secrets.GCP_PROJECT_ID }} --non-interactive \
+            --message "${{ github.ref_name }}"
 
   # ── Smoke pós-deploy em homologação (curl /health + /version.json) ──────────
   # Substitui o antigo job e2e-homolog. E2E em browser real é gate LOCAL
@@ -501,11 +504,11 @@ jobs:
         with:
           name: webapp-web-${{ github.ref_name }}
           path: apps/webapp/build/web/
+      # Keyless: firebase CLI usa a credencial WIF (ADC) do passo de auth deste job.
+      - name: Setup firebase-tools
+        run: npm i -g firebase-tools@13.29.1
       - name: Deploy Firebase Hosting (prod)
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: ${{ secrets.GCP_PROJECT_ID }}
-          target: prod
-          channelId: live
+        run: |
+          firebase deploy --only hosting:prod \
+            --project ${{ secrets.GCP_PROJECT_ID }} --non-interactive \
+            --message "${{ github.ref_name }}"

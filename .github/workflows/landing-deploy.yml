@@ -106,19 +106,20 @@ jobs:
           ! grep -q 'href="app.html' "$LANDING_SECRET_PATH/index.html"
           echo "bundle preparado (path mascarado)"
 
+      # Keyless (WIF): exporta GOOGLE_APPLICATION_CREDENTIALS (ADC p/ o firebase CLI) e
+      # autentica o gcloud (usado no rollback via print-access-token). Sem chave JSON.
+      - name: Autenticar no GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
       - uses: google-github-actions/setup-gcloud@v2
 
       - name: Setup firebase-tools
         run: |
           npm i -g firebase-tools@${FIREBASE_TOOLS_VERSION}
           firebase --version
-
-      - name: Autenticar (service account Firebase) p/ firebase CLI + gcloud
-        run: |
-          set -euo pipefail
-          printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > "${RUNNER_TEMP}/fsa.json"
-          echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/fsa.json" >> "$GITHUB_ENV"
-          gcloud auth activate-service-account --key-file="${RUNNER_TEMP}/fsa.json"
 
       - name: Capturar versão live atual (para rollback)
         id: prev
@@ -205,12 +206,14 @@ jobs:
           mv _lp "$LANDING_SECRET_PATH"
           perl -pi -e "s|__WEBAPP_URL__|${WEBAPP_URL}|g" "$LANDING_SECRET_PATH/index.html"
           perl -pi -e "s|__LANDING_PATH__|${LANDING_SECRET_PATH}|g" robots.txt
+      # Keyless (WIF): exporta GOOGLE_APPLICATION_CREDENTIALS (ADC p/ o firebase CLI).
+      - name: Autenticar no GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       - name: Setup firebase-tools
         run: npm i -g firebase-tools@${FIREBASE_TOOLS_VERSION}
-      - name: Autenticar (service account Firebase)
-        run: |
-          printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > "${RUNNER_TEMP}/fsa.json"
-          echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/fsa.json" >> "$GITHUB_ENV"
       - name: Deploy Firebase Hosting (landing-prod)
         run: |
           set -euo pipefail

@@ -64,7 +64,9 @@ para não colidir com `stage`/`prod`. Em Settings → Environments → `homolog`
 | `GCP_PROJECT_ID` | `turni-homol` |
 | `GCP_WORKLOAD_IDENTITY_PROVIDER` | `wif_provider` output |
 | `GCP_SERVICE_ACCOUNT` | `ci_service_account` output |
-| `FIREBASE_SERVICE_ACCOUNT` | JSON da service account CI (para firebase deploy) |
+
+> Deploy do Firebase é **keyless** (firebase CLI usa a credencial WIF como ADC) — sem
+> `FIREBASE_SERVICE_ACCOUNT`. A SA CI já tem `roles/firebasehosting.admin`.
 
 ### Configurar DNS (1x) — subdomínio delegado
 
