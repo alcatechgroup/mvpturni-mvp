@@ -24,11 +24,14 @@ class PerfilScreen extends StatelessWidget {
     final session = AuthService().session;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? TurniColors.accentDark : TurniColors.accentLight;
-    final textMuted =
-        isDark ? TurniColors.textMutedDark : TurniColors.textMutedLight;
+    final textMuted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
 
     final nome = session?.name.trim() ?? '';
-    final papel = session?.role == 'contratante' ? 'Contratante' : 'Profissional';
+    final papel = session?.role == 'contratante'
+        ? 'Contratante'
+        : 'Profissional';
 
     return Scaffold(
       key: const Key('perfil-screen'),
