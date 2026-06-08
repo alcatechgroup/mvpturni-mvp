@@ -71,4 +71,67 @@ void main() {
       },
     );
   });
+
+  // STORY-078 — a barra superior do shell só aparece nas RAÍZES de destino; os
+  // drill-downs (detalhe de vaga/turno, candidatos, editar, nova, cronômetro)
+  // mantêm a própria AppBar (voltar + título). isDestinationRoot decide isso a
+  // partir da rota corrente (state.uri.path, sem query string).
+  group('isDestinationRoot (CA-3/CA-4)', () {
+    test('(a) feliz — raízes de destino dos dois papéis retornam true', () {
+      for (final r in [
+        '/', // home role-dispatch (feed / minhas vagas)
+        '/feed', // feed do profissional
+        '/contratante/vagas', // minhas vagas do contratante
+        '/turnos', // turnos canônico (role-dispatch)
+        '/profissional/turnos',
+        '/contratante/turnos',
+        '/perfil',
+      ]) {
+        expect(isDestinationRoot(r), isTrue, reason: 'raiz $r deveria ser true');
+      }
+    });
+
+    test('(b) inválido — drill-downs NÃO são raiz (shell sem AppBar)', () {
+      for (final r in [
+        '/vaga/abc',
+        '/contratante/vagas/nova',
+        '/contratante/vagas/abc/editar',
+        '/contratante/vagas/abc/candidatos',
+        '/turnos/abc',
+        '/turno/abc/cronometro-poc',
+      ]) {
+        expect(isDestinationRoot(r), isFalse, reason: '$r é drill-down');
+      }
+    });
+
+    test('(c) borda — rota desconhecida/vazia não é raiz (fail-safe)', () {
+      expect(isDestinationRoot(''), isFalse);
+      expect(isDestinationRoot('/qualquer-coisa'), isFalse);
+      expect(isDestinationRoot('/login'), isFalse);
+    });
+  });
+
+  // O título da barra do shell é o do destino ATIVO (varia por papel), derivado
+  // do índice do branch corrente. Fail-secure: papel/índice inválido → null.
+  group('sectionTitleFor (CA-3)', () {
+    test('(a) feliz — título por papel e índice de branch', () {
+      expect(sectionTitleFor('profissional', 0), 'Vagas');
+      expect(sectionTitleFor('profissional', 1), 'Meus turnos');
+      expect(sectionTitleFor('profissional', 2), 'Perfil');
+      expect(sectionTitleFor('contratante', 0), 'Minhas vagas');
+      expect(sectionTitleFor('contratante', 1), 'Turnos');
+      expect(sectionTitleFor('contratante', 2), 'Perfil');
+    });
+
+    test('(b)/(c) fail-secure — papel desconhecido/nulo → null', () {
+      expect(sectionTitleFor('admin', 0), isNull);
+      expect(sectionTitleFor(null, 0), isNull);
+    });
+
+    test('(d) borda — índice fora do range → null (sem crash)', () {
+      expect(sectionTitleFor('profissional', -1), isNull);
+      expect(sectionTitleFor('profissional', 3), isNull);
+      expect(sectionTitleFor('profissional', 99), isNull);
+    });
+  });
 }

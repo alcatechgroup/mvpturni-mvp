@@ -100,3 +100,31 @@ List<ShellDestination> destinationsFor(String? role) {
 /// "Nova vaga" é ação primária do contratante (FAB/rail/drawer), não destino
 /// (DDR-003). Só o contratante a vê.
 bool hasNovaVagaAction(String? role) => role == 'contratante';
+
+/// Rotas-raiz de cada destino (STORY-078). Só nelas o shell mostra a barra
+/// superior (título + sino + tema). Os drill-downs empilhados dentro do branch
+/// (detalhe de vaga/turno, candidatos, editar, nova, cronômetro PoC) NÃO estão
+/// aqui — mantêm a própria `AppBar` (voltar + título específico).
+const _destinationRootRoutes = <String>{
+  '/', // home role-dispatch: feed (profissional) / minhas vagas (contratante)
+  '/feed',
+  '/contratante/vagas',
+  '/turnos', // turnos canônico (role-dispatch)
+  '/profissional/turnos',
+  '/contratante/turnos',
+  '/perfil',
+};
+
+/// `true` quando [location] (use `state.uri.path`, sem query string) é a raiz de
+/// um destino — o shell pinta a barra superior. Drill-downs e rotas
+/// públicas/desconhecidas → `false` (fail-safe; a tela cuida da própria AppBar).
+bool isDestinationRoot(String location) =>
+    _destinationRootRoutes.contains(location);
+
+/// Título da barra superior do shell = título do destino ATIVO (varia por
+/// papel). Fail-secure: papel desconhecido/nulo ou índice fora do range → null.
+String? sectionTitleFor(String? role, int index) {
+  final destinations = destinationsFor(role);
+  if (index < 0 || index >= destinations.length) return null;
+  return destinations[index].title;
+}

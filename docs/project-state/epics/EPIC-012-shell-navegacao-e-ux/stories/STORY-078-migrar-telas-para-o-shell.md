@@ -8,8 +8,8 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-077-app-shell
-status: ready
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8
 created_at: 2026-06-08
 updated_at: 2026-06-08
 estimated_session_size: M
@@ -83,11 +83,44 @@ NÃO decide: quais telas existem (inventário), destinos por papel (DDR-003), CA
 
 ## Notas do agente (preenchido durante/após execução)
 
+### Documentos lidos (2026-06-08)
+- Estória inteira (CA-1..7, fora de escopo, decisões já tomadas, DoD).
+- STORY-077 (shell entregue: `AppShell`/`AppShellView`/`ShellChrome`/`ShellDestination`, IDR-029, gotcha do ScaffoldMessenger aninhado nota 140 — reavaliar na migração).
+- DDR-003 (§"Impacto em telas existentes": AppBar/ícones ad-hoc cedem à navegação global; **o sino migra para a barra superior do shell**; header desktop = título + sino + tema + user; compact AppBar = título + sino).
+- DDR-001 (§5.6 breakpoints, §2.2 chrome por perfil), screens/README.md (inventário), `router.dart` (StatefulShellRoute), telas: feed, minhas_vagas, turnos_lista, turno_detalhe, perfil, notificacoes_sino/painel, turno_ativo_acao.
+
+### Decisão de escopo (PO, 2026-06-08)
+- **Centralizar o chrome no shell (DDR-003 pleno)** — escolhido por Alexandro via pergunta. O shell passa a ter a barra superior por breakpoint; as telas de destino perdem a AppBar; drill-downs mantêm AppBar própria (voltar + título).
+
+### Entendimento consolidado (minhas palavras)
+Mover o chrome de topo (título de seção, sino + painel, ação de turno ativo, tema no desktop) das AppBars de cada tela para uma **barra superior do shell**, mostrada só nas **raízes de destino** (Vagas/Turnos/Perfil) e oculta nos **drill-downs** (que mantêm a própria AppBar com voltar). Remover os atalhos ad-hoc que o shell substitui (ícone `event_note` "Meus turnos/Turnos" no feed e no minhas-vagas; botão voltar→home da lista de turnos). Reconciliar o caminho duplicado de "Nova vaga": no desktop o shell já a oferece (rail/sidebar) → o FAB "Publicar vaga" do minhas-vagas fica **só no compact**. Deep-links preservados (já abrem dentro do branch — STORY-077); RBAC inalterado (destinos por papel já fail-secure).
+
+### Decisão técnica (arquitetura)
+- **Barra superior dona do shell, dirigida pela rota.** O `builder` do `StatefulShellRoute` re-roda no push dentro do branch e `state.uri.path` reflete a sub-rota (provado por probe descartável). Logo: o router passa `location` ao `AppShell`; este calcula `isDestinationRoot(location)` (conjunto de rotas-raiz) e o título via `destinationsFor(role)[currentIndex].title`. Quando raiz → `AppShellView` mostra a `AppBar` do shell (título + `TurnoAtivoAcao` + `NotificacoesSino` + tema no medium+); quando drill-down → sem AppBar do shell (a tela mostra a sua).
+- **Barra escopada ao conteúdo:** em todos os breakpoints a AppBar fica num `Scaffold` de conteúdo (à direita do rail/sidebar no desktop, full-width no mobile), que hospeda `endDrawer: NotificacoesPainel` — assim `Scaffold.of(context).openEndDrawer()` do sino resolve nele. Mantido o `ScaffoldMessenger(child: child)` (fix da nota 140) escopando SnackBars das telas.
+- **Título de seção = `ShellDestination.title`** (já varia por papel): Vagas→"Vagas"/"Minhas vagas", Turnos→"Meus turnos"/"Turnos", Perfil→"Perfil". (Feed deixa de exibir "Vagas para você" no topo — passa a "Vagas", coerente com o destino, CA-3.)
+
+### Plano (TDD)
+1. Helpers puros em `shell_destinations.dart`: `isDestinationRoot(location)` + `sectionTitleFor(role, index)` — testes red primeiro.
+2. `AppShellView` ganha `appBarTitle` (nullable) + AppBar escopada ao conteúdo (sino/turno-ativo/tema) + `endDrawer`. Testes de widget (raiz mostra/【drill-down esconde】, sino, tema medium+, ≥48dp, a11y).
+3. `AppShell` calcula título/raiz a partir de `location`+`currentIndex`+role; `router.dart` passa `state.uri.path`.
+4. Telas perdem chrome: feed (remove AppBar/endDrawer/meus-turnos/logout/turno-ativo), minhas_vagas (idem + FAB só compact), turnos_lista (remove AppBar/leading/sino), perfil (remove AppBar/sino). Atualiza os testes de widget dessas telas.
+5. E2E `app_shell/navegacao_test.dart`: cada papel alcança 100% dos destinos do estado inicial; abre 1 deep-link e vê destino certo ativo + AppBar do shell ausente no drill-down. Verifica ad-hoc removido.
+6. Suíte completa verde + lint + deploy homolog (CA-7, PO confirma "nenhuma órfã").
+
+### Mapeamento CA → testes (planejado)
+- **CA-1** (sem órfã): E2E navegação por papel alcança Vagas/Turnos/Perfil sem digitar rota.
+- **CA-2** (ad-hoc removido/reconciliado): widget — ausência de `feed-meus-turnos-btn`/`minhas-vagas-turnos-btn`/leading-voltar; FAB Nova vaga só compact (sem duplicar no desktop).
+- **CA-3** (título de seção): widget `app_shell_view_test` (AppBar do shell com título por papel/destino; oculta no drill-down) + `shell_destinations_test` (`sectionTitleFor`).
+- **CA-4** (deep-link): E2E abre `/contratante/turnos/{uuid}`/`/vaga/{id}` e vê destino certo ativo, sem AppBar do shell (tela própria).
+- **CA-5** (RBAC): `shell_destinations_test` (já cobre fail-secure) + E2E cruzado herdado.
+- **CA-6** (cobertura + E2E): suíte + E2E por papel.
+
 ### Decisões tomadas
-- 
+- (ver "Decisão técnica" acima)
 
 ### Descobertas
-- 
+- O `builder` do `StatefulShellRoute` re-roda no push in-branch e `state.uri` traz a sub-rota completa (probe). Habilita a barra dirigida pela rota sem listener manual.
 
 ### Bloqueios encontrados
 - 
