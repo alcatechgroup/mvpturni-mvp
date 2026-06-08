@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/theme_mode_controller.dart';
 import '../../../ds/tokens.dart';
+import '../../notificacoes/notificacoes_painel.dart';
+import '../../notificacoes/notificacoes_sino.dart';
+import '../../turno/turno_ativo_acao.dart';
 import 'shell_chrome.dart';
 import 'shell_destinations.dart';
 
@@ -13,10 +17,12 @@ import 'shell_destinations.dart';
 /// e embrulha o [child] (conteúdo do destino ativo). O glue com
 /// `StatefulNavigationShell` fica no router.
 ///
-/// Nesta estória o shell entrega só a navegação; as telas internas mantêm suas
-/// próprias `AppBar`/sino (migração de cabeçalho é a STORY-078). "Nova vaga"
-/// (contratante) aparece como ação no rail/sidebar; o FAB mobile global fica
-/// para a STORY-078 (hoje `MinhasVagasScreen` já tem o seu — evita FAB duplo).
+/// STORY-078: o shell passa a ser dono da **barra superior** (título de seção +
+/// sino + ação de turno ativo + tema no desktop), mostrada só nas **raízes de
+/// destino** ([appBarTitle] != null). Nos drill-downs ([appBarTitle] == null) a
+/// barra do shell some e a própria tela cuida da sua `AppBar` (voltar + título).
+/// "Nova vaga" (contratante) aparece no rail/sidebar (desktop); no mobile o FAB
+/// é da própria `MinhasVagasScreen`.
 class AppShellView extends StatelessWidget {
   const AppShellView({
     super.key,
@@ -27,6 +33,7 @@ class AppShellView extends StatelessWidget {
     required this.onLogout,
     required this.child,
     this.userName = '',
+    this.appBarTitle,
   });
 
   final String? role;
@@ -36,6 +43,10 @@ class AppShellView extends StatelessWidget {
   final VoidCallback onLogout;
   final Widget child;
   final String userName;
+
+  /// Título da barra superior do shell quando a rota corrente é raiz de destino.
+  /// `null` em drill-downs — a tela mostra a própria `AppBar`.
+  final String? appBarTitle;
 
   // Breakpoints DDR-001 §5.6.
   static const _bpMedium = 600.0;
@@ -54,25 +65,55 @@ class AppShellView extends StatelessWidget {
     // rodapé da JANELA, cobrindo a `bottomNavigationBar` de ação da tela interna
     // (ex.: o botão "Retirar" do detalhe da vaga vira intocável). Com o mensageiro
     // aqui, o SnackBar volta a renderizar acima da barra de ação da própria tela
-    // (comportamento pré-shell). Migração de cabeçalho/ação é a STORY-078.
+    // (comportamento pré-shell preservado).
     final content = ScaffoldMessenger(child: child);
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
+        // A barra superior do shell é escopada ao CONTEÚDO (à direita do
+        // rail/sidebar no desktop; full-width no mobile). O tema só entra no
+        // medium+ (compact = título + sino, DDR-003).
+        final contentArea = _contentArea(
+          content,
+          showThemeToggle: w >= _bpMedium,
+        );
         if (w < _bpMedium) {
-          return _bottomLayout(destinations, chrome, content);
+          return _bottomLayout(destinations, chrome, contentArea);
         }
         if (w < _bpLarge) {
           return _railLayout(
             destinations,
             chrome,
-            content,
+            contentArea,
             extended: w >= _bpExpanded,
           );
         }
-        return _drawerLayout(destinations, chrome, content);
+        return _drawerLayout(destinations, chrome, contentArea);
       },
+    );
+  }
+
+  /// Envolve o [content] na barra superior do shell quando em raiz de destino
+  /// ([appBarTitle] != null). O `endDrawer` hospeda o painel de notificações —
+  /// `Scaffold.of(context).openEndDrawer()` do sino resolve neste Scaffold.
+  Widget _contentArea(Widget content, {required bool showThemeToggle}) {
+    if (appBarTitle == null) return content;
+    return Scaffold(
+      key: const Key('shell-content-scaffold'),
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        key: const Key('shell-app-bar'),
+        title: Text(appBarTitle!),
+        actions: [
+          const TurnoAtivoAcao(),
+          const NotificacoesSino(),
+          if (showThemeToggle) const _ShellThemeToggle(),
+          const SizedBox(width: TurniSpacing.xs),
+        ],
+      ),
+      endDrawer: const NotificacoesPainel(),
+      body: content,
     );
   }
 
@@ -382,6 +423,31 @@ class AppShellView extends StatelessWidget {
     if (parts.length == 1) return parts.first.characters.first.toUpperCase();
     return (parts.first.characters.first + parts.last.characters.first)
         .toUpperCase();
+  }
+}
+
+/// Alternância de tema na barra superior do shell (desktop/tablet — DDR-003
+/// header). Espelha o switch do Perfil (mesma fonte: [ThemeModeController]);
+/// claro↔escuro num toque. Ícone reflete o estado efetivo.
+class _ShellThemeToggle extends StatelessWidget {
+  const _ShellThemeToggle();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = ThemeModeController.instance;
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final platform = MediaQuery.platformBrightnessOf(context);
+        final dark = controller.isDark(platform);
+        return IconButton(
+          key: const Key('shell-theme-toggle-bar'),
+          tooltip: dark ? 'Tema claro' : 'Tema escuro',
+          icon: Icon(dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+          onPressed: () => controller.setDark(!dark),
+        );
+      },
+    );
   }
 }
 
