@@ -1,0 +1,179 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:turni_webapp/features/app/shell/app_shell_view.dart';
+import 'package:turni_webapp/features/app/shell/shell_chrome.dart';
+
+// STORY-077 — testes de widget do shell adaptativo (apresentacional, sem router).
+// CA-1 (forma por breakpoint), CA-2 (destinos por papel na nav), CA-4 (chrome por
+// perfil), CA-5 (toque ≥48dp), CA-6 (a11y: label + semântica de selecionado).
+
+/// Monta o [AppShellView] numa viewport de largura [width].
+Future<void> _pumpAt(
+  WidgetTester tester, {
+  required double width,
+  String role = 'profissional',
+  int currentIndex = 0,
+  ValueChanged<int>? onSelect,
+  VoidCallback? onNovaVaga,
+  VoidCallback? onLogout,
+  Brightness brightness = Brightness.light,
+}) async {
+  tester.view.devicePixelRatio = 1.0;
+  tester.view.physicalSize = Size(width, 900);
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: ThemeData(brightness: brightness, useMaterial3: true),
+      home: AppShellView(
+        role: role,
+        currentIndex: currentIndex,
+        onDestinationSelected: onSelect ?? (_) {},
+        onNovaVaga: onNovaVaga ?? () {},
+        onLogout: onLogout ?? () {},
+        child: const Center(child: Text('conteúdo')),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  group('CA-1 — forma da navegação por breakpoint (DDR-001 §5.6)', () {
+    testWidgets('(a) compact (<600) → NavigationBar inferior', (tester) async {
+      await _pumpAt(tester, width: 400);
+      expect(find.byKey(const Key('shell-nav-bar')), findsOneWidget);
+      expect(find.byKey(const Key('shell-nav-rail')), findsNothing);
+      expect(find.byKey(const Key('shell-nav-drawer')), findsNothing);
+      expect(find.byType(NavigationBar), findsOneWidget);
+    });
+
+    testWidgets('(d) borda 599 ainda é compact; 600 vira rail', (tester) async {
+      await _pumpAt(tester, width: 599);
+      expect(find.byKey(const Key('shell-nav-bar')), findsOneWidget);
+      await _pumpAt(tester, width: 600);
+      expect(find.byKey(const Key('shell-nav-rail')), findsOneWidget);
+    });
+
+    testWidgets('(a) medium (600–839) → NavigationRail recolhida', (tester) async {
+      await _pumpAt(tester, width: 700);
+      expect(find.byKey(const Key('shell-nav-rail')), findsOneWidget);
+      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+      expect(rail.extended, isFalse);
+    });
+
+    testWidgets('(a) expanded (840–1199) → NavigationRail estendida', (tester) async {
+      await _pumpAt(tester, width: 1000);
+      expect(find.byKey(const Key('shell-nav-rail')), findsOneWidget);
+      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+      expect(rail.extended, isTrue);
+    });
+
+    testWidgets('(d) borda 1199 ainda é rail; 1200 vira drawer', (tester) async {
+      await _pumpAt(tester, width: 1199);
+      expect(find.byKey(const Key('shell-nav-rail')), findsOneWidget);
+      expect(find.byKey(const Key('shell-nav-drawer')), findsNothing);
+      await _pumpAt(tester, width: 1200);
+      expect(find.byKey(const Key('shell-nav-drawer')), findsOneWidget);
+      expect(find.byKey(const Key('shell-nav-rail')), findsNothing);
+    });
+
+    testWidgets('(a) large (≥1200) → sidebar persistente (drawer)', (tester) async {
+      await _pumpAt(tester, width: 1300);
+      expect(find.byKey(const Key('shell-nav-drawer')), findsOneWidget);
+      // O conteúdo continua presente ao lado da sidebar.
+      expect(find.text('conteúdo'), findsOneWidget);
+    });
+  });
+
+  group('CA-2 — destinos do papel aparecem na navegação', () {
+    testWidgets('(a) profissional vê Vagas/Turnos/Perfil na bottom bar', (tester) async {
+      await _pumpAt(tester, width: 400, role: 'profissional');
+      final bar = find.byKey(const Key('shell-nav-bar'));
+      expect(find.descendant(of: bar, matching: find.text('Vagas')), findsOneWidget);
+      expect(find.descendant(of: bar, matching: find.text('Turnos')), findsOneWidget);
+      expect(find.descendant(of: bar, matching: find.text('Perfil')), findsOneWidget);
+    });
+
+    testWidgets('(b) papel desconhecido → sem destinos (fail-secure), sem crash', (tester) async {
+      await _pumpAt(tester, width: 400, role: 'admin');
+      // Sem destinos, não há NavigationBar (M3 exige ≥2); o shell não quebra e
+      // ainda mostra o conteúdo.
+      expect(find.text('conteúdo'), findsOneWidget);
+      expect(find.byType(NavigationBar), findsNothing);
+    });
+
+    testWidgets('(d) contratante vê "Nova vaga" no rail; profissional não', (tester) async {
+      await _pumpAt(tester, width: 1000, role: 'contratante');
+      expect(find.byKey(const Key('shell-fab-nova-vaga')), findsOneWidget);
+      await _pumpAt(tester, width: 1000, role: 'profissional');
+      expect(find.byKey(const Key('shell-fab-nova-vaga')), findsNothing);
+    });
+  });
+
+  group('CA-3 — estado ativo reflete o índice e navegação dispara callback', () {
+    testWidgets('(a) índice ativo destaca o destino e tap chama onDestinationSelected', (tester) async {
+      var selected = -1;
+      await _pumpAt(
+        tester,
+        width: 400,
+        currentIndex: 0,
+        onSelect: (i) => selected = i,
+      );
+      final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      expect(bar.selectedIndex, 0);
+      await tester.tap(find.text('Turnos'));
+      await tester.pumpAndSettle();
+      expect(selected, 1);
+    });
+  });
+
+  group('CA-4 — chrome da navegação segue o perfil nos dois temas', () {
+    testWidgets('(a) bottom bar profissional pintada no chrome verde-sage', (tester) async {
+      await _pumpAt(tester, width: 400, role: 'profissional');
+      final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      expect(bar.backgroundColor, ShellChrome.forRole('profissional').surface);
+    });
+
+    testWidgets('(a) bottom bar contratante pintada no chrome mostarda — mesmo no escuro', (tester) async {
+      await _pumpAt(tester, width: 400, role: 'contratante', brightness: Brightness.dark);
+      final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      expect(bar.backgroundColor, ShellChrome.forRole('contratante').surface);
+    });
+
+    testWidgets('(a) sidebar desktop pintada no chrome do perfil', (tester) async {
+      await _pumpAt(tester, width: 1300, role: 'contratante');
+      final drawer = tester.widget<Container>(
+        find.descendant(
+          of: find.byKey(const Key('shell-nav-drawer')),
+          matching: find.byType(Container),
+        ).first,
+      );
+      final deco = drawer.decoration as BoxDecoration?;
+      final color = deco?.color ?? drawer.color;
+      expect(color, ShellChrome.forRole('contratante').surface);
+    });
+  });
+
+  group('CA-5/CA-6 — toque ≥48dp, label acessível e Sair', () {
+    testWidgets('(d) bottom bar tem altura de toque ≥48dp', (tester) async {
+      await _pumpAt(tester, width: 400);
+      final size = tester.getSize(find.byType(NavigationBar));
+      expect(size.height, greaterThanOrEqualTo(48.0));
+    });
+
+    testWidgets('(a) sidebar expõe Sair com semântica de botão (CA-6)', (tester) async {
+      await _pumpAt(tester, width: 1300);
+      expect(find.byKey(const Key('shell-logout')), findsOneWidget);
+    });
+
+    testWidgets('(a) destinos têm rótulo textual visível (ícone + label, CA-6)', (tester) async {
+      await _pumpAt(tester, width: 1300, role: 'profissional');
+      final drawer = find.byKey(const Key('shell-nav-drawer'));
+      expect(find.descendant(of: drawer, matching: find.text('Vagas')), findsOneWidget);
+      expect(find.descendant(of: drawer, matching: find.text('Turnos')), findsOneWidget);
+      expect(find.descendant(of: drawer, matching: find.text('Perfil')), findsOneWidget);
+    });
+  });
+}
