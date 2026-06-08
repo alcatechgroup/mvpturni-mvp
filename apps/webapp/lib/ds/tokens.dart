@@ -68,6 +68,16 @@ abstract final class TurniColors {
   static const warnSoftLight = Color(0xFFFBEED1);
   static const warnDark = Color(0xFFD4A95C);
   static const warnSoftDark = Color(0x26D4A95C);
+
+  // Chrome do shell de navegação por perfil (DDR-001 §2.2 / DDR-003). A sidebar /
+  // rail / bottom bar é SEMPRE escura nos dois temas — é a assinatura do produto.
+  // O acento ativo sobre o chrome escuro reusa o accent do tema escuro do perfil
+  // (accentDark / contratanteAccentDark). Contraste fechado em AA no DDR-001 §6.2.
+  static const chromeProfissional = Color(0xFF1B2E1F);
+  static const chromeContratante = Color(0xFF3D2A0E);
+  static const chromeOn = Color(0xFFECEDE5); // rótulo/ícone do item ATIVO/base
+  static const chromeOnMuted = Color(0x9EECEDE5); // item inativo (~62% de opacidade)
+  static const chromeLine = Color(0x14FFFFFF); // divisórias sobre o chrome (~8%)
 }
 
 // Espaçamento — grade 8pt com meio-passo de 4pt (DDR-001 §5.2).
