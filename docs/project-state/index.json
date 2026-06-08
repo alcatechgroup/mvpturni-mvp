@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-06-07",
+  "generated_at": "2026-06-08",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
-    "current_sprint": "SPRINT-2026-W28",
-    "last_closed_sprint": "SPRINT-2026-W27.5",
-    "phase": "wave-2026-01-sprint-w28-ATIVA-epic-003-reta-final-14-de-16-done-restam-075-implementacao-e-068-validador",
-    "next_action": "SPRINT-2026-W28 na RETA FINAL (D+4, 2026-06-07): 14/16 done — ciclo completo do turno vivo em homolog (incl. cancelamento/no_show_pro e scheduler plumbado) e as 8 notificações do turno aprovadas pelo PO (STORY-067 done, rc.83). Gatilho de reescopo cedo (2026-06-20) satisfeito com folga; soft-cap 2026-07-04 sem risco aparente. AGORA (na ordem): (1) agente PROGRAMADOR executa STORY-075 (banner global em homolog 'Ambiente de teste — pagamentos simulados', S, ortogonal — última implementação da sprint); (2) com 075 done, agente VALIDADOR roda STORY-068 (validação final do EPIC-003, 4ª aparição — atenção ao resíduo de teste em pix_falhas e à cota Resend ~33 e-mails/execução, máx 1 run E2E/dia); (3) com veredito aceitável, PO fecha a W28 por goal-atingido e decide a próxima sprint (EPIC-004 — com pausa explícita planejada entre os épicos). Pendência de papel que NÃO bloqueia: revisão de ADR-005/ADR-016 pós-PDR-017 pelo Arquiteto (apontada desde 2026-06-04).",
-    "notes": "Snapshot 2026-06-07 (acompanhamento diário do PO): W28 ativa, 14/16 done (067 aprovada pelo PO em 2026-06-07), 075+068 ready. Caminho crítico do EPIC-003 inteiro em homolog; risco 'sprint mais pesada estoura soft-cap' praticamente extinto. Gap de indexação detectado e corrigido: STORY-057/068/075 ausentes do array stories (presentes só em story_ids) — reconstruídas a partir do frontmatter dos arquivos. ADR-005 + ADR-016 seguem aguardando revisão do Arquiteto pós-PDR-017. EPIC-011 (geocoding) ready para sprint futura."
+    "current_sprint": "SPRINT-2026-W29",
+    "last_closed_sprint": "SPRINT-2026-W28",
+    "phase": "wave-2026-01-pausa-entre-epic-003-e-epic-004-SPRINT-W29-UX-UI-ABERTA-epic-012-shell-de-navegacao",
+    "next_action": "SPRINT-2026-W29 aberta (2026-06-08) por PDR-018, ocupando a pausa planejada entre EPIC-003 e EPIC-004. Abre o EPIC-012 (Shell de navegacao + pente fino de UX do WebApp). AGORA (na ordem): (1) agente DESIGNER executa STORY-076 (decide e registra DDR-003 = padrao de navegacao global + protótipo HTML navegavel; apresenta ao humano para 'vai'); (2) com DDR-003 accepted, agente PROGRAMADOR executa STORY-077 (app shell adaptativo, L — gatilho de quebra documentado), depois STORY-078 (migrar telas para o shell), STORY-079 (estados vazios/erro/loading) e STORY-080 (auditoria a11y AA + microcopy); (3) agente VALIDADOR roda STORY-081 (validacao final EPIC-012); (4) PO fecha a W29 por goal-atingido e abre o EPIC-004. Ortogonal, pode iniciar ja: STORY-082 (deflake do E2E de sincronia do cronometro F-B-1 + housekeeping do indice F-NB-4 — divida do veredito da W28). Pendencia de papel que NAO bloqueia: revisao de ADR-005/ADR-016 pos-PDR-017 pelo Arquiteto.",
+    "notes": "Snapshot 2026-06-08 (abertura da W29 pelo PO): EPIC-003 fechado em 2026-06-07 (16/16, goal-atingido). Por PDR-018, a pausa entre EPIC-003 e EPIC-004 vira sprint de UX/UI: EPIC-012 (shell de navegacao responsivo — sidebar/rail no desktop p/ contratante, nav inferior no mobile p/ profissional — + pente fino: estados vazios/erro/loading, a11y AA, microcopy). Superficies: WebApp contratante+profissional; Backoffice fora. Padrao de navegacao sera DDR-003 (do Designer, na STORY-076). EPIC-004 (avaliacao reciproca) segue draft e passa a nascer dentro do shell. Dividas do veredito W28 carregadas na STORY-082 (ortogonal). DDR-003 ainda nao indexado — sera adicionado pelo Designer quando produzido."
   },
   "product": {
     "vision": "product/vision.md",
@@ -51,6 +51,7 @@
         "EPIC-001",
         "EPIC-002",
         "EPIC-003",
+        "EPIC-012",
         "EPIC-004",
         "EPIC-005",
         "EPIC-006",
@@ -248,7 +249,8 @@
         "STORY-066",
         "STORY-067",
         "STORY-068",
-        "STORY-075"
+        "STORY-075",
+        "STORY-082"
       ],
       "abandoned_story_ids": [
         "STORY-056-B"
@@ -260,10 +262,28 @@
         "validated_by": "validador (claude-opus-4-8-validador-2026-06-07)"
       },
       "created_at": "2026-05-26",
-      "updated_at": "2026-06-07",
+      "updated_at": "2026-06-08",
       "sprint": "SPRINT-2026-W28",
       "pivoted_by": "PDR-017",
       "next_action": "EPIC-003 na reta final (2026-06-07): 13/15 estórias do épico done (3 spikes + 058..067); ciclo completo do turno vivo em homolog com pagamento via fake genérico (PDR-017). STORY-067 done (2026-06-07 — 8 notificações do turno aprovadas pelo PO, rc.83). Restam STORY-075 (banner global, S — única implementação pendente) e STORY-068 (validação final — destrava quando a 075 fechar). ADR-015/016/017 produzidas pelos spikes; ADR-005 + ADR-016 aguardam revisão do Arquiteto pós-PDR-017 (não bloqueia a validação, mas o validador registra o estado)."
+    },
+    {
+      "id": "EPIC-012",
+      "slug": "shell-navegacao-e-ux",
+      "title": "Shell de navegação e pente fino de UX do WebApp",
+      "wave": "WAVE-2026-01",
+      "status": "ready",
+      "path": "epics/EPIC-012-shell-navegacao-e-ux/epic.md",
+      "story_ids": [
+        "STORY-076",
+        "STORY-077",
+        "STORY-078",
+        "STORY-079",
+        "STORY-080",
+        "STORY-081"
+      ],
+      "created_at": "2026-06-08",
+      "updated_at": "2026-06-08"
     },
     {
       "id": "EPIC-004",
@@ -2285,6 +2305,157 @@
       "created_at": "2026-06-04",
       "updated_at": "2026-06-07",
       "note": "Entrada reconstruída no índice em 2026-06-07 pelo PO — a estória sempre existiu em arquivo, mas faltava no array `stories` (gap de indexação detectado no acompanhamento diário). Ortogonal (frontend); criada por PDR-017; renumerada de STORY-074 (colisão com EPIC-011/geocoding)."
+    },
+    {
+      "id": "STORY-076",
+      "epic_id": "EPIC-012",
+      "title": "Spike Designer — padrão de navegação global do WebApp (DDR-003) + protótipo navegável",
+      "type": "spike",
+      "target_role": "designer",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-077-app-shell",
+      "status": "done",
+      "owner_agent": "claude-opus-4-8",
+      "sprint_id": "SPRINT-2026-W29",
+      "estimated_session_size": "M",
+      "produces_ddr": "DDR-003",
+      "path": "epics/EPIC-012-shell-navegacao-e-ux/stories/STORY-076-spike-designer-padrao-navegacao-global.md",
+      "blocked_by": [],
+      "blocks": [
+        "STORY-077",
+        "STORY-078"
+      ],
+      "created_at": "2026-06-08",
+      "updated_at": "2026-06-08"
+    },
+    {
+      "id": "STORY-077",
+      "epic_id": "EPIC-012",
+      "title": "App shell adaptativo (rail/drawer desktop ↔ navegação inferior mobile) + destinos por papel",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-077-app-shell",
+      "status": "done",
+      "owner_agent": "claude-opus-4-8",
+      "sprint_id": "SPRINT-2026-W29",
+      "estimated_session_size": "L",
+      "path": "epics/EPIC-012-shell-navegacao-e-ux/stories/STORY-077-app-shell-adaptativo.md",
+      "blocked_by": [
+        "STORY-076"
+      ],
+      "blocks": [
+        "STORY-078"
+      ],
+      "created_at": "2026-06-08",
+      "updated_at": "2026-06-08"
+    },
+    {
+      "id": "STORY-078",
+      "epic_id": "EPIC-012",
+      "title": "Migrar as telas existentes do WebApp para o shell (nenhuma órfã) + contexto/título no desktop",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-077-app-shell",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W29",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-012-shell-navegacao-e-ux/stories/STORY-078-migrar-telas-para-o-shell.md",
+      "blocked_by": [
+        "STORY-077"
+      ],
+      "blocks": [
+        "STORY-081"
+      ],
+      "created_at": "2026-06-08",
+      "updated_at": "2026-06-08"
+    },
+    {
+      "id": "STORY-079",
+      "epic_id": "EPIC-012",
+      "title": "Padronizar estados vazios, de erro e de carregamento (skeleton) nas telas do WebApp",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-079-estados-padrao",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W29",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-012-shell-navegacao-e-ux/stories/STORY-079-estados-vazios-erro-carregamento.md",
+      "blocked_by": [
+        "STORY-077"
+      ],
+      "blocks": [
+        "STORY-081"
+      ],
+      "created_at": "2026-06-08",
+      "updated_at": "2026-06-08"
+    },
+    {
+      "id": "STORY-080",
+      "epic_id": "EPIC-012",
+      "title": "Auditoria de acessibilidade AA + navegação por teclado + alvos de toque + microcopy",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W29",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-012-shell-navegacao-e-ux/stories/STORY-080-auditoria-acessibilidade-aa-microcopy.md",
+      "blocked_by": [
+        "STORY-078"
+      ],
+      "blocks": [
+        "STORY-081"
+      ],
+      "created_at": "2026-06-08",
+      "updated_at": "2026-06-08"
+    },
+    {
+      "id": "STORY-081",
+      "epic_id": "EPIC-012",
+      "title": "Validação final do EPIC-012 — shell de navegação e pente fino de UX",
+      "type": "validation",
+      "target_role": "validador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W29",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-012-shell-navegacao-e-ux/stories/STORY-081-validacao-final-epic-012.md",
+      "blocked_by": [
+        "STORY-077",
+        "STORY-078",
+        "STORY-079",
+        "STORY-080"
+      ],
+      "blocks": [],
+      "created_at": "2026-06-08",
+      "updated_at": "2026-06-08"
+    },
+    {
+      "id": "STORY-082",
+      "epic_id": "EPIC-003",
+      "title": "Deflake do E2E de sincronia do cronômetro (F-B-1) + housekeeping do índice (F-NB-4)",
+      "type": "bugfix",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W29",
+      "estimated_session_size": "S",
+      "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-082-deflake-cronometro-e-housekeeping-indice.md",
+      "blocked_by": [],
+      "blocks": [],
+      "created_at": "2026-06-08",
+      "updated_at": "2026-06-08"
     }
   ],
   "sprints": [
@@ -2817,6 +2988,36 @@
       "closed_at": "2026-06-07",
       "closed_by": "PO (Alexandro / Claude)",
       "goal_outcome": "achieved"
+    },
+    {
+      "id": "SPRINT-2026-W29",
+      "wave": "WAVE-2026-01",
+      "status": "planned",
+      "start_date": "2026-06-08",
+      "end_date": null,
+      "soft_cap_date": "2026-07-06",
+      "opened_at": "2026-06-08",
+      "opened_by": "PO (Alexandro / Claude)",
+      "closure_rule": "Fechamento por goal-atingido: encerra quando STORY-076..080 estiverem done E STORY-081 (validador) emitir veredito aceitavel pelo PO. STORY-082 (deflake cronometro + housekeeping) e ortogonal — carry-forward do veredito da W28 (F-B-1 + F-NB-4); nao bloqueia o goal. Soft-cap 2026-07-06 (~28d) e gatilho de reavaliacao, nao prazo.",
+      "goal": "WebApp com shell de navegacao coerente e responsivo (EPIC-012): contratante por menu lateral (rail/drawer) no desktop, profissional por navegacao inferior no mobile, ambos responsivos; 100% das telas autenticadas alcancaveis pelo shell sem digitar rota (nenhuma orfa); estados vazios/erro/loading padronizados; a11y AA verde. Padrao de navegacao em DDR-003. Ortogonal: STORY-082 quita dividas do veredito W28 (deflake cronometro F-B-1 + housekeeping indice F-NB-4).",
+      "path": "sprints/SPRINT-2026-W29.md",
+      "story_ids": [
+        "STORY-076",
+        "STORY-077",
+        "STORY-078",
+        "STORY-079",
+        "STORY-080",
+        "STORY-081",
+        "STORY-082"
+      ],
+      "stretch_story_ids": [],
+      "sizing_total": "1 S + 5 M + 1 L (7 estorias) — EPIC-012 inteiro (1 spike designer + 4 impl + 1 validacao) + STORY-082 carry-forward W28 (S, ortogonal).",
+      "epics": [
+        "EPIC-012",
+        "EPIC-003"
+      ],
+      "scope_changes": [],
+      "opened_by_pdr": "PDR-018"
     }
   ],
   "decisions": {
@@ -2951,6 +3152,30 @@
           "STORY-075"
         ],
         "consequences": "STORY-056 reescopada (ACL provider-agnóstica + fake; trabalho técnico já feito preservado); STORY-056-B abandonada (sem sandbox real, contract test perde objeto); STORY-075 criada (banner global em homolog — renumerada de STORY-074 por colisão com EPIC-011/geocoding); ADR-005 + ADR-016 marcadas para revisão pelo Arquiteto; métrica primária do EPIC-003 ajustada (100% com fake em modo success em vez de ≥95% sandbox); promessa Pix em 15 min mantida como simulação; risco técnico nº 1 da onda neutralizado; próxima wave terá épico dedicado à integração Pagar.me real."
+      },
+      {
+        "id": "PDR-018",
+        "title": "Sprint de UX/UI (shell de navegação + pente fino) antes do EPIC-004",
+        "status": "accepted",
+        "path": "decisions/pdr/PDR-018-sprint-ux-ui-shell-de-navegacao-antes-do-epic-004.md",
+        "decided_at": "2026-06-08",
+        "related_epics": [
+          "EPIC-012",
+          "EPIC-004"
+        ],
+        "related_adrs": [
+          "ADR-001",
+          "ADR-007"
+        ],
+        "related_stories": [
+          "STORY-076",
+          "STORY-077",
+          "STORY-078",
+          "STORY-079",
+          "STORY-080",
+          "STORY-081"
+        ],
+        "consequences": "Abre EPIC-012 na SPRINT-2026-W29 antes do EPIC-004, ocupando a pausa planejada. Padrao de navegacao vira DDR-003 (Designer, STORY-076). Superficies WebApp contratante (desktop) + profissional (mobile); Backoffice fora. EPIC-004 adiado uma sprint e passa a nascer dentro do shell."
       }
     ],
     "adr": [
@@ -3476,11 +3701,56 @@
           "SCREEN-STORY-046-publicar-vaga"
         ],
         "source_story": "STORY-046"
+      },
+      {
+        "id": "DDR-003",
+        "title": "Shell de navegação global do WebApp — bottom bar (mobile) → rail (tablet) → drawer (desktop), pintado por perfil",
+        "status": "accepted",
+        "path": "decisions/ddr/DDR-003-shell-de-navegacao-global.md",
+        "decided_at": "2026-06-08",
+        "decided_by": "designer",
+        "approved_by": "Alexandro",
+        "scope": "navegação",
+        "affects_screens": [
+          "SCREEN-STORY-077-app-shell",
+          "SCREEN-STORY-047-minhas-vagas",
+          "SCREEN-STORY-048-feed-profissional",
+          "SCREEN-STORY-049-detalhe-vaga",
+          "SCREEN-STORY-051-painel-candidatos",
+          "SCREEN-STORY-059-listas-turnos",
+          "SCREEN-STORY-060-detalhe-turno"
+        ],
+        "source_story": "STORY-076"
       }
     ]
   },
   "design": {
     "screens": [
+      {
+        "id": "SCREEN-STORY-077-app-shell",
+        "story": "STORY-076",
+        "epic": "EPIC-012",
+        "status": "ready",
+        "path": "design/screens/SCREEN-STORY-077-app-shell/index.html",
+        "viewports": [
+          "mobile",
+          "tablet",
+          "desktop"
+        ],
+        "related_ddrs": [
+          "DDR-003",
+          "DDR-001"
+        ],
+        "ds_components_used": [
+          "pattern.navigation",
+          "nav.bar",
+          "nav.rail",
+          "nav.drawer"
+        ],
+        "owner_designer": "claude-opus-4-8",
+        "created_at": "2026-06-08",
+        "updated_at": "2026-06-08"
+      },
       {
         "id": "SCREEN-STORY-008-hello-world-webapp",
         "story": "STORY-008",
