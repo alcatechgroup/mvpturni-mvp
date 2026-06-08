@@ -56,21 +56,27 @@ void main() {
       expect(find.byKey(const Key('shell-nav-rail')), findsOneWidget);
     });
 
-    testWidgets('(a) medium (600–839) → NavigationRail recolhida', (tester) async {
+    testWidgets('(a) medium (600–839) → NavigationRail recolhida', (
+      tester,
+    ) async {
       await _pumpAt(tester, width: 700);
       expect(find.byKey(const Key('shell-nav-rail')), findsOneWidget);
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
       expect(rail.extended, isFalse);
     });
 
-    testWidgets('(a) expanded (840–1199) → NavigationRail estendida', (tester) async {
+    testWidgets('(a) expanded (840–1199) → NavigationRail estendida', (
+      tester,
+    ) async {
       await _pumpAt(tester, width: 1000);
       expect(find.byKey(const Key('shell-nav-rail')), findsOneWidget);
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
       expect(rail.extended, isTrue);
     });
 
-    testWidgets('(d) borda 1199 ainda é rail; 1200 vira drawer', (tester) async {
+    testWidgets('(d) borda 1199 ainda é rail; 1200 vira drawer', (
+      tester,
+    ) async {
       await _pumpAt(tester, width: 1199);
       expect(find.byKey(const Key('shell-nav-rail')), findsOneWidget);
       expect(find.byKey(const Key('shell-nav-drawer')), findsNothing);
@@ -79,7 +85,9 @@ void main() {
       expect(find.byKey(const Key('shell-nav-rail')), findsNothing);
     });
 
-    testWidgets('(a) large (≥1200) → sidebar persistente (drawer)', (tester) async {
+    testWidgets('(a) large (≥1200) → sidebar persistente (drawer)', (
+      tester,
+    ) async {
       await _pumpAt(tester, width: 1300);
       expect(find.byKey(const Key('shell-nav-drawer')), findsOneWidget);
       // O conteúdo continua presente ao lado da sidebar.
@@ -88,23 +96,39 @@ void main() {
   });
 
   group('CA-2 — destinos do papel aparecem na navegação', () {
-    testWidgets('(a) profissional vê Vagas/Turnos/Perfil na bottom bar', (tester) async {
+    testWidgets('(a) profissional vê Vagas/Turnos/Perfil na bottom bar', (
+      tester,
+    ) async {
       await _pumpAt(tester, width: 400, role: 'profissional');
       final bar = find.byKey(const Key('shell-nav-bar'));
-      expect(find.descendant(of: bar, matching: find.text('Vagas')), findsOneWidget);
-      expect(find.descendant(of: bar, matching: find.text('Turnos')), findsOneWidget);
-      expect(find.descendant(of: bar, matching: find.text('Perfil')), findsOneWidget);
+      expect(
+        find.descendant(of: bar, matching: find.text('Vagas')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: bar, matching: find.text('Turnos')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: bar, matching: find.text('Perfil')),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('(b) papel desconhecido → sem destinos (fail-secure), sem crash', (tester) async {
-      await _pumpAt(tester, width: 400, role: 'admin');
-      // Sem destinos, não há NavigationBar (M3 exige ≥2); o shell não quebra e
-      // ainda mostra o conteúdo.
-      expect(find.text('conteúdo'), findsOneWidget);
-      expect(find.byType(NavigationBar), findsNothing);
-    });
+    testWidgets(
+      '(b) papel desconhecido → sem destinos (fail-secure), sem crash',
+      (tester) async {
+        await _pumpAt(tester, width: 400, role: 'admin');
+        // Sem destinos, não há NavigationBar (M3 exige ≥2); o shell não quebra e
+        // ainda mostra o conteúdo.
+        expect(find.text('conteúdo'), findsOneWidget);
+        expect(find.byType(NavigationBar), findsNothing);
+      },
+    );
 
-    testWidgets('(d) contratante vê "Nova vaga" no rail; profissional não', (tester) async {
+    testWidgets('(d) contratante vê "Nova vaga" no rail; profissional não', (
+      tester,
+    ) async {
       await _pumpAt(tester, width: 1000, role: 'contratante');
       expect(find.byKey(const Key('shell-fab-nova-vaga')), findsOneWidget);
       await _pumpAt(tester, width: 1000, role: 'profissional');
@@ -112,43 +136,63 @@ void main() {
     });
   });
 
-  group('CA-3 — estado ativo reflete o índice e navegação dispara callback', () {
-    testWidgets('(a) índice ativo destaca o destino e tap chama onDestinationSelected', (tester) async {
-      var selected = -1;
-      await _pumpAt(
-        tester,
-        width: 400,
-        currentIndex: 0,
-        onSelect: (i) => selected = i,
+  group(
+    'CA-3 — estado ativo reflete o índice e navegação dispara callback',
+    () {
+      testWidgets(
+        '(a) índice ativo destaca o destino e tap chama onDestinationSelected',
+        (tester) async {
+          var selected = -1;
+          await _pumpAt(
+            tester,
+            width: 400,
+            currentIndex: 0,
+            onSelect: (i) => selected = i,
+          );
+          final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+          expect(bar.selectedIndex, 0);
+          await tester.tap(find.text('Turnos'));
+          await tester.pumpAndSettle();
+          expect(selected, 1);
+        },
       );
-      final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(bar.selectedIndex, 0);
-      await tester.tap(find.text('Turnos'));
-      await tester.pumpAndSettle();
-      expect(selected, 1);
-    });
-  });
+    },
+  );
 
   group('CA-4 — chrome da navegação segue o perfil nos dois temas', () {
-    testWidgets('(a) bottom bar profissional pintada no chrome verde-sage', (tester) async {
+    testWidgets('(a) bottom bar profissional pintada no chrome verde-sage', (
+      tester,
+    ) async {
       await _pumpAt(tester, width: 400, role: 'profissional');
       final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
       expect(bar.backgroundColor, ShellChrome.forRole('profissional').surface);
     });
 
-    testWidgets('(a) bottom bar contratante pintada no chrome mostarda — mesmo no escuro', (tester) async {
-      await _pumpAt(tester, width: 400, role: 'contratante', brightness: Brightness.dark);
-      final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(bar.backgroundColor, ShellChrome.forRole('contratante').surface);
-    });
+    testWidgets(
+      '(a) bottom bar contratante pintada no chrome mostarda — mesmo no escuro',
+      (tester) async {
+        await _pumpAt(
+          tester,
+          width: 400,
+          role: 'contratante',
+          brightness: Brightness.dark,
+        );
+        final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+        expect(bar.backgroundColor, ShellChrome.forRole('contratante').surface);
+      },
+    );
 
-    testWidgets('(a) sidebar desktop pintada no chrome do perfil', (tester) async {
+    testWidgets('(a) sidebar desktop pintada no chrome do perfil', (
+      tester,
+    ) async {
       await _pumpAt(tester, width: 1300, role: 'contratante');
       final drawer = tester.widget<Container>(
-        find.descendant(
-          of: find.byKey(const Key('shell-nav-drawer')),
-          matching: find.byType(Container),
-        ).first,
+        find
+            .descendant(
+              of: find.byKey(const Key('shell-nav-drawer')),
+              matching: find.byType(Container),
+            )
+            .first,
       );
       final deco = drawer.decoration as BoxDecoration?;
       final color = deco?.color ?? drawer.color;
@@ -163,17 +207,89 @@ void main() {
       expect(size.height, greaterThanOrEqualTo(48.0));
     });
 
-    testWidgets('(a) sidebar expõe Sair com semântica de botão (CA-6)', (tester) async {
+    testWidgets('(a) sidebar expõe Sair com semântica de botão (CA-6)', (
+      tester,
+    ) async {
       await _pumpAt(tester, width: 1300);
       expect(find.byKey(const Key('shell-logout')), findsOneWidget);
     });
 
-    testWidgets('(a) destinos têm rótulo textual visível (ícone + label, CA-6)', (tester) async {
-      await _pumpAt(tester, width: 1300, role: 'profissional');
-      final drawer = find.byKey(const Key('shell-nav-drawer'));
-      expect(find.descendant(of: drawer, matching: find.text('Vagas')), findsOneWidget);
-      expect(find.descendant(of: drawer, matching: find.text('Turnos')), findsOneWidget);
-      expect(find.descendant(of: drawer, matching: find.text('Perfil')), findsOneWidget);
-    });
+    testWidgets(
+      '(a) destinos têm rótulo textual visível (ícone + label, CA-6)',
+      (tester) async {
+        await _pumpAt(tester, width: 1300, role: 'profissional');
+        final drawer = find.byKey(const Key('shell-nav-drawer'));
+        expect(
+          find.descendant(of: drawer, matching: find.text('Vagas')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: drawer, matching: find.text('Turnos')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: drawer, matching: find.text('Perfil')),
+          findsOneWidget,
+        );
+      },
+    );
+  });
+
+  group('sidebar desktop — identidade e marca', () {
+    testWidgets(
+      '(a) com nome, mostra o user pill (nome + iniciais) e a tag do papel',
+      (tester) async {
+        tester.view.devicePixelRatio = 1.0;
+        tester.view.physicalSize = const Size(1300, 900);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(
+          MaterialApp(
+            home: AppShellView(
+              role: 'contratante',
+              userName: 'Marina Souza',
+              currentIndex: 0,
+              onDestinationSelected: (_) {},
+              onNovaVaga: () {},
+              onLogout: () {},
+              child: const SizedBox.shrink(),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final drawer = find.byKey(const Key('shell-nav-drawer'));
+        expect(
+          find.descendant(of: drawer, matching: find.text('Marina Souza')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: drawer, matching: find.text('MS')),
+          findsOneWidget,
+        );
+        // Tag do papel em caixa-alta.
+        expect(
+          find.descendant(of: drawer, matching: find.text('CONTRATANTE')),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      '(d) borda — sem nome, o user pill não aparece (sem linha vazia)',
+      (tester) async {
+        await _pumpAt(
+          tester,
+          width: 1300,
+          role: 'profissional',
+        ); // userName padrão ''
+        final drawer = find.byKey(const Key('shell-nav-drawer'));
+        // A tag do papel ainda aparece, mas não há pill de usuário.
+        expect(
+          find.descendant(of: drawer, matching: find.text('PROFISSIONAL')),
+          findsOneWidget,
+        );
+        expect(find.byType(CircleAvatar), findsNothing);
+      },
+    );
   });
 }

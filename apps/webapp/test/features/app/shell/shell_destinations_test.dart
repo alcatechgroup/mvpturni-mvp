@@ -8,36 +8,48 @@ import 'package:turni_webapp/features/app/shell/shell_destinations.dart';
 
 void main() {
   group('destinationsFor (CA-2)', () {
-    test('(a) feliz — profissional vê Vagas, Turnos e Perfil na ordem do DDR-003', () {
-      final d = destinationsFor('profissional');
-      expect(d.map((e) => e.id), ['vagas', 'turnos', 'perfil']);
-      expect(d.map((e) => e.label), ['Vagas', 'Turnos', 'Perfil']);
-      // Títulos do profissional (protótipo SCREEN-STORY-077).
-      expect(d[0].title, 'Vagas');
-      expect(d[1].title, 'Meus turnos');
-      expect(d[2].title, 'Perfil');
-      // Rotas canônicas dos branches.
-      expect(d.map((e) => e.route), ['/', '/turnos', '/perfil']);
-    });
+    test(
+      '(a) feliz — profissional vê Vagas, Turnos e Perfil na ordem do DDR-003',
+      () {
+        final d = destinationsFor('profissional');
+        expect(d.map((e) => e.id), ['vagas', 'turnos', 'perfil']);
+        expect(d.map((e) => e.label), ['Vagas', 'Turnos', 'Perfil']);
+        // Títulos do profissional (protótipo SCREEN-STORY-077).
+        expect(d[0].title, 'Vagas');
+        expect(d[1].title, 'Meus turnos');
+        expect(d[2].title, 'Perfil');
+        // Rotas canônicas dos branches.
+        expect(d.map((e) => e.route), ['/', '/turnos', '/perfil']);
+      },
+    );
 
-    test('(a) feliz — contratante vê os mesmos 3 destinos com títulos próprios', () {
-      final d = destinationsFor('contratante');
-      expect(d.map((e) => e.id), ['vagas', 'turnos', 'perfil']);
-      expect(d.map((e) => e.label), ['Vagas', 'Turnos', 'Perfil']);
-      expect(d[0].title, 'Minhas vagas');
-      expect(d[1].title, 'Turnos');
-      expect(d[2].title, 'Perfil');
-      expect(d.map((e) => e.route), ['/', '/turnos', '/perfil']);
-    });
+    test(
+      '(a) feliz — contratante vê os mesmos 3 destinos com títulos próprios',
+      () {
+        final d = destinationsFor('contratante');
+        expect(d.map((e) => e.id), ['vagas', 'turnos', 'perfil']);
+        expect(d.map((e) => e.label), ['Vagas', 'Turnos', 'Perfil']);
+        expect(d[0].title, 'Minhas vagas');
+        expect(d[1].title, 'Turnos');
+        expect(d[2].title, 'Perfil');
+        expect(d.map((e) => e.route), ['/', '/turnos', '/perfil']);
+      },
+    );
 
-    test('(b) inválido / fail-secure — papel desconhecido não expõe destino nenhum', () {
-      expect(destinationsFor('admin'), isEmpty);
-      expect(destinationsFor(''), isEmpty);
-    });
+    test(
+      '(b) inválido / fail-secure — papel desconhecido não expõe destino nenhum',
+      () {
+        expect(destinationsFor('admin'), isEmpty);
+        expect(destinationsFor(''), isEmpty);
+      },
+    );
 
-    test('(c) exceção — papel nulo (sessão ausente) não expõe destino nenhum', () {
-      expect(destinationsFor(null), isEmpty);
-    });
+    test(
+      '(c) exceção — papel nulo (sessão ausente) não expõe destino nenhum',
+      () {
+        expect(destinationsFor(null), isEmpty);
+      },
+    );
 
     test('(d) borda — nenhum destino de um papel vaza para o outro', () {
       final prof = destinationsFor('profissional').map((e) => e.title).toSet();
@@ -49,11 +61,14 @@ void main() {
       expect(prof, isNot(contains('Minhas vagas')));
     });
 
-    test('(d) borda — contratante tem ação primária "Nova vaga"; profissional não', () {
-      expect(destinationsFor('contratante'), isNotEmpty);
-      expect(hasNovaVagaAction('contratante'), isTrue);
-      expect(hasNovaVagaAction('profissional'), isFalse);
-      expect(hasNovaVagaAction(null), isFalse);
-    });
+    test(
+      '(d) borda — contratante tem ação primária "Nova vaga"; profissional não',
+      () {
+        expect(destinationsFor('contratante'), isNotEmpty);
+        expect(hasNovaVagaAction('contratante'), isTrue);
+        expect(hasNovaVagaAction('profissional'), isFalse);
+        expect(hasNovaVagaAction(null), isFalse);
+      },
+    );
   });
 }

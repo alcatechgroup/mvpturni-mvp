@@ -11,6 +11,7 @@
 //   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/cadastro_test.dart ...
 //
 // Tudo roda SAME-ORIGIN sob o harness (proxy reverso + --web-launch-url) — ver Makefile.
+import 'app_shell_test.dart' as app_shell;
 import 'auth_test.dart' as auth;
 import 'cadastro_test.dart' as cadastro;
 import 'env_banner_test.dart' as env_banner;
@@ -26,6 +27,9 @@ void main() {
   // turnos usa usuários EXCLUSIVOS do TurnosSeeder (*.turnos.seed@turni.local) — não
   // disputa estado com nenhuma suíte acima; roda por último por ser o mais novo.
   turnos.main();
+  // app_shell (STORY-077): navegação do shell nos 2 papéis × 2 viewports. Só LÊ
+  // (navega), não muta estado; reseta a viewport ao fim de cada cenário.
+  app_shell.main();
   // env_banner (STORY-075): aqui (TURNI_ENV ausente → local) asserta AUSÊNCIA do
   // banner; o caminho feliz (visível em homolog) roda em invocação própria com
   // --dart-define=TURNI_ENV=homolog (`make e2e-webapp-banner`).

@@ -23,15 +23,18 @@ void main() {
       expect(c.accent, TurniColors.contratanteAccentDark); // #D4A95C
     });
 
-    test('(b) inválido — papel desconhecido cai no chrome neutro do profissional '
-        '(fail-secure: nunca a identidade do outro papel)', () {
-      // Sem papel reconhecido, o shell não "vira" contratante por engano.
-      final desconhecido = ShellChrome.forRole('admin');
-      final nulo = ShellChrome.forRole(null);
-      expect(desconhecido.surface, TurniColors.chromeProfissional);
-      expect(nulo.surface, TurniColors.chromeProfissional);
-      expect(desconhecido.surface, isNot(TurniColors.chromeContratante));
-    });
+    test(
+      '(b) inválido — papel desconhecido cai no chrome neutro do profissional '
+      '(fail-secure: nunca a identidade do outro papel)',
+      () {
+        // Sem papel reconhecido, o shell não "vira" contratante por engano.
+        final desconhecido = ShellChrome.forRole('admin');
+        final nulo = ShellChrome.forRole(null);
+        expect(desconhecido.surface, TurniColors.chromeProfissional);
+        expect(nulo.surface, TurniColors.chromeProfissional);
+        expect(desconhecido.surface, isNot(TurniColors.chromeContratante));
+      },
+    );
 
     test('(d) borda — chrome é o MESMO valor independentemente do tema '
         '(escuro nos dois temas, DDR-001)', () {

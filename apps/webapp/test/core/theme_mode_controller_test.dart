@@ -14,16 +14,19 @@ void main() {
     await c.setMode(ThemeMode.system);
   });
 
-  test('(a) feliz — padrão é system; setDark(true) vira dark e persiste', () async {
-    await c.load();
-    expect(c.mode, ThemeMode.system);
+  test(
+    '(a) feliz — padrão é system; setDark(true) vira dark e persiste',
+    () async {
+      await c.load();
+      expect(c.mode, ThemeMode.system);
 
-    await c.setDark(true);
-    expect(c.mode, ThemeMode.dark);
+      await c.setDark(true);
+      expect(c.mode, ThemeMode.dark);
 
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getString('turni_theme_mode'), 'dark');
-  });
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('turni_theme_mode'), 'dark');
+    },
+  );
 
   test('(a) feliz — setDark(false) vira light e persiste', () async {
     await c.setDark(false);
@@ -32,11 +35,14 @@ void main() {
     expect(prefs.getString('turni_theme_mode'), 'light');
   });
 
-  test('(c) exceção — valor persistido inválido cai em system (sem crash)', () async {
-    SharedPreferences.setMockInitialValues({'turni_theme_mode': 'arco-iris'});
-    await c.load();
-    expect(c.mode, ThemeMode.system);
-  });
+  test(
+    '(c) exceção — valor persistido inválido cai em system (sem crash)',
+    () async {
+      SharedPreferences.setMockInitialValues({'turni_theme_mode': 'arco-iris'});
+      await c.load();
+      expect(c.mode, ThemeMode.system);
+    },
+  );
 
   test('(d) borda — isDark resolve system pela plataforma', () async {
     await c.setMode(ThemeMode.system);
@@ -44,7 +50,10 @@ void main() {
     expect(c.isDark(Brightness.light), isFalse);
 
     await c.setMode(ThemeMode.dark);
-    expect(c.isDark(Brightness.light), isTrue); // modo explícito ignora a plataforma
+    expect(
+      c.isDark(Brightness.light),
+      isTrue,
+    ); // modo explícito ignora a plataforma
 
     await c.setMode(ThemeMode.light);
     expect(c.isDark(Brightness.dark), isFalse);
