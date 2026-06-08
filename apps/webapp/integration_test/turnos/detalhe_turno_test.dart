@@ -45,7 +45,7 @@ void main() {
       await pumpUntilFound(tester, find.byKey(const Key('feed-screen')));
 
       // Lista (porta de entrada da 059) → toque no primeiro card (alvo da 060).
-      await tester.tap(find.byKey(const Key('feed-meus-turnos-btn')));
+      await goToTurnos(tester, profissional: true);
       await tester.pumpAndSettle();
       await pumpUntilFound(tester, find.byKey(const Key('meus-turnos-screen')));
       expect(_cardDeTurno, findsWidgets);
@@ -102,7 +102,7 @@ void main() {
     await tester.pumpAndSettle();
     await pumpUntilFound(tester, find.byKey(const Key('minhas-vagas-screen')));
 
-    await tester.tap(find.byKey(const Key('minhas-vagas-turnos-btn')));
+    await goToTurnos(tester, profissional: false);
     await tester.pumpAndSettle();
     await pumpUntilFound(
       tester,

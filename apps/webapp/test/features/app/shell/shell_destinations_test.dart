@@ -87,7 +87,11 @@ void main() {
         '/contratante/turnos',
         '/perfil',
       ]) {
-        expect(isDestinationRoot(r), isTrue, reason: 'raiz $r deveria ser true');
+        expect(
+          isDestinationRoot(r),
+          isTrue,
+          reason: 'raiz $r deveria ser true',
+        );
       }
     });
 

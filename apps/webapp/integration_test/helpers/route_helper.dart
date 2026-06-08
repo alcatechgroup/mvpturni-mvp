@@ -5,6 +5,26 @@ import 'package:turni_webapp/router.dart';
 /// Caminho da rota corrente segundo o go_router (ex.: `/login`, `/welcome`).
 String currentRoute() => router.routerDelegate.currentConfiguration.uri.path;
 
+/// Navega para a lista de turnos do papel via go_router (STORY-078: a porta de
+/// entrada deixou de ser o ícone ad-hoc na AppBar e virou o destino "Turnos" do
+/// shell). Estes E2E de detalhe/ciclo do turno só precisam *chegar* na lista —
+/// a navegação por UI (tocar o destino) é coberta por `app_shell/navegacao`.
+/// Usar o router torna o setup determinístico e independente do breakpoint.
+Future<void> goToTurnos(
+  WidgetTester tester, {
+  required bool profissional,
+}) async {
+  router.go(profissional ? '/profissional/turnos' : '/contratante/turnos');
+  await tester.pumpAndSettle();
+}
+
+/// Abre uma rota por URL via go_router (simula deep-link / atalho de
+/// notificação / bookmark — STORY-078 CA-4).
+Future<void> goTo(WidgetTester tester, String location) async {
+  router.go(location);
+  await tester.pumpAndSettle();
+}
+
 /// Asseria que a rota corrente do go_router é exatamente [path].
 ///
 /// Exemplo:

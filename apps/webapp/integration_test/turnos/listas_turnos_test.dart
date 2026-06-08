@@ -44,8 +44,9 @@ void main() {
       await tester.pumpAndSettle();
       await pumpUntilFound(tester, find.byKey(const Key('feed-screen')));
 
-      // Porta de entrada: ícone na AppBar do feed (SCREEN-059 §2).
-      await tester.tap(find.byKey(const Key('feed-meus-turnos-btn')));
+      // Porta de entrada: destino "Turnos" do shell (STORY-078) — via router p/
+      // determinismo; a navegação por UI é coberta por app_shell/navegacao.
+      await goToTurnos(tester, profissional: true);
       await tester.pumpAndSettle();
       await awaitRouteChange(tester, '/profissional/turnos');
       await pumpUntilFound(tester, find.byKey(const Key('meus-turnos-screen')));
@@ -92,8 +93,9 @@ void main() {
         find.byKey(const Key('minhas-vagas-screen')),
       );
 
-      // Porta de entrada: ícone na AppBar de Minhas vagas (SCREEN-059 §2).
-      await tester.tap(find.byKey(const Key('minhas-vagas-turnos-btn')));
+      // Porta de entrada: destino "Turnos" do shell (STORY-078) — via router p/
+      // determinismo; a navegação por UI é coberta por app_shell/navegacao.
+      await goToTurnos(tester, profissional: false);
       await tester.pumpAndSettle();
       await awaitRouteChange(tester, '/contratante/turnos');
       await pumpUntilFound(

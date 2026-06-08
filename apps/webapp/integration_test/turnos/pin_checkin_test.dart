@@ -47,7 +47,7 @@ Future<void> _ateODetalhe(WidgetTester tester) async {
   await tester.pumpAndSettle();
   await pumpUntilFound(tester, find.byKey(const Key('feed-screen')));
 
-  await tester.tap(find.byKey(const Key('feed-meus-turnos-btn')));
+  await goToTurnos(tester, profissional: true);
   await tester.pumpAndSettle();
   await pumpUntilFound(tester, find.byKey(const Key('meus-turnos-screen')));
   expect(_cardDeTurno, findsWidgets);

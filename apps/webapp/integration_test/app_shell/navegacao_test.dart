@@ -27,6 +27,21 @@ void _setViewport(WidgetTester tester, double width) {
 int _selectedBottom(WidgetTester tester) =>
     tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex;
 
+/// Card raiz de vaga no feed: `feed-card-{uuid}` (36 chars de uuid, sem sufixo
+/// como `-score`/`-alto-match`).
+final _feedCard = find.byWidgetPredicate((w) {
+  final k = w.key;
+  return k is ValueKey<String> &&
+      k.value.startsWith('feed-card-') &&
+      k.value.length == 'feed-card-'.length + 36;
+}, description: 'card raiz de vaga no feed');
+
+/// Texto [t] dentro da barra superior do shell.
+Finder _naBarra(String t) => find.descendant(
+  of: find.byKey(const Key('shell-app-bar')),
+  matching: find.text(t),
+);
+
 void main() {
   testWidgets(
     'profissional · mobile: bottom bar com destinos do papel e navegação ativa (CA-7)',
@@ -61,7 +76,37 @@ void main() {
       // Home = Vagas ativo.
       expect(_selectedBottom(tester), 0);
 
-      // Navega Vagas → Perfil (estado ativo acompanha a rota).
+      // STORY-078: o shell é dono da barra superior ("Vagas") e o atalho ad-hoc
+      // "Meus turnos" do feed foi removido (CA-2/CA-3).
+      expect(find.byKey(const Key('shell-app-bar')), findsOneWidget);
+      expect(_naBarra('Vagas'), findsOneWidget);
+      expect(find.byKey(const Key('feed-meus-turnos-btn')), findsNothing);
+
+      // Drill-down: tocar um card do feed empilha /vaga/:id DENTRO do branch —
+      // a barra do shell some (a tela mostra a própria AppBar) e o destino
+      // "Vagas" continua ativo (CA-4).
+      await pumpUntilFound(tester, _feedCard);
+      await tester.tap(_feedCard.first);
+      await tester.pumpAndSettle();
+      await awaitRouteLeaves(tester, '/');
+      expect(currentRoute(), startsWith('/vaga/'));
+      expect(find.byKey(const Key('shell-app-bar')), findsNothing);
+      expect(_selectedBottom(tester), 0);
+
+      // Volta ao destino Vagas (toque no destino ativo volta ao topo do branch).
+      await tester.tap(find.descendant(of: bar, matching: find.text('Vagas')));
+      await tester.pumpAndSettle();
+      await awaitRouteChange(tester, '/');
+
+      // Alcança o 3º destino — Turnos — completando 100% dos destinos do papel a
+      // partir do estado inicial (CA-1); o título da seção muda no shell (CA-3).
+      await tester.tap(find.descendant(of: bar, matching: find.text('Turnos')));
+      await tester.pumpAndSettle();
+      await awaitRouteChange(tester, '/turnos');
+      expect(_selectedBottom(tester), 1);
+      expect(_naBarra('Meus turnos'), findsOneWidget);
+
+      // Navega Turnos → Perfil (estado ativo acompanha a rota).
       await tester.tap(find.descendant(of: bar, matching: find.text('Perfil')));
       await tester.pumpAndSettle();
       await awaitRouteChange(tester, '/perfil');
@@ -73,6 +118,13 @@ void main() {
       await tester.pumpAndSettle();
       await awaitRouteChange(tester, '/');
       expect(_selectedBottom(tester), 0);
+
+      // Deep-link por URL (notificação/bookmark): entrar direto numa raiz de
+      // destino abre DENTRO do shell com o destino certo ativo (CA-4/CA-6).
+      await goTo(tester, '/profissional/turnos');
+      await pumpUntilFound(tester, find.byKey(const Key('meus-turnos-screen')));
+      expect(_selectedBottom(tester), 1);
+      expect(_naBarra('Meus turnos'), findsOneWidget);
     },
   );
 
@@ -98,11 +150,18 @@ void main() {
       // RBAC: contratante TEM a ação primária "Nova vaga".
       expect(find.byKey(const Key('shell-fab-nova-vaga')), findsOneWidget);
 
+      // STORY-078: barra superior do shell com "Minhas vagas"; o atalho ad-hoc
+      // "Turnos" da AppBar de Minhas vagas foi removido (CA-2/CA-3).
+      expect(find.byKey(const Key('shell-app-bar')), findsOneWidget);
+      expect(_naBarra('Minhas vagas'), findsOneWidget);
+      expect(find.byKey(const Key('minhas-vagas-turnos-btn')), findsNothing);
+
       // Navega Vagas → Perfil.
       await tester.tap(find.byKey(const Key('shell-nav-perfil')));
       await tester.pumpAndSettle();
       await awaitRouteChange(tester, '/perfil');
       await pumpUntilFound(tester, find.byKey(const Key('perfil-screen')));
+      expect(_naBarra('Perfil'), findsOneWidget);
 
       // Navega Perfil → Turnos (rota canônica role-dispatch → tela do contratante).
       await tester.tap(find.byKey(const Key('shell-nav-turnos')));
@@ -112,6 +171,8 @@ void main() {
         tester,
         find.byKey(const Key('contratante-turnos-screen')),
       );
+      // 100% dos destinos do contratante alcançados (CA-1); título no shell (CA-3).
+      expect(_naBarra('Turnos'), findsOneWidget);
       // O shell continua visível ao lado do conteúdo (persistente).
       expect(drawer, findsOneWidget);
     },

@@ -58,7 +58,7 @@ Future<String> _proGeraPin(
   await tester.pumpAndSettle();
   await pumpUntilFound(tester, find.byKey(const Key('feed-screen')));
 
-  await tester.tap(find.byKey(const Key('feed-meus-turnos-btn')));
+  await goToTurnos(tester, profissional: true);
   await tester.pumpAndSettle();
   await pumpUntilFound(tester, find.byKey(const Key('meus-turnos-screen')));
 
@@ -107,7 +107,7 @@ Future<void> _contratanteAteODetalhe(WidgetTester tester) async {
   await tester.pumpAndSettle();
 
   await pumpUntilFound(tester, find.byKey(const Key('minhas-vagas-screen')));
-  await tester.tap(find.byKey(const Key('minhas-vagas-turnos-btn')));
+  await goToTurnos(tester, profissional: false);
   await awaitRouteChange(tester, '/contratante/turnos');
   await pumpUntilFound(
     tester,
