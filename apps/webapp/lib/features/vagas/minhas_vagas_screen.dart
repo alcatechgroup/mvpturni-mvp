@@ -4,11 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
-import '../auth/auth_service.dart';
 import '../notificacoes/notificacoes_controller.dart';
-import '../notificacoes/notificacoes_painel.dart';
-import '../notificacoes/notificacoes_sino.dart';
-import '../turno/turno_ativo_acao.dart';
 import 'vaga_service.dart';
 
 /// STORY-047 / SCREEN-STORY-047 — "Minhas vagas" do contratante: lista as próprias
@@ -19,14 +15,11 @@ class MinhasVagasScreen extends StatefulWidget {
   const MinhasVagasScreen({
     super.key,
     VagaService? service,
-    AuthService? auth,
     this.filtroInicial,
     this.successMessage,
-  }) : _service = service,
-       _auth = auth;
+  }) : _service = service;
 
   final VagaService? _service;
-  final AuthService? _auth;
 
   /// Filtro inicial (deep-link `?filtro=`); senão usa o último da sessão / "ativas".
   final String? filtroInicial;
@@ -58,7 +51,6 @@ const _filtros = <String, String>{
 
 class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
   late final VagaService _service = widget._service ?? VagaService();
-  late final AuthService _auth = widget._auth ?? AuthService();
 
   _Phase _phase = _Phase.loading;
   List<VagaResumo> _todas = const [];
@@ -84,11 +76,6 @@ class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
         _toast(msg, key: const Key('publicar-vaga-sucesso-toast'));
       });
     }
-  }
-
-  Future<void> _logout() async {
-    await _auth.logout();
-    if (mounted) context.go('/login');
   }
 
   Future<void> _load() async {
@@ -151,32 +138,17 @@ class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
     final surfacePage = isDark
         ? TurniColors.surfacePageDark
         : TurniColors.surfacePageLight;
+    // STORY-078: o título "Minhas vagas", o sino e a ação de turno ativo agora
+    // vivem na barra do shell. O FAB "Publicar vaga" fica só no mobile — no
+    // desktop o shell já oferece "Nova vaga" no rail/sidebar (sem caminho
+    // duplicado, CA-2).
+    final isCompact = MediaQuery.sizeOf(context).width < 600;
 
     return Scaffold(
       key: const Key('minhas-vagas-screen'),
       backgroundColor: surfacePage,
-      appBar: AppBar(
-        title: const Text('Minhas vagas'),
-        actions: [
-          // Porta de entrada de "Turnos" do contratante (STORY-059 / SCREEN-059 §2).
-          IconButton(
-            key: const Key('minhas-vagas-turnos-btn'),
-            tooltip: 'Turnos',
-            icon: const Icon(Icons.event_note),
-            onPressed: () => context.go('/contratante/turnos'),
-          ),
-          const TurnoAtivoAcao(),
-          const NotificacoesSino(),
-          IconButton(
-            key: const Key('minhas-vagas-logout-btn'),
-            tooltip: 'Sair',
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-          ),
-        ],
-      ),
-      endDrawer: const NotificacoesPainel(),
-      floatingActionButton: _phase == _Phase.pronto && _todas.isNotEmpty
+      floatingActionButton:
+          isCompact && _phase == _Phase.pronto && _todas.isNotEmpty
           ? FloatingActionButton.extended(
               key: const Key('minhas-vagas-publicar-btn'),
               backgroundColor: accent,

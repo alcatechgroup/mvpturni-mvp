@@ -96,7 +96,7 @@ final router = GoRouter(
     // FORA do shell (sem barra de navegação).
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>
-          AppShell(navigationShell: navigationShell),
+          AppShell(navigationShell: navigationShell, location: state.uri.path),
       branches: [
         // Branch 0 — Vagas (home de cada papel + drill-downs de vagas).
         StatefulShellBranch(

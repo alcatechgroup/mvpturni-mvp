@@ -5,11 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
-import '../auth/auth_service.dart';
 import '../notificacoes/notificacoes_controller.dart';
-import '../notificacoes/notificacoes_painel.dart';
-import '../notificacoes/notificacoes_sino.dart';
-import '../turno/turno_ativo_acao.dart';
 import 'feed_service.dart';
 
 /// STORY-048 / SCREEN-STORY-048 — feed do profissional: lista ranqueada por match (CA-1/CA-3)
@@ -18,16 +14,10 @@ import 'feed_service.dart';
 /// profissional. RBAC (CA-1): contratante (403) cai em "sem permissão". Tocar no card abre o
 /// detalhe (STORY-049, placeholder até lá).
 class FeedScreen extends StatefulWidget {
-  const FeedScreen({
-    super.key,
-    FeedService? service,
-    AuthService? auth,
-    this.filtroInicial,
-  }) : _service = service,
-       _auth = auth;
+  const FeedScreen({super.key, FeedService? service, this.filtroInicial})
+    : _service = service;
 
   final FeedService? _service;
-  final AuthService? _auth;
 
   /// Filtro inicial (deep-link `?filtro=`); senão "todas".
   final String? filtroInicial;
@@ -40,7 +30,6 @@ enum _Phase { loading, semPermissao, erro, pronto }
 
 class _FeedScreenState extends State<FeedScreen> {
   late final FeedService _service = widget._service ?? FeedService();
-  late final AuthService _auth = widget._auth ?? AuthService();
   final ScrollController _scroll = ScrollController();
 
   _Phase _phase = _Phase.loading;
@@ -69,11 +58,6 @@ class _FeedScreenState extends State<FeedScreen> {
   /// Gate PDR-005 (CA-8): uniforme por request — se a 1ª vaga não pode candidatar, todas
   /// estão sob o gate. Dispara a faixa de aviso e desabilita os botões.
   bool get _gateAtivo => _vagas.isNotEmpty && !_vagas.first.podeCandidatar;
-
-  Future<void> _logout() async {
-    await _auth.logout();
-    if (mounted) context.go('/login');
-  }
 
   /// Primeira carga / troca de filtro / retry: reinicia a paginação (página 1).
   Future<void> _load() async {
@@ -135,30 +119,11 @@ class _FeedScreenState extends State<FeedScreen> {
         ? TurniColors.surfacePageDark
         : TurniColors.surfacePageLight;
 
+    // STORY-078: o chrome de topo (título "Vagas", sino, ação de turno ativo,
+    // Sair) vive agora na barra superior do shell. A tela é só conteúdo.
     return Scaffold(
       key: const Key('feed-screen'),
       backgroundColor: surfacePage,
-      appBar: AppBar(
-        title: const Text('Vagas para você'),
-        actions: [
-          // Porta de entrada de "Meus turnos" (STORY-059 / SCREEN-059 §2).
-          IconButton(
-            key: const Key('feed-meus-turnos-btn'),
-            tooltip: 'Meus turnos',
-            icon: const Icon(Icons.event_note),
-            onPressed: () => context.go('/profissional/turnos'),
-          ),
-          const TurnoAtivoAcao(),
-          const NotificacoesSino(),
-          IconButton(
-            key: const Key('feed-logout-btn'),
-            tooltip: 'Sair',
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-          ),
-        ],
-      ),
-      endDrawer: const NotificacoesPainel(),
       body: SafeArea(child: _body(isDark, accent)),
     );
   }

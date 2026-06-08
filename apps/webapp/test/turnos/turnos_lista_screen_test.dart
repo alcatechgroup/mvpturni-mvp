@@ -102,7 +102,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('meus-turnos-screen')), findsOneWidget);
-    expect(find.text('Meus turnos'), findsOneWidget);
+    // STORY-078: o título "Meus turnos" vive na barra do shell (coberto por
+    // app_shell_view_test / sectionTitleFor), não mais na AppBar da tela.
 
     // Seções na ordem do servidor, com contador.
     expect(find.byKey(const Key('turnos-grupo-confirmado')), findsOneWidget);
@@ -192,7 +193,7 @@ void main() {
         find.byKey(const Key('contratante-turnos-screen')),
         findsOneWidget,
       );
-      expect(find.text('Turnos'), findsOneWidget);
+      // STORY-078: título "Turnos" agora na barra do shell, não na tela.
       expect(find.text('Júlia Santos'), findsOneWidget);
       final valor = tester.widget<Text>(
         find.byKey(const Key('turno-card-u1-valor')),

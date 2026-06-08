@@ -76,12 +76,11 @@ void main() {
     },
   );
 
-  testWidgets('(a) feliz — expõe o sino de notificações e o botão Sair', (
-    tester,
-  ) async {
+  testWidgets('(a) feliz — expõe o botão Sair', (tester) async {
+    // STORY-078: o sino migrou para a barra do shell; o Perfil mantém o Sair
+    // (além de identidade e tema).
     AuthService().debugSetSession(_session());
     await _pump(tester);
-    expect(find.byKey(const Key('notificacoes-sino-btn')), findsOneWidget);
     expect(find.byKey(const Key('perfil-logout')), findsOneWidget);
   });
 }

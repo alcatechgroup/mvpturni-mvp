@@ -5,8 +5,6 @@ import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import '../notificacoes/notificacoes_controller.dart';
-import '../notificacoes/notificacoes_painel.dart';
-import '../notificacoes/notificacoes_sino.dart';
 import 'turnos_service.dart';
 
 /// Papel dono da lista — define tema, microcopy e a linha "quem" do card (SCREEN-059).
@@ -74,8 +72,6 @@ class _TurnosListaScreenState extends State<TurnosListaScreen> {
             ? TurniColors.contratanteAccentDark
             : TurniColors.contratanteAccentLight);
 
-  String get _titulo => _ehProfissional ? 'Meus turnos' : 'Turnos';
-
   String get _home => _ehProfissional ? '/feed' : '/contratante/vagas';
 
   @override
@@ -86,21 +82,13 @@ class _TurnosListaScreenState extends State<TurnosListaScreen> {
         ? TurniColors.surfacePageDark
         : TurniColors.surfacePageLight;
 
+    // STORY-078: "Turnos" é destino do shell — sem AppBar/voltar/sino próprios
+    // (o shell é dono da barra superior). A tela é só conteúdo.
     return Scaffold(
       key: Key(
         _ehProfissional ? 'meus-turnos-screen' : 'contratante-turnos-screen',
       ),
       backgroundColor: surfacePage,
-      appBar: AppBar(
-        leading: IconButton(
-          tooltip: 'Voltar',
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(_home),
-        ),
-        title: Text(_titulo),
-        actions: const [NotificacoesSino()],
-      ),
-      endDrawer: const NotificacoesPainel(),
       body: SafeArea(child: _body(isDark, accent)),
     );
   }

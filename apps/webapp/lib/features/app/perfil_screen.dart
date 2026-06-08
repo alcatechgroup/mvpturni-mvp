@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/theme_mode_controller.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
-import '../notificacoes/notificacoes_painel.dart';
-import '../notificacoes/notificacoes_sino.dart';
 
 /// Destino "Perfil" do shell (DDR-003). Dá um lar visível ao chrome que hoje
 /// vive espalhado: identidade do usuário, alternância de tema e Sair. **Não é
@@ -33,13 +31,10 @@ class PerfilScreen extends StatelessWidget {
         ? 'Contratante'
         : 'Profissional';
 
+    // STORY-078: "Perfil" é destino do shell — título e sino vivem na barra do
+    // shell. A tela é só conteúdo (identidade + tema + Sair).
     return Scaffold(
       key: const Key('perfil-screen'),
-      appBar: AppBar(
-        title: const Text('Perfil'),
-        actions: const [NotificacoesSino()],
-      ),
-      endDrawer: const NotificacoesPainel(),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(TurniSpacing.lg),

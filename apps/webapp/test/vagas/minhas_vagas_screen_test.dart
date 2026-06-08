@@ -89,6 +89,37 @@ void main() {
   });
   tearDown(() => AuthService().debugSetSession(null));
 
+  // ─────── STORY-078 — FAB "Publicar vaga" só no mobile (CA-2) ───────
+  // Com lista preenchida, o FAB aparece no compact; no desktop o shell já
+  // oferece "Nova vaga" no rail/sidebar — o FAB sumiria (sem caminho duplicado).
+
+  Future<void> _pumpAtWidth(WidgetTester tester, double width) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = Size(width, 900);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final svc = _FakeVagaService(
+      minhasResult: () => MinhasVagasSuccess([_vaga()]),
+    );
+    await tester.pumpWidget(_comRouter(svc));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('(a) lista preenchida no mobile (<600) mostra o FAB', (
+    tester,
+  ) async {
+    await _pumpAtWidth(tester, 400);
+    expect(find.byKey(const Key('minhas-vagas-publicar-btn')), findsOneWidget);
+  });
+
+  testWidgets('(d) lista preenchida no desktop (≥600) NÃO mostra o FAB', (
+    tester,
+  ) async {
+    await _pumpAtWidth(tester, 1000);
+    // O caminho "Nova vaga" no desktop é do shell — sem FAB duplicado.
+    expect(find.byKey(const Key('minhas-vagas-publicar-btn')), findsNothing);
+  });
+
   // ───────────────── CA-2 — card preenchido ─────────────────
 
   testWidgets(
