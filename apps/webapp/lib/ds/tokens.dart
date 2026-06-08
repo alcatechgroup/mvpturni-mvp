@@ -76,8 +76,12 @@ abstract final class TurniColors {
   static const chromeProfissional = Color(0xFF1B2E1F);
   static const chromeContratante = Color(0xFF3D2A0E);
   static const chromeOn = Color(0xFFECEDE5); // rótulo/ícone do item ATIVO/base
-  static const chromeOnMuted = Color(0x9EECEDE5); // item inativo (~62% de opacidade)
-  static const chromeLine = Color(0x14FFFFFF); // divisórias sobre o chrome (~8%)
+  static const chromeOnMuted = Color(
+    0x9EECEDE5,
+  ); // item inativo (~62% de opacidade)
+  static const chromeLine = Color(
+    0x14FFFFFF,
+  ); // divisórias sobre o chrome (~8%)
 }
 
 // Espaçamento — grade 8pt com meio-passo de 4pt (DDR-001 §5.2).
