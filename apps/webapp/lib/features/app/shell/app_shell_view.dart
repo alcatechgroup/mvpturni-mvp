@@ -47,22 +47,41 @@ class AppShellView extends StatelessWidget {
     final destinations = destinationsFor(role);
     final chrome = ShellChrome.forRole(role);
 
+    // Mensageiro de SnackBar próprio do CONTEÚDO. Como o shell envolve as telas
+    // numa Scaffold (para a barra/rail), a tela interna também é uma Scaffold —
+    // Scaffold aninhada. Sem um mensageiro próprio aqui, os SnackBars das telas
+    // (via ScaffoldMessenger.of) sobem para o mensageiro RAIZ e renderizam no
+    // rodapé da JANELA, cobrindo a `bottomNavigationBar` de ação da tela interna
+    // (ex.: o botão "Retirar" do detalhe da vaga vira intocável). Com o mensageiro
+    // aqui, o SnackBar volta a renderizar acima da barra de ação da própria tela
+    // (comportamento pré-shell). Migração de cabeçalho/ação é a STORY-078.
+    final content = ScaffoldMessenger(child: child);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
         if (w < _bpMedium) {
-          return _bottomLayout(destinations, chrome);
+          return _bottomLayout(destinations, chrome, content);
         }
         if (w < _bpLarge) {
-          return _railLayout(destinations, chrome, extended: w >= _bpExpanded);
+          return _railLayout(
+            destinations,
+            chrome,
+            content,
+            extended: w >= _bpExpanded,
+          );
         }
-        return _drawerLayout(destinations, chrome);
+        return _drawerLayout(destinations, chrome, content);
       },
     );
   }
 
   // ── compact: NavigationBar inferior ──
-  Widget _bottomLayout(List<ShellDestination> destinations, ShellChrome chrome) {
+  Widget _bottomLayout(
+    List<ShellDestination> destinations,
+    ShellChrome chrome,
+    Widget content,
+  ) {
     // M3 exige ≥2 destinos; sem destinos (fail-secure) o shell some, só o
     // conteúdo fica.
     final bar = destinations.length >= 2
@@ -86,17 +105,18 @@ class AppShellView extends StatelessWidget {
             ),
           )
         : null;
-    return Scaffold(body: child, bottomNavigationBar: bar);
+    return Scaffold(body: content, bottomNavigationBar: bar);
   }
 
   // ── medium/expanded: NavigationRail à esquerda ──
   Widget _railLayout(
     List<ShellDestination> destinations,
-    ShellChrome chrome, {
+    ShellChrome chrome,
+    Widget content, {
     required bool extended,
   }) {
     if (destinations.length < 2) {
-      return Scaffold(body: child);
+      return Scaffold(body: content);
     }
     final rail = NavigationRail(
       key: const Key('shell-nav-rail'),
@@ -142,7 +162,7 @@ class AppShellView extends StatelessWidget {
         children: [
           rail,
           const VerticalDivider(width: 1, thickness: 1),
-          Expanded(child: child),
+          Expanded(child: content),
         ],
       ),
     );
@@ -150,7 +170,10 @@ class AppShellView extends StatelessWidget {
 
   Widget _railLeading(ShellChrome chrome, {required bool extended}) {
     return Padding(
-      padding: const EdgeInsets.only(top: TurniSpacing.sm, bottom: TurniSpacing.sm),
+      padding: const EdgeInsets.only(
+        top: TurniSpacing.sm,
+        bottom: TurniSpacing.sm,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -174,7 +197,11 @@ class AppShellView extends StatelessWidget {
   }
 
   // ── large: sidebar persistente (drawer) ──
-  Widget _drawerLayout(List<ShellDestination> destinations, ShellChrome chrome) {
+  Widget _drawerLayout(
+    List<ShellDestination> destinations,
+    ShellChrome chrome,
+    Widget content,
+  ) {
     return Scaffold(
       body: Row(
         children: [
@@ -211,8 +238,7 @@ class AppShellView extends StatelessWidget {
                     ),
                   ),
                   Divider(height: 1, color: chrome.line),
-                  if (userName.trim().isNotEmpty)
-                    _userPill(chrome),
+                  if (userName.trim().isNotEmpty) _userPill(chrome),
                   const SizedBox(height: TurniSpacing.sm),
                   // Destinos
                   for (var i = 0; i < destinations.length; i++)
@@ -260,7 +286,7 @@ class AppShellView extends StatelessWidget {
             ),
           ),
           const VerticalDivider(width: 1, thickness: 1),
-          Expanded(child: child),
+          Expanded(child: content),
         ],
       ),
     );
@@ -282,7 +308,10 @@ class AppShellView extends StatelessWidget {
             backgroundColor: chrome.accentSoft,
             child: Text(
               initials,
-              style: TextStyle(color: chrome.accent, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: chrome.accent,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           const SizedBox(width: TurniSpacing.sm),
@@ -303,7 +332,10 @@ class AppShellView extends StatelessWidget {
       TextSpan(
         children: [
           const TextSpan(text: 'TURN'),
-          TextSpan(text: 'I', style: TextStyle(color: chrome.accent)),
+          TextSpan(
+            text: 'I',
+            style: TextStyle(color: chrome.accent),
+          ),
           const TextSpan(text: '.'),
         ],
       ),
@@ -395,8 +427,11 @@ class _SidebarItem extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(selected ? destination.selectedIcon : destination.icon,
-                      color: fg, size: 22),
+                  Icon(
+                    selected ? destination.selectedIcon : destination.icon,
+                    color: fg,
+                    size: 22,
+                  ),
                   const SizedBox(width: TurniSpacing.md),
                   Text(
                     destination.label,

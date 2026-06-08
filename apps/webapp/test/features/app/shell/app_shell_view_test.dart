@@ -292,4 +292,76 @@ void main() {
       },
     );
   });
+
+  group('regressão — SnackBar da tela interna não cobre a barra de ação', () {
+    // Sob a Scaffold aninhada do shell, sem um ScaffoldMessenger próprio do
+    // conteúdo, o SnackBar de uma tela interna sobe para o mensageiro RAIZ e
+    // renderiza no rodapé da JANELA, cobrindo a `bottomNavigationBar` de ação da
+    // tela (ex.: o "Retirar" do detalhe da vaga). Este teste fixa que o SnackBar
+    // fica ACIMA da barra de ação interna (comportamento pré-shell preservado).
+    testWidgets('(c) SnackBar renderiza acima da bottomNavigationBar interna', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1300, 900);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      // Tela interna: Scaffold com barra de ação (botão "Retirar") embaixo e um
+      // gatilho que dispara um SnackBar via o ScaffoldMessenger em escopo.
+      final inner = Scaffold(
+        body: Builder(
+          builder: (context) => Center(
+            child: ElevatedButton(
+              key: const Key('inner-toast-trigger'),
+              onPressed: () => ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('feito'))),
+              child: const Text('toast'),
+            ),
+          ),
+        ),
+        bottomNavigationBar: SizedBox(
+          height: 72,
+          child: Center(
+            child: ElevatedButton(
+              key: const Key('inner-acao-btn'),
+              onPressed: () {},
+              child: const Text('Retirar'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AppShellView(
+            role: 'profissional',
+            currentIndex: 0,
+            onDestinationSelected: (_) {},
+            onNovaVaga: () {},
+            onLogout: () {},
+            child: inner,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('inner-toast-trigger')));
+      await tester.pump(); // dispara o SnackBar
+      await tester.pump(const Duration(milliseconds: 400)); // entra na tela
+
+      expect(find.byType(SnackBar), findsOneWidget);
+      final snack = tester.getRect(find.byType(SnackBar));
+      final acao = tester.getRect(find.byKey(const Key('inner-acao-btn')));
+      // O SnackBar fica acima da barra de ação interna — não a cobre.
+      expect(
+        snack.bottom,
+        lessThanOrEqualTo(acao.top + 1),
+        reason:
+            'SnackBar (bottom=${snack.bottom}) cobriu a barra de ação '
+            '(top=${acao.top}) — mensageiro do conteúdo não escopou o toast',
+      );
+    });
+  });
 }
