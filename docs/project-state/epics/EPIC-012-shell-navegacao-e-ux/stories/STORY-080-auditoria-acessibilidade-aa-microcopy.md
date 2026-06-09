@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: null
-status: in_progress
+status: in_review
 owner_agent: claude-opus-programador-2026-06-09
 created_at: 2026-06-08
 updated_at: 2026-06-09
@@ -45,7 +45,7 @@ Acessibilidade não é "modo à parte" — é a única forma de o produto ser us
 - [x] **CA-4:** Mensagens de erro associadas ao campo (não só cor) — já por construção (`errorText`/`validator`), coberto por testes; microcopy revisada — resíduo "Member Start:" do vazio de candidatos corrigido com texto aprovado pelo PO.
 - [x] **CA-5:** **Gate automatizado de acessibilidade** roda no CI (`flutter test test/a11y/`) e está verde; regressão futura é pega pelo gate. (Via `meetsGuideline` nativo, não axe/lighthouse — IDR-030.)
 - [x] **CA-6:** Sem regressão — suíte completa verde (660); microcopy de domínio escalada ao PO, não decidida no código.
-- [ ] **CA-7:** Deploy homologação verificado.
+- [x] **CA-7:** Deploy homologação verificado — `v0.1.0-rc.91` (run 27206992591, todos os jobs verdes; prod pulado pelo gate humano). `app.homolog.turni.com.br/health.json` = rc.91; smoke do pipeline bate version.json nas 3 interfaces.
 
 ## Fora de escopo
 
@@ -140,7 +140,10 @@ NÃO decide: copy de domínio que mude significado (PO), alvo de conformidade (A
 - CA-4 (erro associado a campo + microcopy): **FEITO** — errorText/validator (coberto por testes) + microcopy do vazio de candidatos corrigida (texto aprovado pelo PO).
 - CA-5 (gate no CI): **FEITO** — step no `ci.yml` + IDR-030.
 - CA-6 (sem regressão): **FEITO** — suíte completa verde (660).
-- CA-7 (deploy homolog): pendente.
+- CA-7 (deploy homolog): **FEITO** — rc.91 verde, app.homolog = rc.91.
+
+### Para a validação (STORY-081) / PO
+Esta é uma **entrega de escopo ajustado** (decisões do dono em 2026-06-09): CA-2 fora do MVP; restante de CA-1/CA-3 (PIN/cronômetro + telas de harness pesado + amostragem manual no browser) **adiado**. Se o épico exigir cobertura total, o caminho é uma estória de follow-up de a11y para essas telas — o gate (`test/a11y/`) e o padrão (`onAccentFor`, IDR-030) já estão prontos para recebê-las.
 
 ### Links de evidência
 - Commits (main, local — ainda não push): assume; gate offline + retry; gate shell+Perfil; fix feed+minhas; fix 6 telas (20 sites); fix botões verde/destrutivos; CI gate + IDR-030; gate turnos.

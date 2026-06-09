@@ -2403,7 +2403,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": null,
-      "status": "in_progress",
+      "status": "in_review",
       "owner_agent": "claude-opus-programador-2026-06-09",
       "sprint_id": "SPRINT-2026-W29",
       "estimated_session_size": "M",
