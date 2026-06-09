@@ -1116,7 +1116,9 @@ class _AcaoBar extends StatelessWidget {
         onPressed: habilitado ? onCandidatar : null,
         style: FilledButton.styleFrom(
           backgroundColor: accent,
-          foregroundColor: Colors.white,
+          foregroundColor: isDark
+              ? TurniColors.onAccentDark
+              : TurniColors.onAccentLight,
           minimumSize: const Size(0, 48),
           shape: const StadiumBorder(),
         ),
@@ -1336,7 +1338,9 @@ class _ConfirmarSheetState extends State<_ConfirmarSheet> {
             onPressed: _enviando ? null : _confirmar,
             style: FilledButton.styleFrom(
               backgroundColor: widget.accent,
-              foregroundColor: Colors.white,
+              foregroundColor: TurniColors.onAccentFor(
+                Theme.of(context).brightness,
+              ),
               minimumSize: const Size(0, 48),
               shape: const StadiumBorder(),
             ),
@@ -1775,7 +1779,9 @@ class _SemPermissaoView extends StatelessWidget {
               onPressed: onVoltar,
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
-                foregroundColor: Colors.white,
+                foregroundColor: TurniColors.onAccentFor(
+                  Theme.of(context).brightness,
+                ),
                 shape: const StadiumBorder(),
               ),
               child: const Text('Voltar ao início'),
@@ -1819,7 +1825,9 @@ class _IndisponivelView extends StatelessWidget {
               onPressed: onVoltar,
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
-                foregroundColor: Colors.white,
+                foregroundColor: TurniColors.onAccentFor(
+                  Theme.of(context).brightness,
+                ),
                 shape: const StadiumBorder(),
               ),
               child: const Text('Voltar ao feed'),

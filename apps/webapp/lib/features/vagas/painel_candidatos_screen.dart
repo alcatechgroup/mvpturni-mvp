@@ -1307,7 +1307,9 @@ class _SemPermissaoView extends StatelessWidget {
         onPressed: () => context.go('/'),
         style: FilledButton.styleFrom(
           backgroundColor: accent,
-          foregroundColor: Colors.white,
+          foregroundColor: TurniColors.onAccentFor(
+            Theme.of(context).brightness,
+          ),
           minimumSize: const Size(0, 48),
           shape: const StadiumBorder(),
         ),
@@ -1333,7 +1335,9 @@ class _NaoEncontradaView extends StatelessWidget {
         onPressed: () => context.go('/contratante/vagas'),
         style: FilledButton.styleFrom(
           backgroundColor: accent,
-          foregroundColor: Colors.white,
+          foregroundColor: TurniColors.onAccentFor(
+            Theme.of(context).brightness,
+          ),
           minimumSize: const Size(0, 48),
           shape: const StadiumBorder(),
         ),

@@ -1170,7 +1170,9 @@ class _AcoesCheckinState extends State<_AcoesCheckin> {
                     : null,
                 style: FilledButton.styleFrom(
                   backgroundColor: widget.accent,
-                  foregroundColor: Colors.white,
+                  foregroundColor: TurniColors.onAccentFor(
+                    Theme.of(context).brightness,
+                  ),
                   minimumSize: const Size.fromHeight(48),
                   shape: const StadiumBorder(),
                   textStyle: const TextStyle(
@@ -1632,7 +1634,9 @@ class _AcoesValidarCheckinState extends State<_AcoesValidarCheckin> {
                 onPressed: _pinCompleto && !_validando ? _validar : null,
                 style: FilledButton.styleFrom(
                   backgroundColor: widget.accent,
-                  foregroundColor: Colors.white,
+                  foregroundColor: TurniColors.onAccentFor(
+                    Theme.of(context).brightness,
+                  ),
                   minimumSize: const Size.fromHeight(48),
                   shape: const StadiumBorder(),
                   textStyle: const TextStyle(
@@ -2236,7 +2240,9 @@ class _AcoesCheckoutState extends State<_AcoesCheckout> {
                 onPressed: _gerando || _cancelando ? null : _gerar,
                 style: FilledButton.styleFrom(
                   backgroundColor: widget.accent,
-                  foregroundColor: Colors.white,
+                  foregroundColor: TurniColors.onAccentFor(
+                    Theme.of(context).brightness,
+                  ),
                   minimumSize: const Size.fromHeight(48),
                   shape: const StadiumBorder(),
                   textStyle: const TextStyle(
@@ -2564,7 +2570,9 @@ class _AcoesValidarCheckoutState extends State<_AcoesValidarCheckout> {
                 onPressed: _pinCompleto && !_validando ? _validar : null,
                 style: FilledButton.styleFrom(
                   backgroundColor: widget.accent,
-                  foregroundColor: Colors.white,
+                  foregroundColor: TurniColors.onAccentFor(
+                    Theme.of(context).brightness,
+                  ),
                   minimumSize: const Size.fromHeight(48),
                   shape: const StadiumBorder(),
                   textStyle: const TextStyle(
@@ -3022,7 +3030,9 @@ class _NaoEncontradoView extends StatelessWidget {
               onPressed: () => context.go(destino),
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
-                foregroundColor: Colors.white,
+                foregroundColor: TurniColors.onAccentFor(
+                  Theme.of(context).brightness,
+                ),
                 minimumSize: const Size(220, 48),
                 shape: const StadiumBorder(),
               ),

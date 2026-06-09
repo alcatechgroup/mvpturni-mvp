@@ -417,7 +417,7 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
       onPressed: _submitting ? null : _submit,
       style: FilledButton.styleFrom(
         backgroundColor: accent,
-        foregroundColor: Colors.white,
+        foregroundColor: TurniColors.onAccentFor(Theme.of(context).brightness),
         // Altura mínima 48 (toque); largura 0 para não exigir largura infinita dentro
         // do Row do layout largo — no mobile o Column `stretch` já estica full-width.
         minimumSize: const Size(0, 48),
@@ -660,7 +660,9 @@ class _GateView extends StatelessWidget {
                         context.go('/contratante/avaliacoes/pendentes'),
                     style: FilledButton.styleFrom(
                       backgroundColor: accent,
-                      foregroundColor: Colors.white,
+                      foregroundColor: TurniColors.onAccentFor(
+                        Theme.of(context).brightness,
+                      ),
                       minimumSize: const Size.fromHeight(48),
                       shape: const StadiumBorder(),
                     ),
@@ -745,7 +747,9 @@ class _ErroCarregarView extends StatelessWidget {
               onPressed: onRetry,
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
-                foregroundColor: Colors.white,
+                foregroundColor: TurniColors.onAccentFor(
+                  Theme.of(context).brightness,
+                ),
                 shape: const StadiumBorder(),
               ),
               child: const Text('Tentar de novo'),

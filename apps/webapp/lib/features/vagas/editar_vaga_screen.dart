@@ -509,7 +509,9 @@ class _EditarVagaScreenState extends State<EditarVagaScreen> {
                 onPressed: _revisar,
                 style: FilledButton.styleFrom(
                   backgroundColor: accent,
-                  foregroundColor: Colors.white,
+                  foregroundColor: TurniColors.onAccentFor(
+                    Theme.of(context).brightness,
+                  ),
                   minimumSize: const Size.fromHeight(48),
                   shape: const StadiumBorder(),
                 ),
@@ -687,7 +689,9 @@ class _ConfirmarSheet extends StatelessWidget {
             onPressed: onConfirmar,
             style: FilledButton.styleFrom(
               backgroundColor: accent,
-              foregroundColor: Colors.white,
+              foregroundColor: TurniColors.onAccentFor(
+                Theme.of(context).brightness,
+              ),
               minimumSize: const Size.fromHeight(48),
               shape: const StadiumBorder(),
             ),
@@ -990,7 +994,9 @@ class _NaoEditavelView extends StatelessWidget {
               onPressed: () => context.go('/contratante/vagas'),
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
-                foregroundColor: Colors.white,
+                foregroundColor: TurniColors.onAccentFor(
+                  Theme.of(context).brightness,
+                ),
                 shape: const StadiumBorder(),
               ),
               child: const Text('Ver a vaga'),
@@ -1028,7 +1034,9 @@ class _ErroCarregarView extends StatelessWidget {
               onPressed: onRetry,
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
-                foregroundColor: Colors.white,
+                foregroundColor: TurniColors.onAccentFor(
+                  Theme.of(context).brightness,
+                ),
                 shape: const StadiumBorder(),
               ),
               child: const Text('Tentar de novo'),
