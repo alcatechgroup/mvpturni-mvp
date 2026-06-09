@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:turni_webapp/features/auth/auth_service.dart';
 import 'package:turni_webapp/features/feed/feed_screen.dart';
 import 'package:turni_webapp/features/feed/feed_service.dart';
+import 'package:turni_webapp/features/turnos/turnos_lista_screen.dart';
+import 'package:turni_webapp/features/turnos/turnos_service.dart';
 import 'package:turni_webapp/features/vagas/minhas_vagas_screen.dart';
 import 'package:turni_webapp/features/vagas/vaga_service.dart';
 
@@ -61,6 +63,32 @@ class _FakeVagaService extends VagaService {
   @override
   Future<MinhasVagasResult> fetchMinhas() async => _result;
 }
+
+// ──────────────────── Turnos (lista, ambos os papéis) ────────────────────
+
+class _FakeTurnosService extends TurnosService {
+  _FakeTurnosService(this._result);
+  final TurnosResult _result;
+  @override
+  Future<TurnosResult> fetchDoProfissional() async => _result;
+  @override
+  Future<TurnosResult> fetchDoContratante() async => _result;
+}
+
+TurnoResumo _turno({
+  String id = 'u1',
+  String funcao = 'Garçom',
+  TurnoEstadoResumo estado = TurnoEstadoResumo.confirmado,
+  String? quem = 'Bar do Zé',
+}) => TurnoResumo(
+  id: id,
+  funcao: funcao,
+  dataInicio: DateTime(2026, 6, 12, 18),
+  dataFim: DateTime(2026, 6, 12, 23),
+  estado: estado,
+  valor: 200.0,
+  quem: quem,
+);
 
 VagaResumo _vaga({
   String id = '1',
@@ -138,6 +166,59 @@ void main() {
         );
         await expectScreenMeetsA11y(tester);
       });
+    }
+  });
+
+  group('TurnosListaScreen — gate a11y (carregado)', () {
+    final papeis = {
+      TurnosPapel.profissional: 'profissional',
+      TurnosPapel.contratante: 'contratante',
+    };
+    for (final entry in papeis.entries) {
+      for (final dark in [false, true]) {
+        final tema = dark ? 'escuro' : 'claro';
+        testWidgets('${entry.value} — tema $tema', (tester) async {
+          entrar(entry.value);
+          final svc = _FakeTurnosService(
+            TurnosSuccess([
+              GrupoTurnos(grupo: TurnoGrupo.confirmado, turnos: [_turno()]),
+              GrupoTurnos(
+                grupo: TurnoGrupo.finalizado,
+                turnos: [
+                  _turno(
+                    id: 'u2',
+                    funcao: 'Bartender',
+                    estado: TurnoEstadoResumo.finalizado,
+                  ),
+                ],
+              ),
+            ]),
+          );
+          await pumpA11y(
+            tester,
+            (theme) => MaterialApp.router(
+              theme: theme,
+              routerConfig: GoRouter(
+                initialLocation: '/',
+                routes: [
+                  GoRoute(
+                    path: '/',
+                    builder: (_, _) =>
+                        TurnosListaScreen(papel: entry.key, service: svc),
+                  ),
+                  GoRoute(
+                    path: '/turnos/:id',
+                    builder: (_, _) => const Scaffold(body: Text('DET')),
+                  ),
+                ],
+              ),
+            ),
+            dark: dark,
+            surfaceSize: const Size(420, 900),
+          );
+          await expectScreenMeetsA11y(tester);
+        });
+      }
     }
   });
 
