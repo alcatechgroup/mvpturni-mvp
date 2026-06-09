@@ -10,6 +10,7 @@
 // não repete em browser real (mesma estratégia das listas da 047/048).
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 
 import '../helpers/login_helper.dart';
 import '../helpers/pump_app.dart';
@@ -29,6 +30,7 @@ final _cardDeTurno = find.byWidgetPredicate((w) {
 }, description: 'card raiz de turno');
 
 void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
     'profissional: feed → "Meus turnos" com seções do ciclo de vida (CA-1/CA-3)',
     (tester) async {

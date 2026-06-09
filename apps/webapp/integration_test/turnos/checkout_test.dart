@@ -24,6 +24,7 @@
 // injetada via `debugCapturarPosicaoOverride` (mesmo padrão da 061/062).
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 import 'package:turni_webapp/features/turno/geolocalizacao.dart';
 
 import '../helpers/login_helper.dart';
@@ -131,6 +132,7 @@ Future<void> _validarCom(
 }
 
 void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   tearDown(() => debugCapturarPosicaoOverride = null);
 
   testWidgets(

@@ -14,6 +14,7 @@
 // ≥ 60s de janela contínua.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 import 'package:turni_webapp/features/turnos/cronometro_service.dart';
 
 import '../helpers/login_helper.dart';
@@ -123,6 +124,7 @@ Future<String> _ateOCronometro(WidgetTester tester) async {
 }
 
 void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
     'cronômetro bilateral vivo: profissional e contratante veem o MESMO tempo '
     '(≤ 2s, ≥ 12 amostras em ≥ 60s — CA-2/3/4)',

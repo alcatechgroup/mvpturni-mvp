@@ -91,6 +91,8 @@ Duas assinaturas de falha (ambas já custaram um ciclo de gate — minutos por r
    ```
    Os resultados nunca são reportados porque o binding ativo não é o de integração. **Não** reescreva o teste — mova o `ensureInitialized()` para o `main()` do leaf (e deixe o entrypoint só encadeando).
 
+**Enforcement automatizado (2026-06-09).** O gotcha era recorrente porque nada o impedia em silêncio: a suíte `turnos/` nasceu (STORY-059+) com **todos os 8 leaves sem** `ensureInitialized` — funcionava só dentro de `web_test.dart` (onde `auth` inicializa o binding antes) e **travava** ao rodar `E2E_TARGET=integration_test/turnos_test.dart` isolado. Corrigido: os 8 leaves de `turnos/` passaram a inicializar o binding como os demais. Para **não voltar a acontecer**, há um guard em `apps/webapp/test/integration_test_binding_guard_test.dart` que varre todo leaf `integration_test/<feature>/*_test.dart` e **falha** se algum não chamar `ensureInitialized()`. Roda no `flutter test` → `make test` → hook de pré-push. Assim, um leaf novo sem binding quebra o pré-push imediatamente, em vez de custar um ciclo inteiro de E2E para diagnosticar.
+
 ### Gotcha de IPv6/IPv4 (não óbvio — custou ~horas no diagnóstico)
 
 No macOS, `flutter drive --web-hostname=localhost` binda o dev-server em **`::1` (IPv6) apenas**, e um proxy que conecta em `127.0.0.1` (IPv4) recebe **ECONNREFUSED** → o browser leva 502, o bundle JS não carrega, o app não boota e o `flutter drive` **pendura ~11 min** (timeout do `pumpAndSettle`) sem reportar. **Por isso o harness usa `--web-hostname=127.0.0.1`** (bind IPv4) e o proxy conecta em `127.0.0.1`. Se algum dia o dev-server ou o proxy mudar de família de endereço, casar as duas pontas (ambas IPv4 ou ambas IPv6). Sintoma diagnóstico: `E2E_PROXY_DEBUG=1` no proxy mostra só `GET /` repetido (sem requests `.js`).
@@ -110,3 +112,4 @@ No macOS, `flutter drive --web-hostname=localhost` binda o dev-server em **`::1`
 - 2026-06-01 — criada como `proposed` por programador (sessão claude-opus-4-8-programador-2026-06-01) durante STORY-043, a partir do Caminho 1 provado por spike (2026-06-01).
 - 2026-06-01 — `accepted` pelo PO (Alexandro) junto com a aprovação da STORY-043.
 - 2026-06-09 — adicionado o "Gotcha do binding de integração (leaf × entrypoint)" com as duas assinaturas de falha (STORY-088, a pedido do PO para valer ao time, não só na memória pessoal do agente).
+- 2026-06-09 — corrigida a suíte `turnos/` (8 leaves passaram a inicializar o binding) e adicionado o **guard automatizado** (`integration_test_binding_guard_test.dart`) que falha o pré-push se um leaf não chamar `ensureInitialized()`. Fecha o ciclo recorrente apontado na validação do EPIC-004 (STORY-089).

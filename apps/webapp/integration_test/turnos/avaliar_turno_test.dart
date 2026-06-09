@@ -9,6 +9,7 @@
 // Profissional e contratante avaliam direções distintas do MESMO turno — não colidem na execução.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 
 import '../helpers/login_helper.dart';
 import '../helpers/pump_app.dart';
@@ -96,6 +97,7 @@ Future<void> _avaliarFluxo(
 }
 
 void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
     'profissional avalia o turno: bloqueio sem estrela → sucesso (CA-6)',
     (tester) async {

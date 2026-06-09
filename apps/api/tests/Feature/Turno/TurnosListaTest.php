@@ -5,6 +5,7 @@
 // grupo (CA-1/CA-2), RBAC fail-secure (CA-5) e visibilidade financeira por papel (PDR-004).
 
 use App\Enums\TurnoStatus;
+use App\Models\Avaliacao;
 use App\Models\ContratanteProfile;
 use App\Models\Turno;
 use App\Models\User;
@@ -191,7 +192,7 @@ test('turno finalizado COM a avaliação do profissional marca avaliacao_pendent
     $pro = User::factory()->profissional()->ativo()->create();
     $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create(['profissional_id' => $pro->id]);
     // A direção do PROFISSIONAL já avaliada (a do contratante é irrelevante p/ a pendência dele).
-    \App\Models\Avaliacao::factory()->doProfissional()->paraTurno($turno)->estrelas(5)->create();
+    Avaliacao::factory()->doProfissional()->paraTurno($turno)->estrelas(5)->create();
 
     $item = $this->actingAs($pro)->getJson('/api/profissional/turnos')->assertStatus(200)
         ->json('grupos.0.turnos.0');
@@ -214,7 +215,7 @@ test('contratante: finalizado sem a avaliação dele = pendente; com ela = não'
     $pendente = Turno::factory()->status(TurnoStatus::Finalizado)->create(['contratante_id' => $contratante->id]);
     $avaliado = Turno::factory()->status(TurnoStatus::Finalizado)->create(['contratante_id' => $contratante->id]);
     // Direção do CONTRATANTE já feita só no $avaliado (factory default = contratante→profissional).
-    \App\Models\Avaliacao::factory()->paraTurno($avaliado)->estrelas(4)->create();
+    Avaliacao::factory()->paraTurno($avaliado)->estrelas(4)->create();
 
     $turnos = collect($this->actingAs($contratante)->getJson('/api/contratante/turnos')
         ->assertStatus(200)->json('grupos.0.turnos'))->keyBy('id');

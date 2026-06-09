@@ -17,6 +17,7 @@
 // próximo `_e2e-seed` (recriaConsumido).
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 
 import '../helpers/login_helper.dart';
 import '../helpers/pump_app.dart';
@@ -120,6 +121,7 @@ Future<void> _cancelarPeloDialog(WidgetTester tester, {String? motivo}) async {
 }
 
 void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
     'profissional cancela turno confirmado: dialog com motivo, badge terminal e trilha (CA-1/CA-2)',
     (tester) async {

@@ -18,6 +18,7 @@
 // harness não concede permissão de geolocalização programaticamente — mesmo padrão da 061).
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 import 'package:turni_webapp/features/turno/geolocalizacao.dart';
 
 import '../helpers/login_helper.dart';
@@ -173,6 +174,7 @@ Future<void> _validarCom(WidgetTester tester, String pin) async {
 String _pinErrado(String pin) => pin == '0000' ? '1111' : '0000';
 
 void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   tearDown(() => debugCapturarPosicaoOverride = null);
 
   testWidgets(
