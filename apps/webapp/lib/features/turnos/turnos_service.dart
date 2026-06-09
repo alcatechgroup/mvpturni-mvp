@@ -86,6 +86,10 @@ class TurnoResumo {
   /// Nula quando o back não enviou — o card omite a linha (SCREEN-059 §4.6).
   final String? quem;
 
+  /// STORY-088 — o turno está finalizado e este usuário ainda não o avaliou (direção do papel):
+  /// o card mostra o atalho "Avaliar". Default false (não-finalizados / já avaliados).
+  final bool avaliacaoPendente;
+
   const TurnoResumo({
     required this.id,
     required this.funcao,
@@ -94,6 +98,7 @@ class TurnoResumo {
     required this.estado,
     required this.valor,
     required this.quem,
+    this.avaliacaoPendente = false,
   });
 
   factory TurnoResumo.fromJson(Map<String, dynamic> json) => TurnoResumo(
@@ -109,6 +114,7 @@ class TurnoResumo {
         (json['estabelecimento'] as Map<String, dynamic>?)?['nome']
             as String? ??
         (json['profissional'] as Map<String, dynamic>?)?['nome'] as String?,
+    avaliacaoPendente: json['avaliacao_pendente'] as bool? ?? false,
   );
 }
 

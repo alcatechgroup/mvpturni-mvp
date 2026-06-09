@@ -249,14 +249,18 @@ class _TurnoCard extends StatelessWidget {
               border: Border.all(color: border),
               borderRadius: const BorderRadius.all(TurniRadius.md),
             ),
-            child: _conteudo(textStrong, textMuted),
+            child: _conteudo(context, textStrong, textMuted),
           ),
         ),
       ),
     );
   }
 
-  Widget _conteudo(Color textStrong, Color textMuted) => Column(
+  Widget _conteudo(
+    BuildContext context,
+    Color textStrong,
+    Color textMuted,
+  ) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -302,27 +306,87 @@ class _TurnoCard extends StatelessWidget {
         ],
       ),
       const SizedBox(height: TurniSpacing.sm),
-      Text.rich(
-        key: Key('turno-card-${turno.id}-valor'),
-        TextSpan(
-          text: formatBRL(turno.valor),
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: textStrong,
-          ),
-          children: [
-            // Contratante vê o TOTAL que paga (PDR-004); o sufixo explicita.
-            if (!ehProfissional)
+      Row(
+        children: [
+          Expanded(
+            child: Text.rich(
+              key: Key('turno-card-${turno.id}-valor'),
               TextSpan(
-                text: ' · total',
-                style: TextStyle(fontWeight: FontWeight.w400, color: textMuted),
+                text: formatBRL(turno.valor),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: textStrong,
+                ),
+                children: [
+                  // Contratante vê o TOTAL que paga (PDR-004); o sufixo explicita.
+                  if (!ehProfissional)
+                    TextSpan(
+                      text: ' · total',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        color: textMuted,
+                      ),
+                    ),
+                ],
               ),
-          ],
-        ),
+            ),
+          ),
+          // STORY-088 — atalho "Avaliar" só nos turnos pendentes (finalizado sem a avaliação
+          // deste papel). Toque deep-linka à tela de avaliação; o resto do card vai ao detalhe.
+          if (turno.avaliacaoPendente) _AvaliarPill(turnoId: turno.id),
+        ],
       ),
     ],
   );
+}
+
+/// Pílula "Avaliar" (warn.soft + ícone + texto — nunca só cor) no card de turno pendente de
+/// avaliação. InkWell aninhado: captura o toque sem disparar a navegação do card (→ detalhe).
+class _AvaliarPill extends StatelessWidget {
+  const _AvaliarPill({required this.turnoId});
+
+  final String turnoId;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? TurniColors.warnSoftDark : TurniColors.warnSoftLight;
+    final fg = isDark
+        ? TurniColors.warnDark
+        : TurniColors.contratanteAccentInkLight;
+
+    return Material(
+      color: bg,
+      borderRadius: const BorderRadius.all(TurniRadius.full),
+      child: InkWell(
+        key: Key('turno-card-$turnoId-avaliar'),
+        borderRadius: const BorderRadius.all(TurniRadius.full),
+        onTap: () => context.go('/turnos/$turnoId/avaliar'),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: TurniSpacing.md,
+            vertical: 10,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.rate_review_outlined, size: 16, color: fg),
+              const SizedBox(width: TurniSpacing.xs),
+              Text(
+                'Avaliar',
+                style: TextStyle(
+                  color: fg,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ───────────────────────── Selo de estado (badge.status — variantes de Turno) ────────────────
