@@ -32,12 +32,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // 1) Garante uma vaga `aberta` determinística publicando pela UI (POST real).
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('minhas-vagas-publicar-btn')),
-      );
-      await tester.tap(find.byKey(const Key('minhas-vagas-publicar-btn')));
-      await awaitRouteChange(tester, '/contratante/vagas/nova');
+      // STORY-078: o FAB "Publicar vaga" virou só-mobile (CA-2 — no desktop o shell
+      // tem "Nova vaga"). Vai direto ao form por rota (determinístico, independe do
+      // viewport); a presença do FAB/CTA é coberta no widget test.
+      await goTo(tester, '/contratante/vagas/nova');
 
       await pumpUntilFound(
         tester,

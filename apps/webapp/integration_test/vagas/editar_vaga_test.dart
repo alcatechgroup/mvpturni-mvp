@@ -29,12 +29,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // 1) Publica uma vaga `aberta` determinística pela UI (POST real).
-    await pumpUntilFound(
-      tester,
-      find.byKey(const Key('minhas-vagas-publicar-btn')),
-    );
-    await tester.tap(find.byKey(const Key('minhas-vagas-publicar-btn')));
-    await awaitRouteChange(tester, '/contratante/vagas/nova');
+    // STORY-078: FAB "Publicar vaga" só-mobile (CA-2). Vai direto ao form por rota.
+    await goTo(tester, '/contratante/vagas/nova');
 
     await pumpUntilFound(
       tester,

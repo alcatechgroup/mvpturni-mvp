@@ -36,14 +36,11 @@ void main() {
     await awaitRouteChange(tester, '/');
     await tester.pumpAndSettle(); // assenta a home antes de procurar o CTA
 
-    // Porta de entrada: CTA "Publicar vaga" na home do contratante, que agora é a
-    // tela "Minhas vagas" (STORY-047 — FAB quando há vagas, CTA central quando vazia).
-    await pumpUntilFound(
-      tester,
-      find.byKey(const Key('minhas-vagas-publicar-btn')),
-    );
-    await tester.tap(find.byKey(const Key('minhas-vagas-publicar-btn')));
-    await awaitRouteChange(tester, '/contratante/vagas/nova');
+    // Porta de entrada do form de publicar. STORY-078: o FAB/CTA "Publicar vaga"
+    // virou só-mobile (CA-2 — no desktop o shell tem "Nova vaga"); vai direto ao
+    // form por rota (determinístico, independe do viewport). A presença do
+    // FAB/CTA é coberta no widget test de MinhasVagasScreen.
+    await goTo(tester, '/contratante/vagas/nova');
 
     // Gate stub (pending:0) → o formulário renderiza. Espera o dropdown montar.
     await pumpUntilFound(
