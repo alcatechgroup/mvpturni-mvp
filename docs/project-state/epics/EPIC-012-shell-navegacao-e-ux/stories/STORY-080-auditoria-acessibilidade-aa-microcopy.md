@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: null
-status: in_review
+status: done
 owner_agent: claude-opus-programador-2026-06-09
 created_at: 2026-06-08
 updated_at: 2026-06-09
@@ -141,6 +141,9 @@ NÃO decide: copy de domínio que mude significado (PO), alvo de conformidade (A
 - CA-5 (gate no CI): **FEITO** — step no `ci.yml` + IDR-030.
 - CA-6 (sem regressão): **FEITO** — suíte completa verde (660).
 - CA-7 (deploy homolog): **FEITO** — rc.91 verde, app.homolog = rc.91.
+
+### Aprovação / fechamento
+- **2026-06-09 — APROVADO pelo dono (Alexandro)** após validação no homolog (rc.91, tema claro+escuro). Status → `done`. Escopo entregue conforme ajuste do dono (abaixo).
 
 ### Para a validação (STORY-081) / PO
 Esta é uma **entrega de escopo ajustado** (decisões do dono em 2026-06-09): CA-2 fora do MVP; restante de CA-1/CA-3 (PIN/cronômetro + telas de harness pesado + amostragem manual no browser) **adiado**. Se o épico exigir cobertura total, o caminho é uma estória de follow-up de a11y para essas telas — o gate (`test/a11y/`) e o padrão (`onAccentFor`, IDR-030) já estão prontos para recebê-las.
