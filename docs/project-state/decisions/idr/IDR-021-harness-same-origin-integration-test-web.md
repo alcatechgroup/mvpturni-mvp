@@ -73,6 +73,24 @@ A flag-chave é **`--web-launch-url=http://localhost:3000`**, que desacopla a UR
 - **Prova do contraste:** o mesmo cenário sob `--dart-define=API_BASE_URL=:8001` sem proxy (cross-origin) **trava em /welcome** no passo autenticado — registrado nas Notas da STORY-043 (evidência do spike).
 - Se um fluxo autenticado novo falhar só no gate, conferir: proxy no ar (`/tmp/turni-e2e-proxy.log`), origem stateful no Sanctum, `--web-launch-url` apontando para o proxy.
 
+### Gotcha do binding de integração — vai no LEAF, não no entrypoint (recorrente)
+
+No Web, cada suíte tem **dois arquivos**: o **leaf** (`integration_test/<feature>/<algo>_test.dart`, com os `testWidgets`) e o **entrypoint top-level** (`integration_test/<feature>_test.dart`, que só encadeia os `main()` dos leaves — ele fica no topo para `../helpers` resolver). **Regra:** quem chama `IntegrationTestWidgetsFlutterBinding.ensureInitialized()` (importando `package:integration_test/integration_test.dart`) é o **leaf**, como 1ª linha do `main()` — é o que TODOS os leaves do repo fazem (`auth/*`, `app_shell/navegacao_test`, `feed/feed_test`, `env_banner/*`, `perfil/reputacao_e_gate_test`). O entrypoint é **encadeamento puro**: `import '<feature>/x_test.dart' as x; void main() { x.main(); }` — NÃO chama `ensureInitialized`.
+
+Duas assinaturas de falha (ambas já custaram um ciclo de gate — minutos por run):
+
+1. **Nem leaf nem entrypoint inicializam** → o build compila, o Chrome abre, e o `flutter drive` trava com **`Timed out receiving message from renderer: 30.000`** (chromedriver) → `Application exited before the test started`. (Cai no binding FakeAsync, e o HTTP real do login nunca completa.)
+2. **Só o entrypoint inicializa, e o leaf não** → falha **rápida** (logo após o launch, sem rodar nenhum teste) com:
+   ```
+   DriverError: Error while reading FlutterDriver result for command:
+   window.$flutterDriver('{"command":"request_data", ...}')
+   Original error: Expected: not null
+     Actual: <null>
+   ...
+   Application finished.
+   ```
+   Os resultados nunca são reportados porque o binding ativo não é o de integração. **Não** reescreva o teste — mova o `ensureInitialized()` para o `main()` do leaf (e deixe o entrypoint só encadeando).
+
 ### Gotcha de IPv6/IPv4 (não óbvio — custou ~horas no diagnóstico)
 
 No macOS, `flutter drive --web-hostname=localhost` binda o dev-server em **`::1` (IPv6) apenas**, e um proxy que conecta em `127.0.0.1` (IPv4) recebe **ECONNREFUSED** → o browser leva 502, o bundle JS não carrega, o app não boota e o `flutter drive` **pendura ~11 min** (timeout do `pumpAndSettle`) sem reportar. **Por isso o harness usa `--web-hostname=127.0.0.1`** (bind IPv4) e o proxy conecta em `127.0.0.1`. Se algum dia o dev-server ou o proxy mudar de família de endereço, casar as duas pontas (ambas IPv4 ou ambas IPv6). Sintoma diagnóstico: `E2E_PROXY_DEBUG=1` no proxy mostra só `GET /` repetido (sem requests `.js`).
@@ -91,3 +109,4 @@ No macOS, `flutter drive --web-hostname=localhost` binda o dev-server em **`::1`
 
 - 2026-06-01 — criada como `proposed` por programador (sessão claude-opus-4-8-programador-2026-06-01) durante STORY-043, a partir do Caminho 1 provado por spike (2026-06-01).
 - 2026-06-01 — `accepted` pelo PO (Alexandro) junto com a aprovação da STORY-043.
+- 2026-06-09 — adicionado o "Gotcha do binding de integração (leaf × entrypoint)" com as duas assinaturas de falha (STORY-088, a pedido do PO para valer ao time, não só na memória pessoal do agente).
