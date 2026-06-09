@@ -1285,8 +1285,7 @@ class _VazioView extends StatelessWidget {
       key: Key('painel-candidatos-vazio'),
       icon: Icons.groups_outlined,
       title: 'Ainda sem candidatos',
-      message:
-          'Vamos avisar assim que chegar o primeiro. Member Start: em até 2h.',
+      message: 'Assim que alguém se candidatar, você é avisado por aqui.',
     );
   }
 }

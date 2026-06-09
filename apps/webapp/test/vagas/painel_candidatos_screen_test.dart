@@ -309,13 +309,20 @@ void main() {
     expect(remover.onPressed, isNull);
   });
 
-  testWidgets('vazio mostra estado com SLA prometido (CA-7)', (tester) async {
+  testWidgets('vazio instrui o próximo passo (CA-7 / STORY-080 microcopy)', (
+    tester,
+  ) async {
     final svc = _FakeService(result: () => CandidatosSuccess(const [], 0));
     await _pump(tester, svc);
 
     expect(find.byKey(const Key('painel-candidatos-vazio')), findsOneWidget);
     expect(find.text('Ainda sem candidatos'), findsOneWidget);
-    expect(find.textContaining('em até 2h'), findsOneWidget);
+    // STORY-080: microcopy revisada (PO) — sem resíduo "Member Start:" nem
+    // promessa de prazo; instrui o que vai acontecer.
+    expect(
+      find.text('Assim que alguém se candidatar, você é avisado por aqui.'),
+      findsOneWidget,
+    );
     // A faixa mostra "Nenhum candidato ainda".
     expect(find.text('Nenhum candidato ainda'), findsOneWidget);
   });
