@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: false
 design_screen_id: null
-status: in_progress
+status: done
 owner_agent: claude-opus-4-8-programador-2026-06-09
 created_at: 2026-06-09
 updated_at: 2026-06-09
@@ -42,7 +42,7 @@ Garante que a reciprocidade aconteça de fato — sem gate, a avaliação vira o
 - [x] **CA-3:** Sem pendência, as ações fluem normalmente (sem regressão de candidatura/publicação da W26/W28). — `GateAvaliacaoTest` (CA-3, os 2 papéis) + suíte W26/W28 intacta (1070 verde).
 - [x] **CA-4:** Fail-secure: erro ao consultar pendência não libera a ação. RBAC preservado (ADR-007). — try/catch nos dois gates bloqueia no erro (com `turno_id` null); `GateAvaliacaoTest` (contratante) + `GateAvaliacaoFailSecureTest` (profissional/feed). RBAC do controller/FunnelGuard inalterado.
 - [x] **CA-5:** Cobertura ≥ 80% no código novo; cenários: com pendência (bloqueia, os 2 papéis), sem pendência (libera), múltiplas pendências, e falha de consulta (bloqueia). E2E/feature test do bloqueio nos 2 papéis. — código novo 100% (PublicarVagaService/GateAvaliacao/AvaliacoesPendentes*); total 94.5%; suíte **1070 verde**.
-- [ ] **CA-6:** Deploy homologação verificado.
+- [x] **CA-6:** Deploy homologação verificado. — release `v0.1.0-rc.97`: jobs "Migrar + seed (homolog)", "Deploy API → homolog", "Deploy Admin → homolog" e "Smoke pós-deploy (homolog)" verdes; produção pulada (gate humano). CI do push (commit 5c290d9) 100% verde.
 
 ## Fora de escopo
 
@@ -67,9 +67,9 @@ Decide: implementação concreta do gate na camada decidida, design dos testes, 
 
 ## Definição de Pronto (DoD)
 
-- [ ] CAs passam; testes verdes; cobertura atingida.
-- [ ] Pipeline verde; deploy homolog verificado.
-- [ ] `index.json` atualizado: status = `done`. "Notas do agente" preenchida.
+- [x] CAs passam; testes verdes; cobertura atingida.
+- [x] Pipeline verde; deploy homolog verificado.
+- [x] `index.json` atualizado: status = `done`. "Notas do agente" preenchida.
 
 ## Protocolo do agente (obrigatório)
 
@@ -104,3 +104,9 @@ Decide: implementação concreta do gate na camada decidida, design dos testes, 
 - CA-6 → push → CI → deploy homolog (em verificação).
 
 **Bloqueios:** nenhum.
+
+### Fechamento (2026-06-09)
+
+- CAs 1–6 verdes. Suíte api **1070 verde**; código novo 100% (PublicarVagaService/GateAvaliacao/AvaliacoesPendentes{Profissional,Contratante}); total 94.5%; Pint limpo.
+- CI do push (commit 5c290d9) 100% verde. Deploy homolog via tag **v0.1.0-rc.97** — jobs "Migrar + seed (homolog)", "Deploy API/Admin → homolog" e "Smoke pós-deploy (homolog)" verdes; PRODUÇÃO pulada (gate humano).
+- Régua de homolog = smoke pós-deploy (IDR-004: integration_test não roda contra homolog). Destrava STORY-088 (UX do gate) e STORY-089 (validação).
