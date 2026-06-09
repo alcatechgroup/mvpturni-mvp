@@ -56,6 +56,11 @@ class DatabaseSeeder extends Seeder
         // o consumido). Depende de TurnosSeeder (ancora num turno finalizado).
         $this->call(PixFalhaSeeder::class);
 
+        // STORY-085 — massa da avaliação recíproca (dev/homolog; nunca prod): par dedicado com
+        // turnos finalizados avaliados (score/nível/depoimentos) + 1 turno pendente p/ avaliar
+        // ao vivo. Roda o MotorReputacao. Depende de FuncaoSeeder (função do profissional).
+        $this->call(AvaliacaoSeeder::class);
+
         // STORY-053 — smoke de e-mail (CA-12) DESREGISTRADO: a validação em homolog já foi feita
         // (CA-12 done). O seeder `Ca12EmailSmokeSeeder` + `scripts/ca12-homolog-e2e.sh` ficam no repo
         // para reuso manual (`php artisan db:seed --class=Ca12EmailSmokeSeeder`), mas NÃO rodam no
