@@ -2403,8 +2403,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_progress",
+      "owner_agent": "claude-opus-programador-2026-06-09",
       "sprint_id": "SPRINT-2026-W29",
       "estimated_session_size": "M",
       "path": "epics/EPIC-012-shell-navegacao-e-ux/stories/STORY-080-auditoria-acessibilidade-aa-microcopy.md",
@@ -2415,7 +2415,7 @@
         "STORY-081"
       ],
       "created_at": "2026-06-08",
-      "updated_at": "2026-06-08"
+      "updated_at": "2026-06-09"
     },
     {
       "id": "STORY-081",
