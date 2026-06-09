@@ -10,9 +10,11 @@
 use App\Enums\TurnoStatus;
 use App\Models\Avaliacao;
 use App\Models\ContratanteProfile;
+use App\Models\Funcao;
 use App\Models\ProfissionalProfile;
 use App\Models\Turno;
 use App\Models\User;
+use App\Models\Vaga;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -102,6 +104,51 @@ test('depoimento sobre o PROFISSIONAL mostra o estabelecimento (nominal — DDR-
     $depo = test()->actingAs($pro)->getJson("/api/perfil/{$pro->id}")->json('depoimentos.0');
 
     expect($depo['autor_nome'])->toBe('Restaurante do Zé');
+});
+
+// ── função do depoimento (STORY-088 — vem do turno avaliado) ──────────────────
+
+test('depoimento traz a função do turno (STORY-088 — avaliacao.turno.vaga.funcao.nome)', function () {
+    $pro = profissionalReputado();
+    $contratante = User::factory()->contratante()->ativo()->create();
+    ContratanteProfile::factory()->create([
+        'user_id' => $contratante->id,
+        'nome_estabelecimento' => 'Bar do Porto',
+    ]);
+    $funcao = Funcao::factory()->create(['nome' => 'Garçom']);
+    $vaga = Vaga::factory()->create(['funcao_id' => $funcao->id, 'contratante_id' => $contratante->id]);
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create([
+        'profissional_id' => $pro->id,
+        'contratante_id' => $contratante->id,
+        'estabelecimento_id' => $contratante->id,
+        'vaga_id' => $vaga->id,
+    ]);
+    Avaliacao::factory()->paraTurno($turno)->estrelas(5)->create(['comentario' => 'Pontual']);
+
+    $depo = test()->actingAs($pro)->getJson("/api/perfil/{$pro->id}")->json('depoimentos.0');
+
+    expect($depo['funcao'])->toBe('Garçom');
+});
+
+test('depoimento ANÔNIMO sobre o contratante também traz a função (sem nome do profissional)', function () {
+    $contratante = User::factory()->contratante()->ativo()->create();
+    ContratanteProfile::factory()->create(['user_id' => $contratante->id, 'score' => 4.5]);
+    $pro = User::factory()->profissional()->ativo()->create(['name' => 'João Garçom']);
+    $funcao = Funcao::factory()->create(['nome' => 'Cozinheiro']);
+    $vaga = Vaga::factory()->create(['funcao_id' => $funcao->id, 'contratante_id' => $contratante->id]);
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create([
+        'profissional_id' => $pro->id,
+        'contratante_id' => $contratante->id,
+        'estabelecimento_id' => $contratante->id,
+        'vaga_id' => $vaga->id,
+    ]);
+    Avaliacao::factory()->doProfissional()->paraTurno($turno)->estrelas(5)
+        ->create(['comentario' => 'Ambiente ótimo']);
+
+    $depo = test()->actingAs($pro)->getJson("/api/perfil/{$contratante->id}")->json('depoimentos.0');
+
+    expect($depo['funcao'])->toBe('Cozinheiro')
+        ->and($depo['autor_nome'])->toBeNull();
 });
 
 test('depoimento sobre o CONTRATANTE NÃO traz o nome do profissional (anônimo — LGPD/DDR-004)', function () {
