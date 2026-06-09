@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<!--
+  PROTÓTIPO DE VALIDAÇÃO — NÃO É CÓDIGO DE PRODUÇÃO.
+  SCREEN-STORY-084 — Avaliação recíproca + Perfil (reputação) + UX do gate.
+  Decisões: DDR-004 (visibilidade de depoimentos, score com poucos dados, componentes),
+  ADR-019 (modelo/eventos/motor/gate), DDR-003 (shell), DDR-002 (pt-BR/24h), DDR-001 (tokens).
+  HTML/CSS/JS vanilla, sem rede, sem build. Abra clicando no arquivo.
+  Seletores no topo: Tela (Avaliar / Perfil / Gate) × Papel (Profissional / Contratante)
+  × Viewport (Mobile / Desktop) × Estado. Microcopy = spec §5, palavra por palavra.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCREEN-STORY-084 — Avaliação + Perfil + Gate</title>
+<style>
+  /* ── Tokens (DDR-001) ── */
+  :root {
+    --page:#F7F4EC; --surface:#FFFFFF; --sunken:#F0EDE3; --muted:#E8E5DB;
+    --border-subtle:#E0DDD3; --border-strong:#C8C5BB;
+    --text-strong:#0F1B2D; --text-muted:#42504A; --text-subtle:#6F7C72;
+    --brand:#00A868;
+    --warn:#9A6E25; --warn-soft:#FBEED1; --warn-ink:#6E4E12;
+    --error:#B83A3A; --error-soft:#FBE2E2; --error-ink:#9A2D2D;
+    --success:#2D7A4F; --success-soft:#E2F0E5;
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px; --r-full:999px;
+    --s-xs:4px; --s-sm:8px; --s-md:16px; --s-lg:24px; --s-xl:32px;
+    /* perfil profissional (default) */
+    --accent:#2D5F3F; --accent-soft:#E5F0E8; --on-accent:#FFFFFF; --accent-ink:#2D5F3F;
+    --chrome:#1B2E1F; --chrome-accent:#5FA37C; --chrome-accent-soft:rgba(95,163,124,.18);
+    --chrome-on:#ECEDE5; --chrome-on-muted:rgba(236,237,229,.62); --chrome-line:rgba(255,255,255,.08);
+  }
+  body.dark {
+    --page:#0F1411; --surface:#1A2018; --sunken:#232A24; --muted:#2C342E;
+    --border-subtle:#2A322D; --border-strong:#3A4338;
+    --text-strong:#ECEDE5; --text-muted:#A8B2A8; --text-subtle:#8B9590;
+    --warn-soft:rgba(212,169,92,.14); --warn-ink:#D4A95C; --warn:#D4A95C;
+    --error-soft:rgba(216,90,90,.16); --error-ink:#D85A5A;
+    --success-soft:rgba(95,163,124,.14);
+    --accent:#5FA37C; --accent-soft:rgba(95,163,124,.14); --on-accent:#0F1411; --accent-ink:#5FA37C;
+  }
+  body.contratante {
+    --accent:#9A6E25; --accent-soft:#FBEED1; --on-accent:#FFFFFF; --accent-ink:#6E4E12;
+    --chrome:#3D2A0E; --chrome-accent:#D4A95C; --chrome-accent-soft:rgba(212,169,92,.20);
+  }
+  body.contratante.dark { --accent:#D4A95C; --accent-soft:rgba(212,169,92,.14); --on-accent:#0F1411; --accent-ink:#D4A95C; }
+
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:#cfcabd; color:var(--text-strong);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ── Barra de controle do protótipo ── */
+  .proto-bar { position:sticky; top:0; z-index:50; background:#15233B; color:#E6E9F0;
+    padding:10px 16px; display:flex; flex-wrap:wrap; gap:14px; align-items:center; font-size:13px; }
+  .proto-bar strong { color:#fff; }
+  .proto-bar .group { display:flex; gap:6px; align-items:center; }
+  .proto-bar .group > .lbl { color:#9fb0cc; font-size:11px; text-transform:uppercase; letter-spacing:.6px; }
+  .proto-bar .chip { border:1px solid #324a6e; background:#1d3357; color:#cdd7e6;
+    border-radius:var(--r-full); padding:5px 12px; cursor:pointer; font-size:12px; font-family:inherit; }
+  .proto-bar .chip.active { background:#4A6FA5; color:#fff; border-color:#4A6FA5; }
+  .proto-bar .sep { width:1px; height:22px; background:#33507e; }
+  .proto-note { font-size:11px; color:#9fb0cc; flex-basis:100%; line-height:1.5; }
+
+  /* ── Palco e frame ── */
+  .stage { display:flex; justify-content:center; padding:28px 16px 64px; }
+  .frame { background:var(--page); overflow:hidden; position:relative; display:flex;
+    box-shadow:0 10px 36px rgba(0,0,0,.22); border-radius:var(--r-lg); }
+  body.vp-mobile .frame { width:100%; max-width:412px; height:min(820px,calc(100vh - 150px)); flex-direction:column; }
+  body.vp-desktop .frame { width:100%; max-width:1180px; height:min(780px,calc(100vh - 150px)); flex-direction:row; }
+
+  .nav-drawer,.appbar,.nav-bottom,.desk-header { display:none; }
+  body.vp-mobile .appbar, body.vp-mobile .nav-bottom { display:flex; }
+  body.vp-desktop .nav-drawer { display:flex; }
+  body.vp-desktop .desk-header { display:flex; }
+
+  .col { flex:1; display:flex; flex-direction:column; min-width:0; }
+  .scroll { flex:1; overflow-y:auto; padding:var(--s-md); }
+  body.vp-desktop .scroll { padding:var(--s-lg) var(--s-xl); }
+
+  /* ── AppBar mobile ── */
+  .appbar { align-items:center; gap:var(--s-md); padding:14px var(--s-md);
+    background:var(--surface); border-bottom:1px solid var(--border-subtle); }
+  .appbar .back { width:40px; height:40px; border:none; background:transparent; cursor:pointer;
+    color:var(--text-muted); font-size:22px; display:flex; align-items:center; justify-content:center; border-radius:var(--r-full); }
+  .appbar .back:hover { background:var(--sunken); }
+  .appbar .title { font-size:22px; font-weight:600; flex:1; }
+
+  /* ── Header desktop ── */
+  .desk-header { align-items:center; justify-content:space-between; gap:var(--s-md);
+    padding:18px var(--s-xl); background:var(--surface); border-bottom:1px solid var(--border-subtle); }
+  .desk-header .title { font-size:28px; font-weight:600; }
+  .desk-header .actions { display:flex; align-items:center; gap:6px; }
+
+  .icon-btn { width:44px; height:44px; border-radius:var(--r-full); border:none; background:transparent;
+    cursor:pointer; position:relative; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:18px; }
+  .icon-btn:hover { background:var(--sunken); }
+  .icon-btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .icon-btn .dot { position:absolute; top:8px; right:9px; width:8px; height:8px; background:var(--error);
+    border-radius:var(--r-full); border:2px solid var(--surface); }
+
+  /* ── NavigationDrawer (desktop) ── */
+  .nav-drawer { flex-direction:column; width:240px; background:var(--chrome);
+    border-right:1px solid var(--chrome-line); padding:18px 12px; gap:4px; }
+  .dr-brand { font-family:'Bebas Neue',Impact,sans-serif; color:#fff; font-size:26px; letter-spacing:1px; padding:4px 12px 14px; }
+  .dr-brand .di { color:var(--brand); }
+  .nav-drawer .nav-item { display:flex; align-items:center; gap:12px; min-height:48px; padding:0 14px;
+    border:none; background:transparent; cursor:pointer; font-family:inherit; font-size:15px; font-weight:500;
+    color:var(--chrome-on-muted); border-radius:var(--r-full); text-align:left; }
+  .nav-drawer .nav-item .ic { width:20px; text-align:center; }
+  .nav-drawer .nav-item.active { color:var(--chrome-accent); background:var(--chrome-accent-soft); }
+  .nav-drawer .nav-item:focus-visible { outline:2px solid var(--chrome-accent); outline-offset:-2px; }
+  .nav-drawer .spacer { flex:1; }
+  .nav-drawer .fab { margin:8px 6px; min-height:48px; border:none; border-radius:var(--r-full);
+    background:var(--chrome-accent); color:var(--chrome); font-weight:600; cursor:pointer; font-family:inherit; font-size:14px; }
+
+  /* ── NavigationBar mobile ── */
+  .nav-bottom { background:var(--chrome); border-top:1px solid var(--chrome-line); padding:6px 4px 10px; gap:2px; }
+  .nav-bottom .nav-item { flex:1; min-height:56px; border:none; background:transparent; cursor:pointer; font-family:inherit;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:var(--chrome-on-muted); }
+  .nav-bottom .nav-item .ind { width:60px; height:32px; border-radius:var(--r-full); display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .nav-bottom .nav-item .lbl { font-size:12px; font-weight:500; }
+  .nav-bottom .nav-item.active { color:var(--chrome-accent); }
+  .nav-bottom .nav-item.active .ind { background:var(--chrome-accent-soft); }
+
+  /* ── Conteúdo genérico ── */
+  .card { background:var(--surface); border:1px solid var(--border-subtle); border-radius:var(--r-lg);
+    padding:var(--s-lg); box-shadow:0 1px 2px rgba(15,27,45,.04); }
+  .center-wrap { max-width:560px; margin:0 auto; }
+  .muted { color:var(--text-muted); }
+  .ctx-name { font-size:18px; font-weight:600; }
+  .ctx-sub { font-size:14px; color:var(--text-muted); margin-top:2px; }
+  .question { font-size:20px; font-weight:600; margin:var(--s-xl) 0 var(--s-md); }
+
+  /* ── input.rating ── */
+  .rating { display:flex; gap:6px; justify-content:center; margin:var(--s-md) 0 var(--s-sm); }
+  .rating button { width:52px; height:52px; border:none; background:transparent; cursor:pointer; font-size:38px;
+    line-height:1; color:var(--border-strong); padding:0; border-radius:var(--r-md); transition:transform .1s ease, color .1s ease; }
+  .rating button:hover { transform:scale(1.08); }
+  .rating button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .rating button.on { color:var(--accent); }
+  .rating-help { text-align:center; font-size:14px; color:var(--text-muted); min-height:20px; }
+  .rating-help.err { color:var(--error-ink); }
+
+  /* ── input.text ── */
+  .field-label { font-size:14px; font-weight:500; margin:var(--s-lg) 0 6px; display:block; }
+  textarea.input { width:100%; min-height:96px; resize:vertical; border:1px solid var(--border-subtle);
+    background:var(--surface); border-radius:var(--r-md); padding:12px 14px; font-family:inherit; font-size:16px;
+    color:var(--text-strong); }
+  textarea.input:focus { outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+  .counter { text-align:right; font-size:13px; color:var(--text-muted); margin-top:4px; }
+  .onboard { font-size:13px; color:var(--text-muted); text-align:center; margin-top:var(--s-sm); }
+
+  /* ── botões ── */
+  .btn-primary { width:100%; min-height:48px; border:none; border-radius:var(--r-full); background:var(--accent);
+    color:var(--on-accent); font-weight:600; font-size:15px; cursor:pointer; font-family:inherit; }
+  .btn-primary:disabled { opacity:.38; cursor:not-allowed; }
+  .btn-primary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .btn-text { min-height:48px; border:none; background:transparent; color:var(--accent-ink); font-weight:600;
+    font-size:15px; cursor:pointer; font-family:inherit; padding:0 16px; }
+  .btn-outline { min-height:48px; border:1px solid var(--border-strong); background:transparent; color:var(--text-strong);
+    font-weight:500; font-size:15px; cursor:pointer; font-family:inherit; padding:0 22px; border-radius:var(--r-full); }
+  .footer-cta { padding:var(--s-md); background:var(--surface); border-top:1px solid var(--border-subtle); }
+  body.vp-desktop .footer-cta { display:none; } /* no desktop o CTA vai dentro do card */
+  .row-cta { display:flex; justify-content:flex-end; gap:var(--s-sm); margin-top:var(--s-lg); }
+
+  /* ── banners ── */
+  .banner { display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:var(--r-md);
+    border:1px solid; margin-bottom:var(--s-md); }
+  .banner .ic { font-size:18px; flex-shrink:0; }
+  .banner .txt { flex:1; font-size:14px; line-height:1.4; }
+  .banner.warn { background:var(--warn-soft); border-color:var(--warn); color:var(--text-strong); }
+  .banner.warn .ic { color:var(--warn-ink); }
+  .banner.err { background:var(--error-soft); border-color:var(--error); color:var(--text-strong); }
+  .banner.err .ic { color:var(--error-ink); }
+  .banner .b-cta { white-space:nowrap; min-height:40px; padding:0 16px; border-radius:var(--r-full);
+    border:none; background:var(--accent); color:var(--on-accent); font-weight:600; font-size:13px; cursor:pointer; font-family:inherit; }
+
+  /* ── display.rating + reputação ── */
+  .rep-card { display:flex; flex-direction:column; gap:14px; }
+  .score-line { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .score-stars { color:var(--accent); font-size:20px; letter-spacing:1px; }
+  .score-num { font-size:22px; font-weight:600; }
+  .score-count { font-size:14px; color:var(--text-muted); }
+  .badge-nivel { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:var(--r-full);
+    background:var(--accent-soft); color:var(--accent-ink); font-size:13px; font-weight:600; border:1px solid var(--accent); }
+  body.dark .badge-nivel { color:var(--accent); }
+  .badge-novo { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:var(--r-full);
+    background:var(--sunken); color:var(--text-muted); font-size:13px; font-weight:600; border:1px solid var(--border-strong); }
+  .xp-wrap { }
+  .xp-bar { height:10px; background:var(--muted); border-radius:var(--r-full); overflow:hidden; }
+  .xp-fill { height:100%; background:var(--accent); border-radius:var(--r-full); }
+  .xp-label { font-size:13px; color:var(--text-muted); margin-top:6px; }
+
+  .sec-header { font-size:12px; font-weight:800; letter-spacing:1.2px; color:var(--text-muted);
+    margin:var(--s-xl) 0 var(--s-sm); }
+  .depo { background:var(--surface); border:1px solid var(--border-subtle); border-radius:var(--r-lg);
+    padding:var(--s-md); margin-bottom:var(--s-sm); }
+  .depo-stars { color:var(--accent); font-size:15px; letter-spacing:1px; }
+  .depo-text { font-size:15px; margin:6px 0; line-height:1.45; }
+  .depo-author { font-size:13px; color:var(--text-muted); }
+
+  /* estado vazio / erro / loading */
+  .state { text-align:center; padding:var(--s-xl) var(--s-md); color:var(--text-muted); }
+  .state .ic { font-size:32px; opacity:.6; }
+  .state .t { font-size:16px; font-weight:600; color:var(--text-strong); margin-top:8px; }
+  .state .m { font-size:14px; margin-top:4px; line-height:1.45; }
+  .state .btn-text { margin-top:8px; }
+  .sk { background:var(--muted); border-radius:var(--r-sm); }
+  .skline { height:14px; margin:8px 0; }
+
+  /* feed/vagas mock (gate) */
+  .vaga { background:var(--surface); border:1px solid var(--border-subtle); border-radius:var(--r-lg);
+    padding:var(--s-md); margin-bottom:var(--s-sm); opacity:1; }
+  .vaga .t { font-weight:600; }
+  .vaga .s { font-size:13px; color:var(--text-muted); margin-top:2px; }
+  .vaga .b { margin-top:10px; }
+
+  /* snackbar */
+  .snack { position:absolute; left:50%; bottom:84px; transform:translateX(-50%); background:#0F1B2D; color:#fff;
+    padding:12px 18px; border-radius:var(--r-md); font-size:14px; box-shadow:0 4px 12px rgba(0,0,0,.2); z-index:30;
+    display:none; align-items:center; gap:8px; }
+  body.dark .snack { background:#2C342E; }
+  .snack.show { display:flex; }
+  body.vp-desktop .snack { bottom:32px; }
+
+  .hide { display:none !important; }
+</style>
+</head>
+<body class="vp-mobile">
+
+<div class="proto-bar">
+  <strong>SCREEN-084</strong>
+  <div class="group"><span class="lbl">Tela</span>
+    <button class="chip active" data-tela="avaliar" onclick="setTela('avaliar')">Avaliar</button>
+    <button class="chip" data-tela="perfil" onclick="setTela('perfil')">Perfil</button>
+    <button class="chip" data-tela="gate" onclick="setTela('gate')">Gate</button>
+  </div>
+  <span class="sep"></span>
+  <div class="group"><span class="lbl">Papel</span>
+    <button class="chip active" data-papel="profissional" onclick="setPapel('profissional')">Profissional</button>
+    <button class="chip" data-papel="contratante" onclick="setPapel('contratante')">Contratante</button>
+  </div>
+  <span class="sep"></span>
+  <div class="group"><span class="lbl">Viewport</span>
+    <button class="chip active" data-vp="mobile" onclick="setVp('mobile')">Mobile</button>
+    <button class="chip" data-vp="desktop" onclick="setVp('desktop')">Desktop</button>
+  </div>
+  <span class="sep"></span>
+  <div class="group"><span class="lbl">Tema</span>
+    <button class="chip active" data-tema="claro" onclick="setTema('claro')">Claro</button>
+    <button class="chip" data-tema="escuro" onclick="setTema('escuro')">Escuro</button>
+  </div>
+  <span class="sep"></span>
+  <div class="group" id="state-group"><span class="lbl">Estado</span></div>
+  <div class="proto-note" id="proto-note"></div>
+</div>
+
+<div class="stage">
+  <div class="frame">
+    <!-- NavigationDrawer (desktop) -->
+    <nav class="nav-drawer" aria-label="Navegação principal">
+      <div class="dr-brand">TURN<span class="di">I</span>.</div>
+      <button class="nav-item" id="nav-vagas"><span class="ic">◎</span><span>Vagas</span></button>
+      <button class="nav-item" id="nav-turnos"><span class="ic">▤</span><span>Turnos</span></button>
+      <button class="nav-item" id="nav-perfil"><span class="ic">☻</span><span>Perfil</span></button>
+      <div class="spacer"></div>
+      <button class="fab hide" id="nav-fab">+ Nova vaga</button>
+      <button class="nav-item"><span class="ic">⏻</span><span>Sair</span></button>
+    </nav>
+
+    <div class="col">
+      <!-- AppBar mobile -->
+      <header class="appbar">
+        <button class="back" id="appbar-back" aria-label="Voltar">‹</button>
+        <span class="title" id="appbar-title">Avaliar turno</span>
+        <button class="icon-btn" aria-label="Notificações">🔔<span class="dot"></span></button>
+      </header>
+      <!-- Header desktop -->
+      <header class="desk-header">
+        <span class="title" id="desk-title">Avaliar turno</span>
+        <div class="actions">
+          <button class="icon-btn" aria-label="Notificações">🔔<span class="dot"></span></button>
+          <button class="icon-btn" aria-label="Tema" onclick="toggleTema()">☾</button>
+        </div>
+      </header>
+
+      <div class="scroll" id="scroll"><!-- conteúdo injetado --></div>
+
+      <div class="footer-cta" id="footer-cta"></div>
+      <div class="snack" id="snack"><span>✓</span><span>Avaliação enviada. Obrigado!</span></div>
+
+      <!-- NavigationBar mobile -->
+      <nav class="nav-bottom" aria-label="Navegação principal">
+        <button class="nav-item" id="bnav-vagas"><span class="ind">◎</span><span class="lbl">Vagas</span></button>
+        <button class="nav-item" id="bnav-turnos"><span class="ind">▤</span><span class="lbl">Turnos</span></button>
+        <button class="nav-item" id="bnav-perfil"><span class="ind">☻</span><span class="lbl">Perfil</span></button>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ───────── protótipo de validação — estado em memória ───────── */
+const S = { tela:'avaliar', papel:'profissional', vp:'mobile', tema:'claro', estado:'preenchido', stars:0 };
+
+const STATES = {
+  avaliar: [['preenchido','Preenchível'],['enviando','Enviando'],['sucesso','Sucesso'],['erro','Erro de envio'],['jaavaliado','Já avaliado'],['semperm','Sem permissão']],
+  perfil:  [['preenchido','Preenchido'],['loading','Loading'],['novo','Novo (0)'],['poucas','Poucas (1–2)'],['semcoment','Sem comentário'],['erro','Erro']],
+  gate:    [['ativo','Gate ativo'],['tentou','Ação tentada'],['semgate','Sem pendência']],
+};
+const NOTES = {
+  avaliar:'T1/T2 — estrelas obrigatórias (toque/teclado), comentário opcional ≤280. CTA desabilita até ≥1★. Estado preenchido é interativo: escolha estrelas.',
+  perfil:'T3 — score/nível/XP (nível+XP só profissional) + até 3 depoimentos. <3 avaliações → selo "Novo". Sem comentário → seção vazia instrutiva.',
+  gate:'T4 — banner.gate proativo no topo do destino; conteúdo segue visível (bloqueia ação, não visibilidade). CTA deep-linka ao turno pendente.',
+};
+
+function setTela(t){ S.tela=t; S.estado=STATES[t][0][0]; if(t!=='avaliar') S.stars=0; syncChips(); render(); }
+function setPapel(p){ S.papel=p; syncChips(); render(); }
+function setVp(v){ S.vp=v; syncChips(); render(); }
+function setTema(t){ S.tema=t; syncChips(); render(); }
+function toggleTema(){ setTema(S.tema==='claro'?'escuro':'claro'); }
+function setEstado(e){ S.estado=e; if(S.tela==='avaliar'){ S.stars = (e==='preenchido')?S.stars:0; } syncChips(); render(); }
+
+function syncChips(){
+  document.querySelectorAll('[data-tela]').forEach(c=>c.classList.toggle('active',c.dataset.tela===S.tela));
+  document.querySelectorAll('[data-papel]').forEach(c=>c.classList.toggle('active',c.dataset.papel===S.papel));
+  document.querySelectorAll('[data-vp]').forEach(c=>c.classList.toggle('active',c.dataset.vp===S.vp));
+  document.querySelectorAll('[data-tema]').forEach(c=>c.classList.toggle('active',c.dataset.tema===S.tema));
+  // estado chips são reconstruídos por tela
+  const g=document.getElementById('state-group');
+  g.querySelectorAll('.chip').forEach(c=>c.remove());
+  STATES[S.tela].forEach(([val,label])=>{
+    const b=document.createElement('button'); b.className='chip'+(S.estado===val?' active':''); b.textContent=label;
+    b.onclick=()=>setEstado(val); g.appendChild(b);
+  });
+  document.getElementById('proto-note').textContent=NOTES[S.tela];
+  // body classes
+  document.body.className = `vp-${S.vp} ${S.papel} ${S.tema==='escuro'?'dark':''}`.trim();
+}
+
+const HELP = {1:'Ruim',2:'Regular',3:'Bom',4:'Muito bom',5:'Ótimo'};
+function pickStar(n){ S.stars=n; render(); }
+
+const SUBJECT = { // quem é avaliado, por papel do AVALIADOR
+  profissional:{ name:'Restaurante Vista Mar', sub:'Garçom · 12/06, 18:00–23:00', q:'Como foi trabalhar aqui?' },
+  contratante: { name:'Ana S.', sub:'Garçom · 12/06, 18:00–23:00', q:'Como foi o trabalho de Ana?' },
+};
+
+function esc(s){ return s; }
+
+/* depoimentos mockados conforme variante de autor (DDR-004) */
+const DEPO_PROF = [
+  {id:'1',stars:5,text:'Pontual e atencioso. Encaixou no ritmo do salão na hora.',author:'Restaurante Vista Mar · Garçom · há 3 dias'},
+  {id:'2',stars:4,text:'Ótima postura com os clientes.',author:'Bar do Porto · Garçom · há 2 semanas'},
+  {id:'3',stars:5,text:'Voltaria a chamar com certeza.',author:'Hotel Meridiano · Garçom · há 1 mês'},
+];
+const DEPO_CONTR = [
+  {id:'1',stars:5,text:'Local organizado, equipe receptiva e pagou em dia.',author:'Profissional · Garçom · há 1 semana'},
+  {id:'2',stars:4,text:'Tudo certo, briefing claro no começo do turno.',author:'Profissional · Cozinheiro · há 3 semanas'},
+];
+
+function render(){
+  const scroll=document.getElementById('scroll');
+  const footer=document.getElementById('footer-cta');
+  const aTitle=document.getElementById('appbar-title');
+  const dTitle=document.getElementById('desk-title');
+  const back=document.getElementById('appbar-back');
+  document.getElementById('snack').classList.remove('show');
+  footer.innerHTML=''; back.style.visibility='visible';
+
+  // nav ativo + FAB do contratante
+  const isContr=S.papel==='contratante';
+  document.getElementById('nav-fab').classList.toggle('hide',!isContr);
+  setActive('vagas',S.tela==='gate');
+  setActive('turnos',S.tela==='avaliar');
+  setActive('perfil',S.tela==='perfil');
+
+  if(S.tela==='avaliar'){ aTitle.textContent=dTitle.textContent='Avaliar turno'; renderAvaliar(scroll,footer); }
+  else if(S.tela==='perfil'){ aTitle.textContent=dTitle.textContent='Perfil'; back.style.visibility='hidden'; renderPerfil(scroll); }
+  else { const t=isContr?'Minhas vagas':'Vagas'; aTitle.textContent=dTitle.textContent=t; back.style.visibility='hidden'; renderGate(scroll); }
+}
+function setActive(key,on){
+  document.getElementById('nav-'+key).classList.toggle('active',on);
+  document.getElementById('bnav-'+key).classList.toggle('active',on);
+}
+
+/* ── T1/T2 Avaliar ── */
+function renderAvaliar(scroll,footer){
+  const subj=SUBJECT[S.papel];
+  if(S.estado==='semperm'){
+    scroll.innerHTML=`<div class="center-wrap"><div class="state" data-testid="avaliacao-semperm">
+      <div class="ic">🔒</div><div class="t">Este turno não é seu.</div>
+      <div class="m">Você não pode avaliar este turno.</div>
+      <button class="btn-text" data-testid="avaliacao-semperm-btn">Voltar aos meus turnos</button></div></div>`; return;
+  }
+  if(S.estado==='jaavaliado'){
+    scroll.innerHTML=`<div class="center-wrap"><div class="state">
+      <div class="ic">✓</div><div class="t">Você já avaliou este turno.</div>
+      <div class="m">Sua avaliação já foi registrada.</div>
+      <button class="btn-text">Voltar</button></div></div>`; return;
+  }
+  const enabled = S.stars>0 && S.estado!=='enviando';
+  const starsHtml = [1,2,3,4,5].map(n=>`<button data-testid="avaliacao-estrela-${n}" aria-label="${n} de 5 estrelas"
+     class="${n<=S.stars?'on':''}" onclick="pickStar(${n})">${n<=S.stars?'★':'☆'}</button>`).join('');
+  const help = S.stars>0 ? HELP[S.stars] : 'Toque para avaliar';
+  const sentMsg = S.estado==='erro'
+    ? `<div class="banner err" data-testid="avaliacao-envio-erro"><span class="ic">⚠</span><span class="txt">Não foi possível enviar agora. Tente de novo.</span></div>` : '';
+  const onboard = `<div class="onboard">Sua avaliação ajuda a manter a confiança entre os dois lados.</div>`;
+  const cta = `<button class="btn-primary" data-testid="avaliacao-enviar-btn" ${enabled?'':'disabled'} onclick="enviar()">
+      ${S.estado==='enviando'?'Enviando…':'Enviar avaliação'}</button>`;
+
+  scroll.innerHTML=`<div class="center-wrap">
+    <div class="card">
+      <div class="ctx-name">${subj.name}</div>
+      <div class="ctx-sub">${subj.sub}</div>
+      <div class="question">${subj.q}</div>
+      <div class="rating" role="group" aria-label="Avaliação, ${S.stars} de 5 estrelas" data-testid="avaliacao-estrelas">${starsHtml}</div>
+      <div class="rating-help" data-testid="avaliacao-estrelas-erro">${help}</div>
+      ${onboard}
+      <label class="field-label" for="cmt">Comentário (opcional)</label>
+      <textarea class="input" id="cmt" maxlength="280" placeholder="Conte como foi…" data-testid="avaliacao-comentario"
+        oninput="document.getElementById('cnt').textContent=this.value.length+'/280'"></textarea>
+      <div class="counter" id="cnt">0/280</div>
+      ${sentMsg}
+      <div class="row-cta">
+        <button class="btn-outline" onclick="setTela('turnos')">Voltar</button>
+        ${cta}
+      </div>
+    </div>
+  </div>`;
+  // rodapé fixo no mobile (CTA principal); no desktop ele já está no card
+  footer.innerHTML = cta;
+}
+function enviar(){
+  if(S.stars<1) return;
+  S.estado='enviando'; render();
+  setTimeout(()=>{ S.estado='preenchido'; render(); document.getElementById('snack').classList.add('show');
+    setTimeout(()=>document.getElementById('snack').classList.remove('show'),2200); },700);
+}
+
+/* ── T3 Perfil ── */
+function renderPerfil(scroll){
+  const isProf=S.papel==='profissional';
+  const name=isProf?'Ana Souza':'Restaurante Vista Mar';
+  const role=isProf?'Profissional':'Contratante';
+  const initials=isProf?'AS':'RV';
+  const depos = isProf?DEPO_PROF:DEPO_CONTR;
+
+  if(S.estado==='loading'){
+    scroll.innerHTML = identity(name,role,initials) + `<div class="card rep-card">
+      <div class="sk skline" style="width:55%"></div><div class="sk skline" style="width:35%"></div>
+      <div class="sk skline" style="width:80%;height:10px"></div></div>
+      <div class="sec-header">DEPOIMENTOS</div>
+      ${[1,2,3].map(()=>`<div class="depo"><div class="sk skline" style="width:30%"></div>
+        <div class="sk skline" style="width:90%"></div><div class="sk skline" style="width:45%"></div></div>`).join('')}`;
+    return;
+  }
+  if(S.estado==='erro'){
+    scroll.innerHTML = identity(name,role,initials) + `<div class="state">
+      <div class="ic">⚠</div><div class="t">Não foi possível carregar a reputação.</div>
+      <div class="m">Verifique sua conexão.</div><button class="btn-text">Tentar de novo</button></div>
+      <div class="muted" style="text-align:center;font-size:13px">Preferências e Sair continuam disponíveis abaixo.</div>`;
+    return;
+  }
+
+  // bloco de reputação
+  let scoreBlock, depoBlock;
+  if(S.estado==='novo'){
+    scoreBlock = scoreSelo('Novo na plataforma');
+    depoBlock = stateEmpty('☆','Ainda sem avaliações','Complete turnos para receber suas primeiras avaliações.','perfil-depoimentos-vazio');
+  } else if(S.estado==='poucas'){
+    scoreBlock = scoreSelo('Novo · 2 avaliações');
+    depoBlock = depoList(depos.slice(0,1), depos.length);
+  } else if(S.estado==='semcoment'){
+    scoreBlock = scoreFull(isProf, '4.9', 27);
+    depoBlock = stateEmpty('💬','Ainda sem comentários','As avaliações com comentário aparecem aqui.','perfil-depoimentos-vazio');
+  } else { // preenchido
+    scoreBlock = scoreFull(isProf, '4.9', 27);
+    depoBlock = depoList(depos, 27);
+  }
+  scroll.innerHTML = identity(name,role,initials) + scoreBlock + `<div class="sec-header">DEPOIMENTOS</div>` + depoBlock + prefsTail();
+}
+function identity(name,role,ini){
+  return `<div style="display:flex;align-items:center;gap:14px;margin-bottom:var(--s-lg)">
+    <div style="width:56px;height:56px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);
+      display:flex;align-items:center;justify-content:center;font-weight:600;font-size:20px">${ini}</div>
+    <div><div style="font-size:20px;font-weight:600">${name}</div><div class="muted">${role}</div></div></div>`;
+}
+function scoreFull(isProf, score, count){
+  const stars='★★★★★';
+  let xp='';
+  if(isProf){ xp=`<div class="xp-wrap"><div class="xp-bar"><div class="xp-fill" style="width:68%"></div></div>
+    <div class="xp-label" data-testid="perfil-xp-meter">XP 680/1000 · Faltam 320 XP para Destaque</div></div>`; }
+  const nivel = isProf?`<span class="badge-nivel" data-testid="perfil-nivel-badge">🛡 Confiável</span>`:'';
+  return `<div class="card rep-card" data-testid="perfil-score">
+    <div class="score-line"><span class="score-stars">${stars}</span><span class="score-num">${score}★</span>
+      <span class="score-count">· ${count} avaliações</span>${nivel}</div>${xp}</div>`;
+}
+function scoreSelo(label){
+  return `<div class="card rep-card" data-testid="perfil-score">
+    <div class="score-line"><span class="badge-novo">⬡ ${label}</span></div>
+    <div class="muted" style="font-size:13px">O score aparece a partir de 3 avaliações.</div></div>`;
+}
+function depoList(items,total){
+  const rows = items.map(d=>`<div class="depo" data-testid="depoimento-item-${d.id}">
+    <div class="depo-stars">${'★'.repeat(d.stars)}${'☆'.repeat(5-d.stars)}</div>
+    <div class="depo-text">"${d.text}"</div>
+    <div class="depo-author">${d.author}</div></div>`).join('');
+  const more = total>items.length ? `<button class="btn-text" data-testid="perfil-ver-todas-btn">Ver todas as avaliações (${total})</button>`:'';
+  return `<div data-testid="depoimento-list">${rows}${more}</div>`;
+}
+function stateEmpty(ic,t,m,id){
+  return `<div class="state" data-testid="${id}"><div class="ic">${ic}</div><div class="t">${t}</div><div class="m">${m}</div></div>`;
+}
+function prefsTail(){
+  return `<hr style="border:none;border-top:1px solid var(--border-subtle);margin:var(--s-xl) 0">
+    <div class="muted" style="font-size:14px">Preferências · Tema escuro · Sair</div>`;
+}
+
+/* ── T4 Gate ── */
+function renderGate(scroll){
+  const isContr=S.papel==='contratante';
+  const msg = isContr?'Avalie seu último turno para publicar uma nova vaga.':'Avalie seu último turno para se candidatar.';
+  let banner='';
+  if(S.estado==='ativo'){
+    banner=`<div class="banner warn" data-testid="gate-banner" role="status"><span class="ic">⚠</span>
+      <span class="txt">${msg}</span><button class="b-cta" data-testid="gate-avaliar-btn" onclick="setTela('avaliar')">Avaliar agora</button></div>`;
+  } else if(S.estado==='tentou'){
+    banner=`<div class="banner err" data-testid="gate-banner" role="status"><span class="ic">⚠</span>
+      <span class="txt">${msg}</span><button class="b-cta" data-testid="gate-avaliar-btn" onclick="setTela('avaliar')">Avaliar agora</button></div>`;
+  }
+  const vagas = isContr ? [
+    {t:'Garçom · Sex 18:00–23:00',s:'Restaurante Vista Mar · 4 candidatos'},
+    {t:'Cozinheiro · Sáb 12:00–17:00',s:'Restaurante Vista Mar · publicada'},
+  ] : [
+    {t:'Garçom · Hotel Meridiano',s:'Hoje 18:00–23:00 · R$ 180'},
+    {t:'Recepcionista · Bar do Porto',s:'Amanhã 19:00–01:00 · R$ 150'},
+  ];
+  const action = isContr?'Editar':'Candidatar-se';
+  const blocked = (S.estado==='ativo'||S.estado==='tentou');
+  const list = vagas.map(v=>`<div class="vaga"><div class="t">${v.t}</div><div class="s">${v.s}</div>
+    <div class="b"><button class="btn-text" onclick="${blocked?`tentarBloqueado()`:''}" style="padding:0">${isContr?'Editar vaga':'Candidatar-se'}</button></div></div>`).join('');
+  const fab = isContr ? `<button class="btn-primary" style="margin-top:8px" onclick="${blocked?'tentarBloqueado()':''}">+ Publicar nova vaga</button>`:'';
+  scroll.innerHTML = banner + list + fab +
+    (S.estado==='semgate'?'<div class="muted" style="font-size:13px;margin-top:8px">Sem avaliação pendente — ações liberadas.</div>':'');
+}
+function tentarBloqueado(){ S.estado='tentou'; render(); }
+
+/* boot */
+syncChips(); render();
+</script>
+</body>
+</html>

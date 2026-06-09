@@ -239,3 +239,106 @@ sempre instrui o próximo passo". Alvo do CTA ≥48dp. O skeleton usa `ExcludeSe
 **Usar quando:** lista/tela com fetch perceptível (vazio, falha, carregando). **Não usar
 quando:** erro inline mid-flow numa tela já populada (gerar PIN, validar check-in,
 cronômetro) — esse é um banner recuperável local, micro-padrão à parte.
+
+---
+
+## `input.rating` (avaliação por estrelas — entrada)
+
+**Descrição:** seletor de **1–5 estrelas obrigatório** da tela de avaliação recíproca.
+Nasce na **STORY-084 / DDR-004** (EPIC-004). 5 estrelas tocáveis, estado vazio→selecionado;
+ao escolher, um helper textual nomeia o valor ("Ótimo") — a estrela **não é só cor** (cheia
+`★` vs contornada `☆` + acento do perfil). Sem seleção, o `button.primary` da tela fica
+`disabled`; se forçado, vira erro vinculado ao grupo, nunca global.
+
+**Flutter:** `Row` de `InkWell`/`IconButton` (o Material core não tem rating) — componente
+custom do DS (mesma casa de `state_views.dart`). Alvo ≥48dp por estrela; navegável por
+teclado (←/→ muda valor, Enter confirma).
+
+| Estado | Comportamento |
+|---|---|
+| vazio | 5 estrelas contornadas, helper "Toque para avaliar" |
+| n selecionado | 1..n preenchidas no `accent` do perfil; helper = rótulo (1 Ruim…5 Ótimo) |
+| hover (web) | leve `scale`; foco anel `accent` |
+| erro | helper vira "Escolha de 1 a 5 estrelas." em `error.ink`, `Semantics` no grupo |
+
+**Acessibilidade:** `Semantics(label:'Avaliação, {n} de 5 estrelas')` no grupo; estrelas
+internas decorativas. **Usar quando:** capturar nota 1–5. **Não usar para:** exibir nota
+(use `display.rating`).
+
+---
+
+## `display.rating` (score / estrelas — leitura)
+
+**Descrição:** exibição **read-only** da reputação: estrelas + número (1 casa) + contagem,
+**ou** o selo **`badge.novo`** quando há **< 3 avaliações** (DDR-004 Eixo 2 — não inflar/
+deflacionar com amostra mínima; limiar é parâmetro de produto em `business-rules.md`). Vale
+para os dois papéis (profissional e contratante têm score). Variantes: **compacta** (linha de
+topo do perfil: `4.9★ · 27 avaliações`) e **inline** (cabeçalho do `card.depoimento`).
+
+**Flutter:** `Row` com estrelas (`ExcludeSemantics`) + `Text`; nó `Semantics` anuncia o
+**número** ("4,9 de 5, 27 avaliações") ou o selo ("Novo na plataforma") — nunca depende de cor.
+
+| Variante | Conteúdo |
+|---|---|
+| score (≥3) | `★★★★★` (acento) + `4.9★` + `· {n} avaliações` |
+| novo (0) | `badge.novo` "Novo na plataforma" |
+| novo (1–2) | `badge.novo` "Novo · {n} avaliação(ões)" |
+
+**Usar quando:** mostrar reputação. **Não usar para:** capturar nota (`input.rating`).
+
+---
+
+## `badge.nivel` (nível do profissional)
+
+**Descrição:** selo do nível na trilha do profissional — **Iniciante / Confiável / Destaque /
+Elite** (`niveis-e-score.md`). Cor **neutra do perfil** (`accent.soft` + `accent.ink` + borda),
+**não semântica**: nível não é alerta. **Só profissional** (contratante não tem nível no MVP —
+DDR-004). Sobe automático e nunca rebaixa (ADR-019 high-water-mark).
+
+**Flutter:** `Container` pílula (`radius.full`) com ícone + `Text` — mesma família visual de
+`badge.status`, mas pintado no acento do perfil, não na cor semântica.
+
+**Acessibilidade:** texto sempre presente (não só ícone); lido pelo leitor de tela.
+
+---
+
+## `meter.xp` (progresso de XP)
+
+**Descrição:** barra de progresso "XP atual → XP até o próximo nível" + **rótulo textual**
+("Faltam 320 XP para Destaque"). **Só profissional.** No nível **Elite** (topo), não há barra —
+vira rótulo "Nível máximo alcançado". XP pode ficar negativo localmente sem rebaixar
+(`niveis-e-score.md`); a barra clampa em 0.
+
+**Flutter:** `LinearProgressIndicator` temável (track `surface.muted`, fill `accent`) com
+`Semantics(value:'...')` + `Text` de rótulo. Nasce na STORY-084 / DDR-004.
+
+---
+
+## `card.depoimento`
+
+**Descrição:** card de um depoimento no perfil público — `display.rating` (estrelas) +
+comentário + **linha de autor** + data relativa. A linha de autor tem **duas variantes**
+(DDR-004 — visibilidade assimétrica):
+
+| Variante | Quando | Linha de autor |
+|---|---|---|
+| **estabelecimento** | depoimento **sobre profissional** (autor = contratante/PJ) | `{Nome do estabelecimento} · {Função} · {data relativa}` |
+| **profissional-anônimo** | depoimento **sobre contratante** (autor = profissional/pessoa física) | `Profissional · {Função} · {data relativa}` — **sem nome individual** (LGPD) |
+
+**Flutter:** `Card`/`Container` (`surface` + `radius.lg` + `elev.1`). Ordenado do mais recente
+para o mais antigo; até **3** no perfil + `button.text` "Ver todas as avaliações (N)". Avaliação
+**sem comentário não vira depoimento** (conta no score, não na lista).
+
+**Acessibilidade:** estrelas decorativas; o nó do card anuncia estrelas (número) + comentário +
+autor. **Atenção de contrato (LGPD):** o payload da variante profissional-anônimo **não** deve
+trafegar `autor_id`/nome — só papel, função, estrelas, comentário, data.
+
+---
+
+## `badge.novo`
+
+**Descrição:** selo neutro "Novo na plataforma" (+ contagem) exibido por `display.rating`
+quando há **< 3 avaliações** (DDR-004). Família visual de badge neutro (`surface.sunken` +
+`text.muted` + `border.strong`) — deliberadamente **discreto**, não compete com o acento.
+
+**Flutter:** `Container` pílula (`radius.full`). Texto sempre presente.

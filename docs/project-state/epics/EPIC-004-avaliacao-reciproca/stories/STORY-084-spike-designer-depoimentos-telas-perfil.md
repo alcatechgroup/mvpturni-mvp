@@ -8,8 +8,8 @@ type: spike
 target_role: designer
 requires_design: true
 design_screen_id: SCREEN-STORY-084-avaliacao-e-perfil
-status: ready
-owner_agent: null
+status: done
+owner_agent: claude-opus-4-8-designer-2026-06-09
 created_at: 2026-06-09
 updated_at: 2026-06-09
 estimated_session_size: M
@@ -87,10 +87,17 @@ Decide: layout das telas, componente de rating, badge de nível, forma do gate. 
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões
-- 
+- **DDR-004 `accepted`** (ratificado pelo dono em chat, 2026-06-09). Duas escolhas-núcleo:
+  - **Visibilidade do autor — assimétrica:** depoimento **sobre profissional** mostra **nome do estabelecimento + função + data** (PJ/marca pública, dá credibilidade); depoimento **sobre contratante** mostra **"Profissional" + função + data**, **sem nome individual** (pessoa física — LGPD + proteção contra retaliação). Descartadas: anônimo total (perde credibilidade) e nominal nos dois lados (expõe pessoa física — inaceitável).
+  - **Score com poucos dados — selo "Novo":** com `< 3` avaliações, mostra selo "Novo na plataforma" (+ contagem) em vez da média; a partir de 3, média 1-casa. Limiar `3` é parâmetro de produto (`business-rules.md`), não fixado pelo design.
+  - Regras derivadas: ordenação mais-recente-primeiro; até 3 depoimentos no perfil + "Ver todas (N)"; avaliação **sem comentário não vira depoimento** (conta no score, não na lista); data relativa pt-BR (> ~30 dias → data absoluta).
+- **SCREEN-STORY-084-avaliacao-e-perfil** (`ready`) cobre as 4 superfícies: T1/T2 avaliação (estrelas obrigatórias + comentário opcional), T3 perfil (score/nível/XP/depoimentos — nível/XP só profissional, reciprocidade no score), T4 UX do gate. Todos os estados especificados (vazio/loading/erro/sem-permissão/parcial/1ª-vez). Protótipo HTML navegável mobile+desktop, tokens reais, microcopy = §5, dentro do shell (DDR-003).
+- **DS atualizado** na mesma operação: `input.rating`, `display.rating`, `badge.nivel`, `meter.xp`, `card.depoimento`, `badge.novo` (componentes) e `pattern.gate-avaliacao`/`banner.gate` (padrão). Nenhuma exceção ao DS.
 
 ### Descobertas
-- 
+- A tela de Perfil já existe no shell (`apps/webapp/lib/features/app/perfil_screen.dart`) como placeholder declarado ("score e depoimentos chegam em épicos futuros") — T3 **estende** o destino, não cria tela nova; o bloco de reputação entra acima de Preferências/Sair.
+- **Risco LGPD para o back (anotado p/ STORY-085/088):** o contrato de leitura de depoimentos do **contratante** NÃO deve trafegar `autor_id`/nome do profissional ao cliente — só papel, função, estrelas, comentário, data. A assimetria do DDR-004 precisa ser garantida no payload, não só no front.
+- Componentes de reputação (`display.rating`/`badge.nivel`) também aparecem hoje no feed/detalhe-vaga/painel-candidatos (SCREEN-048/049/051) com tratamento ad-hoc — migração para os componentes do DS fica anotada como dívida não-bloqueante desta sprint.
 
 ### Bloqueios
-- 
+- Nenhum. Protótipo **aprovado pelo dono em 2026-06-09** (sem ajustes) — `prototype_last_validated_at` registrado no spec. CA-1..CA-6 e DoD satisfeitos; STORY-087/088 destravadas com confiança visual.

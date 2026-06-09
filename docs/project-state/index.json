@@ -2502,8 +2502,8 @@
       "target_role": "designer",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-084-avaliacao-e-perfil",
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-4-8-designer-2026-06-09",
       "sprint_id": "SPRINT-2026-W30",
       "estimated_session_size": "M",
       "path": "epics/EPIC-004-avaliacao-reciproca/stories/STORY-084-spike-designer-depoimentos-telas-perfil.md",
@@ -3996,11 +3996,63 @@
           "SCREEN-STORY-060-detalhe-turno"
         ],
         "source_story": "STORY-076"
+      },
+      {
+        "id": "DDR-004",
+        "title": "Visibilidade de depoimentos, score com poucos dados e componentes de reputação",
+        "status": "accepted",
+        "path": "decisions/ddr/DDR-004-visibilidade-de-depoimentos-e-reputacao.md",
+        "decided_at": "2026-06-09",
+        "decided_by": "designer",
+        "approved_by": "Alexandro",
+        "scope": "reputação",
+        "affects_screens": [
+          "SCREEN-STORY-084-avaliacao-e-perfil"
+        ],
+        "source_story": "STORY-084"
       }
     ]
   },
   "design": {
     "screens": [
+      {
+        "id": "SCREEN-STORY-084-avaliacao-e-perfil",
+        "story": "STORY-084",
+        "epic": "EPIC-004",
+        "status": "ready",
+        "path": "design/screens/SCREEN-STORY-084-avaliacao-e-perfil.md",
+        "prototype_path": "design/screens/SCREEN-STORY-084-avaliacao-e-perfil/index.html",
+        "viewports": [
+          "mobile",
+          "desktop"
+        ],
+        "related_ddrs": [
+          "DDR-004",
+          "DDR-003",
+          "DDR-002",
+          "DDR-001"
+        ],
+        "ds_components_used": [
+          "input.rating",
+          "display.rating",
+          "badge.nivel",
+          "meter.xp",
+          "card.depoimento",
+          "banner.gate",
+          "input.text",
+          "button.primary",
+          "button.text",
+          "surface.card",
+          "section.group-header",
+          "state.empty",
+          "state.error",
+          "state.loading",
+          "pattern.navigation"
+        ],
+        "owner_designer": "claude-opus-4-8-designer-2026-06-09",
+        "created_at": "2026-06-09",
+        "updated_at": "2026-06-09"
+      },
       {
         "id": "SCREEN-STORY-077-app-shell",
         "story": "STORY-076",

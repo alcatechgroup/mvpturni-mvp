@@ -13,6 +13,7 @@ A versão 0.1 (fundação EPIC-000) ainda não catalogava padrões compostos. A 
 | `pattern.empty` | EPIC-001+ | `state.empty` (`TurniEmptyState`): ícone + título + mensagem que instrui o próximo passo + CTA contextual. Ver abaixo. | **decidido (STORY-079)** |
 | `pattern.error` | EPIC-001+ | recuperável (`state.error` `TurniRetryState`: ícone + texto + "Tentar de novo") vs não-recuperável (`state.empty` com ícone de bloqueio + saída para um destino do shell). Ver abaixo. | **decidido (STORY-079)** |
 | `pattern.loading` | EPIC-001+ | `state.loading` (`TurniSkeletonList`/`TurniSkeletonCard`/`TurniSkeletonBox`): skeleton/placeholder no formato do conteúdo que vem, no lugar de spinner solto. Ver abaixo. | **decidido (STORY-079)** |
+| `pattern.gate-avaliacao` | EPIC-004 (avaliação recíproca) | `banner.gate` **bloqueante proativo** no topo do destino onde a ação vive; conteúdo segue visível; CTA "Avaliar agora" deep-linka ao turno pendente. Ver **DDR-004** / **ADR-019**. | **decidido (DDR-004)** |
 
 > Regra herdada dos tokens: tabela com >5 colunas vira lista de cards no mobile; estado vazio sempre instrui o próximo passo; erro nunca é só cor.
 
@@ -81,3 +82,26 @@ Centralizado: **ícone** (contornado, neutro) + **título** curto + **mensagem**
 Skeleton/placeholder no **formato do conteúdo que vem** (card de lista, linha com avatar), repetido ~3×, no lugar de spinner solto. Estático (sem animação — mesma leitura nos dois temas). `ExcludeSemantics` (não anuncia ao leitor de tela). `TurniSkeletonBox` é o primitivo (barra/círculo); `TurniSkeletonCard` é o card de 3 linhas; `TurniSkeletonList` repete o item com o espaçamento padrão e aceita um `itemBuilder` para formatos diferentes (ex.: linha com avatar das notificações/candidatos).
 
 **Convenção de `key`.** Os componentes não fixam `Key` — a tela passa a sua (`feed-vazio`, `turnos-erro-banner`, `*-retry-btn`, `*-skeleton`), preservando os seletores de teste/E2E.
+
+---
+
+## `pattern.gate-avaliacao` — gate bloqueante de avaliação
+
+> Decidido em **DDR-004**; lógica em **ADR-019** (Decisão 5) e `flows/avaliacao-reciproca.md`. Componente: `banner.gate`. Protótipo: `design/screens/SCREEN-STORY-084-avaliacao-e-perfil/index.html` (tela "Gate").
+
+**Problema.** A avaliação recíproca é obrigatória e bloqueante (PDR-005): o profissional não se candidata e o contratante não publica nova vaga enquanto houver avaliação pendente. Bloquear **só na hora** do toque ("tap → parede") frustra o usuário não-técnico; bloquear a tela inteira esconderia o feed, que deve seguir visível.
+
+**Composição.** Um **banner proativo** (`banner.gate`) no **topo do destino** onde a ação bloqueada vive, abaixo do header e acima do conteúdo:
+
+- **Profissional** → destino **Vagas/feed**: "Avalie seu último turno para se candidatar." + CTA "Avaliar agora".
+- **Contratante** → destino **Nova vaga / Minhas vagas**: "Avalie seu último turno para publicar uma nova vaga." + CTA "Avaliar agora".
+
+**Regras.**
+- **Bloqueia a ação, não a visibilidade.** O feed/lista continua visível e rolável; só a ação (candidatar/publicar) é barrada (fluxo §gate).
+- **Cor `warning` soft + ícone + texto** (tokens §4 — nunca só cor); `Semantics(liveRegion: true)` ao aparecer.
+- **Não dispensável** — é bloqueio, não aviso. Some sozinho quando a última pendência do papel é resolvida (motor recomputa ≤1s — ADR-019).
+- **CTA deep-linka** ao `turno_id` da pendência mais antiga (devolvido pelo serviço com `gate_avaliacao`) → tela de avaliação (SCREEN-084 T1/T2).
+- **Reativo (fail-secure):** se o usuário tentar a ação assim mesmo, o serviço devolve `gate_avaliacao` (nunca código cru ao usuário) e o app realça o banner / leva à avaliação.
+- **Editar/cancelar vaga existente NÃO é bloqueado** — o gate é sobre *publicar nova* (ADR-019).
+
+**Acessibilidade.** CTA ≥48dp, foco visível; `error.soft` na variante "ação tentada" mantém ícone + texto.
