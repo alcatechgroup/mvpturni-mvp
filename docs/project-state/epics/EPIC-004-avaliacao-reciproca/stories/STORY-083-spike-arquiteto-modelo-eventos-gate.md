@@ -8,8 +8,8 @@ type: spike
 target_role: arquiteto
 requires_design: false
 design_screen_id: null
-status: ready
-owner_agent: null
+status: done
+owner_agent: claude-opus-4-8-arquiteto-2026-06-09
 created_at: 2026-06-09
 updated_at: 2026-06-09
 estimated_session_size: M
@@ -44,12 +44,12 @@ Garante que a avaliação recíproca nasça com modelo coerente e gate confiáve
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** ADR-019 registra o modelo de dados de avaliação (campos, unicidade por direção/turno, linkage) com justificativa e alternativas consideradas.
-- [ ] **CA-2:** ADR-019 decide os eventos de domínio (`turno_finalizado`, `avaliacao_recebida`), o mecanismo (síncrono/fila) e a idempotência do motor de XP/score.
-- [ ] **CA-3:** ADR-019 decide o ponto do gate bloqueante (camada + estratégia) fail-secure, aplicável aos dois papéis, com nota de testabilidade.
-- [ ] **CA-4:** `flows/avaliacao-reciproca.md` escrito: estados/transições do fluxo, gatilhos, mensagens-chave, e como o gate se manifesta.
-- [ ] **CA-5:** ADR-019 `accepted` (aprovação do humano) e indexado em `index.json` (decisions.adr). Respeita ADR-015 (modelo Turno), ADR-007 (RBAC), ADR-018 (UUID em PKs/rotas).
-- [ ] **CA-6:** Decisões abrem caminho claro para STORY-085 (modelo+motor) e STORY-086 (gate) — sem deixar decisão de baixo nível em aberto que force IDR de bloqueio na implementação.
+- [x] **CA-1:** ADR-019 registra o modelo de dados de avaliação (campos, unicidade por direção/turno, linkage) com justificativa e alternativas consideradas. → Decisão 1 (tabela `avaliacoes`, `UNIQUE(turno_id, direcao)`, Opção 1A vs 1B).
+- [x] **CA-2:** ADR-019 decide os eventos de domínio (`turno_finalizado`, `avaliacao_recebida`), o mecanismo (síncrono/fila) e a idempotência do motor de XP/score. → Decisões 3 (eventos síncronos) e 4 (motor por recomputação idempotente).
+- [x] **CA-3:** ADR-019 decide o ponto do gate bloqueante (camada + estratégia) fail-secure, aplicável aos dois papéis, com nota de testabilidade. → Decisão 5 (service layer, fail-secure, simétrico) + Plano de verificação.
+- [x] **CA-4:** `flows/avaliacao-reciproca.md` escrito: estados/transições do fluxo, gatilhos, mensagens-chave, e como o gate se manifesta.
+- [x] **CA-5:** ADR-019 `accepted` (aprovação do humano em 2026-06-09) e indexado em `index.json` (decisions.adr). Respeita ADR-015 (modelo Turno), ADR-007 (RBAC ortogonal ao gate), ADR-018 (UUIDv7 em PKs/FKs).
+- [x] **CA-6:** Decisões abrem caminho claro para STORY-085 (modelo+motor; fronteira de quebra = evento `AvaliacaoRegistrada`) e STORY-086 (gate) — sem decisão de baixo nível em aberto.
 
 ## Fora de escopo
 
@@ -76,8 +76,8 @@ Decide: forma do modelo, mecanismo de eventos, camada do gate, desenho do motor 
 
 ## Definição de Pronto (DoD)
 
-- [ ] ADR-019 `accepted` + indexado; `flows/avaliacao-reciproca.md` escrito.
-- [ ] `index.json` atualizado: status da estória = `done`. "Notas do agente" preenchida.
+- [x] ADR-019 `accepted` + indexado; `flows/avaliacao-reciproca.md` escrito.
+- [x] `index.json` atualizado: status da estória = `done`. "Notas do agente" preenchida.
 
 ## Protocolo do agente (obrigatório)
 
@@ -86,10 +86,18 @@ Decide: forma do modelo, mecanismo de eventos, camada do gate, desenho do motor 
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões
-- 
+- **ADR-019 escrita em `proposed`** (`decisions/adr/ADR-019-avaliacao-reciproca-modelo-eventos-gate.md`) + spec `docs/especificacao/flows/avaliacao-reciproca.md`. Indexada em `index.json` (`decisions.adr`, `proposed`). **CA-5 pende de aprovação humana** (não me marco `accepted`); até lá a estória fica `in_progress`.
+- **D1 (modelo, CA-1):** tabela `avaliacoes` separada — uma linha por direção/turno, `UNIQUE (turno_id, direcao)`, `CHECK (estrelas BETWEEN 1 AND 5)`, `CHECK (autor_id <> avaliado_id)`, índice de cobertura `(avaliado_id, created_at DESC)`. **Diverge do esboço jsonb de `turno.md`** (atributos no turno) — assumido: latitude de modelagem do arquiteto; tabela separada é a forma correta para reputação consultável (média + depoimentos).
+- **D2:** pendência **derivada do estado** (turno finalizado/finalizado_ajustado sem linha na direção), **não materializada** — refina a linguagem "cria as duas pendências" do `epic.md`; idempotente e sem peça nova (espelha ADR-014).
+- **D3 (eventos, CA-2):** reusa `App\Events\TurnoFinalizado` (já existe) somando um listener de notificação "avalie seu turno"; novo `App\Events\AvaliacaoRegistrada` dispara o motor. **Síncronos dentro da transação** (auto-discovery está OFF — registro explícito no `AppServiceProvider`), payload de IDs string UUID.
+- **D4 (motor, CA-2):** `App\Domain\Avaliacao\MotorReputacao` recomputa score/XP/turnos do `avaliado` a partir dos fatos canônicos → **idempotente por construção** (sem ledger, elimina "XP em dobro"); nível é **high-water-mark** (sobe, nunca rebaixa). Schema: `profissional_profiles.xp` **`unsignedInteger → integer` signed** (spec: "XP pode ficar negativo"); `contratante_profiles` **ganha `score`**; enum `NivelProfissional` recomendado.
+- **D5 (gate, CA-3):** **service layer**, fail-secure, simétrico, ortogonal ao RBAC. Reusa as costuras prontas: `GateAvaliacao` já liga `CriarCandidaturaService` (STORY-086 enche `AvaliacoesPendentesProfissional` + preenche `turno_id`); falta **ligar `PublicarVagaService`** via `AvaliacoesPendentesContratante` (STORY-086).
 
 ### Descobertas
-- 
+- As costuras do gate **já existem** como stubs honestos do EPIC-002 (`app/Domain/Avaliacao/AvaliacoesPendentes{Profissional,Contratante}` + `app/Domain/Candidatura/Gates/GateAvaliacao`); o lado do profissional já está ligado à candidatura, o do contratante **não** está ligado ao `PublicarVagaService`.
+- `profissional_profiles` já tem `nivel/score/xp/turnos_realizados`; **`xp` é `unsignedInteger`** (conflita com "XP negativo" — D4 manda virar signed). `contratante_profiles` **não tem** `score` (D4 adiciona).
+- Evento `TurnoFinalizado` já existe e já dispara o ciclo financeiro; o auto-discovery de listeners está **desligado** (`bootstrap/app.php`).
+- **CA-6 atendido:** STORY-085 (modelo+motor — fronteira de quebra = o evento `AvaliacaoRegistrada`) e STORY-086 (gate) ficam sem decisão de baixo nível em aberto.
 
 ### Bloqueios
-- 
+- Nenhum técnico. **Bloqueio de processo:** CA-5/DoD exigem ADR-019 `accepted` (aprovação do Alexandro) antes de STORY-085/086 começarem. Apresentada ao PO para aprovação.

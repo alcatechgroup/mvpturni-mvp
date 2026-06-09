@@ -2481,8 +2481,8 @@
       "target_role": "arquiteto",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-4-8-arquiteto-2026-06-09",
       "sprint_id": "SPRINT-2026-W30",
       "estimated_session_size": "M",
       "path": "epics/EPIC-004-avaliacao-reciproca/stories/STORY-083-spike-arquiteto-modelo-eventos-gate.md",
@@ -3659,6 +3659,19 @@
         "supersedes": null,
         "superseded_by": null,
         "source_story": "STORY-057"
+      },
+      {
+        "id": "ADR-019",
+        "title": "Avaliação recíproca — tabela avaliacoes separada, pendência derivada, motor de reputação por recomputação idempotente e gate bloqueante no service layer",
+        "status": "accepted",
+        "path": "decisions/adr/ADR-019-avaliacao-reciproca-modelo-eventos-gate.md",
+        "decided_at": "2026-06-09",
+        "decided_by": "arquiteto",
+        "approved_by": "Alexandro",
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-083",
+        "note": "ACEITA por Alexandro em chat (2026-06-09). Destrava STORY-085 (modelo+motor) e STORY-086 (gate). 5 decisões: tabela avaliacoes separada; pendência derivada; eventos TurnoFinalizado(notificação)+AvaliacaoRegistrada(motor) síncronos na transação; motor por recomputação idempotente + nível high-water-mark (xp vira signed, contratante ganha score); gate no service layer fail-secure reusando AvaliacoesPendentes*."
       }
     ],
     "idr": [

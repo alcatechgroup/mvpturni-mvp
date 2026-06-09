@@ -14,7 +14,7 @@ Cada arquivo neste diretório descreve um fluxo completo do ponto de vista do us
 | `check-in.md` | Profissional + Contratante | A escrever |
 | `execucao-de-turno.md` | Profissional | A escrever |
 | `check-out-e-pagamento.md` | Profissional + Contratante | A escrever |
-| `avaliacao-reciproca.md` | Profissional + Contratante | A escrever |
+| `avaliacao-reciproca.md` | Profissional + Contratante | Escrita (EPIC-004 / ADR-019) |
 | `disputa.md` | Contratante → Admin | A escrever |
 | `cancelamento.md` | Profissional ou contratante | A escrever |
 | `edicao-de-vaga.md` | Contratante (com candidaturas pendentes) | A escrever |
