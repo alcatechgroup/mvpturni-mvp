@@ -10,6 +10,7 @@
 //      "Nova vaga" (RBAC); navega Vagas → Perfil → Turnos com ativo correto.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 
 import '../helpers/login_helper.dart';
 import '../helpers/pump_app.dart';
@@ -34,6 +35,14 @@ Finder _naBarra(String t) => find.descendant(
 );
 
 void main() {
+  // Inicializa o binding de INTEGRAÇÃO (real async). Sem isto, ao rodar esta
+  // suíte STANDALONE (--target=app_shell_test.dart), o `flutter drive` cai no
+  // binding automatizado (FakeAsync) e o HTTP real do login nunca completa
+  // ("rota não mudou para /"). Os demais testes de integração fazem o mesmo no
+  // seu main(); aqui faltava — só funcionava embutido no web_test.dart porque o
+  // auth_test.main() roda antes e inicializa o binding.
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
   testWidgets(
     'profissional · mobile: bottom bar com destinos do papel e navegação ativa (CA-7)',
     (tester) async {

@@ -50,14 +50,40 @@ Future<void> loginAs(
     router.go('/login');
     await tester.pumpAndSettle();
   }
-  await tester.enterText(find.byKey(const ValueKey('login:email')), email);
-  await tester.enterText(
-    find.byKey(const ValueKey('login:password')),
-    password,
-  );
+  // Web (flutter drive): `tester.enterText` frequentemente NÃO preenche o campo
+  // (flutter/flutter#100393). Caminho confiável (doc oficial do flutter_test):
+  // garantir o foco com um TAP real no campo e então injetar o texto via
+  // `testTextInput`. Registramos o mock de input antes (necessário no binding de
+  // integração na web).
+  tester.testTextInput.register();
+  await _fillField(tester, const ValueKey('login:email'), email);
+  await _fillField(tester, const ValueKey('login:password'), password);
   await tester.tap(find.byKey(const ValueKey('login:submit')));
   await tester
       .pump(); // dispara a requisição; o desfecho é aguardado por quem chama
+}
+
+/// Foca o campo [key] com um tap real e injeta [text] pelo `testTextInput`
+/// (confiável na web — ver [loginAs]). Verifica que o texto entrou de fato e
+/// falha com mensagem clara caso contrário (em vez de estourar só lá no
+/// `awaitRouteChange`).
+Future<void> _fillField(WidgetTester tester, Key key, String text) async {
+  await tester.tap(find.byKey(key));
+  await tester.pumpAndSettle();
+  tester.testTextInput.enterText(text);
+  await tester.pumpAndSettle();
+
+  final editable = find.descendant(
+    of: find.byKey(key),
+    matching: find.byType(EditableText),
+  );
+  final atual = tester.widget<EditableText>(editable).controller.text;
+  if (atual != text) {
+    fail(
+      'Campo $key não preencheu na web (#100393): esperado "$text", '
+      'obtido "$atual"',
+    );
+  }
 }
 
 /// Atalho: loga como o profissional ativo do seed (CA-13b).

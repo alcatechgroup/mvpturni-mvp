@@ -1,4 +1,5 @@
 // Helper de boot do WebApp para integration_test (STORY-038 / IDR-011 §c).
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:turni_webapp/features/auth/auth_service.dart';
 import 'package:turni_webapp/main.dart';
@@ -23,6 +24,14 @@ Future<void> pumpApp(WidgetTester tester, {String? initialRoute}) async {
   // comece de forma determinística (sem sessão → o guard manda para /login).
   AuthService().debugSetSession(null);
   router.go('/');
+
+  // Flutter 3.44 + web: ao focar um campo via `enterText`, a SEMÂNTICA dispara,
+  // no meio do frame, uma troca do modo de destaque de foco (touch→teclado) que
+  // faz `InkWell`s chamarem `setState` durante o build → "Build scheduled during
+  // frame", quebrando o E2E (flutter/flutter#100393 e correlatos). Fixar a
+  // estratégia em `alwaysTouch` impede a troca de modo e o rebuild, sem afetar a
+  // navegação testada. Local: o boot do app, antes de qualquer interação.
+  FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTouch;
 
   await tester.pumpWidget(const TurniApp());
   await tester.pumpAndSettle();
