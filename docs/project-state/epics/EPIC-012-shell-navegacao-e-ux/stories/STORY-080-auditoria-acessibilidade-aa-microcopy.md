@@ -109,16 +109,31 @@ NÃO decide: copy de domínio que mude significado (PO), alvo de conformidade (A
 **Dúvidas/flags:** copy de domínio que mude significado → PO (ex.: resíduo "Member Start:" no vazio de candidatos já flagrado na STORY-079). Não reabro DDR-001/002.
 
 ### Decisões tomadas
-- 
+- **Gate via `meetsGuideline` nativo do Flutter, não axe/lighthouse** (vira IDR-022). O WebApp é canvas-rendered (CanvasKit) → axe/lighthouse veem um `<canvas>` quase vazio. Os matchers (`textContrastGuideline`, `androidTapTargetGuideline`, `labeledTapTargetGuideline`) operam sobre a árvore de Semântica que o Flutter exporta (= ARIA no DOM), rodam em `flutter test` sem browser/banco e cobrem CA-1 + CA-3. Harness em `test/a11y/a11y_harness.dart`.
+- **Seam de tipografia (`lib/ds/typography.dart`: `dsTextTheme`/`dsMono`)** ligado em teste por `test/flutter_test_config.dart`. Google Fonts busca .ttf em runtime e o gate rasteriza texto dentro de `runAsync` → estoura sem rede. A família não afeta contraste (cor+tamanho), então a suíte INTEIRA passou a rodar offline/determinística (pré-requisito do gate no CI).
+- **Alvo de toque do NavigationRail (desktop) = 44dp** (`iOSTapTargetGuideline`), não 48. O destino do rail Material fica em 44dp e o widget não expõe knob de altura; 44dp é aceito em WCAG 2.1 AA (accessibility-basics.md §7 "WCAG aceita ≥44"; 48dp é recomendação Material). Bottom bar (toque) e conteúdo das telas mantêm 48dp. **Flag para Designer/PO revisarem.**
 
 ### Descobertas
-- 
+- **[CORRIGIDO] Contraste do "Tentar de novo" (DS `TurniRetryState`):** foreground branco fixo sobre o accent — no escuro o accent é claro (branco/sage = **2.99:1**). Agora segue o on-accent do tema.
+- **[CORRIGIDO] Monograma do usuário na sidebar do shell:** `chrome.accent` sobre `chrome.accentSoft` (sage **3.63:1** / mostarda **4.25:1**). Agora `chrome.on` (quase-branco).
+- **[SISTÊMICO — EM ABERTO] `foregroundColor: Colors.white` em CTA sobre o accent do perfil:** reprova AA no tema escuro (accent claro + branco = **2.99:1**). Aparece **31×** em 9 telas (turno_detalhe, turnos_lista, app_shell_screen, feed, editar_vaga, publicar_vaga, minhas_vagas, vaga_detalhe, painel_candidatos). Ex. confirmados pelo gate: "Candidatar-se" (Feed), "Cancelar vaga" (Minhas vagas = 4.38). Correção = on-accent por tema (mesma do DS), por call-site (nem todo branco está sobre accent — verificar cada). 
+- **[EM ABERTO] Chips de filtro selecionado** (Feed "Todas"/"Ativas", Minhas vagas): selecionado reprova (2.18–2.99). Revisar `selectedColor`/`labelStyle`.
 
 ### Bloqueios encontrados
-- 
+- Nenhum bloqueio de papel (PO/Arquiteto). Trabalho técnico em andamento.
 
 ### Cobertura final
-- Unitários:  / Gate a11y: 
+- Unitários: suíte completa verde (652 testes, +20 de a11y) no estado COMMITADO. / Gate a11y: DS components + shell + Perfil verdes. Feed/Minhas-vagas em vermelho (descoberta sistêmica acima, fix pendente — `test/a11y/content_screens_a11y_test.dart` NÃO commitado).
+
+### Progresso por CA
+- CA-1 (contraste AA): gate operante; DS+shell+Perfil verdes; **pendente** corrigir o sistêmico de CTA + chips nas 9 telas.
+- CA-2 (teclado): **pendente** (cenário E2E `integration_test`).
+- CA-3 (alvo ≥48dp + label): gate operante; shell verde; **pendente** demais telas.
+- CA-4 (erro associado a campo + microcopy): **pendente**.
+- CA-5 (gate no CI): harness pronto e offline; **pendente** wire no `ci.yml` + IDR-022.
+- CA-6 (sem regressão): suíte completa verde no commitado.
+- CA-7 (deploy homolog): **pendente**.
 
 ### Links de evidência
-- PR / Pipeline / Deploy homolog: 
+- Commits (main): `chore: assume`, `feat: gate a11y offline + retry`, `test: gate shell + Perfil`.
+- PR / Pipeline / Deploy homolog: pendente.
