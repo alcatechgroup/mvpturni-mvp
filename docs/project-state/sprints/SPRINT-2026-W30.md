@@ -30,16 +30,16 @@ O problema que esta sprint resolve: hoje o turno termina em `finalizado` e nada 
 
 ## Estórias incluídas
 
-| ID        | Título                                                                                | Épico    | Tipo           | Papel       | Tamanho | Status |
-| --------- | ------------------------------------------------------------------------------------- | -------- | -------------- | ----------- | ------- | ------ |
-| STORY-083 | Spike Arquiteto — modelo + eventos + ponto do gate (ADR-019) + spec do fluxo          | EPIC-004 | spike          | arquiteto   | M       | ready  |
-| STORY-084 | Spike Designer — DDR-004 (depoimentos) + telas de avaliação + perfil + protótipo      | EPIC-004 | spike          | designer    | M       | ready  |
-| STORY-085 | Backend — modelo de avaliação + motor de XP/score + subida de nível + evento          | EPIC-004 | implementation | programador | L       | ready  |
-| STORY-086 | Backend — gate bloqueante (sem candidatar/publicar com avaliação pendente)            | EPIC-004 | implementation | programador | M       | ready  |
-| STORY-087 | Frontend — telas de avaliação recíproca (estrelas + comentário) no shell              | EPIC-004 | implementation | programador | M       | ready  |
-| STORY-088 | Frontend — perfil (score/nível/XP/depoimentos) + UX do gate bloqueante                | EPIC-004 | implementation | programador | M       | ready  |
-| STORY-089 | Validação final do EPIC-004                                                            | EPIC-004 | validation     | validador   | M       | ready  |
-| STORY-082 | Deflake cronômetro (F-B-1) + housekeeping índice (IDR-028/029 + SCREEN-077) — carry-forward | EPIC-003 | bugfix    | programador | S       | ready  |
+| ID        | Título                                                                                      | Épico    | Tipo           | Papel       | Tamanho | Status |
+| --------- | ------------------------------------------------------------------------------------------- | -------- | -------------- | ----------- | ------- | ------ |
+| STORY-083 | Spike Arquiteto — modelo + eventos + ponto do gate (ADR-019) + spec do fluxo                | EPIC-004 | spike          | arquiteto   | M       | done   |
+| STORY-084 | Spike Designer — DDR-004 (depoimentos) + telas de avaliação + perfil + protótipo            | EPIC-004 | spike          | designer    | M       | ready  |
+| STORY-085 | Backend — modelo de avaliação + motor de XP/score + subida de nível + evento                | EPIC-004 | implementation | programador | L       | ready  |
+| STORY-086 | Backend — gate bloqueante (sem candidatar/publicar com avaliação pendente)                  | EPIC-004 | implementation | programador | M       | ready  |
+| STORY-087 | Frontend — telas de avaliação recíproca (estrelas + comentário) no shell                    | EPIC-004 | implementation | programador | M       | ready  |
+| STORY-088 | Frontend — perfil (score/nível/XP/depoimentos) + UX do gate bloqueante                      | EPIC-004 | implementation | programador | M       | ready  |
+| STORY-089 | Validação final do EPIC-004                                                                 | EPIC-004 | validation     | validador   | M       | ready  |
+| STORY-082 | Deflake cronômetro (F-B-1) + housekeeping índice (IDR-028/029 + SCREEN-077) — carry-forward | EPIC-003 | bugfix         | programador | S       | ready  |
 
 **Sizing total**: **1 S + 6 M + 1 L (8 estórias)**.
 
@@ -107,6 +107,7 @@ STORY-082 (deflake cronômetro + housekeeping) — ORTOGONAL TOTAL, inicia a qua
 | Data | Check | Situação |
 |---|---|---|
 | 2026-06-09 | Abertura da sprint (PO) | W30 aberta logo após o fechamento da W29 (EPIC-012 done). EPIC-004 decomposto em 8 estórias (`draft`→`ready`); STORY-082 carry-forward. Próximo passo: agentes Arquiteto (STORY-083 → ADR-019) e Designer (STORY-084 → DDR-004 + protótipo) executam em paralelo; humano aprova ADR e protótipo antes da implementação. a11y do EPIC-012 fica fora por decisão do dono. |
+| 2026-06-09 | STORY-083 done — ADR-019 accepted (Arquiteto) | Primeiro gargalo de entrada resolvido. ADR-019 aprovada pelo dono em chat: tabela `avaliacoes` separada (UNIQUE por direção/turno) divergindo do esboço jsonb de turno.md; pendência derivada do estado; eventos síncronos na transação (reuso de `TurnoFinalizado` p/ notificação + novo `AvaliacaoRegistrada` p/ motor); motor de reputação por recomputação idempotente + nível high-water-mark (`xp`→signed, contratante ganha `score`, enum `NivelProfissional` recomendado); gate no service layer fail-secure reusando as costuras `AvaliacoesPendentes*` (profissional já ligado; falta ligar `PublicarVagaService`). Spec `flows/avaliacao-reciproca.md` escrita. **Destrava STORY-085/086** (que ainda dependem do protótipo da STORY-084). Risco de idempotência (motor) mitigado por construção. Próximo gargalo: aprovação do protótipo da STORY-084. |
 
 ## Mudanças no escopo do sprint
 
