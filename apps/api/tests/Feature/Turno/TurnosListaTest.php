@@ -174,3 +174,51 @@ test('não autenticado → 401 nas duas rotas', function () {
     $this->getJson('/api/profissional/turnos')->assertStatus(401);
     $this->getJson('/api/contratante/turnos')->assertStatus(401);
 });
+
+// ---------------------------------------------------------------- avaliação pendente (STORY-088 extra)
+
+test('turno finalizado SEM a avaliação do profissional marca avaliacao_pendente=true', function () {
+    $pro = User::factory()->profissional()->ativo()->create();
+    Turno::factory()->status(TurnoStatus::Finalizado)->create(['profissional_id' => $pro->id]);
+
+    $item = $this->actingAs($pro)->getJson('/api/profissional/turnos')->assertStatus(200)
+        ->json('grupos.0.turnos.0');
+
+    expect($item['avaliacao_pendente'])->toBeTrue();
+});
+
+test('turno finalizado COM a avaliação do profissional marca avaliacao_pendente=false', function () {
+    $pro = User::factory()->profissional()->ativo()->create();
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create(['profissional_id' => $pro->id]);
+    // A direção do PROFISSIONAL já avaliada (a do contratante é irrelevante p/ a pendência dele).
+    \App\Models\Avaliacao::factory()->doProfissional()->paraTurno($turno)->estrelas(5)->create();
+
+    $item = $this->actingAs($pro)->getJson('/api/profissional/turnos')->assertStatus(200)
+        ->json('grupos.0.turnos.0');
+
+    expect($item['avaliacao_pendente'])->toBeFalse();
+});
+
+test('turno NÃO finalizado nunca fica pendente de avaliação (confirmado)', function () {
+    $pro = User::factory()->profissional()->ativo()->create();
+    Turno::factory()->status(TurnoStatus::Confirmado)->create(['profissional_id' => $pro->id]);
+
+    $item = $this->actingAs($pro)->getJson('/api/profissional/turnos')->assertStatus(200)
+        ->json('grupos.0.turnos.0');
+
+    expect($item['avaliacao_pendente'])->toBeFalse();
+});
+
+test('contratante: finalizado sem a avaliação dele = pendente; com ela = não', function () {
+    $contratante = User::factory()->contratante()->ativo()->create();
+    $pendente = Turno::factory()->status(TurnoStatus::Finalizado)->create(['contratante_id' => $contratante->id]);
+    $avaliado = Turno::factory()->status(TurnoStatus::Finalizado)->create(['contratante_id' => $contratante->id]);
+    // Direção do CONTRATANTE já feita só no $avaliado (factory default = contratante→profissional).
+    \App\Models\Avaliacao::factory()->paraTurno($avaliado)->estrelas(4)->create();
+
+    $turnos = collect($this->actingAs($contratante)->getJson('/api/contratante/turnos')
+        ->assertStatus(200)->json('grupos.0.turnos'))->keyBy('id');
+
+    expect($turnos[$pendente->id]['avaliacao_pendente'])->toBeTrue()
+        ->and($turnos[$avaliado->id]['avaliacao_pendente'])->toBeFalse();
+});
