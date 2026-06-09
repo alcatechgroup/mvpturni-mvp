@@ -227,4 +227,63 @@ void main() {
       );
     });
   });
+
+  // STORY-088 — data relativa pt-BR dos depoimentos (DDR-002 / SCREEN-084 §5):
+  // "há 3 dias" / "há 1 semana"; ≥ 30 dias → data absoluta dd/MM/aaaa.
+  group('tempoRelativo', () {
+    final agora = DateTime(2026, 6, 12, 18, 0); // referência fixa (determinismo)
+    String rel(Duration atras) =>
+        TurniDateTime.tempoRelativo(agora.subtract(atras), agora: agora);
+
+    // (a) caminho feliz — o vocabulário do spec
+    test('dias e semanas no plural', () {
+      expect(rel(const Duration(days: 3)), 'há 3 dias');
+      expect(rel(const Duration(days: 14)), 'há 2 semanas');
+    });
+
+    // (b) singular vs plural
+    test('singular sem "s" em minuto/hora/dia/semana', () {
+      expect(rel(const Duration(minutes: 1)), 'há 1 minuto');
+      expect(rel(const Duration(hours: 1)), 'há 1 hora');
+      expect(rel(const Duration(days: 1)), 'há 1 dia');
+      expect(rel(const Duration(days: 7)), 'há 1 semana');
+    });
+
+    test('plural a partir de 2', () {
+      expect(rel(const Duration(minutes: 5)), 'há 5 minutos');
+      expect(rel(const Duration(hours: 3)), 'há 3 horas');
+    });
+
+    // (c) bordas dos limiares
+    test('limiares: 60min→1 hora, 24h→1 dia, 7d→1 semana, 29d→4 semanas', () {
+      expect(rel(const Duration(minutes: 60)), 'há 1 hora');
+      expect(rel(const Duration(hours: 24)), 'há 1 dia');
+      expect(rel(const Duration(days: 7)), 'há 1 semana');
+      expect(rel(const Duration(days: 29)), 'há 4 semanas');
+    });
+
+    test('menos de 1 minuto → "agora"', () {
+      expect(rel(const Duration(seconds: 30)), 'agora');
+      expect(rel(Duration.zero), 'agora');
+    });
+
+    // (d) ≥ 30 dias → data absoluta; futuro não quebra
+    test('30 dias ou mais → data absoluta dd/MM/aaaa', () {
+      final d40 = agora.subtract(const Duration(days: 40));
+      expect(
+        TurniDateTime.tempoRelativo(d40, agora: agora),
+        TurniDateTime.formatData(d40),
+      );
+    });
+
+    test('instante no futuro (relógio adiantado) não quebra → "agora"', () {
+      expect(
+        TurniDateTime.tempoRelativo(
+          agora.add(const Duration(minutes: 5)),
+          agora: agora,
+        ),
+        'agora',
+      );
+    });
+  });
 }
