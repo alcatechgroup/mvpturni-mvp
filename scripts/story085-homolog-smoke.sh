@@ -14,7 +14,9 @@
 # Uso: scripts/story085-homolog-smoke.sh
 set -uo pipefail
 
-API="https://api.homolog.turni.com.br"
+# A API de homolog é servida pela URL do Cloud Run (o subdomínio api.homolog.turni.com.br
+# não tem registro DNS). Origin = WebApp (Sanctum SPA stateful valida o Origin no CSRF).
+API="https://turni-api-homolog-tuhmw7pfwa-rj.a.run.app"
 ORIG="https://app.homolog.turni.com.br"
 PASS="${ADMIN_SEED_PASSWORD:-turni-dev}"
 EMP="contratante.avaliacao@turni.local"
@@ -68,29 +70,20 @@ PY
 
 echo "── acha o turno finalizado PENDENTE e avalia ao vivo (contratante → profissional) ──"
 getj "$JE" "/api/contratante/turnos" /tmp/s85_turnos >/dev/null
-# Tenta avaliar cada turno; o pendente devolve 201, os já avaliados 409.
-ALVO=$(python3 - <<'PY'
-import json
-d=json.load(open('/tmp/s85_turnos'))
-ids=[]
-def walk(o):
-    if isinstance(o,dict):
-        if 'id' in o and o.get('status') in ('finalizado','finalizado_ajustado'): ids.append(o['id'])
-        for v in o.values(): walk(v)
-    elif isinstance(o,list):
-        for v in o: walk(v)
-walk(d)
-print('\n'.join(dict.fromkeys(ids)))
-PY
-)
+# Resposta: { grupos: [ { turnos: [ {id,...} ] } ] }. O pendente devolve 201; já avaliados, 409.
+TOK=$(xsrf "$JE")
+python3 -c "import json;d=json.load(open('/tmp/s85_turnos'));print(chr(10).join(t['id'] for g in d.get('grupos',[]) for t in g.get('turnos',[])))" > /tmp/s85_ids
 DONE=0
-for T in $ALVO; do
-  CODE=$(post "$JE" "/api/turnos/$T/avaliar" '{"estrelas":5,"comentario":"Avaliação ao vivo via smoke STORY-085."}' /tmp/s85_av)
+while IFS= read -r T; do
+  [ -z "$T" ] && continue
+  CODE=$(curl -sS -m 25 -b "$JE" -c "$JE" "${H[@]}" -H "X-XSRF-TOKEN: $TOK" -H "Content-Type: application/json" \
+    -o /tmp/s85_av -w '%{http_code}' -X POST "$API/api/turnos/$T/avaliar" \
+    -d '{"estrelas":5,"comentario":"Avaliacao ao vivo via smoke STORY-085."}')
   if [ "$CODE" = "201" ]; then echo "  ✓ avaliado turno $T (HTTP 201)"; DONE=1; break;
-  elif [ "$CODE" = "409" ]; then echo "  · turno $T já avaliado (409) — tentando o próximo";
+  elif [ "$CODE" = "409" ]; then echo "  · turno $T já avaliado (409) — próximo";
   else echo "  ? turno $T → HTTP $CODE"; fi
-done
-[ "$DONE" = "1" ] || echo "  (nenhum turno pendente — re-rode o seed se já avaliou tudo)"
+done < /tmp/s85_ids
+[ "$DONE" = "1" ] || echo "  (nenhum turno pendente p/ o contratante — avalie pelo lado do profissional ou re-rode o deploy)"
 
 echo "── perfil do profissional DEPOIS (score/XP recomputados pelo motor) ──"
 getj "$JE" "/api/perfil/$PRO_ID" /tmp/s85_pro2 >/dev/null

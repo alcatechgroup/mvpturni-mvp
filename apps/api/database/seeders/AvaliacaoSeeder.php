@@ -104,53 +104,56 @@ class AvaliacaoSeeder extends Seeder
             ],
         );
 
-        // Idempotência: se já há turnos do par, só recomputa e sai (deploy roda o seed a cada rc).
-        if (Turno::where('contratante_id', $emp->id)->where('profissional_id', $pro->id)->exists()) {
-            $this->recomputar($pro, $emp);
+        // Os 3 turnos avaliados (score/nível/depoimentos) só são criados na PRIMEIRA vez.
+        if (! Turno::where('contratante_id', $emp->id)->where('profissional_id', $pro->id)->exists()) {
+            $avaliados = [
+                ['pro' => 5, 'proC' => 'Pontual, proativo e muito simpático com os clientes.',
+                    'emp' => 5, 'empC' => 'Estabelecimento organizado e equipe acolhedora.', 'sem' => 6],
+                ['pro' => 5, 'proC' => 'Atendimento impecável, dominou o salão sozinho.',
+                    'emp' => 4, 'empC' => 'Boa estrutura, só o horário de pico foi corrido.', 'sem' => 4],
+                ['pro' => 4, 'proC' => 'Caprichoso e pontual; voltaria a contratar.',
+                    'emp' => 5, 'empC' => 'Gestão atenciosa e pagamento em dia.', 'sem' => 2],
+            ];
 
-            return;
+            foreach ($avaliados as $c) {
+                $turno = $this->turnoFinalizado($pro, $emp, $funcaoId, $c['sem']);
+
+                // Contratante → profissional (depoimento nominal sobre o profissional).
+                Avaliacao::create([
+                    'turno_id' => $turno->id,
+                    'autor_id' => $emp->id,
+                    'avaliado_id' => $pro->id,
+                    'direcao' => AvaliacaoDirecao::ContratanteParaProfissional,
+                    'estrelas' => $c['pro'],
+                    'comentario' => $c['proC'],
+                ]);
+
+                // Profissional → contratante (depoimento anônimo sobre o contratante — LGPD).
+                Avaliacao::create([
+                    'turno_id' => $turno->id,
+                    'autor_id' => $pro->id,
+                    'avaliado_id' => $emp->id,
+                    'direcao' => AvaliacaoDirecao::ProfissionalParaContratante,
+                    'estrelas' => $c['emp'],
+                    'comentario' => $c['empC'],
+                ]);
+            }
         }
 
-        // 3 turnos avaliados nas duas direções (semanas passadas distintas).
-        $avaliados = [
-            ['pro' => 5, 'proC' => 'Pontual, proativo e muito simpático com os clientes.',
-                'emp' => 5, 'empC' => 'Estabelecimento organizado e equipe acolhedora.', 'sem' => 6],
-            ['pro' => 5, 'proC' => 'Atendimento impecável, dominou o salão sozinho.',
-                'emp' => 4, 'empC' => 'Boa estrutura, só o horário de pico foi corrido.', 'sem' => 4],
-            ['pro' => 4, 'proC' => 'Caprichoso e pontual; voltaria a contratar.',
-                'emp' => 5, 'empC' => 'Gestão atenciosa e pagamento em dia.', 'sem' => 2],
-        ];
+        // Top-up: garante SEMPRE ≥1 turno totalmente pendente (sem nenhuma avaliação) para
+        // avaliar ao vivo — assim cada deploy/seed repõe o cenário sem duplicar os avaliados.
+        $temPendente = Turno::where('contratante_id', $emp->id)
+            ->where('profissional_id', $pro->id)
+            ->whereDoesntHave('avaliacoes')
+            ->exists();
 
-        foreach ($avaliados as $c) {
-            $turno = $this->turnoFinalizado($pro, $emp, $funcaoId, $c['sem']);
-
-            // Contratante → profissional (depoimento nominal sobre o profissional).
-            Avaliacao::create([
-                'turno_id' => $turno->id,
-                'autor_id' => $emp->id,
-                'avaliado_id' => $pro->id,
-                'direcao' => AvaliacaoDirecao::ContratanteParaProfissional,
-                'estrelas' => $c['pro'],
-                'comentario' => $c['proC'],
-            ]);
-
-            // Profissional → contratante (depoimento anônimo sobre o contratante — LGPD).
-            Avaliacao::create([
-                'turno_id' => $turno->id,
-                'autor_id' => $pro->id,
-                'avaliado_id' => $emp->id,
-                'direcao' => AvaliacaoDirecao::ProfissionalParaContratante,
-                'estrelas' => $c['emp'],
-                'comentario' => $c['empC'],
-            ]);
+        if (! $temPendente) {
+            $this->turnoFinalizado($pro, $emp, $funcaoId, 1);
         }
-
-        // 1 turno PENDENTE nas duas direções (a semana mais recente) — para avaliar ao vivo.
-        $this->turnoFinalizado($pro, $emp, $funcaoId, 1);
 
         $this->recomputar($pro, $emp);
 
-        $this->command?->info('AvaliacaoSeeder: par avaliacao + 3 turnos avaliados + 1 pendente + reputação computada.');
+        $this->command?->info('AvaliacaoSeeder: par avaliacao + 3 turnos avaliados + ≥1 pendente + reputação computada.');
     }
 
     /** Turno finalizado entre o par, iniciado há `$semanas` semanas (vaga fechada + candidatura aprovada). */

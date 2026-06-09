@@ -120,4 +120,10 @@ class Turno extends Model
     {
         return $this->hasMany(AceiteEletronicoTurno::class);
     }
+
+    /** Avaliações recíprocas deste turno (até 2 — uma por direção). STORY-085 / ADR-019. */
+    public function avaliacoes(): HasMany
+    {
+        return $this->hasMany(Avaliacao::class);
+    }
 }
