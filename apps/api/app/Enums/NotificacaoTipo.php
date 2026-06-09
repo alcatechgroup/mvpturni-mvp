@@ -35,6 +35,9 @@ enum NotificacaoTipo: string
     case TurnoCancelado = 'turno_cancelado';
     case NoShowPro = 'no_show_pro';
 
+    // STORY-085 / ADR-019 — turno finalizado: "avalie seu turno" para os dois lados (CA-2).
+    case AvaliacaoPendente = 'avaliacao_pendente';
+
     /** Slug do template editável correspondente (STORY-020, categoria `email`). */
     public function templateSlug(): string
     {
@@ -61,6 +64,7 @@ enum NotificacaoTipo: string
             self::PixEnviado => 'Pix enviado — R$ {valor} do turno de {vaga_funcao}',
             self::TurnoCancelado => 'Turno de {vaga_funcao} cancelado',
             self::NoShowPro => 'Turno encerrado — check-in não realizado',
+            self::AvaliacaoPendente => 'Avalie seu turno de {vaga_funcao} para continuar',
         };
     }
 }

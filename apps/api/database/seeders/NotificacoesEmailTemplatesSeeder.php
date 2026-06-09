@@ -37,6 +37,8 @@ class NotificacoesEmailTemplatesSeeder extends Seeder
         NotificacaoTipo::PixEnviado->value => 'E-mail — Pix enviado (profissional)',
         NotificacaoTipo::TurnoCancelado->value => 'E-mail — Turno cancelado (outro lado)',
         NotificacaoTipo::NoShowPro->value => 'E-mail — Turno encerrado por check-in não realizado (ambos)',
+        // STORY-085 — avaliação recíproca (ADR-019): "avalie seu turno" aos dois lados.
+        NotificacaoTipo::AvaliacaoPendente->value => 'E-mail — Avalie seu turno (ambos)',
     ];
 
     public function run(): void

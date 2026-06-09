@@ -21,6 +21,7 @@ use App\Listeners\HandlePixEnviado;
 use App\Listeners\HandlePixFalhou;
 use App\Listeners\HandleVagaCancelada;
 use App\Listeners\HandleVagaEditadaMaterialmente;
+use App\Listeners\NotificarAvaliacaoPendente;
 use App\Listeners\NotificarCheckinSolicitado;
 use App\Listeners\NotificarCheckoutSolicitado;
 use App\Listeners\NotificarPixEnviado;
@@ -88,6 +89,8 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(TurnoIniciado::class, NotificarTurnoIniciado::class);
         Event::listen(CheckoutSolicitado::class, NotificarCheckoutSolicitado::class);
         Event::listen(TurnoFinalizado::class, NotificarTurnoFinalizado::class);
+        // STORY-085 (CA-2) — 3º listener do mesmo evento: "avalie seu turno" aos dois lados.
+        Event::listen(TurnoFinalizado::class, NotificarAvaliacaoPendente::class);
         Event::listen(PixEnviado::class, NotificarPixEnviado::class);
         Event::listen(TurnoCancelado::class, NotificarTurnoCancelado::class);
         Event::listen(TurnoNoShow::class, NotificarTurnoNoShow::class);
