@@ -673,14 +673,36 @@ class _GateBanner extends StatelessWidget {
           borderRadius: const BorderRadius.all(TurniRadius.md),
           border: Border.all(color: fg.withValues(alpha: 0.4)),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(Icons.warning_amber_rounded, size: 20, color: fg),
-            const SizedBox(width: TurniSpacing.sm),
-            Expanded(
-              child: Text(
-                'Avalie seu último turno para voltar a se candidatar.',
-                style: TextStyle(color: fg, fontSize: 14),
+            Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, size: 20, color: fg),
+                const SizedBox(width: TurniSpacing.sm),
+                Expanded(
+                  child: Text(
+                    // SCREEN-084 §5 (sem "voltar a").
+                    'Avalie seu último turno para se candidatar.',
+                    style: TextStyle(color: fg, fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: TurniSpacing.sm),
+            Align(
+              alignment: Alignment.centerRight,
+              // STORY-088 (T4): o turno pendente não vem no feed — o CTA leva ao destino
+              // Turnos (onde cada pendência tem seu "Avaliar"). O deep-link direto ao turno
+              // acontece no caminho reativo (tocar "Candidatar-se" → 422 traz o turno_id).
+              child: TextButton(
+                key: const Key('gate-avaliar-btn'),
+                onPressed: () => context.go('/turnos'),
+                style: TextButton.styleFrom(
+                  foregroundColor: fg,
+                  minimumSize: const Size(0, 48),
+                ),
+                child: const Text('Avaliar agora'),
               ),
             ),
           ],

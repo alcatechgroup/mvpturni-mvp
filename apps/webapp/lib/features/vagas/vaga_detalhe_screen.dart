@@ -1239,12 +1239,34 @@ class _GateBanner extends StatelessWidget {
           borderRadius: const BorderRadius.all(TurniRadius.md),
           border: Border.all(color: fg.withValues(alpha: 0.4)),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(Icons.warning_amber_rounded, size: 20, color: fg),
-            const SizedBox(width: TurniSpacing.sm),
-            Expanded(
-              child: Text(motivo, style: TextStyle(color: fg, fontSize: 14)),
+            Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, size: 20, color: fg),
+                const SizedBox(width: TurniSpacing.sm),
+                Expanded(
+                  child: Text(
+                    motivo,
+                    style: TextStyle(color: fg, fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: TurniSpacing.sm),
+            Align(
+              alignment: Alignment.centerRight,
+              // STORY-088 (T4): o detalhe não traz o turno_id — CTA leva ao destino Turnos.
+              child: TextButton(
+                key: const Key('gate-avaliar-btn'),
+                onPressed: () => context.go('/turnos'),
+                style: TextButton.styleFrom(
+                  foregroundColor: fg,
+                  minimumSize: const Size(0, 48),
+                ),
+                child: const Text('Avaliar agora'),
+              ),
             ),
           ],
         ),

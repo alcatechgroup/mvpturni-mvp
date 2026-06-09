@@ -13,12 +13,24 @@ export '../cadastro/cadastro_service.dart' show Funcao;
 class GatePublicacao {
   final int pending;
 
-  const GatePublicacao({required this.pending});
+  /// STORY-088 (T4): turno pendente mais antigo (turnos[0]), p/ o deep-link "Avaliar agora".
+  /// `null` quando não há pendência (ou contrato sem turnos) — o CTA cai no destino Turnos.
+  final String? turnoId;
+
+  const GatePublicacao({required this.pending, this.turnoId});
 
   bool get bloqueado => pending > 0;
 
-  factory GatePublicacao.fromJson(Map<String, dynamic> json) =>
-      GatePublicacao(pending: (json['pending'] as num?)?.toInt() ?? 0);
+  factory GatePublicacao.fromJson(Map<String, dynamic> json) {
+    final turnos = json['turnos'] as List<dynamic>? ?? const [];
+    final primeiro = turnos.isNotEmpty
+        ? (turnos.first as Map).cast<String, dynamic>()
+        : null;
+    return GatePublicacao(
+      pending: (json['pending'] as num?)?.toInt() ?? 0,
+      turnoId: primeiro?['turno_id'] as String?,
+    );
+  }
 }
 
 /// Resultado do POST /api/vagas.

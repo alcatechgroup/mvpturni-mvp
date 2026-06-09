@@ -41,6 +41,7 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
   String? _funcaoId;
   int _posicoes = 1;
   int _gatePending = 0;
+  String? _gateTurnoId; // turno pendente mais antigo p/ o deep-link "Avaliar agora" (T4)
   String? _funcaoErro; // erro do seletor de função (não é FormField)
   String? _quandoErro; // erro do bloco "Quando" (datas)
   bool _submitting = false;
@@ -81,6 +82,7 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
       if (mounted) {
         setState(() {
           _gatePending = gate.pending;
+          _gateTurnoId = gate.turnoId;
           _phase = _Phase.gate;
         });
       }
@@ -263,7 +265,12 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
       case _Phase.semPermissao:
         return _SemPermissaoView(accent: accent);
       case _Phase.gate:
-        return _GateView(pending: _gatePending, accent: accent, isDark: isDark);
+        return _GateView(
+          pending: _gatePending,
+          turnoId: _gateTurnoId,
+          accent: accent,
+          isDark: isDark,
+        );
       case _Phase.erroCarregar:
         return _ErroCarregarView(accent: accent, onRetry: _bootstrap);
       case _Phase.form:
@@ -612,11 +619,13 @@ class _ErroServidorBanner extends StatelessWidget {
 class _GateView extends StatelessWidget {
   const _GateView({
     required this.pending,
+    required this.turnoId,
     required this.accent,
     required this.isDark,
   });
 
   final int pending;
+  final String? turnoId;
   final Color accent;
   final bool isDark;
 
@@ -656,8 +665,12 @@ class _GateView extends StatelessWidget {
                   const SizedBox(height: TurniSpacing.md),
                   FilledButton(
                     key: const Key('publicar-vaga-gate-avaliar-btn'),
-                    onPressed: () =>
-                        context.go('/contratante/avaliacoes/pendentes'),
+                    // STORY-088 (T4): deep-link ao turno pendente mais antigo; sem turno_id
+                    // (fail-secure) cai no destino Turnos. A rota antiga
+                    // (/contratante/avaliacoes/pendentes) nunca existiu — era placeholder.
+                    onPressed: () => context.go(
+                      turnoId != null ? '/turnos/$turnoId/avaliar' : '/turnos',
+                    ),
                     style: FilledButton.styleFrom(
                       backgroundColor: accent,
                       foregroundColor: TurniColors.onAccentFor(
