@@ -13,7 +13,7 @@ owner_agent: claude-opus-programador-2026-06-09
 created_at: 2026-06-08
 updated_at: 2026-06-09
 estimated_session_size: M
-produces_idr: null
+produces_idr: IDR-030
 ---
 
 # STORY-080 — Auditoria de acessibilidade AA + microcopy
@@ -109,7 +109,7 @@ NÃO decide: copy de domínio que mude significado (PO), alvo de conformidade (A
 **Dúvidas/flags:** copy de domínio que mude significado → PO (ex.: resíduo "Member Start:" no vazio de candidatos já flagrado na STORY-079). Não reabro DDR-001/002.
 
 ### Decisões tomadas
-- **Gate via `meetsGuideline` nativo do Flutter, não axe/lighthouse** (vira IDR-022). O WebApp é canvas-rendered (CanvasKit) → axe/lighthouse veem um `<canvas>` quase vazio. Os matchers (`textContrastGuideline`, `androidTapTargetGuideline`, `labeledTapTargetGuideline`) operam sobre a árvore de Semântica que o Flutter exporta (= ARIA no DOM), rodam em `flutter test` sem browser/banco e cobrem CA-1 + CA-3. Harness em `test/a11y/a11y_harness.dart`.
+- **Gate via `meetsGuideline` nativo do Flutter, não axe/lighthouse** (vira IDR-030). O WebApp é canvas-rendered (CanvasKit) → axe/lighthouse veem um `<canvas>` quase vazio. Os matchers (`textContrastGuideline`, `androidTapTargetGuideline`, `labeledTapTargetGuideline`) operam sobre a árvore de Semântica que o Flutter exporta (= ARIA no DOM), rodam em `flutter test` sem browser/banco e cobrem CA-1 + CA-3. Harness em `test/a11y/a11y_harness.dart`.
 - **Seam de tipografia (`lib/ds/typography.dart`: `dsTextTheme`/`dsMono`)** ligado em teste por `test/flutter_test_config.dart`. Google Fonts busca .ttf em runtime e o gate rasteriza texto dentro de `runAsync` → estoura sem rede. A família não afeta contraste (cor+tamanho), então a suíte INTEIRA passou a rodar offline/determinística (pré-requisito do gate no CI).
 - **Alvo de toque do NavigationRail (desktop) = 44dp** (`iOSTapTargetGuideline`), não 48. O destino do rail Material fica em 44dp e o widget não expõe knob de altura; 44dp é aceito em WCAG 2.1 AA (accessibility-basics.md §7 "WCAG aceita ≥44"; 48dp é recomendação Material). Bottom bar (toque) e conteúdo das telas mantêm 48dp. **Flag para Designer/PO revisarem.**
 
@@ -130,7 +130,7 @@ NÃO decide: copy de domínio que mude significado (PO), alvo de conformidade (A
 - CA-2 (teclado): **pendente** (cenário E2E `integration_test`).
 - CA-3 (alvo ≥48dp + label): gate operante; shell verde; **pendente** demais telas.
 - CA-4 (erro associado a campo + microcopy): **pendente**.
-- CA-5 (gate no CI): harness pronto e offline; **pendente** wire no `ci.yml` + IDR-022.
+- CA-5 (gate no CI): harness pronto e offline; **pendente** wire no `ci.yml` + IDR-030.
 - CA-6 (sem regressão): suíte completa verde no commitado.
 - CA-7 (deploy homolog): **pendente**.
 

@@ -4,7 +4,7 @@ import 'package:turni_webapp/ds/theme.dart';
 
 // STORY-080 — gate automatizado de acessibilidade (CA-1, CA-3, CA-5).
 //
-// Decisão (IDR-022): o WebApp é Flutter web *canvas-rendered* (CanvasKit), então
+// Decisão (IDR-030): o WebApp é Flutter web *canvas-rendered* (CanvasKit), então
 // axe/lighthouse enxergam um <canvas> quase vazio e dariam falso-verde. Os matchers
 // nativos do Flutter `meetsGuideline` operam sobre a árvore de Semântica que o Flutter
 // exporta — exatamente o que vira ARIA no DOM — e rodam em `flutter test` sem browser

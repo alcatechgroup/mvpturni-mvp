@@ -110,6 +110,14 @@ jobs:
       - name: Analyze
         working-directory: apps/webapp
         run: flutter analyze --no-fatal-infos
+      # Gate de acessibilidade (STORY-080 / IDR-030). Roda os matchers nativos do
+      # Flutter (textContrast / tapTarget / labeledTapTarget) sobre as telas
+      # autenticadas — contraste AA, alvo ≥48dp e label de ícone. É `flutter test`
+      # puro (sem banco, sem browser, fonte do sistema via flutter_test_config),
+      # então cabe na CI leve e pega regressão de a11y a cada PR.
+      - name: Gate de acessibilidade (a11y)
+        working-directory: apps/webapp
+        run: flutter test test/a11y/
 
   # ── Smoke build — PHP containers ────────────────────────────────────────────
   smoke-build-php:

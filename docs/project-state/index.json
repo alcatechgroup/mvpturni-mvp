@@ -3672,6 +3672,16 @@
         "decided_by": "programador",
         "source_story": "STORY-065",
         "note": "pix_falhas guarda snapshot operacional + chave Pix cifrada com segredo dedicado (PIX_FALHA_CHAVE_KEY) compartilhado entre api/worker (escreve) e admin (lê p/ tratamento manual) — as APP_KEYs dos 2 apps são distintas. Espírito da ADR-009 5A (chave dedicada nunca implementada no EPIC-001). Cast ChavePixCompartilhada espelhado nos 2 apps; linha indecifrável degrada p/ 'chave não cadastrada' sem derrubar a fila."
+      },
+      {
+        "id": "IDR-030",
+        "title": "Gate de acessibilidade via meetsGuideline nativo do Flutter (não axe/lighthouse)",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-030-gate-a11y-meetsguideline-flutter.md",
+        "decided_at": "2026-06-09",
+        "decided_by": "programador",
+        "source_story": "STORY-080",
+        "note": "WebApp é Flutter canvas-rendered → axe/lighthouse dariam verde falso. Gate de a11y = matchers nativos (textContrast/androidTapTarget/labeledTapTarget) em `flutter test test/a11y/`, sem browser/banco, rodando na CI leve. Seam de tipografia (dsTextTheme/dsMono em lib/ds/typography.dart, ligado por test/flutter_test_config.dart) deixa a suíte offline/determinística. CTA com accent usa TurniColors.onAccentFor(brightness); texto de erro usa errorInk{Light,Dark}. NavigationRail desktop fica em 44dp (aceito WCAG 2.1 AA) via iOSTapTargetGuideline; demais superfícies 48dp."
       }
     ],
     "ddr": [
