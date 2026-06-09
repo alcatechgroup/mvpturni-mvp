@@ -443,7 +443,9 @@ class _ShellThemeToggle extends StatelessWidget {
         return IconButton(
           key: const Key('shell-theme-toggle-bar'),
           tooltip: dark ? 'Tema claro' : 'Tema escuro',
-          icon: Icon(dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+          icon: Icon(
+            dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+          ),
           onPressed: () => controller.setDark(!dark),
         );
       },

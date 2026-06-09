@@ -296,25 +296,26 @@ void main() {
   });
 
   group('STORY-078 — barra superior do shell (título + sino + tema)', () {
-    testWidgets('(a) raiz de destino mostra AppBar do shell com título + sino', (
-      tester,
-    ) async {
-      await _pumpAt(
-        tester,
-        width: 400,
-        role: 'profissional',
-        appBarTitle: 'Vagas',
-      );
-      expect(find.byKey(const Key('shell-app-bar')), findsOneWidget);
-      final bar = find.byKey(const Key('shell-app-bar'));
-      expect(
-        find.descendant(of: bar, matching: find.text('Vagas')),
-        findsOneWidget,
-      );
-      // Sino e ação de turno ativo migraram para a barra do shell.
-      expect(find.byKey(const Key('notificacoes-sino-btn')), findsOneWidget);
-      expect(find.byKey(const Key('turno-ativo-acao')), findsOneWidget);
-    });
+    testWidgets(
+      '(a) raiz de destino mostra AppBar do shell com título + sino',
+      (tester) async {
+        await _pumpAt(
+          tester,
+          width: 400,
+          role: 'profissional',
+          appBarTitle: 'Vagas',
+        );
+        expect(find.byKey(const Key('shell-app-bar')), findsOneWidget);
+        final bar = find.byKey(const Key('shell-app-bar'));
+        expect(
+          find.descendant(of: bar, matching: find.text('Vagas')),
+          findsOneWidget,
+        );
+        // Sino e ação de turno ativo migraram para a barra do shell.
+        expect(find.byKey(const Key('notificacoes-sino-btn')), findsOneWidget);
+        expect(find.byKey(const Key('turno-ativo-acao')), findsOneWidget);
+      },
+    );
 
     testWidgets('(b) drill-down (sem título) → sem AppBar do shell', (
       tester,
@@ -331,11 +332,7 @@ void main() {
     testWidgets('(d) tema só aparece na barra no medium+ (compact não)', (
       tester,
     ) async {
-      await _pumpAt(
-        tester,
-        width: 400,
-        appBarTitle: 'Vagas',
-      ); // compact
+      await _pumpAt(tester, width: 400, appBarTitle: 'Vagas'); // compact
       expect(find.byKey(const Key('shell-theme-toggle-bar')), findsNothing);
       await _pumpAt(tester, width: 1000, appBarTitle: 'Vagas'); // expanded
       expect(find.byKey(const Key('shell-theme-toggle-bar')), findsOneWidget);
@@ -359,15 +356,16 @@ void main() {
       );
     });
 
-    testWidgets('(c) Scaffold do conteúdo expõe endDrawer p/ o painel do sino', (
-      tester,
-    ) async {
-      await _pumpAt(tester, width: 400, appBarTitle: 'Vagas');
-      final scaffold = tester.widget<Scaffold>(
-        find.byKey(const Key('shell-content-scaffold')),
-      );
-      expect(scaffold.endDrawer, isNotNull);
-    });
+    testWidgets(
+      '(c) Scaffold do conteúdo expõe endDrawer p/ o painel do sino',
+      (tester) async {
+        await _pumpAt(tester, width: 400, appBarTitle: 'Vagas');
+        final scaffold = tester.widget<Scaffold>(
+          find.byKey(const Key('shell-content-scaffold')),
+        );
+        expect(scaffold.endDrawer, isNotNull);
+      },
+    );
   });
 
   group('regressão — SnackBar da tela interna não cobre a barra de ação', () {
