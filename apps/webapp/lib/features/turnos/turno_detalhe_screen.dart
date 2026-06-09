@@ -1799,7 +1799,7 @@ class _RecusaDialogState extends State<_RecusaDialog> {
           key: const Key('recusar-checkin-confirmar-btn'),
           onPressed: _enviando ? null : _confirmar,
           style: FilledButton.styleFrom(
-            backgroundColor: errorColor,
+            backgroundColor: TurniColors.errorLight,
             foregroundColor: Colors.white,
             minimumSize: const Size(0, 48),
             shape: const StadiumBorder(),
@@ -2024,7 +2024,7 @@ class _CancelarDialogState extends State<_CancelarDialog> {
             key: const Key('cancelar-dialog-confirmar'),
             onPressed: _enviando || _estadoInvalido ? null : _confirmar,
             style: FilledButton.styleFrom(
-              backgroundColor: errorColor,
+              backgroundColor: TurniColors.errorLight,
               foregroundColor: Colors.white,
               minimumSize: const Size(0, 48),
               shape: const StadiumBorder(),
@@ -2737,7 +2737,7 @@ class _RecusaCheckoutDialogState extends State<_RecusaCheckoutDialog> {
           key: const Key('recusar-checkout-confirmar-btn'),
           onPressed: _enviando ? null : _confirmar,
           style: FilledButton.styleFrom(
-            backgroundColor: errorColor,
+            backgroundColor: TurniColors.errorLight,
             foregroundColor: Colors.white,
             minimumSize: const Size(0, 48),
             shape: const StadiumBorder(),

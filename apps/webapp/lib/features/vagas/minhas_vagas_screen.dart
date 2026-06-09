@@ -611,10 +611,6 @@ class _CancelarDialogState extends State<_CancelarDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final error = Theme.of(context).brightness == Brightness.dark
-        ? TurniColors.errorDark
-        : TurniColors.errorLight;
-
     return AlertDialog(
       key: const Key('vaga-cancelar-dialog'),
       title: const Text('Cancelar esta vaga?'),
@@ -640,7 +636,7 @@ class _CancelarDialogState extends State<_CancelarDialog> {
           key: const Key('vaga-cancelar-confirmar-btn'),
           onPressed: _loading ? null : _confirmar,
           style: FilledButton.styleFrom(
-            backgroundColor: error,
+            backgroundColor: TurniColors.errorLight,
             foregroundColor: Colors.white,
           ),
           child: _loading

@@ -615,7 +615,9 @@ class _RevisaoBanner extends StatelessWidget {
               onPressed: busy ? null : onManter,
               style: FilledButton.styleFrom(
                 backgroundColor: verde,
-                foregroundColor: Colors.white,
+                foregroundColor: isDark
+                    ? TurniColors.onAccentDark
+                    : TurniColors.onAccentLight,
                 minimumSize: const Size.fromHeight(48),
                 shape: const StadiumBorder(),
               ),
