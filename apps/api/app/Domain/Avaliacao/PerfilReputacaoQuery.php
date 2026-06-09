@@ -101,12 +101,16 @@ class PerfilReputacaoQuery
             ->where('avaliado_id', $avaliado->id)
             ->whereNotNull('comentario')
             ->where('comentario', '<>', '')
+            ->with('turno.vaga.funcao:id,nome')
             ->orderByDesc('created_at')
             ->limit(self::LIMITE_DEPOIMENTOS)
             ->get()
             ->map(fn (Avaliacao $a) => [
                 'estrelas' => $a->estrelas,
                 'comentario' => $a->comentario,
+                // Função do turno avaliado (STORY-088 / DDR-004) — visível dos dois lados; é a
+                // função exercida no turno, não identidade individual (não fere a assimetria LGPD).
+                'funcao' => $a->turno?->vaga?->funcao?->nome,
                 'autor_nome' => $nominal ? $this->nomeEstabelecimento($a->autor_id) : null,
                 'data' => $a->created_at?->toIso8601String(),
             ])
