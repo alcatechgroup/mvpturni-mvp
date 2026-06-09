@@ -153,7 +153,9 @@ class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
           ? FloatingActionButton.extended(
               key: const Key('minhas-vagas-publicar-btn'),
               backgroundColor: accent,
-              foregroundColor: Colors.white,
+              foregroundColor: TurniColors.onAccentFor(
+                Theme.of(context).brightness,
+              ),
               onPressed: () => context.go('/contratante/vagas/nova'),
               icon: const Icon(Icons.add),
               label: const Text('Publicar vaga'),
@@ -265,7 +267,9 @@ class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
                 selected: _filtro == e.key,
                 selectedColor: accent,
                 labelStyle: TextStyle(
-                  color: _filtro == e.key ? Colors.white : null,
+                  color: _filtro == e.key
+                      ? TurniColors.onAccentFor(Theme.of(context).brightness)
+                      : null,
                   fontWeight: _filtro == e.key ? FontWeight.w600 : null,
                 ),
                 onSelected: (_) => _setFiltro(e.key),
@@ -460,8 +464,8 @@ class _VagaCard extends StatelessWidget {
                     onPressed: onCancelar,
                     style: TextButton.styleFrom(
                       foregroundColor: isDark
-                          ? TurniColors.errorDark
-                          : TurniColors.errorLight,
+                          ? TurniColors.errorInkDark
+                          : TurniColors.errorInkLight,
                     ),
                     child: const Text('Cancelar vaga'),
                   ),
@@ -678,7 +682,9 @@ class _VazioView extends StatelessWidget {
         label: const Text('Publicar vaga'),
         style: FilledButton.styleFrom(
           backgroundColor: accent,
-          foregroundColor: Colors.white,
+          foregroundColor: TurniColors.onAccentFor(
+            Theme.of(context).brightness,
+          ),
           minimumSize: const Size(220, 48),
           shape: const StadiumBorder(),
         ),
@@ -729,7 +735,9 @@ class _SemPermissaoView extends StatelessWidget {
         onPressed: () => context.go('/'),
         style: FilledButton.styleFrom(
           backgroundColor: accent,
-          foregroundColor: Colors.white,
+          foregroundColor: TurniColors.onAccentFor(
+            Theme.of(context).brightness,
+          ),
           minimumSize: const Size(0, 48),
           shape: const StadiumBorder(),
         ),

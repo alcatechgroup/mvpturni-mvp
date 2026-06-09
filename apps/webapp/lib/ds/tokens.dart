@@ -13,6 +13,13 @@ abstract final class TurniColors {
   static const accentDark = Color(0xFF5FA37C); // link/CTA escuro (5.6:1 AA ✅)
   static const onAccentLight = Color(0xFFFFFFFF);
   static const onAccentDark = Color(0xFF0F1411);
+
+  /// On-accent por tema (tokens §6): TODO acento claro (sage/mostarda do tema
+  /// claro) pareia com branco; TODO acento escuro (claro visualmente, do tema
+  /// escuro) pareia com quase-preto. Use no `foregroundColor` de CTA pintado com
+  /// o accent do perfil — `Colors.white` fixo reprova AA no escuro (STORY-080).
+  static Color onAccentFor(Brightness brightness) =>
+      brightness == Brightness.dark ? onAccentDark : onAccentLight;
   static const accentHoverLight = Color(0xFF3A7050);
 
   // Contratante — esquema pré-login (mostarda, DDR-001 / tokens.md §6).
@@ -50,10 +57,16 @@ abstract final class TurniColors {
   static const textMutedDark = Color(0xFFA8B2A8); // 8.5:1 ✅
 
   // Semânticas — erro (DDR-001 §4).
-  static const errorLight = Color(0xFFB83A3A); // #FFF/error = 5.7:1 ✅
+  static const errorLight = Color(0xFFB83A3A); // #FFF/error = 5.7:1 ✅ (fundo)
   static const errorSoftLight = Color(0xFFFBE2E2);
   static const errorDark = Color(0xFFD85A5A);
   static const errorSoftDark = Color(0x26D85A5A);
+  // Erro como TEXTO sobre superfície: os tons de FUNDO (`errorLight`/`errorDark`)
+  // reprovam AA como texto (≈4.38:1 sobre a página creme / o card escuro). Estes
+  // tons (mais escuro no claro, mais claro no escuro) são AA (≥4.5:1) como
+  // texto/ícone. STORY-080 — hues provisórios, a ratificar pelo Designer.
+  static const errorInkLight = Color(0xFFA5201C);
+  static const errorInkDark = Color(0xFFE58787);
 
   // Semânticas — sucesso.
   static const successLight = Color(0xFF2D7A4F);

@@ -194,7 +194,9 @@ class _FeedScreenState extends State<FeedScreen> {
                 selected: _filtro == f,
                 selectedColor: accent,
                 labelStyle: TextStyle(
-                  color: _filtro == f ? Colors.white : null,
+                  color: _filtro == f
+                      ? TurniColors.onAccentFor(Theme.of(context).brightness)
+                      : null,
                   fontWeight: _filtro == f ? FontWeight.w600 : null,
                 ),
                 onSelected: (_) => _setFiltro(f),
@@ -618,7 +620,9 @@ class _CandidatarButton extends StatelessWidget {
         onPressed: habilitado ? onAbrir : null,
         style: FilledButton.styleFrom(
           backgroundColor: accent,
-          foregroundColor: Colors.white,
+          foregroundColor: TurniColors.onAccentFor(
+            Theme.of(context).brightness,
+          ),
           minimumSize: const Size(0, 48),
           shape: const StadiumBorder(),
         ),
@@ -762,7 +766,9 @@ class _SemPermissaoView extends StatelessWidget {
               onPressed: () => context.go('/'),
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
-                foregroundColor: Colors.white,
+                foregroundColor: TurniColors.onAccentFor(
+                  Theme.of(context).brightness,
+                ),
                 shape: const StadiumBorder(),
               ),
               child: const Text('Voltar ao início'),
