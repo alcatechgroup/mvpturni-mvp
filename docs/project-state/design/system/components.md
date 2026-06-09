@@ -125,7 +125,7 @@ descrição 14px `text.muted`; timestamp 13px `text.muted` (`EEE, dd/MM · HH:mm
 
 ## Roadmap (entram por DDR/uso a partir do EPIC-001)
 
-`button.secondary` (`OutlinedButton`), `button.danger`, `input.text` (`TextFormField`), `input.select` (`DropdownMenu`), `input.checkbox`, `input.switch`, `chip` (`FilterChip`/`InputChip`), `segmented` (`SegmentedButton`), `card.vaga`, `card.turno`, `list.tile` (`ListTile`), `empty-state`, `snackbar`, `bottom-sheet`, `nav.bar` (`NavigationBar`) + `nav.rail` (`NavigationRail`), `app.bar`, `stepper`, `skeleton`, `badge`.
+`button.secondary` (`OutlinedButton`), `button.danger`, `input.text` (`TextFormField`), `input.select` (`DropdownMenu`), `input.checkbox`, `input.switch`, `chip` (`FilterChip`/`InputChip`), `segmented` (`SegmentedButton`), `card.vaga`, `card.turno`, `list.tile` (`ListTile`), `snackbar`, `bottom-sheet`, `nav.bar` (`NavigationBar`) + `nav.rail` (`NavigationRail`), `app.bar`, `stepper`, `badge`. (`empty-state`→`state.empty` e `skeleton`→`state.loading` saíram do Roadmap na STORY-079.)
 
 ---
 
@@ -209,3 +209,33 @@ explícito ("PIN de check-in, 4 dígitos").
 **Usar quando:** número curto que precisa ser conferido entre duas pessoas ou observado
 em tempo real. **Não usar quando:** valor monetário em card (tipografia do tema) ou
 texto corrente.
+
+---
+
+## `state.empty` / `state.error` / `state.loading` (estados padrão)
+
+**Descrição:** os três estados de tela padronizados na **STORY-079** (EPIC-012),
+consumidos por todas as listas do WebApp. Tiram `empty-state` e `skeleton` do Roadmap.
+Detalhe de composição/uso em `patterns.md` (`pattern.empty` / `pattern.error` /
+`pattern.loading`).
+
+**Flutter:** componentes custom do DS em `apps/webapp/lib/ds/components/state_views.dart`
+(o Material não cobre estado vazio/erro instrutivo nem skeleton).
+
+| `id` | Widget | Anatomia |
+|---|---|---|
+| `state.empty` | `TurniEmptyState` | ícone + título + mensagem (instrui o próximo passo) + `action` (CTA) opcional. Centralizado. |
+| `state.error` | `TurniRetryState` | erro **recuperável**: ícone `error_outline` + título + apoio + "Tentar de novo" que re-dispara a carga. Erro **não-recuperável** = `state.empty` com ícone de bloqueio + CTA de saída. |
+| `state.loading` | `TurniSkeletonList` + `TurniSkeletonCard` + `TurniSkeletonBox` | skeleton no formato do conteúdo (card / linha com avatar), ~3×, estático. `TurniSkeletonBox` é o primitivo (barra/círculo). |
+
+**Cor:** o CTA de `state.error`/`state.empty` é construído pela tela com o acento do
+**perfil ativo** (mostarda contratante / sage profissional); `TurniRetryState` aceita
+`accent` e cai em `colorScheme.primary` quando nulo.
+
+**Acessibilidade (AA):** "erro nunca é só cor" — sempre ícone + texto; "estado vazio
+sempre instrui o próximo passo". Alvo do CTA ≥48dp. O skeleton usa `ExcludeSemantics`
+(não anuncia placeholder ao leitor de tela).
+
+**Usar quando:** lista/tela com fetch perceptível (vazio, falha, carregando). **Não usar
+quando:** erro inline mid-flow numa tela já populada (gerar PIN, validar check-in,
+cronômetro) — esse é um banner recuperável local, micro-padrão à parte.

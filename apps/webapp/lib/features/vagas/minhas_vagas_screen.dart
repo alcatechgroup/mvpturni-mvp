@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
+import '../../ds/components/state_views.dart';
 import '../../ds/tokens.dart';
 import '../notificacoes/notificacoes_controller.dart';
 import 'vaga_service.dart';
@@ -169,24 +170,21 @@ class _MinhasVagasScreenState extends State<MinhasVagasScreen> {
       case _Phase.semPermissao:
         return _SemPermissaoView(accent: accent);
       case _Phase.erro:
-        return _ErroView(isDark: isDark, onRetry: _load);
+        return TurniRetryState(
+          key: const Key('minhas-vagas-erro-banner'),
+          retryKey: const Key('minhas-vagas-retry-btn'),
+          title: 'Não foi possível carregar suas vagas.',
+          accent: accent,
+          onRetry: _load,
+        );
       case _Phase.pronto:
         if (_todas.isEmpty) return _VazioView(accent: accent);
         return _lista(isDark, accent);
     }
   }
 
-  Widget _skeleton(bool isDark) => ListView(
-    key: const Key('minhas-vagas-skeleton'),
-    padding: const EdgeInsets.all(TurniSpacing.md),
-    children: List.generate(
-      3,
-      (_) => Padding(
-        padding: const EdgeInsets.only(bottom: TurniSpacing.md),
-        child: _SkeletonCard(isDark: isDark),
-      ),
-    ),
-  );
+  Widget _skeleton(bool isDark) =>
+      const TurniSkeletonList(key: Key('minhas-vagas-skeleton'));
 
   Widget _lista(bool isDark, Color accent) {
     final visiveis = _todas.where(_passaFiltro).toList(growable: false);
@@ -666,39 +664,23 @@ class _VazioView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return TurniEmptyState(
       key: const Key('minhas-vagas-vazio'),
-      child: Padding(
-        padding: const EdgeInsets.all(TurniSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.work_outline, size: 48),
-            const SizedBox(height: TurniSpacing.md),
-            Text(
-              'Você ainda não publicou vagas',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: TurniSpacing.sm),
-            const Text(
-              'Publique uma vaga para começar a receber candidaturas de profissionais.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: TurniSpacing.lg),
-            FilledButton.icon(
-              key: const Key('minhas-vagas-publicar-btn'),
-              onPressed: () => context.go('/contratante/vagas/nova'),
-              icon: const Icon(Icons.add),
-              label: const Text('Publicar vaga'),
-              style: FilledButton.styleFrom(
-                backgroundColor: accent,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(220, 48),
-                shape: const StadiumBorder(),
-              ),
-            ),
-          ],
+      icon: Icons.work_outline,
+      title: 'Você ainda não publicou vagas',
+      message:
+          'Publique uma vaga para começar a receber candidaturas de '
+          'profissionais.',
+      action: FilledButton.icon(
+        key: const Key('minhas-vagas-publicar-btn'),
+        onPressed: () => context.go('/contratante/vagas/nova'),
+        icon: const Icon(Icons.add),
+        label: const Text('Publicar vaga'),
+        style: FilledButton.styleFrom(
+          backgroundColor: accent,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(220, 48),
+          shape: const StadiumBorder(),
         ),
       ),
     );
@@ -729,48 +711,6 @@ class _VazioFiltroView extends StatelessWidget {
   }
 }
 
-class _ErroView extends StatelessWidget {
-  const _ErroView({required this.isDark, required this.onRetry});
-
-  final bool isDark;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final bg = isDark ? TurniColors.errorSoftDark : TurniColors.errorSoftLight;
-    final fg = isDark ? TurniColors.errorDark : TurniColors.errorLight;
-
-    return Align(
-      alignment: Alignment.topCenter,
-      child: Container(
-        key: const Key('minhas-vagas-erro-banner'),
-        margin: const EdgeInsets.all(TurniSpacing.md),
-        padding: const EdgeInsets.all(TurniSpacing.md),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: const BorderRadius.all(TurniRadius.md),
-          border: Border.all(color: fg.withValues(alpha: 0.4)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Não foi possível carregar suas vagas. Verifique sua conexão.',
-                style: TextStyle(color: fg),
-              ),
-            ),
-            TextButton(
-              key: const Key('minhas-vagas-retry-btn'),
-              onPressed: onRetry,
-              child: const Text('Tentar de novo'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _SemPermissaoView extends StatelessWidget {
   const _SemPermissaoView({required this.accent});
 
@@ -778,71 +718,22 @@ class _SemPermissaoView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return TurniEmptyState(
       key: const Key('minhas-vagas-sem-permissao'),
-      child: Padding(
-        padding: const EdgeInsets.all(TurniSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.lock_outline, size: 48),
-            const SizedBox(height: TurniSpacing.md),
-            Text(
-              'Esta área é do contratante',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: TurniSpacing.sm),
-            const Text(
-              'Gerir vagas é uma ação de quem contrata. Sua conta é de profissional.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: TurniSpacing.lg),
-            FilledButton(
-              onPressed: () => context.go('/'),
-              style: FilledButton.styleFrom(
-                backgroundColor: accent,
-                foregroundColor: Colors.white,
-                shape: const StadiumBorder(),
-              ),
-              child: const Text('Voltar ao início'),
-            ),
-          ],
+      icon: Icons.lock_outline,
+      title: 'Esta área é do contratante',
+      message:
+          'Gerir vagas é uma ação de quem contrata. Sua conta é de '
+          'profissional.',
+      action: FilledButton(
+        onPressed: () => context.go('/'),
+        style: FilledButton.styleFrom(
+          backgroundColor: accent,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(0, 48),
+          shape: const StadiumBorder(),
         ),
-      ),
-    );
-  }
-}
-
-class _SkeletonCard extends StatelessWidget {
-  const _SkeletonCard({required this.isDark});
-
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final surface = isDark ? TurniColors.surfaceDark : TurniColors.surfaceLight;
-    final bar = isDark
-        ? TurniColors.borderSubtleDark
-        : TurniColors.borderSubtleLight;
-    Widget line(double w) => Container(
-      width: w,
-      height: 12,
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: bar,
-        borderRadius: BorderRadius.circular(6),
-      ),
-    );
-    return Container(
-      padding: const EdgeInsets.all(TurniSpacing.md),
-      decoration: BoxDecoration(
-        color: surface,
-        borderRadius: const BorderRadius.all(TurniRadius.md),
-        border: Border.all(color: bar),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [line(140), line(200), line(90)],
+        child: const Text('Voltar ao início'),
       ),
     );
   }

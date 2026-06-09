@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
+import '../../ds/components/state_views.dart';
 import '../../ds/tokens.dart';
 import '../notificacoes/notificacoes_controller.dart';
 import 'feed_service.dart';
@@ -135,23 +136,19 @@ class _FeedScreenState extends State<FeedScreen> {
       case _Phase.semPermissao:
         return _SemPermissaoView(accent: accent);
       case _Phase.erro:
-        return _ErroView(isDark: isDark, onRetry: _load);
+        return TurniRetryState(
+          key: const Key('feed-erro-banner'),
+          retryKey: const Key('feed-retry-btn'),
+          title: 'Não foi possível carregar as vagas.',
+          onRetry: _load,
+        );
       case _Phase.pronto:
         return _conteudo(isDark, accent);
     }
   }
 
-  Widget _skeleton(bool isDark) => ListView(
-    key: const Key('feed-skeleton'),
-    padding: const EdgeInsets.all(TurniSpacing.md),
-    children: List.generate(
-      3,
-      (_) => Padding(
-        padding: const EdgeInsets.only(bottom: TurniSpacing.md),
-        child: _SkeletonCard(isDark: isDark),
-      ),
-    ),
-  );
+  Widget _skeleton(bool isDark) =>
+      const TurniSkeletonList(key: Key('feed-skeleton'));
 
   Widget _conteudo(bool isDark, Color accent) {
     return Column(
@@ -162,7 +159,14 @@ class _FeedScreenState extends State<FeedScreen> {
         Expanded(
           child: _vagas.isEmpty
               ? (_filtro == FeedFiltro.todas
-                    ? const _VazioView()
+                    ? const TurniEmptyState(
+                        key: Key('feed-vazio'),
+                        icon: Icons.search,
+                        title: 'Nenhuma vaga por aqui ainda',
+                        message:
+                            'Assim que surgir uma vaga na sua função e na sua '
+                            'região, ela aparece aqui.',
+                      )
                     : _VazioFiltroView(
                         filtro: _filtro,
                         onVerTodas: () => _setFiltro(FeedFiltro.todas),
@@ -237,10 +241,10 @@ class _FeedScreenState extends State<FeedScreen> {
                     .toList(growable: false),
               ),
               if (_loadingMore)
-                Padding(
-                  key: const Key('feed-skeleton-proxima'),
-                  padding: const EdgeInsets.only(top: TurniSpacing.md),
-                  child: _SkeletonCard(isDark: isDark),
+                const Padding(
+                  key: Key('feed-skeleton-proxima'),
+                  padding: EdgeInsets.only(top: TurniSpacing.md),
+                  child: TurniSkeletonCard(),
                 ),
             ],
           ),
@@ -684,37 +688,6 @@ class _GateBanner extends StatelessWidget {
 
 // ───────────────────────── Estados auxiliares ─────────────────────────
 
-class _VazioView extends StatelessWidget {
-  const _VazioView();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      key: const Key('feed-vazio'),
-      child: Padding(
-        padding: const EdgeInsets.all(TurniSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.search, size: 48),
-            const SizedBox(height: TurniSpacing.md),
-            Text(
-              'Nenhuma vaga por aqui ainda',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: TurniSpacing.sm),
-            const Text(
-              'Assim que surgir uma vaga na sua função e na sua região, ela aparece aqui.',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _VazioFiltroView extends StatelessWidget {
   const _VazioFiltroView({required this.filtro, required this.onVerTodas});
 
@@ -759,48 +732,6 @@ class _VazioFiltroView extends StatelessWidget {
   }
 }
 
-class _ErroView extends StatelessWidget {
-  const _ErroView({required this.isDark, required this.onRetry});
-
-  final bool isDark;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final bg = isDark ? TurniColors.errorSoftDark : TurniColors.errorSoftLight;
-    final fg = isDark ? TurniColors.errorDark : TurniColors.errorLight;
-
-    return Align(
-      alignment: Alignment.topCenter,
-      child: Container(
-        key: const Key('feed-erro-banner'),
-        margin: const EdgeInsets.all(TurniSpacing.md),
-        padding: const EdgeInsets.all(TurniSpacing.md),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: const BorderRadius.all(TurniRadius.md),
-          border: Border.all(color: fg.withValues(alpha: 0.4)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Não foi possível carregar as vagas. Verifique sua conexão.',
-                style: TextStyle(color: fg),
-              ),
-            ),
-            TextButton(
-              key: const Key('feed-retry-btn'),
-              onPressed: onRetry,
-              child: const Text('Tentar de novo'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _SemPermissaoView extends StatelessWidget {
   const _SemPermissaoView({required this.accent});
 
@@ -837,43 +768,6 @@ class _SemPermissaoView extends StatelessWidget {
               child: const Text('Voltar ao início'),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SkeletonCard extends StatelessWidget {
-  const _SkeletonCard({required this.isDark});
-
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final surface = isDark ? TurniColors.surfaceDark : TurniColors.surfaceLight;
-    final bar = isDark
-        ? TurniColors.borderSubtleDark
-        : TurniColors.borderSubtleLight;
-    Widget line(double w, {double h = 12}) => Container(
-      width: w,
-      height: h,
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: bar,
-        borderRadius: BorderRadius.circular(6),
-      ),
-    );
-    return ExcludeSemantics(
-      child: Container(
-        padding: const EdgeInsets.all(TurniSpacing.md),
-        decoration: BoxDecoration(
-          color: surface,
-          borderRadius: const BorderRadius.all(TurniRadius.md),
-          border: Border.all(color: bar),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [line(140), line(200), line(double.infinity, h: 8)],
         ),
       ),
     );

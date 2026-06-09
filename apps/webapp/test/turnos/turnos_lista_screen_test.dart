@@ -321,12 +321,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('turnos-erro-banner')), findsOneWidget);
-    expect(
-      find.text(
-        'Não foi possível carregar seus turnos. Verifique sua conexão.',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Não foi possível carregar seus turnos.'), findsOneWidget);
+    expect(find.text('Verifique sua conexão.'), findsOneWidget);
 
     falha = false;
     await tester.tap(find.byKey(const Key('turnos-retry-btn')));

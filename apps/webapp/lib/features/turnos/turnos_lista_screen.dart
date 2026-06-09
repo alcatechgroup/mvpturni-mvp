@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
+import '../../ds/components/state_views.dart';
 import '../../ds/tokens.dart';
 import '../notificacoes/notificacoes_controller.dart';
 import 'turnos_service.dart';
@@ -103,7 +104,13 @@ class _TurnosListaScreenState extends State<TurnosListaScreen> {
           ehAreaDoProfissional: _ehProfissional,
         );
       case _Phase.erro:
-        return _ErroView(isDark: isDark, onRetry: _load);
+        return TurniRetryState(
+          key: const Key('turnos-erro-banner'),
+          retryKey: const Key('turnos-retry-btn'),
+          title: 'Não foi possível carregar seus turnos.',
+          accent: accent,
+          onRetry: _load,
+        );
       case _Phase.pronto:
         if (_grupos.isEmpty) {
           return _VazioView(
@@ -116,17 +123,8 @@ class _TurnosListaScreenState extends State<TurnosListaScreen> {
     }
   }
 
-  Widget _skeleton(bool isDark) => ListView(
-    key: const Key('turnos-skeleton'),
-    padding: const EdgeInsets.all(TurniSpacing.md),
-    children: List.generate(
-      3,
-      (_) => Padding(
-        padding: const EdgeInsets.only(bottom: TurniSpacing.md),
-        child: _SkeletonCard(isDark: isDark),
-      ),
-    ),
-  );
+  Widget _skeleton(bool isDark) =>
+      const TurniSkeletonList(key: Key('turnos-skeleton'));
 
   Widget _lista(bool isDark) => LayoutBuilder(
     builder: (context, constraints) {
@@ -436,84 +434,24 @@ class _VazioView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return TurniEmptyState(
       key: const Key('turnos-vazio'),
-      child: Padding(
-        padding: const EdgeInsets.all(TurniSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.event_note_outlined, size: 48),
-            const SizedBox(height: TurniSpacing.md),
-            Text(
-              'Ainda não há turnos',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: TurniSpacing.sm),
-            Text(
-              ehProfissional
-                  ? 'Quando o contratante aceitar sua candidatura, o turno aparece aqui.'
-                  : 'Quando você aceitar uma candidatura, o turno aparece aqui.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: TurniSpacing.lg),
-            FilledButton(
-              key: const Key('turnos-vazio-cta'),
-              onPressed: () => context.go(home),
-              style: FilledButton.styleFrom(
-                backgroundColor: accent,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(220, 48),
-                shape: const StadiumBorder(),
-              ),
-              child: Text(
-                ehProfissional ? 'Ver vagas disponíveis' : 'Ver minhas vagas',
-              ),
-            ),
-          ],
+      icon: Icons.event_note_outlined,
+      title: 'Ainda não há turnos',
+      message: ehProfissional
+          ? 'Quando o contratante aceitar sua candidatura, o turno aparece aqui.'
+          : 'Quando você aceitar uma candidatura, o turno aparece aqui.',
+      action: FilledButton(
+        key: const Key('turnos-vazio-cta'),
+        onPressed: () => context.go(home),
+        style: FilledButton.styleFrom(
+          backgroundColor: accent,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(220, 48),
+          shape: const StadiumBorder(),
         ),
-      ),
-    );
-  }
-}
-
-class _ErroView extends StatelessWidget {
-  const _ErroView({required this.isDark, required this.onRetry});
-
-  final bool isDark;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final bg = isDark ? TurniColors.errorSoftDark : TurniColors.errorSoftLight;
-    final fg = isDark ? TurniColors.errorDark : TurniColors.errorLight;
-
-    return Align(
-      alignment: Alignment.topCenter,
-      child: Container(
-        key: const Key('turnos-erro-banner'),
-        margin: const EdgeInsets.all(TurniSpacing.md),
-        padding: const EdgeInsets.all(TurniSpacing.md),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: const BorderRadius.all(TurniRadius.md),
-          border: Border.all(color: fg.withValues(alpha: 0.4)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Não foi possível carregar seus turnos. Verifique sua conexão.',
-                style: TextStyle(color: fg),
-              ),
-            ),
-            TextButton(
-              key: const Key('turnos-retry-btn'),
-              onPressed: onRetry,
-              child: const Text('Tentar de novo'),
-            ),
-          ],
+        child: Text(
+          ehProfissional ? 'Ver vagas disponíveis' : 'Ver minhas vagas',
         ),
       ),
     );
@@ -533,75 +471,24 @@ class _SemPermissaoView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return TurniEmptyState(
       key: const Key('turnos-sem-permissao'),
-      child: Padding(
-        padding: const EdgeInsets.all(TurniSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.lock_outline, size: 48),
-            const SizedBox(height: TurniSpacing.md),
-            Text(
-              ehAreaDoProfissional
-                  ? 'Esta área é do profissional'
-                  : 'Esta área é do contratante',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: TurniSpacing.sm),
-            Text(
-              ehAreaDoProfissional
-                  ? 'Meus turnos mostra os turnos de quem trabalha. Sua conta é de contratante.'
-                  : 'Acompanhar os turnos das vagas é uma ação de quem contrata. Sua conta é de profissional.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: TurniSpacing.lg),
-            FilledButton(
-              onPressed: () => context.go('/'),
-              style: FilledButton.styleFrom(
-                backgroundColor: accent,
-                foregroundColor: Colors.white,
-                shape: const StadiumBorder(),
-              ),
-              child: const Text('Voltar ao início'),
-            ),
-          ],
+      icon: Icons.lock_outline,
+      title: ehAreaDoProfissional
+          ? 'Esta área é do profissional'
+          : 'Esta área é do contratante',
+      message: ehAreaDoProfissional
+          ? 'Meus turnos mostra os turnos de quem trabalha. Sua conta é de contratante.'
+          : 'Acompanhar os turnos das vagas é uma ação de quem contrata. Sua conta é de profissional.',
+      action: FilledButton(
+        onPressed: () => context.go('/'),
+        style: FilledButton.styleFrom(
+          backgroundColor: accent,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(0, 48),
+          shape: const StadiumBorder(),
         ),
-      ),
-    );
-  }
-}
-
-class _SkeletonCard extends StatelessWidget {
-  const _SkeletonCard({required this.isDark});
-
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final surface = isDark ? TurniColors.surfaceDark : TurniColors.surfaceLight;
-    final bar = isDark
-        ? TurniColors.borderSubtleDark
-        : TurniColors.borderSubtleLight;
-    Widget line(double w) => Container(
-      width: w,
-      height: 12,
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: bar,
-        borderRadius: BorderRadius.circular(6),
-      ),
-    );
-    return Container(
-      padding: const EdgeInsets.all(TurniSpacing.md),
-      decoration: BoxDecoration(
-        color: surface,
-        borderRadius: const BorderRadius.all(TurniRadius.md),
-        border: Border.all(color: bar),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [line(140), line(200), line(90)],
+        child: const Text('Voltar ao início'),
       ),
     );
   }

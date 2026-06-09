@@ -2380,8 +2380,8 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-079-estados-padrao",
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_review",
+      "owner_agent": "programador",
       "sprint_id": "SPRINT-2026-W29",
       "estimated_session_size": "M",
       "path": "epics/EPIC-012-shell-navegacao-e-ux/stories/STORY-079-estados-vazios-erro-carregamento.md",
@@ -2392,7 +2392,8 @@
         "STORY-081"
       ],
       "created_at": "2026-06-08",
-      "updated_at": "2026-06-08"
+      "updated_at": "2026-06-09",
+      "agent_notes": "Estados vazio/erro/loading extraídos para o DS (lib/ds/components/state_views.dart: TurniEmptyState, TurniRetryState, TurniSkeletonList/Card/Box) e aplicados às 5 listas (feed, minhas vagas, candidatos, turnos, notificações), preservando as Key por tela (suíte verde: 632 testes; 100% de cobertura no componente novo). patterns.md + components.md atualizados (pattern.empty/error/loading e state.empty/error/loading saem de ponteiro/Roadmap). Erro inline mid-flow (PIN/validar/cronômetro) fica como banner local, não unificado. Falta: deploy homolog (rc) + confirmação visual do PO (CA-7). FLAGS: (1) spec de design SCREEN-STORY-079 não existia — segui o padrão de-facto do feed, designer revisa; (2) copy do vazio de candidatos tem resíduo 'Member Start:' — preservado verbatim, escalar ao PO."
     },
     {
       "id": "STORY-080",

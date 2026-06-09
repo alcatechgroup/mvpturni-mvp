@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
+import '../../ds/components/state_views.dart';
 import '../../ds/tokens.dart';
 import 'candidatos_service.dart';
 import 'vaga_detalhe_service.dart' show ScoreBreakdown;
@@ -259,13 +260,22 @@ class _PainelCandidatosScreenState extends State<PainelCandidatosScreen> {
   Widget _body(bool isDark) {
     switch (_phase) {
       case _Phase.loading:
-        return const _SkeletonView();
+        return const TurniSkeletonList(
+          key: Key('painel-candidatos-skeleton'),
+          itemBuilder: _skeletonCandidato,
+        );
       case _Phase.semPermissao:
         return _SemPermissaoView(accent: _accent(isDark));
       case _Phase.naoEncontrada:
         return _NaoEncontradaView(accent: _accent(isDark));
       case _Phase.erro:
-        return _ErroView(isDark: isDark, onRetry: _load);
+        return TurniRetryState(
+          key: const Key('painel-candidatos-erro'),
+          retryKey: const Key('painel-candidatos-retry-btn'),
+          title: 'Não foi possível carregar os candidatos.',
+          accent: _accent(isDark),
+          onRetry: _load,
+        );
       case _Phase.pronto:
         return _conteudo(isDark);
     }
@@ -1226,61 +1236,42 @@ class _CtaEnviando extends StatelessWidget {
 
 // ───────────────────────── Estados auxiliares ─────────────────────────
 
-class _SkeletonView extends StatelessWidget {
-  const _SkeletonView();
+// Skeleton de uma linha de candidato (avatar + 3 linhas), para o
+// `TurniSkeletonList` da tela. STORY-079.
+Widget _skeletonCandidato(BuildContext context) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final surface = isDark ? TurniColors.surfaceDark : TurniColors.surfaceLight;
+  final border = isDark
+      ? TurniColors.borderSubtleDark
+      : TurniColors.borderSubtleLight;
 
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bar = isDark
-        ? TurniColors.borderSubtleDark
-        : TurniColors.borderSubtleLight;
-    final surface = isDark ? TurniColors.surfaceDark : TurniColors.surfaceLight;
-
-    Widget line(double w, {double h = 12}) => Container(
-      width: w,
-      height: h,
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: bar,
-        borderRadius: BorderRadius.circular(6),
-      ),
-    );
-    Widget card() => Container(
-      margin: const EdgeInsets.only(bottom: TurniSpacing.md),
-      padding: const EdgeInsets.all(TurniSpacing.md),
-      decoration: BoxDecoration(
-        color: surface,
-        border: Border.all(color: bar),
-        borderRadius: const BorderRadius.all(TurniRadius.md),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(color: bar, shape: BoxShape.circle),
+  return Container(
+    padding: const EdgeInsets.all(TurniSpacing.md),
+    decoration: BoxDecoration(
+      color: surface,
+      border: Border.all(color: border),
+      borderRadius: const BorderRadius.all(TurniRadius.md),
+    ),
+    child: const Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TurniSkeletonBox(width: 44, circle: true),
+        SizedBox(width: TurniSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TurniSkeletonBox(width: 140),
+              SizedBox(height: 10),
+              TurniSkeletonBox(width: 90),
+              SizedBox(height: 10),
+              TurniSkeletonBox(width: double.infinity, height: 10),
+            ],
           ),
-          const SizedBox(width: TurniSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [line(140), line(90), line(double.infinity, h: 10)],
-            ),
-          ),
-        ],
-      ),
-    );
-
-    return ExcludeSemantics(
-      child: ListView(
-        key: const Key('painel-candidatos-skeleton'),
-        padding: const EdgeInsets.all(TurniSpacing.md),
-        children: [for (var i = 0; i < 3; i++) card()],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
 }
 
 class _VazioView extends StatelessWidget {
@@ -1290,65 +1281,12 @@ class _VazioView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      key: const Key('painel-candidatos-vazio'),
-      child: Padding(
-        padding: const EdgeInsets.all(TurniSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.groups_outlined, size: 48),
-            const SizedBox(height: TurniSpacing.md),
-            Text(
-              'Ainda sem candidatos',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: TurniSpacing.sm),
-            const Text(
-              'Vamos avisar assim que chegar o primeiro. Member Start: em até 2h.',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ErroView extends StatelessWidget {
-  const _ErroView({required this.isDark, required this.onRetry});
-
-  final bool isDark;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      key: const Key('painel-candidatos-erro'),
-      child: Padding(
-        padding: const EdgeInsets.all(TurniSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.warning_amber_rounded, size: 44),
-            const SizedBox(height: TurniSpacing.md),
-            Text(
-              'Não foi possível carregar os candidatos.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: TurniSpacing.sm),
-            const Text('Verifique sua conexão.', textAlign: TextAlign.center),
-            const SizedBox(height: TurniSpacing.lg),
-            OutlinedButton(
-              key: const Key('painel-candidatos-retry-btn'),
-              onPressed: onRetry,
-              child: const Text('Tentar de novo'),
-            ),
-          ],
-        ),
-      ),
+    return const TurniEmptyState(
+      key: Key('painel-candidatos-vazio'),
+      icon: Icons.groups_outlined,
+      title: 'Ainda sem candidatos',
+      message:
+          'Vamos avisar assim que chegar o primeiro. Member Start: em até 2h.',
     );
   }
 }
@@ -1360,36 +1298,20 @@ class _SemPermissaoView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return TurniEmptyState(
       key: const Key('painel-candidatos-sem-permissao'),
-      child: Padding(
-        padding: const EdgeInsets.all(TurniSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.lock_outline, size: 48),
-            const SizedBox(height: TurniSpacing.md),
-            Text(
-              'Esta área é do contratante dono',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: TurniSpacing.sm),
-            const Text(
-              'Só quem publicou a vaga vê seus candidatos.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: TurniSpacing.lg),
-            FilledButton(
-              onPressed: () => context.go('/'),
-              style: FilledButton.styleFrom(
-                backgroundColor: accent,
-                foregroundColor: Colors.white,
-                shape: const StadiumBorder(),
-              ),
-              child: const Text('Voltar ao início'),
-            ),
-          ],
+      icon: Icons.lock_outline,
+      title: 'Esta área é do contratante dono',
+      message: 'Só quem publicou a vaga vê seus candidatos.',
+      action: FilledButton(
+        onPressed: () => context.go('/'),
+        style: FilledButton.styleFrom(
+          backgroundColor: accent,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(0, 48),
+          shape: const StadiumBorder(),
         ),
+        child: const Text('Voltar ao início'),
       ),
     );
   }
@@ -1402,37 +1324,20 @@ class _NaoEncontradaView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return TurniEmptyState(
       key: const Key('painel-candidatos-nao-encontrada'),
-      child: Padding(
-        padding: const EdgeInsets.all(TurniSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.event_busy, size: 48),
-            const SizedBox(height: TurniSpacing.md),
-            Text(
-              'Vaga não encontrada',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: TurniSpacing.sm),
-            const Text(
-              'Ela pode ter sido removida. Veja suas vagas.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: TurniSpacing.lg),
-            FilledButton(
-              onPressed: () => context.go('/contratante/vagas'),
-              style: FilledButton.styleFrom(
-                backgroundColor: accent,
-                foregroundColor: Colors.white,
-                shape: const StadiumBorder(),
-              ),
-              child: const Text('Voltar às minhas vagas'),
-            ),
-          ],
+      icon: Icons.event_busy,
+      title: 'Vaga não encontrada',
+      message: 'Ela pode ter sido removida. Veja suas vagas.',
+      action: FilledButton(
+        onPressed: () => context.go('/contratante/vagas'),
+        style: FilledButton.styleFrom(
+          backgroundColor: accent,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(0, 48),
+          shape: const StadiumBorder(),
         ),
+        child: const Text('Voltar às minhas vagas'),
       ),
     );
   }

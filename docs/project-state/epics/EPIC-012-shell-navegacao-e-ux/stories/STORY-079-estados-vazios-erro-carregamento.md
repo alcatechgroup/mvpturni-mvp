@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-079-estados-padrao
-status: ready
-owner_agent: null
+status: in_review
+owner_agent: programador
 created_at: 2026-06-08
-updated_at: 2026-06-08
+updated_at: 2026-06-09
 estimated_session_size: M
 produces_idr: null
 ---
@@ -83,16 +83,44 @@ NÃO decide: copy de domínio que exija decisão de produto, CAs.
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões tomadas
-- 
+- **Extração dos 3 estados para o DS** em `apps/webapp/lib/ds/components/state_views.dart`:
+  `TurniEmptyState` (vazio: ícone + título + mensagem que instrui + CTA opcional),
+  `TurniRetryState` (erro recuperável: ícone + texto + "Tentar de novo" que re-dispara a
+  carga) e `TurniSkeletonList`/`TurniSkeletonCard`/`TurniSkeletonBox` (carregamento).
+- **Erro não-recuperável** = `TurniEmptyState` com ícone de bloqueio + CTA de saída para um
+  destino do shell (RBAC cruzado, vaga inexistente) — mesmo arranjo do vazio, muda
+  ícone/copy/ação. Não criei um 4º componente.
+- **Padronizei o erro de tela cheia como CENTRALIZADO** (ícone + título + apoio + retry),
+  unificando os dois estilos que existiam no código (banner-no-topo do feed/turnos/vagas
+  vs. centralizado das notificações). Copy unificada: título "Não foi possível carregar X."
+  + apoio "Verifique sua conexão.".
+- **Preservei as `Key` por tela** (`feed-vazio`, `turnos-erro-banner`, `*-retry-btn`,
+  `*-skeleton`, …): os componentes não fixam Key, a tela passa a sua. Por isso a suíte de
+  widget/E2E existente seguiu verde sem reescrever seletores.
+- **Skeleton estático** (sem shimmer/animação) — consistência nos dois temas e zero timer
+  nos testes; "placeholder consistente" satisfeito sem animação.
+- **Escopo do refactor:** as 5 listas da CA-1 (feed, minhas vagas, candidatos, turnos,
+  notificações). O **erro inline mid-flow** (gerar PIN, validar check-in/out, cronômetro)
+  ficou como micro-padrão de **banner** local — distinto do estado de tela inteira — e está
+  documentado assim em `patterns.md`; não foi unificado (não inflar; W28).
 
 ### Descobertas
-- 
+- **Possível bug de copy (escalar ao PO):** o estado vazio do painel de candidatos diz
+  *"Vamos avisar assim que chegar o primeiro. Member Start: em até 2h."* — "Member Start:"
+  parece resíduo/placeholder. **Preservei verbatim** (mudar copy de domínio é decisão de
+  produto, fora de escopo). Sugiro corrigir numa estória de microcopy (STORY-080).
 
 ### Bloqueios encontrados
-- 
+- **Spec de design (`SCREEN-STORY-079-estados-padrao`) não existe.** Como as regras já
+  estavam fixadas (tokens DDR-001: "vazio instrui o próximo passo", "erro nunca é só cor")
+  e o feed já era a referência madura do padrão, segui o padrão de-facto e o promovi a DS.
+  Designer revisa o PR/diff.
 
 ### Cobertura final
-- Unitários:  / E2E: 
+- Unitários: `test/ds/state_views_test.dart` (10 casos) — **100% de linhas** em
+  `state_views.dart` (60/60). Suíte completa do WebApp: **632 testes verdes**. As telas
+  migradas mantêm seus widget tests de vazio/erro/skeleton (CA-6).
+- E2E: cobertos pelos integration_test existentes das telas (não regrediram).
 
 ### Links de evidência
-- PR / Pipeline / Deploy homolog: 
+- Pipeline / Deploy homolog: _(rc a cortar — preencher após deploy)_

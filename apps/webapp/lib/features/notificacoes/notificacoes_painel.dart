@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../ds/components/state_views.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
 import 'notificacao.dart';
@@ -239,131 +240,49 @@ class NotificacoesPainel extends StatelessWidget {
     );
   }
 
-  Widget _skeleton(bool isDark) {
-    final muted = isDark
-        ? TurniColors.borderSubtleDark
-        : const Color(0xFFE8E5DB);
-    Widget linha(double w) => Container(
-      width: w,
-      height: 12,
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: muted,
-        borderRadius: BorderRadius.circular(6),
-      ),
-    );
-    return ListView(
-      key: const Key('notificacoes-skeleton'),
-      padding: const EdgeInsets.all(TurniSpacing.md),
-      children: List.generate(
-        3,
-        (_) => Padding(
-          padding: const EdgeInsets.only(bottom: TurniSpacing.md),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(color: muted, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: TurniSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [linha(120), linha(double.infinity), linha(60)],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _skeleton(bool isDark) => const TurniSkeletonList(
+    key: Key('notificacoes-skeleton'),
+    itemBuilder: _skeletonNotificacao,
+  );
 
-  Widget _vazio(bool isDark) {
-    final textStrong = isDark
-        ? TurniColors.textStrongDark
-        : TurniColors.textStrongLight;
-    final textMuted = isDark
-        ? TurniColors.textMutedDark
-        : TurniColors.textMutedLight;
-    return Center(
-      key: const Key('notificacoes-vazio'),
-      child: Padding(
-        padding: const EdgeInsets.all(TurniSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.notifications_none, size: 40, color: textMuted),
-            const SizedBox(height: TurniSpacing.md),
-            Text(
-              'Nenhuma notificação ainda',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: textStrong,
-              ),
-            ),
-            const SizedBox(height: TurniSpacing.xs),
-            Text(
-              // SCREEN-STORY-067 §4 — o centro agora cobre o ciclo do turno.
-              'Quando algo acontecer com suas vagas, candidaturas ou turnos, avisamos aqui.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: textMuted),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget _vazio(bool isDark) => const TurniEmptyState(
+    key: Key('notificacoes-vazio'),
+    icon: Icons.notifications_none,
+    title: 'Nenhuma notificação ainda',
+    // SCREEN-STORY-067 §4 — o centro agora cobre o ciclo do turno.
+    message:
+        'Quando algo acontecer com suas vagas, candidaturas ou turnos, '
+        'avisamos aqui.',
+  );
 
   Widget _erro(BuildContext context, NotificacoesController c, Color acento) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textStrong = isDark
-        ? TurniColors.textStrongDark
-        : TurniColors.textStrongLight;
-    final textMuted = isDark
-        ? TurniColors.textMutedDark
-        : TurniColors.textMutedLight;
-    return Center(
+    return TurniRetryState(
       key: const Key('notificacoes-erro'),
-      child: Padding(
-        padding: const EdgeInsets.all(TurniSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 40, color: textMuted),
-            const SizedBox(height: TurniSpacing.md),
-            Text(
-              'Não foi possível carregar suas notificações.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: textStrong,
-              ),
-            ),
-            const SizedBox(height: TurniSpacing.xs),
-            Text(
-              'Verifique sua conexão.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: textMuted),
-            ),
-            const SizedBox(height: TurniSpacing.md),
-            FilledButton(
-              key: const Key('notificacoes-retry-btn'),
-              onPressed: c.abrirPainel,
-              style: FilledButton.styleFrom(
-                backgroundColor: acento,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Tentar de novo'),
-            ),
-          ],
-        ),
-      ),
+      retryKey: const Key('notificacoes-retry-btn'),
+      title: 'Não foi possível carregar suas notificações.',
+      accent: acento,
+      onRetry: c.abrirPainel,
     );
   }
 }
+
+// Skeleton de uma linha de notificação (avatar + 3 linhas). STORY-079.
+Widget _skeletonNotificacao(BuildContext context) => const Row(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    TurniSkeletonBox(width: 40, circle: true),
+    SizedBox(width: TurniSpacing.sm),
+    Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TurniSkeletonBox(width: 120),
+          SizedBox(height: 8),
+          TurniSkeletonBox(width: double.infinity),
+          SizedBox(height: 8),
+          TurniSkeletonBox(width: 60),
+        ],
+      ),
+    ),
+  ],
+);
