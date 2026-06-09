@@ -45,9 +45,12 @@ test('login bem-sucedido retorna 200 com role status e flags do funil', function
     ]);
 
     $response->assertStatus(200)
-        ->assertJsonStructure(['role', 'status', 'welcome_visto', 'cadastro_completo'])
+        ->assertJsonStructure(['id', 'role', 'status', 'welcome_visto', 'cadastro_completo'])
         ->assertJsonPath('role', 'contratante')
-        ->assertJsonPath('status', 'ativo');
+        ->assertJsonPath('status', 'ativo')
+        // STORY-088 — o id volta no login p/ o WebApp montar GET /api/perfil/{id} (reputação)
+        // sem depender de um /api/user posterior.
+        ->assertJsonPath('id', $user->id);
 });
 
 test('login bem-sucedido não retorna a senha no body', function () {

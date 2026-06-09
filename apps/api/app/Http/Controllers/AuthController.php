@@ -65,6 +65,9 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         return response()->json([
+            // id alimenta GET /api/perfil/{id} (reputação do próprio perfil — STORY-088), sem
+            // depender de um /api/user posterior; mesma forma que /api/user já devolve.
+            'id' => $user->id,
             // name alimenta a headline personalizada da tela de welcome (STORY-022).
             'name' => $user->name,
             'role' => $user->role,
