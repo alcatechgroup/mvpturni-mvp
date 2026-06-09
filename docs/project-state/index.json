@@ -296,7 +296,7 @@
       "slug": "avaliacao-reciproca",
       "title": "Avaliação recíproca e fechamento do ciclo",
       "wave": "WAVE-2026-01",
-      "status": "ready",
+      "status": "done",
       "path": "epics/EPIC-004-avaliacao-reciproca/epic.md",
       "story_ids": [
         "STORY-083",

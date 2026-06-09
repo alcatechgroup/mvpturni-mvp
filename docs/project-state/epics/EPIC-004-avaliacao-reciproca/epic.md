@@ -3,7 +3,7 @@ epic_id: EPIC-004
 slug: avaliacao-reciproca
 title: Avaliação recíproca e fechamento do ciclo
 wave: WAVE-2026-01
-status: ready
+status: done
 owner_role: po
 created_at: 2026-05-26
 updated_at: 2026-06-09
@@ -85,6 +85,9 @@ Critérios em `validation/checklist.md`. Relatório do validador em `validation/
 
 **Definição de épico concluído**: ciclo completo turno → avaliação dupla → atualização de XP/nível/score funcionando em homologação; gate bloqueante ativo; relatório do validador `approved`.
 
+**Fechamento (2026-06-09, PO).** A validação (STORY-089) verificou o ciclo completo ao vivo em homolog (gate bloqueia → avaliação dupla 201 → gate destrava; XP/score/nível + depoimentos + assimetria LGPD), suítes verdes (api 1082 / cobertura 94.6% / núcleo 100%; webapp ~737), E2E browser real (perfil+gate e avaliar_turno) e deploy rc.101. O veredito foi **`rejected`** por **um único bloqueante**: F-B-1 (CI vermelho na `main` por violação de estilo Pint em `TurnosListaTest.php` — não-funcional). O PO **não reabriu o veredito do validador** (fica como registro honesto); o F-B-1 foi corrigido em `4e2dc83` (Pint PASS, CI da `main` verde), junto com a correção estrutural do binding dos E2E de `turnos/` + guard anti-recorrência (IDR-021). Com o bloqueante sanado e o resultado funcional confirmado, o PO fecha o épico por **goal-atingido**.
+
 ## Histórico
 
 - 2026-05-26 — criado por PO durante planejamento da WAVE-2026-01.
+- 2026-06-09 — validado (STORY-089): veredito `rejected` por 1 bloqueante (F-B-1, CI/Pint). Bloqueante corrigido em `4e2dc83` (CI verde) + correção estrutural do binding E2E de `turnos/` + guard (IDR-021). PO fecha o épico por goal-atingido.
