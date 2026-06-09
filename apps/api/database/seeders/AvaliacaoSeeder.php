@@ -75,17 +75,25 @@ class AvaliacaoSeeder extends Seeder
             return;
         }
 
-        ProfissionalProfile::firstOrCreate(
+        // Função/geo ALINHADAS às 3 vagas abertas do VagasSeeder (mesma régua do FeedSeeder:
+        // orderBy id, take 3) para que `profissional.avaliacao` ENXERGUE o feed — assim o E2E do
+        // gate (STORY-088) vê o banner (feed não-vazio + avaliação pendente → bloqueio). Score/
+        // nível/XP abaixo são placeholders: o `recomputar()` ao final reescreve com os fatos das
+        // 3 avaliações. updateOrCreate (não firstOrCreate): o `_e2e-seed` não faz migrate:fresh,
+        // então o alinhamento precisa valer mesmo com o perfil já existente.
+        $funcoesFeed = Funcao::query()->orderBy('id')->take(3)->pluck('id')->all();
+
+        ProfissionalProfile::updateOrCreate(
             ['user_id' => $pro->id],
             [
                 'tipo_pessoa' => 'MEI',
                 'cidade' => 'São Paulo',
                 'bairro' => 'Pinheiros',
-                'funcao_id' => $funcaoId,
-                'funcoes_secundarias' => [],
-                'lat' => -23.561,
-                'lng' => -46.690,
-                'raio_max_km' => 30,
+                'funcao_id' => $funcoesFeed[0] ?? $funcaoId,
+                'funcoes_secundarias' => array_slice($funcoesFeed, 1, 2),
+                'lat' => -23.55,
+                'lng' => -46.63,
+                'raio_max_km' => 50,
                 'nivel' => 'Iniciante',
                 'score' => 0,
                 'xp' => 0,
