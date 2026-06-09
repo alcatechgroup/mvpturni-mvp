@@ -7,6 +7,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Avaliacao\AvaliacoesPendentesController;
 use App\Http\Controllers\Avaliacao\AvaliarTurnoController;
+use App\Http\Controllers\Avaliacao\PerfilReputacaoController;
 use App\Http\Controllers\Cadastro\CompletarCadastroContratanteController;
 use App\Http\Controllers\Cadastro\CompletarCadastroProfissionalController;
 use App\Http\Controllers\Cadastro\ContratanteCadastroController;
@@ -216,4 +217,10 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     // estado não-avaliável → 422; reenvio na mesma direção → 409. Insere + dispara
     // AvaliacaoRegistrada na transação (motor de reputação síncrono).
     Route::post('/turnos/{turno}/avaliar', [AvaliarTurnoController::class, 'store']);
+
+    // Perfil de reputação (STORY-085 / ADR-019 + DDR-004 — CA-6). Score (1 casa) + nível +
+    // turnos + depoimentos (comentário não-vazio, mais recentes 1º) de qualquer usuário ativo;
+    // o XP atual + XP até o próximo nível só aparecem para o próprio dono (visibilidade). A
+    // assimetria LGPD dos depoimentos (autor anônimo sobre o contratante) vive na Query.
+    Route::get('/perfil/{user}', [PerfilReputacaoController::class, 'show']);
 });

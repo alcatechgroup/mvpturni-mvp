@@ -43,4 +43,20 @@ enum NivelProfissional: string
     {
         return $this->ordem() >= $outro->ordem() ? $this : $outro;
     }
+
+    /**
+     * XP que falta para o próximo limiar acima do XP atual (barra de progresso do perfil —
+     * niveis-e-score.md). Elite (>= 3000) não tem próximo → null. XP negativo conta a partir
+     * do piso de Confiável (500 − xp).
+     */
+    public static function xpAteProximoNivel(int $xp): ?int
+    {
+        foreach ([500, 1000, 3000] as $limiar) {
+            if ($xp < $limiar) {
+                return $limiar - $xp;
+            }
+        }
+
+        return null; // Elite — não há próximo nível no MVP
+    }
 }

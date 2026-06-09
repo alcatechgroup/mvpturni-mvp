@@ -29,6 +29,18 @@ test('ordem é crescente Iniciante < Confiável < Destaque < Elite (para o high-
         ->and(NivelProfissional::Destaque->ordem())->toBeLessThan(NivelProfissional::Elite->ordem());
 });
 
+test('xpAteProximoNivel devolve o que falta para o próximo limiar; null no Elite', function (int $xp, ?int $esperado) {
+    expect(NivelProfissional::xpAteProximoNivel($xp))->toBe($esperado);
+})->with([
+    'iniciante → confiável' => [0, 500],
+    'quase confiável' => [499, 1],
+    'confiável → destaque' => [510, 490],
+    'destaque → elite' => [2999, 1],
+    'elite (topo) → null' => [3000, null],
+    'muito acima → null' => [9000, null],
+    'xp negativo conta do piso de confiável' => [-10, 510],
+]);
+
 test('valores do enum batem com os rótulos persistidos no profile', function () {
     expect(NivelProfissional::Iniciante->value)->toBe('Iniciante')
         ->and(NivelProfissional::Confiavel->value)->toBe('Confiavel')
