@@ -81,6 +81,11 @@ Widget _app({
         path: '/feed',
         builder: (_, _) => const Scaffold(body: Text('FEED')),
       ),
+      GoRoute(
+        path: '/turnos/:id/avaliar',
+        builder: (_, state) =>
+            Scaffold(body: Text('AVALIAR ${state.pathParameters['id']}')),
+      ),
     ],
   );
   return MaterialApp.router(theme: buildLightTheme(), routerConfig: router);
@@ -203,6 +208,83 @@ void main() {
       expect(
         find.byKey(const Key('candidatura-bloqueio-acao-btn')),
         findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'STORY-088 CA-4: gate avaliação com turno_id → "Avaliar agora" deep-linka ao turno',
+    (tester) async {
+      tester.view.physicalSize = const Size(420, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final cand = _FakeCandidaturaService(
+        candidatarResults: [
+          CandidaturaBloqueada(
+            erro: 'gate_avaliacao',
+            mensagem: 'Avalie seu último turno para se candidatar.',
+            conflito: null,
+            turnoId: 'turno-9',
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        _app(detalhe: _FakeDetalheService(_detalhe()), candidatura: cand),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vaga-detalhe-candidatar-btn')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('candidatura-confirmar-btn')));
+      await tester.pumpAndSettle();
+
+      final avaliarBtn = find.byKey(
+        const Key('candidatura-bloqueio-avaliar-btn'),
+      );
+      expect(avaliarBtn, findsOneWidget);
+      expect(find.text('Avaliar agora'), findsOneWidget);
+
+      await tester.tap(avaliarBtn);
+      await tester.pumpAndSettle();
+
+      // Deep-link ao turno pendente mais antigo (T4).
+      expect(find.text('AVALIAR turno-9'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'STORY-088 CA-4: gate sem turno_id (fail-secure) NÃO mostra "Avaliar agora"',
+    (tester) async {
+      tester.view.physicalSize = const Size(420, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final cand = _FakeCandidaturaService(
+        candidatarResults: [
+          CandidaturaBloqueada(
+            erro: 'gate_avaliacao',
+            mensagem: 'Avalie seu último turno para se candidatar.',
+            conflito: null,
+            turnoId: null,
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        _app(detalhe: _FakeDetalheService(_detalhe()), candidatura: cand),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vaga-detalhe-candidatar-btn')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('candidatura-confirmar-btn')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('candidatura-bloqueio-modal')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('candidatura-bloqueio-avaliar-btn')),
+        findsNothing,
       );
     },
   );
