@@ -51,6 +51,7 @@ TurnoDetalhe _turno({
     conteudoRenderizado: 'Contrato eventual de turno. Garçom — R\$ 200,00.',
   ),
   List<TimelineEvento>? timeline,
+  AvaliacaoPendencia? avaliacao,
 }) => TurnoDetalhe(
   id: 'u1',
   funcao: 'Garçom',
@@ -64,6 +65,7 @@ TurnoDetalhe _turno({
   totalContratante: totalContratante,
   profissional: profissional,
   aceite: aceite,
+  avaliacao: avaliacao,
   timeline:
       timeline ??
       [
@@ -416,5 +418,61 @@ void main() {
     await tester.tap(find.byKey(const Key('turno-nao-encontrado-cta')));
     await tester.pumpAndSettle();
     expect(find.text('LISTA PRO'), findsOneWidget);
+  });
+
+  // ───────────────── STORY-087 — CTA de avaliação ─────────────────
+
+  testWidgets('turno finalizado PENDENTE mostra o CTA "Avaliar turno"', (
+    tester,
+  ) async {
+    final svc = _FakeService(
+      () => TurnoDetalheSuccess(
+        _turno(
+          estadoRaw: 'finalizado',
+          estado: TurnoEstadoResumo.finalizado,
+          avaliacao: const AvaliacaoPendencia(
+            pendente: true,
+            direcao: 'profissional_para_contratante',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpWidget(_comRouter(svc));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('turno-detalhe-avaliar')), findsOneWidget);
+    expect(find.text('Avaliar turno'), findsOneWidget);
+  });
+
+  testWidgets(
+    'turno finalizado JÁ avaliado (pendente:false) NÃO mostra o CTA',
+    (tester) async {
+      final svc = _FakeService(
+        () => TurnoDetalheSuccess(
+          _turno(
+            estadoRaw: 'finalizado',
+            estado: TurnoEstadoResumo.finalizado,
+            avaliacao: const AvaliacaoPendencia(
+              pendente: false,
+              direcao: 'profissional_para_contratante',
+            ),
+          ),
+        ),
+      );
+      await tester.pumpWidget(_comRouter(svc));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('turno-detalhe-avaliar')), findsNothing);
+    },
+  );
+
+  testWidgets('turno não-avaliável (sem bloco avaliacao) NÃO mostra o CTA', (
+    tester,
+  ) async {
+    final svc = _FakeService(() => TurnoDetalheSuccess(_turno()));
+    await tester.pumpWidget(_comRouter(svc));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('turno-detalhe-avaliar')), findsNothing);
   });
 }

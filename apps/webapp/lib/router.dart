@@ -15,6 +15,7 @@ import 'features/cadastro/pre_cadastro_profissional_screen.dart';
 import 'features/feed/feed_screen.dart';
 import 'features/funnel/welcome_screen.dart' as funnel;
 import 'features/turno/cronometro_poc_screen.dart';
+import 'features/turnos/avaliar_turno_screen.dart';
 import 'features/turnos/turno_detalhe_screen.dart';
 import 'features/turnos/turnos_lista_screen.dart';
 import 'features/vagas/editar_vaga_screen.dart';
@@ -211,6 +212,20 @@ final router = GoRouter(
                 return MaterialPage(
                   key: ValueKey('turno-detalhe-$id'),
                   child: TurnoDetalheScreen(turnoId: id),
+                );
+              },
+            ),
+            // Captura da avaliação recíproca (STORY-087 / SCREEN-084). Drill-down
+            // empilhado no branch Turnos (push a partir do detalhe; o "voltar"
+            // recarrega o detalhe e o CTA some quando a pendência se resolve — CA-4).
+            // RBAC/404 e "já avaliado" tratados dentro da tela (servidor é a verdade).
+            GoRoute(
+              path: '/turnos/:id/avaliar',
+              pageBuilder: (context, state) {
+                final id = state.pathParameters['id'] ?? '';
+                return MaterialPage(
+                  key: ValueKey('avaliar-turno-$id'),
+                  child: AvaliarTurnoScreen(turnoId: id),
                 );
               },
             ),

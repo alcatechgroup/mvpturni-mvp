@@ -169,6 +169,22 @@ class PixDoTurno {
   );
 }
 
+/// STORY-087 / ADR-019 (D2) — pendência de avaliação derivada do estado. Só chega em
+/// turnos avaliáveis (`finalizado`/`finalizado_ajustado`); `pendente` diz se a direção
+/// DESTE usuário ainda não foi avaliada (alimenta o CTA "Avaliar turno" e a tela de captura).
+class AvaliacaoPendencia {
+  final bool pendente;
+  final String direcao;
+
+  const AvaliacaoPendencia({required this.pendente, required this.direcao});
+
+  factory AvaliacaoPendencia.fromJson(Map<String, dynamic> json) =>
+      AvaliacaoPendencia(
+        pendente: json['pendente'] as bool? ?? false,
+        direcao: json['direcao'] as String? ?? '',
+      );
+}
+
 /// Detalhe do turno (STORY-060 CA-2). O payload é filtrado por papel no servidor:
 /// `taxaTurni`/`totalContratante`/`profissional` chegam null para o profissional (que
 /// nunca os vê — PDR-004) e preenchidos para o contratante.
@@ -200,6 +216,9 @@ class TurnoDetalhe {
   /// (STORY-065 CA-4: linha do card de valor).
   final PixDoTurno? pix;
 
+  /// Pendência de avaliação do usuário (STORY-087) — só em estados avaliáveis.
+  final AvaliacaoPendencia? avaliacao;
+
   const TurnoDetalhe({
     required this.id,
     required this.funcao,
@@ -217,6 +236,7 @@ class TurnoDetalhe {
     this.checkinJanela,
     this.geofencingCheckin,
     this.pix,
+    this.avaliacao,
   });
 
   /// O payload do contratante carrega o total — é assim que a tela sabe o papel sem
@@ -267,6 +287,11 @@ class TurnoDetalhe {
     pix: json['pix'] == null
         ? null
         : PixDoTurno.fromJson(json['pix'] as Map<String, dynamic>),
+    avaliacao: json['avaliacao'] == null
+        ? null
+        : AvaliacaoPendencia.fromJson(
+            json['avaliacao'] as Map<String, dynamic>,
+          ),
   );
 }
 

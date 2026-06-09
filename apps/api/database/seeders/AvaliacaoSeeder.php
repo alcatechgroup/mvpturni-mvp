@@ -153,7 +153,87 @@ class AvaliacaoSeeder extends Seeder
 
         $this->recomputar($pro, $emp);
 
-        $this->command?->info('AvaliacaoSeeder: par avaliacao + 3 turnos avaliados + ≥1 pendente + reputação computada.');
+        // STORY-087 — par EXCLUSIVO do E2E da tela de avaliação (mesma disciplina do
+        // TurnosSeeder: usuários dedicados, sem contenção com as demais suítes).
+        $this->seedE2ePair($funcaoId);
+
+        $this->command?->info('AvaliacaoSeeder: par avaliacao + 3 turnos avaliados + ≥1 pendente + par E2E + reputação computada.');
+    }
+
+    /**
+     * STORY-087 — par dedicado ao E2E da captura de avaliação. Garante EXATAMENTE UM turno
+     * finalizado entre eles e o RESETA para totalmente pendente a cada seed (apaga as
+     * avaliações), tornando o E2E repetível apesar da mutação (o `_e2e-seed` roda antes de
+     * cada execução). As duas direções ficam pendentes — os cenários profissional e contratante
+     * avaliam direções distintas do MESMO turno, sem colidir numa única execução do drive.
+     * Senha 'password' (convenção do TurnosSeeder/E2E).
+     */
+    private function seedE2ePair(string $funcaoId): void
+    {
+        $senha = Hash::make('password');
+
+        $pro = User::updateOrCreate(
+            ['email' => 'profissional.aval087.seed@turni.local'],
+            [
+                'name' => 'Profissional Aval087 Seed',
+                'password' => $senha,
+                'role' => 'profissional',
+                'status' => 'ativo',
+                'email_verified_at' => now(),
+                'welcome_seen_at' => now(),
+                'cadastro_completed_at' => now(),
+            ],
+        );
+
+        $emp = User::updateOrCreate(
+            ['email' => 'contratante.aval087.seed@turni.local'],
+            [
+                'name' => 'Contratante Aval087 Seed',
+                'password' => $senha,
+                'role' => 'contratante',
+                'status' => 'ativo',
+                'email_verified_at' => now(),
+                'welcome_seen_at' => now(),
+                'cadastro_completed_at' => now(),
+            ],
+        );
+
+        ProfissionalProfile::firstOrCreate(
+            ['user_id' => $pro->id],
+            [
+                'tipo_pessoa' => 'MEI',
+                'cidade' => 'São Paulo',
+                'bairro' => 'Pinheiros',
+                'funcao_id' => $funcaoId,
+                'funcoes_secundarias' => [],
+                'lat' => -23.561,
+                'lng' => -46.690,
+                'raio_max_km' => 30,
+                'nivel' => 'Iniciante',
+                'score' => 0,
+                'xp' => 0,
+                'turnos_realizados' => 0,
+            ],
+        );
+
+        ContratanteProfile::firstOrCreate(
+            ['user_id' => $emp->id],
+            [
+                'nome_estabelecimento' => 'Bistrô do E2E Ltda',
+                'apelido_estabelecimento' => 'Bistrô do E2E',
+                'tipo_operacao' => 'restaurante',
+                'cidade' => 'São Paulo',
+                'score' => 0,
+            ],
+        );
+
+        $turno = Turno::where('contratante_id', $emp->id)
+            ->where('profissional_id', $pro->id)
+            ->first()
+            ?? $this->turnoFinalizado($pro, $emp, $funcaoId, 1);
+
+        // Reset: volta o turno a totalmente pendente (E2E repetível apesar da mutação).
+        $turno->avaliacoes()->delete();
     }
 
     /** Turno finalizado entre o par, iniciado há `$semanas` semanas (vaga fechada + candidatura aprovada). */

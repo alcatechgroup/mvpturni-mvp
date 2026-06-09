@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Turno;
 
+use App\Enums\AvaliacaoDirecao;
 use App\Enums\TurnoStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
@@ -92,7 +93,7 @@ class TurnoDetalheController extends Controller
                 'conteudo_renderizado' => $turno->aceite->conteudo_renderizado,
             ],
             'timeline' => $this->timeline($turno, $souProfissional),
-        ];
+        ] + $this->avaliacao($turno, $souProfissional);
 
         if ($souProfissional) {
             // STORY-061 (CA-1) — janela de geração do PIN: a UI decide o estado do botão
@@ -127,6 +128,33 @@ class TurnoDetalheController extends Controller
         }
 
         return response()->json($comum + $contratante);
+    }
+
+    /**
+     * STORY-087 / ADR-019 (D2) — bloco `avaliacao` para o WebApp decidir o CTA "Avaliar turno"
+     * (SCREEN-084 §2) e o estado da tela de captura. Só em estados avaliáveis (mesma régua do
+     * RegistrarAvaliacaoService); fora deles a chave nem aparece. `pendente` é derivado do
+     * estado: não existe linha em `avaliacoes` na direção DO usuário autenticado. `direcao`
+     * é fixada pelo papel (RBAC fail-secure: o servidor decide o sentido, não o front).
+     *
+     * @return array<string, array{pendente: bool, direcao: string}>
+     */
+    private function avaliacao(Turno $turno, bool $souProfissional): array
+    {
+        if (! in_array($turno->status, [TurnoStatus::Finalizado, TurnoStatus::FinalizadoAjustado], true)) {
+            return [];
+        }
+
+        $direcao = $souProfissional
+            ? AvaliacaoDirecao::ProfissionalParaContratante
+            : AvaliacaoDirecao::ContratanteParaProfissional;
+
+        $jaAvaliou = $turno->avaliacoes()->where('direcao', $direcao)->exists();
+
+        return ['avaliacao' => [
+            'pendente' => ! $jaAvaliou,
+            'direcao' => $direcao->value,
+        ]];
     }
 
     /**

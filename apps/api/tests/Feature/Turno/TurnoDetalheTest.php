@@ -8,6 +8,7 @@
 use App\Enums\TurnoStatus;
 use App\Models\AceiteEletronicoTurno;
 use App\Models\AuditLog;
+use App\Models\Avaliacao;
 use App\Models\Turno;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -404,4 +405,76 @@ test('CA-4 (065): timeline do profissional traz pix_enviado com o valor integral
     $evento = collect($timeline)->firstWhere('evento', 'pix_enviado');
     expect($evento)->not->toBeNull()
         ->and($evento['valor'])->toEqual(200.0);
+});
+
+// ---------------------------------------------------------------- STORY-087 (bloco `avaliacao`)
+//
+// Aditivo, read-only: o WebApp mostra o CTA "Avaliar turno" só quando a direção do usuário
+// está PENDENTE e, pós-envio, o reload reflete `pendente: false` (CA-3/CA-4). Pendência
+// derivada do estado (ADR-019 D2) — sem tabela; a mesma fonte das AvaliacoesPendentes*.
+
+// (a) feliz — profissional em finalizado sem avaliação: pendente na direção dele.
+test('STORY-087: profissional em finalizado sem avaliação vê avaliacao{pendente:true, direcao}', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
+
+    $json = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json();
+
+    expect($json['avaliacao']['pendente'])->toBeTrue()
+        ->and($json['avaliacao']['direcao'])->toBe('profissional_para_contratante');
+});
+
+// (a) feliz — contratante em finalizado sem avaliação: pendente na direção dele.
+test('STORY-087: contratante em finalizado sem avaliação vê avaliacao{pendente:true, direcao}', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
+
+    $json = $this->actingAs($turno->contratante)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json();
+
+    expect($json['avaliacao']['pendente'])->toBeTrue()
+        ->and($json['avaliacao']['direcao'])->toBe('contratante_para_profissional');
+});
+
+// (a) feliz — CA-4: depois que o profissional avaliou, a direção DELE deixa de estar pendente.
+test('STORY-087: profissional que já avaliou vê avaliacao{pendente:false}', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
+    Avaliacao::factory()->doProfissional()->paraTurno($turno)->create();
+
+    $json = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json();
+
+    expect($json['avaliacao']['pendente'])->toBeFalse()
+        ->and($json['avaliacao']['direcao'])->toBe('profissional_para_contratante');
+});
+
+// (b) borda — direções independentes: a avaliação de um lado não zera a pendência do outro.
+test('STORY-087: avaliação do profissional NÃO resolve a pendência do contratante', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
+    Avaliacao::factory()->doProfissional()->paraTurno($turno)->create();
+
+    $json = $this->actingAs($turno->contratante)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json();
+
+    expect($json['avaliacao']['pendente'])->toBeTrue()
+        ->and($json['avaliacao']['direcao'])->toBe('contratante_para_profissional');
+});
+
+// (b) borda — finalizado_ajustado também é avaliável (ESTADOS_AVALIAVEIS — STORY-085).
+test('STORY-087: finalizado_ajustado também carrega o bloco avaliacao', function () {
+    $turno = Turno::factory()->status(TurnoStatus::FinalizadoAjustado)->create();
+
+    $json = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json();
+
+    expect($json['avaliacao']['pendente'])->toBeTrue();
+});
+
+// (b) inválido — fora de finalizado/finalizado_ajustado não existe avaliacao{} (pré-condição).
+test('STORY-087: turno fora de estado avaliável NÃO carrega avaliacao{}', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Confirmado)->create();
+
+    $json = $this->actingAs($turno->profissional)->getJson("/api/turnos/{$turno->id}")
+        ->assertStatus(200)->json();
+
+    expect($json)->not->toHaveKey('avaliacao');
 });

@@ -410,6 +410,18 @@ class _DetalheView extends StatelessWidget {
             onRecarregar: onRecarregar,
           ),
         ],
+        // STORY-087 — em turno avaliável com a direção do usuário PENDENTE, o CTA leva à
+        // tela de captura (SCREEN-084 §2). Some quando a pendência se resolve: o reload
+        // pós-retorno reflete `avaliacao.pendente == false` (CA-4).
+        if (turno.avaliacao?.pendente == true) ...[
+          const SizedBox(height: TurniSpacing.sm),
+          _AvaliarTurnoCta(
+            turnoId: turno.id,
+            isDark: isDark,
+            accent: accent,
+            onRecarregar: onRecarregar,
+          ),
+        ],
       ],
     );
 
@@ -966,6 +978,85 @@ class _AcoesPlaceholder extends StatelessWidget {
             'As ações deste turno aparecem aqui conforme ele avança.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13.5, color: textMuted, height: 1.45),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// STORY-087 — CTA "Avaliar turno" no detalhe de um turno finalizado pendente (SCREEN-084
+/// §2). Empilha a tela de captura (push) e, ao voltar, recarrega o detalhe — quando a
+/// pendência se resolve, este bloco some (CA-4). Acento do perfil; alvo ≥48dp.
+class _AvaliarTurnoCta extends StatelessWidget {
+  const _AvaliarTurnoCta({
+    required this.turnoId,
+    required this.isDark,
+    required this.accent,
+    required this.onRecarregar,
+  });
+
+  final String turnoId;
+  final bool isDark;
+  final Color accent;
+  final Future<void> Function() onRecarregar;
+
+  @override
+  Widget build(BuildContext context) {
+    final textStrong = isDark
+        ? TurniColors.textStrongDark
+        : TurniColors.textStrongLight;
+    final textMuted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+    final border = isDark
+        ? TurniColors.borderSubtleDark
+        : TurniColors.borderSubtleLight;
+
+    return Container(
+      key: const Key('turno-detalhe-avaliar'),
+      padding: const EdgeInsets.all(TurniSpacing.md),
+      decoration: BoxDecoration(
+        color: isDark ? TurniColors.surfaceDark : TurniColors.surfaceLight,
+        borderRadius: const BorderRadius.all(TurniRadius.md),
+        border: Border.all(color: border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Avalie este turno',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: textStrong,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Conte como foi — sua avaliação libera a próxima ação.',
+            style: TextStyle(fontSize: 13.5, color: textMuted, height: 1.45),
+          ),
+          const SizedBox(height: TurniSpacing.md),
+          FilledButton(
+            key: const Key('turno-detalhe-avaliar-btn'),
+            onPressed: () async {
+              await context.push('/turnos/$turnoId/avaliar');
+              await onRecarregar();
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: accent,
+              foregroundColor: TurniColors.onAccentFor(
+                Theme.of(context).brightness,
+              ),
+              minimumSize: const Size.fromHeight(48),
+              shape: const StadiumBorder(),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            child: const Text('Avaliar turno'),
           ),
         ],
       ),
