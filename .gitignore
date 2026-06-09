@@ -39,6 +39,9 @@ infra/**/terraform.tfvars
 infra/**/terraform.tfstate
 infra/**/terraform.tfstate.backup
 *.tfplan
+# plano salvo (terraform plan -out=tfplan) — sem extensão; binário com snapshot de state/vars
+tfplan
+infra/**/tfplan
 
 # Firebase — token de auth local (não é o service account do CI)
 .firebase/
@@ -49,3 +52,7 @@ infra/**/terraform.tfstate.backup
 
 # Estado local do Claude Code (locks, tasks de runtime)
 .claude/
+
+# Binários de browser p/ E2E local (Chrome-for-Testing + chromedriver) — nunca commitar
+chrome/
+chromedriver/

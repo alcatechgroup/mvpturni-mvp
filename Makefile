@@ -31,11 +31,31 @@ E2E_HEADLESS ?= 1
 # abrir janela; só omitir --headless não basta. E2E_HEADLESS=0 → --no-headless (Chrome visível).
 E2E_HEADLESS_FLAG := $(if $(filter 0,$(E2E_HEADLESS)),--no-headless,--headless)
 
+# ── E2E com Chrome PINADO (STORY-078) ──────────────────────────────────────────
+# O Chrome instalado na máquina se auto-atualiza e quebra o gate (drift de versão).
+# Estes targets baixam um Chrome-for-Testing + chromedriver de versão CRAVADA num
+# diretório local gitignored (./chrome, ./chromedriver) e apontam o flutter drive
+# pra esse binário via --chrome-binary — independente do Chrome da máquina.
+#   make e2e-webapp-pinned                         # roda o gate com o Chrome pinado
+#   make e2e-webapp-pinned E2E_HEADLESS=0          # abre o Chrome NA SUA TELA (visível)
+#   make e2e-webapp-pinned E2E_TARGET=integration_test/app_shell_test.dart  # só navegação
+#   make e2e-webapp-pinned E2E_USE_PROXY=0         # sem proxy (browser direto no :7357)
+#   make e2e-webapp-pinned CFT_VERSION=148.0.7778.216   # troca a versão pinada
+CFT_VERSION ?= 148.0.7778.168
+CFT_CHROME := $(CURDIR)/chrome/mac_arm-$(CFT_VERSION)/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing
+CFT_CHROMEDRIVER := $(CURDIR)/chromedriver/mac_arm-$(CFT_VERSION)/chromedriver-mac-arm64/chromedriver
+E2E_TARGET ?= integration_test/web_test.dart
+# E2E_USE_PROXY=1 (default): same-origin via proxy (:3000), necessário p/ testes autenticados.
+# E2E_USE_PROXY=0: browser abre direto no :7357 (debug do harness/hipótese cross-origin).
+E2E_USE_PROXY ?= 1
+E2E_LAUNCH_URL := $(if $(filter 0,$(E2E_USE_PROXY)),http://127.0.0.1:$(E2E_APP_PORT),http://localhost:$(E2E_PROXY_PORT))
+
 .DEFAULT_GOAL := help
 .PHONY: help setup up down clean logs ps env build install key migrate seed \
         webapp-build hooks test test-api test-admin test-webapp lint fresh \
         e2e e2e-webapp e2e-webapp-integration e2e-webapp-banner e2e-webapp-smoke \
-        e2e-webapp-app-update e2e-webapp-install e2e-admin
+        e2e-webapp-app-update e2e-webapp-install e2e-admin \
+        e2e-browser-pin e2e-webapp-pinned
 
 help: ## Mostra os comandos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -189,6 +209,43 @@ e2e-webapp-integration: ## integration_test (UI) do WebApp no Chrome headless, s
 	    --web-hostname=127.0.0.1 --web-port=$(E2E_APP_PORT) \
 	    --dart-define=E2E_FAKE_PICKER=true \
 	    --web-launch-url=http://localhost:$(E2E_PROXY_PORT)
+
+# STORY-078 — baixa o par Chrome-for-Testing + chromedriver PINADO (CFT_VERSION) em
+# ./chrome e ./chromedriver (gitignored). Idempotente: só baixa o que falta. Remove o
+# quarantine do macOS. Não depende do Chrome instalado na máquina.
+e2e-browser-pin: ## Baixa Chrome-for-Testing + chromedriver pinados (CFT_VERSION); independe do Chrome da máquina
+	@command -v npx >/dev/null 2>&1 || { echo "ERRO: npx (Node) ausente no PATH"; exit 1; }
+	@if [ ! -f "$(CFT_CHROME)" ]; then echo "→ baixando Chrome-for-Testing $(CFT_VERSION)…"; npx -y @puppeteer/browsers install chrome@$(CFT_VERSION) >/dev/null; else echo "✓ Chrome-for-Testing $(CFT_VERSION) já presente"; fi
+	@if [ ! -f "$(CFT_CHROMEDRIVER)" ]; then echo "→ baixando chromedriver $(CFT_VERSION)…"; npx -y @puppeteer/browsers install chromedriver@$(CFT_VERSION) >/dev/null; else echo "✓ chromedriver $(CFT_VERSION) já presente"; fi
+	@xattr -dr com.apple.quarantine "$(CURDIR)/chrome" "$(CURDIR)/chromedriver" 2>/dev/null || true
+	@chmod +x "$(CFT_CHROMEDRIVER)" 2>/dev/null || true
+	@echo "Chrome pinado pronto: $(CFT_VERSION)"
+
+# STORY-078 — E2E do WebApp (integration_test, same-origin IDR-021) com o Chrome
+# PINADO acima via --chrome-binary. Mesmo harness do e2e-webapp-integration (chromedriver
+# + proxy + flutter drive), mas independente do Chrome da máquina e parametrizável:
+#   E2E_HEADLESS=0 abre o Chrome NA TELA · E2E_TARGET= alvo · E2E_USE_PROXY=0 sem proxy.
+e2e-webapp-pinned: e2e-browser-pin ## E2E do WebApp com Chrome PINADO (E2E_HEADLESS=0 abre na tela; E2E_TARGET=; E2E_USE_PROXY=0)
+	@command -v flutter >/dev/null 2>&1 || { echo "ERRO: Flutter ausente no PATH"; exit 1; }
+	@command -v node >/dev/null 2>&1 || { echo "ERRO: node ausente no PATH (proxy same-origin)"; exit 1; }
+	@curl -sS -o /dev/null http://localhost:$${API_PORT:-8001} || { echo "ERRO: API não responde em :$${API_PORT:-8001}. Rode 'make up' antes."; exit 1; }
+	$(MAKE) _e2e-seed
+	@echo "→ E2E pinado: chrome=$(CFT_VERSION) target=$(E2E_TARGET) headless=$(E2E_HEADLESS) proxy=$(E2E_USE_PROXY) launch=$(E2E_LAUNCH_URL)"
+	"$(CFT_CHROMEDRIVER)" --port=$(CHROMEDRIVER_PORT) >/tmp/turni-chromedriver.log 2>&1 & \
+	  CD_PID=$$!; \
+	  PROXY_PORT=$(E2E_PROXY_PORT) APP_PORT=$(E2E_APP_PORT) API_PORT=$${API_PORT:-8001} \
+	    node scripts/e2e-webapp-proxy.js >/tmp/turni-e2e-proxy.log 2>&1 & \
+	  PROXY_PID=$$!; \
+	  trap 'kill $$CD_PID $$PROXY_PID 2>/dev/null' EXIT INT TERM; \
+	  for i in $$(seq 1 20); do curl -fsS http://localhost:$(CHROMEDRIVER_PORT)/status >/dev/null 2>&1 && break; sleep 0.5; done; \
+	  for i in $$(seq 1 20); do curl -sS -o /dev/null http://localhost:$(E2E_PROXY_PORT)/ 2>/dev/null && break; sleep 0.3; done; \
+	  cd apps/webapp && flutter drive --driver=test_driver/integration_test.dart \
+	    --target=$(E2E_TARGET) \
+	    -d web-server --browser-name=chrome $(E2E_HEADLESS_FLAG) \
+	    --chrome-binary="$(CFT_CHROME)" \
+	    --web-hostname=127.0.0.1 --web-port=$(E2E_APP_PORT) \
+	    --dart-define=E2E_FAKE_PICKER=true \
+	    --web-launch-url=$(E2E_LAUNCH_URL)
 
 # STORY-075 — caminho feliz do banner global de homolog: o gate normal acima roda com
 # TURNI_ENV ausente (= local, banner invisível — CA-2 assertado lá); esta invocação
