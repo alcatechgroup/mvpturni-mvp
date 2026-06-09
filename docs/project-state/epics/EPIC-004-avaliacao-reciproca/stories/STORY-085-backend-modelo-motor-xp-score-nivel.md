@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: false
 design_screen_id: null
-status: in_progress
+status: in_review
 owner_agent: claude-opus-4-8-programador-2026-06-09
 created_at: 2026-06-09
 updated_at: 2026-06-09
@@ -114,4 +114,30 @@ Decide: estrutura do service/motor, listeners, design dos testes, forma do cálc
 - CA-8 (deploy homolog) → smoke pós-push.
 
 ### Decisões / Descobertas / Bloqueios
-- 
+
+**Decisões locais (dentro da latitude do programador):**
+- Enum `App\Enums\NivelProfissional` (limiares + `nivelPara` + `ordem`/`maiorEntre` + `xpAteProximoNivel`) e `App\Enums\AvaliacaoDirecao` (espelha o enum nativo `avaliacao_direcao`).
+- `MotorReputacao` como domain service puro (sem relógio); `RegistrarAvaliacaoService` (insere + dispara `AvaliacaoRegistrada` **dentro** da transação — ADR-019 D3); `PerfilReputacaoQuery` monta o payload de reputação.
+- Exceções de domínio (`TurnoNaoAvaliavelException` 422, `NaoParticipanteDoTurnoException` 403, `AvaliacaoJaRegistradaException` 409). Mapeadas no controller.
+- Submit num único endpoint compartilhado `POST /turnos/{turno}/avaliar` — direção/avaliado **derivados do papel do autor** no turno (fonte única de RBAC; não duplico checagem no controller).
+- Perfil em `GET /perfil/{user}`: **XP só para o dono** (visibilidade — niveis-e-score.md); demais campos públicos. Score exibido com 1 casa; depoimentos limitados a 3 (DDR-004); selo `Novo` < 3 avaliações.
+- Novo `NotificacaoTipo::AvaliacaoPendente` + template seed vendorado (`database/seeders/emails/avaliacao_pendente_email.md`) — segue o padrão STORY-067.
+- Guard defensivo no motor: profissional sem profile = no-op (não derruba a transação por uma denormalização). Listener defensivo: avaliado/turno desconhecido = no-op.
+
+**Descobertas:**
+- **XP não fica negativo via avaliações no MVP**: cada avaliação recebida vem de um turno finalizado (+30) e o pior bônus é −5 (1–2★), logo o líquido por turno é ≥ +25. O negativo só viria das penalidades placeholder (cancelamento/no-show — PDR-007, fora do MVP). O que o CA-5 exige do motor é a coluna **signed tolerante** (coberta por `NivelProfissional::nivelPara(-50)`) e o **high-water-mark** que não rebaixa — ambos testados.
+- `unsignedInteger` no Postgres já é `integer` (sem unsigned nativo); a migração de tipo é semanticamente um no-op no PG, mantida para documentar intenção e portabilidade.
+- `created_at` não é fillable em `Avaliacao` — testes que precisam datar depoimentos setam o atributo direto + `save()` (bypassa mass-assignment).
+- O `NotificacaoTurnoEmailWiringTest` (STORY-067) passou a renderizar também o e-mail `avaliacao_pendente` (trava do contrato payload⇆template) — contagens ajustadas 9→11 notificações / 8→9 tipos.
+
+**Mapeamento CA → teste (final, todos verdes):**
+- **CA-1** → `tests/Feature/Avaliacao/AvaliacaoSchemaTest.php` (UNIQUE direção/turno; CHECK estrelas 1–5; NOT NULL; CHECK autor≠avaliado; UUIDv7; relations) + migração reversível verificada (`migrate:rollback`/`migrate`).
+- **CA-2** → `tests/Feature/Avaliacao/NotificarAvaliacaoPendenteTest.php` (2 lados; idempotente; chave por destinatário; turno desconhecido no-op) + `NotificacoesEmailTemplatesSeederTest` (13→14).
+- **CA-3** → `tests/Feature/Avaliacao/RegistrarAvaliacaoTest.php` (feliz nos 2 papéis; comentário em branco→null; evento; estrelas ausente/fora-de-faixa/comentário>1000→422; não-participante→403; estado inválido→422; reenvio→409; 2 direções coexistem).
+- **CA-4** → `tests/Unit/Avaliacao/MotorReputacaoTest.php` (tabela XP 5/4/3/2/1★; score=média; turnos_realizados; finalizado_ajustado) + `tests/Unit/Avaliacao/RecalcularReputacaoListenerTest.php`.
+- **CA-5** → `MotorReputacaoTest` (limiar 500; high-water-mark não rebaixa; idempotência) + `tests/Unit/Avaliacao/NivelProfissionalTest.php` (limiares; xp negativo; ordem; xpAteProximoNivel).
+- **CA-6** → `tests/Feature/Avaliacao/PerfilReputacaoTest.php` (score 1 casa; nível; xp + xp_proximo_nivel só p/ dono; Elite→null; depoimentos não-vazios mais recentes 1º; nominal sobre profissional / **anônimo sobre contratante — LGPD**; selo Novo).
+- **CA-7** → suíte completa **1052 verde**, `--min=80` ok; núcleo `MotorReputacao` e `NivelProfissional` **100%**.
+- **CA-8** → push → CI → deploy homolog (em verificação).
+
+**Bloqueios:** nenhum.
