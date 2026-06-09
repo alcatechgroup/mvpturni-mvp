@@ -13,42 +13,48 @@ CandidaturaService _svc(http.Response Function() resposta) =>
     CandidaturaService(client: MockClient((_) async => resposta()));
 
 void main() {
-  test('422 gate_avaliacao → CandidaturaBloqueada carrega turnoId do detalhe', () async {
-    final svc = _svc(
-      () => http.Response(
-        jsonEncode({
-          'erro': 'gate_avaliacao',
-          'mensagem': 'Avalie seu último turno para se candidatar.',
-          'detalhe': {'turno_id': 'turno-9'},
-        }),
-        422,
-        headers: {'content-type': 'application/json'},
-      ),
-    );
+  test(
+    '422 gate_avaliacao → CandidaturaBloqueada carrega turnoId do detalhe',
+    () async {
+      final svc = _svc(
+        () => http.Response(
+          jsonEncode({
+            'erro': 'gate_avaliacao',
+            'mensagem': 'Avalie seu último turno para se candidatar.',
+            'detalhe': {'turno_id': 'turno-9'},
+          }),
+          422,
+          headers: {'content-type': 'application/json'},
+        ),
+      );
 
-    final r = await svc.candidatar('v1');
-    expect(r, isA<CandidaturaBloqueada>());
-    final b = r as CandidaturaBloqueada;
-    expect(b.erro, 'gate_avaliacao');
-    expect(b.turnoId, 'turno-9');
-  });
+      final r = await svc.candidatar('v1');
+      expect(r, isA<CandidaturaBloqueada>());
+      final b = r as CandidaturaBloqueada;
+      expect(b.erro, 'gate_avaliacao');
+      expect(b.turnoId, 'turno-9');
+    },
+  );
 
-  test('fail-secure: gate sem turno_id (detalhe null) → turnoId null', () async {
-    final svc = _svc(
-      () => http.Response(
-        jsonEncode({
-          'erro': 'gate_avaliacao',
-          'mensagem': 'Avalie seu último turno para se candidatar.',
-          'detalhe': {'turno_id': null},
-        }),
-        422,
-        headers: {'content-type': 'application/json'},
-      ),
-    );
+  test(
+    'fail-secure: gate sem turno_id (detalhe null) → turnoId null',
+    () async {
+      final svc = _svc(
+        () => http.Response(
+          jsonEncode({
+            'erro': 'gate_avaliacao',
+            'mensagem': 'Avalie seu último turno para se candidatar.',
+            'detalhe': {'turno_id': null},
+          }),
+          422,
+          headers: {'content-type': 'application/json'},
+        ),
+      );
 
-    final b = await svc.candidatar('v1') as CandidaturaBloqueada;
-    expect(b.turnoId, isNull);
-  });
+      final b = await svc.candidatar('v1') as CandidaturaBloqueada;
+      expect(b.turnoId, isNull);
+    },
+  );
 
   test('outro gate (conflito) não tem turnoId', () async {
     final svc = _svc(

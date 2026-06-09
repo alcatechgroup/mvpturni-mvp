@@ -204,9 +204,7 @@ void main() {
     (tester) async {
       _entrarContratante();
       await tester.pumpWidget(
-        _comRouter(
-          _FakeVagaService(gate: const GatePublicacao(pending: 1)),
-        ),
+        _comRouter(_FakeVagaService(gate: const GatePublicacao(pending: 1))),
       );
       await tester.pumpAndSettle();
 

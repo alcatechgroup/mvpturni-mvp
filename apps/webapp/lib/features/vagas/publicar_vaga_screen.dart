@@ -41,7 +41,8 @@ class _PublicarVagaScreenState extends State<PublicarVagaScreen> {
   String? _funcaoId;
   int _posicoes = 1;
   int _gatePending = 0;
-  String? _gateTurnoId; // turno pendente mais antigo p/ o deep-link "Avaliar agora" (T4)
+  String?
+  _gateTurnoId; // turno pendente mais antigo p/ o deep-link "Avaliar agora" (T4)
   String? _funcaoErro; // erro do seletor de função (não é FormField)
   String? _quandoErro; // erro do bloco "Quando" (datas)
   bool _submitting = false;

@@ -39,9 +39,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
     final id = AuthService().session?.id ?? '';
     setState(() {
       // Sessão antiga sem id (pré-STORY-088): não dá p/ montar /api/perfil/{id} → erro recuperável.
-      _carga = id.isEmpty
-          ? Future.value(ReputacaoErro())
-          : _service.fetch(id);
+      _carga = id.isEmpty ? Future.value(ReputacaoErro()) : _service.fetch(id);
     });
   }
 
@@ -397,7 +395,9 @@ class _DepoimentosVazio extends StatelessWidget {
         : TurniColors.textMutedLight;
 
     final semNenhuma = total == 0;
-    final titulo = semNenhuma ? 'Ainda sem avaliações' : 'Ainda sem comentários';
+    final titulo = semNenhuma
+        ? 'Ainda sem avaliações'
+        : 'Ainda sem comentários';
     final msg = semNenhuma
         ? 'Complete turnos para receber suas primeiras avaliações.'
         : 'As avaliações com comentário aparecem aqui.';

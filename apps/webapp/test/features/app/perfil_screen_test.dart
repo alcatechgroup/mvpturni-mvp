@@ -97,9 +97,14 @@ void main() {
 
   // ─────────────── identidade / tema / sair (STORY-077, regressão) ───────────────
 
-  testWidgets('(a) feliz — mostra nome e papel do profissional', (tester) async {
+  testWidgets('(a) feliz — mostra nome e papel do profissional', (
+    tester,
+  ) async {
     AuthService().debugSetSession(_session());
-    await _pump(tester, _FakeReputacao(() => ReputacaoCarregada(_perfilProf())));
+    await _pump(
+      tester,
+      _FakeReputacao(() => ReputacaoCarregada(_perfilProf())),
+    );
     expect(find.text('Diego Martins'), findsOneWidget);
     expect(find.text('Profissional'), findsOneWidget);
   });
@@ -120,7 +125,10 @@ void main() {
 
   testWidgets('(a) feliz — alterna o tema escuro e persiste', (tester) async {
     AuthService().debugSetSession(_session());
-    await _pump(tester, _FakeReputacao(() => ReputacaoCarregada(_perfilProf())));
+    await _pump(
+      tester,
+      _FakeReputacao(() => ReputacaoCarregada(_perfilProf())),
+    );
 
     final toggle = find.byKey(const Key('shell-theme-toggle'));
     expect(toggle, findsOneWidget);
@@ -131,7 +139,10 @@ void main() {
 
   testWidgets('(a) feliz — expõe o botão Sair', (tester) async {
     AuthService().debugSetSession(_session());
-    await _pump(tester, _FakeReputacao(() => ReputacaoCarregada(_perfilProf())));
+    await _pump(
+      tester,
+      _FakeReputacao(() => ReputacaoCarregada(_perfilProf())),
+    );
     expect(find.byKey(const Key('perfil-logout')), findsOneWidget);
   });
 

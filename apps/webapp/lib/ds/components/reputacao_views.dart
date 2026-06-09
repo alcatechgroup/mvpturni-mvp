@@ -329,11 +329,7 @@ class TurniDepoimentoCard extends StatelessWidget {
             label: '$estrelas de 5 estrelas',
             child: Text(
               comentario,
-              style: TextStyle(
-                color: textStrong,
-                fontSize: 14.5,
-                height: 1.4,
-              ),
+              style: TextStyle(color: textStrong, fontSize: 14.5, height: 1.4),
             ),
           ),
           const SizedBox(height: TurniSpacing.xs),

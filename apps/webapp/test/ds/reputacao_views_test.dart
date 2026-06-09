@@ -11,7 +11,9 @@ const _accent = TurniColors.accentLight;
 
 Future<void> _pump(WidgetTester tester, Widget child) {
   return tester.pumpWidget(
-    MaterialApp(home: Scaffold(body: Center(child: child))),
+    MaterialApp(
+      home: Scaffold(body: Center(child: child)),
+    ),
   );
 }
 
@@ -35,7 +37,9 @@ void main() {
       expect(find.textContaining('Novo'), findsNothing);
     });
 
-    testWidgets('selo "Novo na plataforma" quando 0 avaliações', (tester) async {
+    testWidgets('selo "Novo na plataforma" quando 0 avaliações', (
+      tester,
+    ) async {
       await _pump(
         tester,
         const TurniRatingDisplay(
@@ -88,10 +92,7 @@ void main() {
         ),
       );
       // Nó semântico com o número falado (não depende da cor da estrela).
-      expect(
-        find.bySemanticsLabel(RegExp('4,9 de 5')),
-        findsOneWidget,
-      );
+      expect(find.bySemanticsLabel(RegExp('4,9 de 5')), findsOneWidget);
     });
   });
 
@@ -138,21 +139,22 @@ void main() {
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('nível máximo (xpProximoNivel null) → "Nível máximo alcançado"', (
-      tester,
-    ) async {
-      await _pump(
-        tester,
-        const TurniXpMeter(
-          xp: 3200,
-          xpProximoNivel: null,
-          nivel: 'Elite',
-          accent: _accent,
-        ),
-      );
-      expect(find.text('Nível máximo alcançado'), findsOneWidget);
-      expect(find.textContaining('Faltam'), findsNothing);
-    });
+    testWidgets(
+      'nível máximo (xpProximoNivel null) → "Nível máximo alcançado"',
+      (tester) async {
+        await _pump(
+          tester,
+          const TurniXpMeter(
+            xp: 3200,
+            xpProximoNivel: null,
+            nivel: 'Elite',
+            accent: _accent,
+          ),
+        );
+        expect(find.text('Nível máximo alcançado'), findsOneWidget);
+        expect(find.textContaining('Faltam'), findsNothing);
+      },
+    );
 
     testWidgets('barra tem valor semântico (LinearProgressIndicator.value)', (
       tester,
@@ -192,10 +194,7 @@ void main() {
     ) async {
       await _pump(tester, card(autorNome: 'Restaurante Vista Mar'));
       expect(find.text('Pontual e atencioso'), findsOneWidget);
-      expect(
-        find.textContaining('Restaurante Vista Mar'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Restaurante Vista Mar'), findsOneWidget);
       expect(find.textContaining('Garçom'), findsOneWidget);
       expect(find.textContaining('há 3 dias'), findsOneWidget);
     });

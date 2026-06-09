@@ -231,7 +231,13 @@ void main() {
   // STORY-088 — data relativa pt-BR dos depoimentos (DDR-002 / SCREEN-084 §5):
   // "há 3 dias" / "há 1 semana"; ≥ 30 dias → data absoluta dd/MM/aaaa.
   group('tempoRelativo', () {
-    final agora = DateTime(2026, 6, 12, 18, 0); // referência fixa (determinismo)
+    final agora = DateTime(
+      2026,
+      6,
+      12,
+      18,
+      0,
+    ); // referência fixa (determinismo)
     String rel(Duration atras) =>
         TurniDateTime.tempoRelativo(agora.subtract(atras), agora: agora);
 

@@ -315,26 +315,27 @@ void main() {
     expect(tester.widget<FilledButton>(btn).onPressed, isNull);
   });
 
-  testWidgets('STORY-088 CA-4: banner do detalhe tem "Avaliar agora" → Turnos', (
-    tester,
-  ) async {
-    final svc = _FakeService(
-      result: () => DetalheSuccess(
-        _detalhe(
-          podeCandidatar: false,
-          motivo: 'Avalie seu último turno para se candidatar.',
+  testWidgets(
+    'STORY-088 CA-4: banner do detalhe tem "Avaliar agora" → Turnos',
+    (tester) async {
+      final svc = _FakeService(
+        result: () => DetalheSuccess(
+          _detalhe(
+            podeCandidatar: false,
+            motivo: 'Avalie seu último turno para se candidatar.',
+          ),
         ),
-      ),
-    );
-    await tester.pumpWidget(_comRouter(svc));
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpWidget(_comRouter(svc));
+      await tester.pumpAndSettle();
 
-    final cta = find.byKey(const Key('gate-avaliar-btn'));
-    expect(cta, findsOneWidget);
-    await tester.tap(cta);
-    await tester.pumpAndSettle();
-    expect(find.text('TURNOS'), findsOneWidget);
-  });
+      final cta = find.byKey(const Key('gate-avaliar-btn'));
+      expect(cta, findsOneWidget);
+      await tester.tap(cta);
+      await tester.pumpAndSettle();
+      expect(find.text('TURNOS'), findsOneWidget);
+    },
+  );
 
   // ───────────────── CA-6 — já candidatou ─────────────────
 
