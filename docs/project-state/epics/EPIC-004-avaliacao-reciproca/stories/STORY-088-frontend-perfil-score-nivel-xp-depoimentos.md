@@ -76,7 +76,15 @@ Decide: estrutura dos widgets do perfil, componente de badge/nível, design dos 
 
 **Resultado:** WebApp 734 testes verdes + API 1078 verdes; E2E browser real (perfil + gate) verde
 no harness same-origin; lint api+admin+analyze limpos; deploy homolog rc.99 (release run 27237717550,
-todos os jobs success). Descobertas corrigidas no caminho: (1) `POST /api/login` não devolvia `id`
+todos os jobs success). **Aprovado pelo PO (Alexandro) em homolog — 2026-06-09.**
+
+**Follow-ups pós-aprovação (mesma estória, ajustes do PO em homolog):**
+- **rc.100** — fix de alinhamento: cards de depoimento + resumo do perfil em largura cheia
+  (`crossAxisAlignment.stretch`); antes ficavam com largura-de-conteúdo e o comentário mais longo
+  desalinhava. Teste de regressão asserta larguras iguais.
+- **rc.101** — marcador "Avaliar" na **lista de turnos**: `GET /api/{papel}/turnos` passa a expor
+  `avaliacao_pendente` (direção do papel); o card finalizado-sem-avaliação ganha a pílula "Avaliar"
+  que deep-linka `/turnos/{id}/avaliar`. Testes: 4 (API) + 2 (widget). Aprovado pelo PO. Descobertas corrigidas no caminho: (1) `POST /api/login` não devolvia `id`
 — corrigido (bug de produto: perfil de reputação quebrava pós-login); (2) seed `profissional.avaliacao`
 alinhado ao feed para o E2E do gate; (3) binding do E2E vai no **leaf** (não no entrypoint) — memória
 do projeto atualizada.
