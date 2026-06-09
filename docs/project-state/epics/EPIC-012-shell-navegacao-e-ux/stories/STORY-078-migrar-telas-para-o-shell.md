@@ -131,7 +131,8 @@ Mover o chrome de topo (título de seção, sino + painel, ação de turno ativo
 
 ### Cobertura final
 - **Unitários/widget: 623 verdes** (suíte completa, Flutter 3.44.1). Código novo do shell: `shell_destinations.dart` 100% (incl. `isDestinationRoot`/`sectionTitleFor`), `app_shell_view.dart` ~98%, `app_shell.dart` 58% (resto = callbacks logout/nova-vaga exercitados por E2E), `perfil_screen.dart` ~91%.
-- **E2E:** `app_shell/navegacao_test.dart` (CA-1/CA-2/CA-3/CA-4/CA-6) — **2/2 cenários verdes** (profissional·mobile + contratante·desktop) via `make e2e-webapp-pinned E2E_TARGET=integration_test/app_shell_test.dart E2E_HEADLESS=0`.
+- **E2E:** `app_shell/navegacao_test.dart` (CA-1/CA-2/CA-3/CA-4/CA-6) — **2/2 cenários verdes** (profissional·mobile + contratante·desktop).
+- **Gate de integração COMPLETO verde em HEADLESS** (`make e2e-webapp-pinned`, `web_test.dart`): auth, cadastro, vagas, feed, turnos, app_shell, env_banner — "All tests passed". Só a `checkout` desativada (flake STORY-082, autorizado pelo PO). As mudanças nos helpers compartilhados (login via `testTextInput`+foco) não regrediram nenhuma suíte. Ajuste correlato: E2E de vagas (publicar/editar/minhas_vagas) passaram a ir ao form de publicar por rota, já que o FAB virou só-mobile (CA-2).
 
 ### Links de evidência
 - Commits na `main` (workflow sem PR): série `*(STORY-078)` — helpers, barra do shell, migração das telas, E2E + fix raiz do binding, Makefile do Chrome pinado.
