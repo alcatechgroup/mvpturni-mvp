@@ -3,13 +3,18 @@
 namespace Database\Seeders;
 
 use App\Domain\Avaliacao\MotorReputacao;
+use App\Enums\AvaliacaoDirecao;
+use App\Enums\CandidaturaEstado;
 use App\Enums\TurnoStatus;
+use App\Enums\VagaEstado;
 use App\Models\Avaliacao;
+use App\Models\Candidatura;
 use App\Models\ContratanteProfile;
 use App\Models\Funcao;
 use App\Models\ProfissionalProfile;
 use App\Models\Turno;
 use App\Models\User;
+use App\Models\Vaga;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -26,6 +31,9 @@ use Illuminate\Support\Facades\Hash;
  *
  * Roda o MotorReputacao ao final (reputação reflete os fatos). Idempotente: se o par já tem
  * turnos, só recomputa e sai.
+ *
+ * IMPORTANTE: tudo via `Model::create()` MANUAL — sem `::factory()`/`fake()`, que vivem em
+ * require-dev e NÃO existem na imagem `--no-dev` do deploy (mesmo padrão do TurnosSeeder).
  */
 class AvaliacaoSeeder extends Seeder
 {
@@ -59,7 +67,13 @@ class AvaliacaoSeeder extends Seeder
             ],
         );
 
-        $funcaoId = Funcao::query()->value('id');
+        $funcaoId = Funcao::query()->orderBy('nome')->value('id');
+
+        if ($funcaoId === null) {
+            $this->command?->warn('AvaliacaoSeeder: requer FuncaoSeeder antes. Pulado.');
+
+            return;
+        }
 
         ProfissionalProfile::firstOrCreate(
             ['user_id' => $pro->id],
@@ -107,36 +121,85 @@ class AvaliacaoSeeder extends Seeder
                 'emp' => 5, 'empC' => 'Gestão atenciosa e pagamento em dia.', 'sem' => 2],
         ];
 
-        foreach ($avaliados as $cenario) {
-            $turno = $this->turnoFinalizado($pro, $emp, $cenario['sem']);
+        foreach ($avaliados as $c) {
+            $turno = $this->turnoFinalizado($pro, $emp, $funcaoId, $c['sem']);
 
             // Contratante → profissional (depoimento nominal sobre o profissional).
-            Avaliacao::factory()->paraTurno($turno)->estrelas($cenario['pro'])
-                ->create(['comentario' => $cenario['proC']]);
+            Avaliacao::create([
+                'turno_id' => $turno->id,
+                'autor_id' => $emp->id,
+                'avaliado_id' => $pro->id,
+                'direcao' => AvaliacaoDirecao::ContratanteParaProfissional,
+                'estrelas' => $c['pro'],
+                'comentario' => $c['proC'],
+            ]);
+
             // Profissional → contratante (depoimento anônimo sobre o contratante — LGPD).
-            Avaliacao::factory()->doProfissional()->paraTurno($turno)->estrelas($cenario['emp'])
-                ->create(['comentario' => $cenario['empC']]);
+            Avaliacao::create([
+                'turno_id' => $turno->id,
+                'autor_id' => $pro->id,
+                'avaliado_id' => $emp->id,
+                'direcao' => AvaliacaoDirecao::ProfissionalParaContratante,
+                'estrelas' => $c['emp'],
+                'comentario' => $c['empC'],
+            ]);
         }
 
         // 1 turno PENDENTE nas duas direções (a semana mais recente) — para avaliar ao vivo.
-        $this->turnoFinalizado($pro, $emp, 1);
+        $this->turnoFinalizado($pro, $emp, $funcaoId, 1);
 
         $this->recomputar($pro, $emp);
+
+        $this->command?->info('AvaliacaoSeeder: par avaliacao + 3 turnos avaliados + 1 pendente + reputação computada.');
     }
 
-    /** Turno finalizado entre o par, iniciado há `$semanas` semanas (datas coerentes). */
-    private function turnoFinalizado(User $pro, User $emp, int $semanas): Turno
+    /** Turno finalizado entre o par, iniciado há `$semanas` semanas (vaga fechada + candidatura aprovada). */
+    private function turnoFinalizado(User $pro, User $emp, string $funcaoId, int $semanas): Turno
     {
         $inicio = now()->subWeeks($semanas)->setTime(18, 0);
+        $fim = (clone $inicio)->addHours(6);
 
-        return Turno::factory()->status(TurnoStatus::Finalizado)->create([
+        $vaga = Vaga::create([
+            'contratante_id' => $emp->id,
+            'funcao_id' => $funcaoId,
+            'data_inicio' => $inicio,
+            'data_fim' => $fim,
+            'valor' => 200.00,
+            'posicoes' => 1,
+            'posicoes_preenchidas' => 1,
+            'observacoes' => 'Vaga seed da avaliação recíproca ('.$semanas.' sem atrás)',
+            'lat' => -23.561,
+            'lng' => -46.690,
+            'cidade' => 'São Paulo',
+            'uf' => 'SP',
+            'estado' => VagaEstado::Fechada,
+            'versao_atual' => 1,
+            'publicada_em' => $inicio,
+            'fechada_em' => $fim,
+        ]);
+
+        $candidatura = Candidatura::create([
+            'vaga_id' => $vaga->id,
+            'profissional_id' => $pro->id,
+            'estado' => CandidaturaEstado::Aprovada,
+            'aprovada_em' => $inicio,
+        ]);
+
+        return Turno::create([
+            'candidatura_id' => $candidatura->id,
+            'vaga_id' => $vaga->id,
+            'vaga_versao_id' => null,
             'profissional_id' => $pro->id,
             'contratante_id' => $emp->id,
             'estabelecimento_id' => $emp->id,
+            'status' => TurnoStatus::Finalizado,
+            'valor' => 200.00,
+            'taxa_turni' => 30.00,
+            'total_contratante' => 230.00,
             'data_inicio' => $inicio,
-            'data_fim' => (clone $inicio)->addHours(6),
+            'data_fim' => $fim,
             'check_in_at' => $inicio,
-            'check_out_at' => (clone $inicio)->addHours(6),
+            'check_out_at' => $fim,
         ]);
     }
 
