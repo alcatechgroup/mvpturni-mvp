@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Turno;
 
+use App\Enums\AvaliacaoDirecao;
 use App\Enums\TurnoStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Turno;
@@ -54,7 +55,7 @@ class TurnosController extends Controller
 
         $turnos = Turno::query()
             ->where('profissional_id', $user->id)
-            ->with(['vaga.funcao:id,nome', 'contratante.contratanteProfile'])
+            ->with(['vaga.funcao:id,nome', 'contratante.contratanteProfile', 'avaliacoes:id,turno_id,direcao'])
             ->get();
 
         return response()->json([
@@ -65,6 +66,9 @@ class TurnosController extends Controller
                 'data_fim' => $t->data_fim->toIso8601String(),
                 'estado' => $t->status->value,
                 'valor' => (float) $t->valor,
+                // STORY-088 — marca na lista os turnos que o PROFISSIONAL ainda precisa avaliar
+                // (direção dele): finalizado/ajustado sem avaliação `profissional_para_contratante`.
+                'avaliacao_pendente' => $this->avaliacaoPendente($t, AvaliacaoDirecao::ProfissionalParaContratante),
                 'estabelecimento' => ['nome' => $this->nomeEstabelecimento($t)],
             ]),
         ]);
@@ -78,7 +82,7 @@ class TurnosController extends Controller
 
         $turnos = Turno::query()
             ->where('contratante_id', $user->id)
-            ->with(['vaga.funcao:id,nome', 'profissional:id,name'])
+            ->with(['vaga.funcao:id,nome', 'profissional:id,name', 'avaliacoes:id,turno_id,direcao'])
             ->get();
 
         return response()->json([
@@ -89,6 +93,8 @@ class TurnosController extends Controller
                 'data_fim' => $t->data_fim->toIso8601String(),
                 'estado' => $t->status->value,
                 'total_contratante' => (float) $t->total_contratante,
+                // STORY-088 — espelho: direção do CONTRATANTE (`contratante_para_profissional`).
+                'avaliacao_pendente' => $this->avaliacaoPendente($t, AvaliacaoDirecao::ContratanteParaProfissional),
                 'profissional' => ['nome' => $t->profissional?->name],
             ]),
         ]);
@@ -120,6 +126,21 @@ class TurnosController extends Controller
         }
 
         return $grupos;
+    }
+
+    /**
+     * STORY-088 / ADR-019 D2 — o turno está pendente de avaliação para ESTE usuário (direção dada)
+     * sse está em estado avaliável (`finalizado`/`finalizado_ajustado`) e ainda não há avaliação na
+     * direção dele. Derivado do estado (sem tabela de pendências), coerente com o gate PDR-005.
+     * Usa as `avaliacoes` já eager-loaded (sem N+1).
+     */
+    private function avaliacaoPendente(Turno $turno, AvaliacaoDirecao $direcao): bool
+    {
+        if (! in_array($turno->status, [TurnoStatus::Finalizado, TurnoStatus::FinalizadoAjustado], true)) {
+            return false;
+        }
+
+        return ! $turno->avaliacoes->contains(fn ($a) => $a->direcao === $direcao);
     }
 
     /**
