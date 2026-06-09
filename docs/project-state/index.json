@@ -296,12 +296,20 @@
       "slug": "avaliacao-reciproca",
       "title": "Avaliação recíproca e fechamento do ciclo",
       "wave": "WAVE-2026-01",
-      "status": "draft",
+      "status": "ready",
       "path": "epics/EPIC-004-avaliacao-reciproca/epic.md",
-      "story_ids": [],
+      "story_ids": [
+        "STORY-083",
+        "STORY-084",
+        "STORY-085",
+        "STORY-086",
+        "STORY-087",
+        "STORY-088",
+        "STORY-089"
+      ],
       "validation_report": null,
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-06-09"
     },
     {
       "id": "EPIC-005",
@@ -2457,12 +2465,173 @@
       "design_screen_id": null,
       "status": "ready",
       "owner_agent": null,
-      "sprint_id": "SPRINT-2026-W29",
+      "sprint_id": "SPRINT-2026-W30",
       "estimated_session_size": "S",
       "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-082-deflake-cronometro-e-housekeeping-indice.md",
       "blocked_by": [],
       "blocks": [],
       "created_at": "2026-06-08",
+      "updated_at": "2026-06-09"
+    },
+    {
+      "id": "STORY-083",
+      "epic_id": "EPIC-004",
+      "title": "Spike Arquiteto — modelo de avaliação + eventos de domínio + ponto do gate bloqueante (ADR-019)",
+      "type": "spike",
+      "target_role": "arquiteto",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W30",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-004-avaliacao-reciproca/stories/STORY-083-spike-arquiteto-modelo-eventos-gate.md",
+      "blocked_by": [],
+      "blocks": [
+        "STORY-085",
+        "STORY-086"
+      ],
+      "created_at": "2026-06-09",
+      "updated_at": "2026-06-09"
+    },
+    {
+      "id": "STORY-084",
+      "epic_id": "EPIC-004",
+      "title": "Spike Designer — DDR-004 (visibilidade de depoimentos) + telas de avaliação + perfil + protótipo",
+      "type": "spike",
+      "target_role": "designer",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-084-avaliacao-e-perfil",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W30",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-004-avaliacao-reciproca/stories/STORY-084-spike-designer-depoimentos-telas-perfil.md",
+      "blocked_by": [],
+      "blocks": [
+        "STORY-087",
+        "STORY-088"
+      ],
+      "created_at": "2026-06-09",
+      "updated_at": "2026-06-09"
+    },
+    {
+      "id": "STORY-085",
+      "epic_id": "EPIC-004",
+      "title": "Backend — modelo de avaliação + motor de XP/score + subida de nível + evento de pendência",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W30",
+      "estimated_session_size": "L",
+      "path": "epics/EPIC-004-avaliacao-reciproca/stories/STORY-085-backend-modelo-motor-xp-score-nivel.md",
+      "blocked_by": [
+        "STORY-083"
+      ],
+      "blocks": [
+        "STORY-086",
+        "STORY-087",
+        "STORY-088",
+        "STORY-089"
+      ],
+      "created_at": "2026-06-09",
+      "updated_at": "2026-06-09"
+    },
+    {
+      "id": "STORY-086",
+      "epic_id": "EPIC-004",
+      "title": "Backend — gate bloqueante: sem candidatar/publicar com avaliação pendente",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W30",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-004-avaliacao-reciproca/stories/STORY-086-backend-gate-bloqueante.md",
+      "blocked_by": [
+        "STORY-085"
+      ],
+      "blocks": [
+        "STORY-088",
+        "STORY-089"
+      ],
+      "created_at": "2026-06-09",
+      "updated_at": "2026-06-09"
+    },
+    {
+      "id": "STORY-087",
+      "epic_id": "EPIC-004",
+      "title": "Frontend — telas de avaliação recíproca (estrelas obrigatórias + comentário) no shell",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-084-avaliacao-e-perfil",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W30",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-004-avaliacao-reciproca/stories/STORY-087-frontend-telas-avaliacao-reciproca.md",
+      "blocked_by": [
+        "STORY-084",
+        "STORY-085"
+      ],
+      "blocks": [
+        "STORY-088",
+        "STORY-089"
+      ],
+      "created_at": "2026-06-09",
+      "updated_at": "2026-06-09"
+    },
+    {
+      "id": "STORY-088",
+      "epic_id": "EPIC-004",
+      "title": "Frontend — perfil com score/nível/XP/depoimentos + UX do gate bloqueante",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": "SCREEN-STORY-084-avaliacao-e-perfil",
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W30",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-004-avaliacao-reciproca/stories/STORY-088-frontend-perfil-score-nivel-xp-depoimentos.md",
+      "blocked_by": [
+        "STORY-087",
+        "STORY-085",
+        "STORY-086"
+      ],
+      "blocks": [
+        "STORY-089"
+      ],
+      "created_at": "2026-06-09",
+      "updated_at": "2026-06-09"
+    },
+    {
+      "id": "STORY-089",
+      "epic_id": "EPIC-004",
+      "title": "Validação final do EPIC-004 — avaliação recíproca e fechamento do ciclo",
+      "type": "validation",
+      "target_role": "validador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W30",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-004-avaliacao-reciproca/stories/STORY-089-validacao-final-epic-004.md",
+      "blocked_by": [
+        "STORY-085",
+        "STORY-086",
+        "STORY-087",
+        "STORY-088"
+      ],
+      "blocks": [],
+      "created_at": "2026-06-09",
       "updated_at": "2026-06-09"
     }
   ],
@@ -3055,6 +3224,52 @@
       "closed_at": "2026-06-09",
       "closed_by": "PO (Alexandro / Claude)",
       "goal_outcome": "achieved"
+    },
+    {
+      "id": "SPRINT-2026-W30",
+      "wave": "WAVE-2026-01",
+      "status": "active",
+      "start_date": "2026-06-09",
+      "end_date": null,
+      "soft_cap_date": "2026-07-14",
+      "opened_at": "2026-06-09",
+      "opened_by": "PO (Alexandro / Claude)",
+      "activated_at": "2026-06-09",
+      "activated_by": "PO (Alexandro / chat)",
+      "closure_rule": "Fechamento por goal-atingido: encerra quando STORY-083..088 estiverem done E STORY-089 (validador) emitir veredito aceitavel pelo PO (approved ou approved_with_pending). STORY-082 (deflake cronometro + housekeeping indice) e ortogonal — carry-forward da W29, nao bloqueia o goal. Divida de a11y do EPIC-012 fica FORA desta sprint (decisao do dono 2026-06-09). Soft-cap 2026-07-14 (~35d) e gatilho de reavaliacao, nao prazo.",
+      "goal": "Fechar o ciclo do turno com avaliacao reciproca obrigatoria (EPIC-004): apos turno finalizado, ambos os lados bloqueados em nova acao ate avaliarem (estrelas obrigatorias + comentario opcional); XP/score/nivel atualizam automaticamente; score publico e depoimentos visiveis no perfil — demonstravel em homolog. Decisoes em ADR-019 (modelo/eventos/gate) e DDR-004 (visibilidade de depoimentos). Ortogonal: STORY-082 quita divida W28/W29 (deflake cronometro + housekeeping indice IDR-028/IDR-029 + SCREEN-077).",
+      "path": "sprints/SPRINT-2026-W30.md",
+      "story_ids": [
+        "STORY-083",
+        "STORY-084",
+        "STORY-085",
+        "STORY-086",
+        "STORY-087",
+        "STORY-088",
+        "STORY-089",
+        "STORY-082"
+      ],
+      "stretch_story_ids": [],
+      "sizing_total": "1 S + 6 M + 1 L (8 estorias) — EPIC-004 inteiro (2 spikes + 4 impl + 1 validacao) + STORY-082 carry-forward W29 (S, ortogonal).",
+      "epics": [
+        "EPIC-004",
+        "EPIC-003"
+      ],
+      "scope_changes": [],
+      "delivered_story_ids": [],
+      "in_progress_story_ids": [],
+      "pending_story_ids": [
+        "STORY-083",
+        "STORY-084",
+        "STORY-085",
+        "STORY-086",
+        "STORY-087",
+        "STORY-088",
+        "STORY-089",
+        "STORY-082"
+      ],
+      "last_progress_update": "2026-06-09",
+      "progress_summary": "D0 (2026-06-09): aberta logo apos o fechamento da W29 (EPIC-012 done). EPIC-004 decomposto em 8 estorias (ready). Caminho de entrada: STORY-083 (Arquiteto, ADR-019) + STORY-084 (Designer, DDR-004 + prototipo) em paralelo; humano aprova ADR e prototipo antes da implementacao (085..088); STORY-089 valida. STORY-082 carry-forward ortogonal pode iniciar ja. a11y do EPIC-012 fora por decisao do dono."
     }
   ],
   "decisions": {
@@ -4477,5 +4692,5 @@
       "note": "Inventário GCP homolog pós-rc.68 com previsão de custos (~$20–29/mês). Substitui gcp-inventory-2026-05-28.md (worker GCE→Cloud Run Job, fake de pagamento PDR-017). Alavanca de economia nº 1: alinhar scheduler do worker à janela do SQL."
     }
   ],
-  "next_action": "SPRINT-2026-W29 FECHADA por goal-atingido em 2026-06-09: EPIC-012 done (6/6). Shell de navegacao adaptativo + pente fino de UX vivos em homolog rc.91 (contratante rail/drawer desktop, profissional nav inferior mobile, nenhuma tela orfa, estados padrao, gate a11y no CI). Validador (STORY-081) emitiu approved_with_pending (0 bloqueante, 4 nao-bloqueantes); PO aceitou como goal-atingido. Pendencias aceitas: divida de a11y (F-NB-1 contraste parcial + F-NB-2 teclado fora do MVP — decisao do dono 2026-06-09, candidata a estoria de a11y em wave futura); housekeeping de doc (F-NB-3 SCREEN-077 shipped + F-NB-4 IDR-029 no index) absorvido pela STORY-082. PROXIMO: abrir a proxima sprint (EPIC-004 — avaliacao reciproca, que nasce ja dentro do shell) incluindo STORY-082 (deflake cronometro F-B-1 W28 + housekeeping indice IDR-028/IDR-029/SCREEN-077) como carry-forward ortogonal, e decidir se a divida de a11y (telas pesadas + PIN/cronometro + teclado) vira estoria propria no escopo do EPIC-004 ou fica para wave posterior."
+  "next_action": "SPRINT-2026-W30 ABERTA e ATIVA em 2026-06-09 para o EPIC-004 (avaliacao reciproca e fechamento do ciclo). EPIC-004 decomposto em 8 estorias (STORY-083..089 ready + STORY-082 carry-forward ortogonal). PROXIMO: agentes Arquiteto (STORY-083 -> ADR-019: modelo de avaliacao + eventos de dominio + ponto do gate + spec do fluxo) e Designer (STORY-084 -> DDR-004: visibilidade de depoimentos + SCREENs das telas de avaliacao/perfil + prototipo navegavel) executam EM PARALELO; o humano aprova ADR-019 e o prototipo ANTES de iniciar a implementacao (disciplina decisao-antes-de-implementacao W27/W28). Depois: STORY-085 (BE modelo+motor XP/score/nivel) -> STORY-086 (BE gate) e STORY-087 (FE telas) -> STORY-088 (FE perfil+UX do gate) -> STORY-089 (validador). STORY-082 (deflake cronometro + housekeeping indice IDR-028/029 + SCREEN-077) pode iniciar a qualquer momento. Antes da STORY-089 o PO escreve validation/checklist.md do EPIC-004. DIVIDA DE A11Y do EPIC-012 (telas pesadas + PIN/cronometro + teclado) fica FORA da W30 por decisao do dono — permanece parqueada para wave futura."
 }

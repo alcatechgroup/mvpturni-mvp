@@ -3,10 +3,10 @@ epic_id: EPIC-004
 slug: avaliacao-reciproca
 title: Avaliação recíproca e fechamento do ciclo
 wave: WAVE-2026-01
-status: draft
+status: ready
 owner_role: po
 created_at: 2026-05-26
-updated_at: 2026-05-26
+updated_at: 2026-06-09
 target_completion: 2026-08-25  # estimativa orientativa
 ---
 
@@ -69,7 +69,15 @@ Ao fim deste épico, após cada turno `finalizado`, ambos os lados são bloquead
 
 ## Estórias
 
-> A decompor via Fluxo B quando o épico entrar em sprint.
+> Decomposto em 2026-06-09 (PO) na abertura da SPRINT-2026-W30. Padrão "decisão antes de implementação" (W27/W28): dois spikes de decisão (Arquiteto + Designer) em paralelo, depois implementação backend → frontend, depois validação.
+
+- [ ] STORY-083 — Spike Arquiteto: modelo de avaliação + eventos de domínio + ponto do gate (ADR-019) + spec do fluxo
+- [ ] STORY-084 — Spike Designer: DDR-004 (visibilidade de depoimentos) + telas de avaliação + perfil (score/nível/XP) + protótipo
+- [ ] STORY-085 — Backend: modelo de avaliação + motor de XP/score + subida de nível + evento de pendência
+- [ ] STORY-086 — Backend: gate bloqueante (sem candidatar/publicar com avaliação pendente)
+- [ ] STORY-087 — Frontend: telas de avaliação recíproca (estrelas obrigatórias + comentário) no shell
+- [ ] STORY-088 — Frontend: perfil com score/nível/XP/depoimentos + UX do gate bloqueante
+- [ ] STORY-089 (validação) — Validação final do épico
 
 ## Validação final
 
