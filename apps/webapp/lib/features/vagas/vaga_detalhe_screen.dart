@@ -143,12 +143,18 @@ class _VagaDetalheScreenState extends State<VagaDetalheScreen> {
             criadaEm: null,
           );
         });
-      case CandidaturaBloqueada(:final erro, :final mensagem, :final conflito):
+      case CandidaturaBloqueada(
+        :final erro,
+        :final mensagem,
+        :final conflito,
+        :final turnoId,
+      ):
         await _present<void>(
           _BloqueioSheet(
             erro: erro,
             mensagem: mensagem,
             conflito: conflito,
+            turnoId: turnoId,
             accent: accent,
             onConflito: (vagaId) {
               Navigator.of(context).pop();
@@ -157,6 +163,11 @@ class _VagaDetalheScreenState extends State<VagaDetalheScreen> {
             onVagaFechada: () {
               Navigator.of(context).pop();
               context.go('/feed');
+            },
+            // STORY-088 (T4/CA-4): deep-link ao turno pendente p/ destravar o gate.
+            onAvaliar: (id) {
+              Navigator.of(context).pop();
+              context.push('/turnos/$id/avaliar');
             },
           ),
         );
@@ -1403,17 +1414,21 @@ class _BloqueioSheet extends StatelessWidget {
     required this.erro,
     required this.mensagem,
     required this.conflito,
+    required this.turnoId,
     required this.accent,
     required this.onConflito,
     required this.onVagaFechada,
+    required this.onAvaliar,
   });
 
   final String erro;
   final String mensagem;
   final ConflitoInfo? conflito;
+  final String? turnoId;
   final Color accent;
   final void Function(String vagaId) onConflito;
   final VoidCallback onVagaFechada;
+  final void Function(String turnoId) onAvaliar;
 
   @override
   Widget build(BuildContext context) {
@@ -1422,6 +1437,8 @@ class _BloqueioSheet extends StatelessWidget {
         ? TurniColors.warnDark
         : TurniColors.contratanteAccentInkLight;
     final acaoFechada = erro == 'vaga_fechada';
+    // STORY-088 (T4): só o gate de avaliação com turno_id deep-linka p/ a avaliação.
+    final podeAvaliar = erro == 'gate_avaliacao' && turnoId != null;
 
     return _SheetShell(
       testKey: 'candidatura-bloqueio-modal',
@@ -1487,6 +1504,22 @@ class _BloqueioSheet extends StatelessWidget {
               ),
             ],
             const SizedBox(height: TurniSpacing.md),
+            if (podeAvaliar) ...[
+              FilledButton(
+                key: const Key('candidatura-bloqueio-avaliar-btn'),
+                onPressed: () => onAvaliar(turnoId!),
+                style: FilledButton.styleFrom(
+                  backgroundColor: accent,
+                  foregroundColor: TurniColors.onAccentFor(
+                    isDark ? Brightness.dark : Brightness.light,
+                  ),
+                  minimumSize: const Size.fromHeight(48),
+                  shape: const StadiumBorder(),
+                ),
+                child: const Text('Avaliar agora'),
+              ),
+              const SizedBox(height: TurniSpacing.xs),
+            ],
             TextButton(
               key: const Key('candidatura-bloqueio-acao-btn'),
               onPressed: acaoFechada

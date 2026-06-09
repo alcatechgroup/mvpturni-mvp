@@ -67,10 +67,15 @@ class CandidaturaBloqueada extends CandidaturaResult {
   final String erro;
   final String mensagem;
   final ConflitoInfo? conflito;
+
+  /// STORY-088 (CA-4) — turno pendente mais antigo (gate de avaliação), p/ o deep-link
+  /// "Avaliar agora". Só vem em `gate_avaliacao`; `null` no caminho fail-secure (sem deep-link).
+  final String? turnoId;
   CandidaturaBloqueada({
     required this.erro,
     required this.mensagem,
     required this.conflito,
+    this.turnoId,
   });
 }
 
@@ -144,13 +149,13 @@ class CandidaturaService {
       case 409:
         return CandidaturaJaExiste();
       case 422:
+        final detalhe = (data['detalhe'] as Map?)?.cast<String, dynamic>();
         return CandidaturaBloqueada(
           erro: data['erro'] as String? ?? 'desconhecido',
           mensagem:
               data['mensagem'] as String? ?? 'Não foi possível se candidatar.',
-          conflito: ConflitoInfo.fromDetalhe(
-            (data['detalhe'] as Map?)?.cast<String, dynamic>(),
-          ),
+          conflito: ConflitoInfo.fromDetalhe(detalhe),
+          turnoId: detalhe?['turno_id'] as String?,
         );
       case 403:
         return CandidaturaForbidden();

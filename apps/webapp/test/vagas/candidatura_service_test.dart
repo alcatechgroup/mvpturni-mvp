@@ -56,7 +56,9 @@ void main() {
         jsonEncode({
           'erro': 'conflito_horario',
           'mensagem': 'Conflito de horário.',
-          'detalhe': {'vaga_id': 'v2'},
+          'detalhe': {
+            'conflito_com': {'vaga_id': 'v2'},
+          },
         }),
         422,
         headers: {'content-type': 'application/json'},
