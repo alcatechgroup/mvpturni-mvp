@@ -16,6 +16,7 @@ import 'auth_test.dart' as auth;
 import 'cadastro_test.dart' as cadastro;
 import 'env_banner_test.dart' as env_banner;
 import 'feed_test.dart' as feed;
+import 'perfil_test.dart' as perfil;
 import 'turnos_test.dart' as turnos;
 import 'vagas_test.dart' as vagas;
 
@@ -30,6 +31,10 @@ void main() {
   // app_shell (STORY-077): navegação do shell nos 2 papéis × 2 viewports. Só LÊ
   // (navega), não muta estado; reseta a viewport ao fim de cada cenário.
   app_shell.main();
+  // perfil (STORY-088): reputação no Perfil + UX do gate. Usa o usuário de reputação do
+  // AvaliacaoSeeder (profissional.avaliacao) — só LÊ/NAVEGA (não envia avaliação), preserva
+  // a pendência. Depois do app_shell por ser o mais novo.
+  perfil.main();
   // env_banner (STORY-075): aqui (TURNI_ENV ausente → local) asserta AUSÊNCIA do
   // banner; o caminho feliz (visível em homolog) roda em invocação própria com
   // --dart-define=TURNI_ENV=homolog (`make e2e-webapp-banner`).
