@@ -1,9 +1,9 @@
 ---
 sprint_id: SPRINT-2026-W29
 wave: WAVE-2026-01
-status: planned  # planned | active | closed
+status: closed  # planned | active | closed
 start_date: 2026-06-08
-end_date: null  # fechamento por goal-atingido
+end_date: 2026-06-09  # fechamento por goal-atingido
 opened_at: 2026-06-08
 opened_by: "PO (Alexandro / Claude)"
 soft_cap_date: 2026-07-06  # ~28 dias corridos — folga padrão; sprint de UX é majoritariamente front-end
@@ -32,13 +32,13 @@ A natureza do trabalho (UX/UI, majoritariamente front-end) é **deliberadamente 
 
 | ID        | Título                                                                                | Épico    | Tipo           | Papel                    | Tamanho | Status |
 | --------- | ------------------------------------------------------------------------------------- | -------- | -------------- | ------------------------ | ------- | ------ |
-| STORY-076 | Spike Designer — padrão de navegação global (DDR-003) + protótipo                     | EPIC-012 | spike          | designer                 | M       | ready  |
-| STORY-077 | App shell adaptativo (rail/drawer desktop ↔ nav inferior mobile) + destinos por papel | EPIC-012 | implementation | programador (+ designer) | L       | ready  |
-| STORY-078 | Migrar telas existentes para o shell (nenhuma órfã) + contexto/título no desktop      | EPIC-012 | implementation | programador (+ designer) | M       | ready  |
-| STORY-079 | Padronizar estados vazios, erro e carregamento (skeleton)                             | EPIC-012 | implementation | programador (+ designer) | M       | ready  |
-| STORY-080 | Auditoria de acessibilidade AA + teclado + alvos de toque + microcopy                 | EPIC-012 | implementation | programador (+ designer) | M       | ready  |
-| STORY-081 | Validação final do EPIC-012                                                           | EPIC-012 | validation     | validador                | M       | ready  |
-| STORY-082 | Deflake cronômetro (F-B-1) + housekeeping índice (F-NB-4) — carry-forward W28         | EPIC-003 | bugfix         | programador              | S       | ready  |
+| STORY-076 | Spike Designer — padrão de navegação global (DDR-003) + protótipo                     | EPIC-012 | spike          | designer                 | M       | done  |
+| STORY-077 | App shell adaptativo (rail/drawer desktop ↔ nav inferior mobile) + destinos por papel | EPIC-012 | implementation | programador (+ designer) | L       | done  |
+| STORY-078 | Migrar telas existentes para o shell (nenhuma órfã) + contexto/título no desktop      | EPIC-012 | implementation | programador (+ designer) | M       | done  |
+| STORY-079 | Padronizar estados vazios, erro e carregamento (skeleton)                             | EPIC-012 | implementation | programador (+ designer) | M       | done  |
+| STORY-080 | Auditoria de acessibilidade AA + teclado + alvos de toque + microcopy                 | EPIC-012 | implementation | programador (+ designer) | M       | done (escopo ajustado) |
+| STORY-081 | Validação final do EPIC-012                                                           | EPIC-012 | validation     | validador                | M       | done (approved_with_pending) |
+| STORY-082 | Deflake cronômetro (F-B-1) + housekeeping índice (F-NB-4 + IDR-029 + SCREEN-077) — carry-forward | EPIC-003 | bugfix         | programador              | S       | ready (carry-forward) |
 
 **Sizing total**: **1 S + 5 M + 1 L (7 estórias)**.
 
@@ -111,6 +111,8 @@ STORY-082 (deflake cronômetro + housekeeping) — ORTOGONAL TOTAL, sem dependê
 | Data | Check | Situação |
 |---|---|---|
 | 2026-06-08 | Abertura da sprint (PO) | Sprint criada por PDR-018 ocupando a pausa entre EPIC-003 e EPIC-004. EPIC-012 `ready` com 6 estórias + STORY-082 carry-forward. Próximo passo: agente Designer executa STORY-076 (DDR-003 + protótipo) e apresenta ao humano. |
+| 2026-06-08/09 | Execução EPIC-012 | STORY-076 (DDR-003 accepted + protótipo aprovado), 077 (shell adaptativo + roteamento `StatefulShellRoute`, rc.88), 078 (migração das telas + barra do shell, rc.89), 079 (estados vazio/erro/loading no DS, rc.90) e 080 (a11y AA sistêmico + gate `meetsGuideline` no CI, rc.91 — **escopo ajustado pelo dono**: CA-2 fora do MVP, restante de CA-1/CA-3 adiado) → todas `done`. |
+| 2026-06-09 | Validação (STORY-081) + fechamento (PO) | Validador emitiu **APPROVED com pendências** (0 bloqueante, 4 não-bloqueantes): suíte 660 verde, E2E navegação verde (2 papéis × 2 tamanhos), cobertura código novo 95,4%, CI verde, deploy automatizado rc.91 vivo. PO **aceitou o veredito como goal-atingido** e fechou a sprint. Pendências classificadas (ver Fechamento). |
 
 ## Mudanças no escopo do sprint
 
@@ -120,19 +122,36 @@ STORY-082 (deflake cronômetro + housekeeping) — ORTOGONAL TOTAL, sem dependê
 |---|---|---|---|
 | — | — | — | — |
 
-## Fechamento do sprint (preencher no encerramento)
+## Fechamento do sprint
+
+> **Fechada por goal-atingido em 2026-06-09** (`goal_outcome: achieved`). Closure-rule satisfeita: STORY-076..080 `done` + STORY-081 (validador) emitiu `approved_with_pending`, assumido pelo PO como goal-atingido. STORY-082 (ortogonal) não bloqueava o goal — carry-forward.
 
 ### O que foi entregue
-- 
+- **EPIC-012 completo (6/6 estórias)** — shell de navegação adaptativo + pente fino de UX, vivo em `app.homolog.turni.com.br` (rc.91):
+  - **Contratante** navega por rail/drawer no desktop; **Profissional** por navegação inferior no mobile; ambos responsivos, chrome por perfil nos dois temas (DDR-003 + DDR-001).
+  - **100% das telas autenticadas plugadas no shell** (nenhuma órfã); deep-links preservados abrindo no destino certo; RBAC fail-secure mantido.
+  - **Estados vazio/erro/carregamento padronizados** no Design System (`TurniEmptyState`/`TurniRetryState`/`TurniSkeleton*`), catalogados em `patterns.md`/`components.md`.
+  - **Gate de acessibilidade automatizado** (`meetsGuideline`, IDR-030) rodando no CI; fix sistêmico de contraste AA (`onAccentFor`) nas 9 telas.
+- **Decisões**: DDR-003 `accepted`; IDR-029 (shell `StatefulShellRoute` + composição adaptativa) e IDR-030 (gate a11y) produzidos.
+- **Validação independente (STORY-081)**: veredito `approved_with_pending`, **0 bloqueante**. Suíte 660 verde; E2E de navegação verde (profissional·mobile + contratante·desktop, re-rodado na validação); cobertura do código novo 95,4%; CI verde na HEAD; deploy automatizado rc.91 saudável. Relatório em `epics/EPIC-012-shell-navegacao-e-ux/validation/report.md`.
 
 ### O que ficou para trás (e por quê)
-- 
+- **STORY-082** (deflake do E2E de sincronia do cronômetro F-B-1 da W28 + housekeeping de índice) — **não iniciada**. Ortogonal ao goal por desenho; **carry-forward** para a próxima sprint. Escopo de housekeeping ampliado para absorver as pendências de doc do EPIC-012 (F-NB-4: IDR-029 ausente do `index.json`; F-NB-3: `SCREEN-STORY-077-app-shell` em `ready` em vez de `shipped`; mais o IDR-028 herdado da W28).
+- **Dívida de acessibilidade (aceita pelo dono)** — decorrente do ajuste de escopo de 2026-06-09 na STORY-080:
+  - **F-NB-1 (contraste AA)**: gate dedicado em 6 de ~11 superfícies; telas de harness pesado (publicar/editar/vaga_detalhe/painel_candidatos/turno_detalhe) + PIN/cronômetro sem gate dedicado; amostragem manual no browser não realizada. O fix sistêmico de contraste **foi aplicado** às 9 telas; o que falta é a verificação/gate dedicado.
+  - **F-NB-2 (navegação por teclado)**: CA-2 **descopado do MVP** pelo dono; não verificada, sem cenário/gate.
+  - Decisão do PO: aceitas como dívida de a11y; candidatas a uma estória própria de "a11y completa" em wave futura (o gate e o padrão `onAccentFor`/IDR-030 já estão prontos para recebê-las). Não bloqueiam o goal nem o EPIC-004.
 
 ### Aprendizados de produto
-- 
+- O shell mudou a percepção do produto de "telas soltas" para "um app": a métrica primária (100% alcançável sem digitar rota) foi a que mais materializou o valor — vale repetir como métrica-âncora em épicos de UX.
+- Padronizar estados vazio/erro/loading no DS antes de auditar a11y (079 → 080) reduziu retrabalho: os componentes já nasceram AA, então a auditoria focou nas telas legadas.
 
 ### Aprendizados de processo
-- 
+- **Ajuste de escopo de a11y a meio da estória** (CA-2 fora do MVP) foi a decisão certa para não inflar a 080, mas gerou descasamento entre a métrica do `epic.md` ("teclado verde no gate") e a entrega — o validador pegou e classificou corretamente como não-bloqueante. Lição: quando o dono descopa um CA que também é métrica do épico, **anotar a métrica do épico como parcial no mesmo ato**, para o validador não precisar reconciliar.
+- O WebApp ser **Flutter CanvasKit** limita a verificação automatizada do estado **logado em homolog** (sem DOM para Playwright dirigir); a régua de "browser real" logado segue sendo o gate E2E local same-origin (IDR-010/021). Confirmado como limitação estrutural, não falha de execução.
+- Pendência de indexação reincidente (IDR-029 fora do `index.json`, como IDR-028 na W28) — o housekeeping de índice merece um passo no done-checklist do Programador, não só carry-forward recorrente.
 
 ### Ajustes para o próximo sprint
-- 
+- Abrir a próxima sprint (**EPIC-004 — avaliação recíproca**), que nasce já dentro do shell.
+- Incluir **STORY-082** (deflake cronômetro + housekeeping de índice ampliado: IDR-028/IDR-029 + SCREEN-077) como carry-forward ortogonal — pode iniciar imediatamente.
+- Decidir na abertura se a **dívida de a11y** (telas pesadas + PIN/cronômetro + teclado) vira estória própria já no escopo do EPIC-004 ou fica para wave posterior.

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "generated_at": "2026-06-08",
+  "generated_at": "2026-06-09",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
@@ -272,7 +272,7 @@
       "slug": "shell-navegacao-e-ux",
       "title": "Shell de navegação e pente fino de UX do WebApp",
       "wave": "WAVE-2026-01",
-      "status": "ready",
+      "status": "done",
       "path": "epics/EPIC-012-shell-navegacao-e-ux/epic.md",
       "story_ids": [
         "STORY-076",
@@ -283,7 +283,13 @@
         "STORY-081"
       ],
       "created_at": "2026-06-08",
-      "updated_at": "2026-06-08"
+      "updated_at": "2026-06-09",
+      "validation_report": {
+        "path": "epics/EPIC-012-shell-navegacao-e-ux/validation/report.md",
+        "verdict": "approved_with_pending",
+        "validated_at": "2026-06-09",
+        "validated_by": "validador (claude-opus-4-8 2026-06-09)"
+      }
     },
     {
       "id": "EPIC-004",
@@ -2426,7 +2432,7 @@
       "target_role": "validador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
+      "status": "done",
       "owner_agent": null,
       "sprint_id": "SPRINT-2026-W29",
       "estimated_session_size": "M",
@@ -2439,7 +2445,7 @@
       ],
       "blocks": [],
       "created_at": "2026-06-08",
-      "updated_at": "2026-06-08"
+      "updated_at": "2026-06-09"
     },
     {
       "id": "STORY-082",
@@ -2457,7 +2463,7 @@
       "blocked_by": [],
       "blocks": [],
       "created_at": "2026-06-08",
-      "updated_at": "2026-06-08"
+      "updated_at": "2026-06-09"
     }
   ],
   "sprints": [
@@ -2994,9 +3000,9 @@
     {
       "id": "SPRINT-2026-W29",
       "wave": "WAVE-2026-01",
-      "status": "planned",
+      "status": "closed",
       "start_date": "2026-06-08",
-      "end_date": null,
+      "end_date": "2026-06-09",
       "soft_cap_date": "2026-07-06",
       "opened_at": "2026-06-08",
       "opened_by": "PO (Alexandro / Claude)",
@@ -3018,8 +3024,37 @@
         "EPIC-012",
         "EPIC-003"
       ],
-      "scope_changes": [],
-      "opened_by_pdr": "PDR-018"
+      "scope_changes": [
+        {
+          "date": "2026-06-09",
+          "change": "Pendencias do veredito da STORY-081 classificadas pelo PO no fechamento",
+          "reason": "Validador emitiu approved_with_pending (0 bloqueante). F-NB-1 (contraste AA: gate em 6 de ~11 superficies + amostragem manual nao feita) e F-NB-2 (navegacao por teclado nao verificada/sem gate) decorrem do ajuste de escopo do dono de 2026-06-09 (STORY-080: CA-2 fora do MVP, restante de CA-1/CA-3 adiado) — aceitas como divida de a11y para wave futura. F-NB-3 (SCREEN-STORY-077 'ready' nao 'shipped') e F-NB-4 (IDR-029 ausente do index.json) sao housekeeping e foram absorvidas pela STORY-082.",
+          "cost": "Sem impacto no goal (0 bloqueante). Divida de a11y registrada; housekeeping de doc roteado para STORY-082."
+        }
+      ],
+      "opened_by_pdr": "PDR-018",
+      "activated_at": "2026-06-08",
+      "activated_by": "PO (Alexandro / chat)",
+      "delivered_story_ids": [
+        "STORY-076",
+        "STORY-077",
+        "STORY-078",
+        "STORY-079",
+        "STORY-080",
+        "STORY-081"
+      ],
+      "in_progress_story_ids": [],
+      "pending_story_ids": [
+        "STORY-082"
+      ],
+      "carry_forward_story_ids": [
+        "STORY-082"
+      ],
+      "last_progress_update": "2026-06-09",
+      "progress_summary": "FECHADA por goal-atingido em 2026-06-09 (D+1 de execucao efetiva). EPIC-012 done (6/6 estorias). Shell de navegacao adaptativo vivo em homolog (rc.91): contratante por rail/drawer no desktop, profissional por nav inferior no mobile, 100% das telas autenticadas plugadas (nenhuma orfa), deep-links preservados, estados vazio/erro/loading padronizados no DS (patterns.md/components.md), gate de a11y (meetsGuideline, IDR-030) no CI. DDR-003 accepted; IDR-029/IDR-030 produzidos. STORY-076 (DDR-003+prototipo), 077 (shell+roteamento StatefulShellRoute, rc.88), 078 (migracao+barra do shell, rc.89), 079 (estados padrao, rc.90), 080 (a11y AA sistemico + gate, rc.91) DONE. STORY-081 (validador) emitiu veredito APPROVED com pendencias (0 bloqueante, 4 nao-bloqueantes) — PO aceitou como goal-atingido. Suite 660 verde, E2E navegacao verde (2 papeis x 2 tamanhos), cobertura codigo novo 95,4%, CI verde, deploy automatizado. Pendencias do veredito: (a11y) F-NB-1 contraste com gate em 6 de ~11 superficies + sem amostragem manual e F-NB-2 teclado nao verificado — AMBAS decorrem de ajuste de escopo do dono em 2026-06-09 (CA-2 fora do MVP; restante de CA-1/CA-3 adiado), aceitas como divida de a11y para wave futura; (doc) F-NB-3 SCREEN-STORY-077 em 'ready' e F-NB-4 IDR-029 nao indexado — absorvidas pela STORY-082 (housekeeping). STORY-082 (deflake cronometro F-B-1 W28 + housekeeping indice) ortogonal, NAO iniciada — carry-forward para a proxima sprint.",
+      "closed_at": "2026-06-09",
+      "closed_by": "PO (Alexandro / Claude)",
+      "goal_outcome": "achieved"
     }
   ],
   "decisions": {
@@ -4442,5 +4477,5 @@
       "note": "Inventário GCP homolog pós-rc.68 com previsão de custos (~$20–29/mês). Substitui gcp-inventory-2026-05-28.md (worker GCE→Cloud Run Job, fake de pagamento PDR-017). Alavanca de economia nº 1: alinhar scheduler do worker à janela do SQL."
     }
   ],
-  "next_action": "SPRINT-2026-W28 FECHADA por goal-atingido em 2026-06-07 (D+4): EPIC-003 done (16/16). Ciclo do turno ponta a ponta vivo em homolog com fake genérico (PDR-017), habitualidade PDR-002 nos 4 cenários, geofencing PDR-008, cancelamento/no_show_pro, 8 notificações, banner global; 3 ADRs aceitas (015/016/017). Validador (STORY-068) emitiu veredito rejected (1 F-B + 7 F-NB); PO aceitou F-B-1 (sincronia verificada viva) e corrigiu+deployou F-NB-1/2/3/5 na rc.86 antes de fechar; F-NB-4/6/7 carry-forward (índice IDR-028/056-B; PIN p95 509ms; SLA e-mail p95 61,6s). PRÓXIMO: pausa explícita entre épicos (compromisso da abertura), depois PO abre a próxima sprint (EPIC-004 — avaliação recíproca). Abertura deve incluir 1 estória S de dívidas: deflake do teste de sincronia do cronômetro (gate de release, flakeou 3× no dia do fechamento) + housekeeping F-NB-4. Working tree do PO (plano-ambiente-stage.md etc.) preservado."
+  "next_action": "SPRINT-2026-W29 FECHADA por goal-atingido em 2026-06-09: EPIC-012 done (6/6). Shell de navegacao adaptativo + pente fino de UX vivos em homolog rc.91 (contratante rail/drawer desktop, profissional nav inferior mobile, nenhuma tela orfa, estados padrao, gate a11y no CI). Validador (STORY-081) emitiu approved_with_pending (0 bloqueante, 4 nao-bloqueantes); PO aceitou como goal-atingido. Pendencias aceitas: divida de a11y (F-NB-1 contraste parcial + F-NB-2 teclado fora do MVP — decisao do dono 2026-06-09, candidata a estoria de a11y em wave futura); housekeeping de doc (F-NB-3 SCREEN-077 shipped + F-NB-4 IDR-029 no index) absorvido pela STORY-082. PROXIMO: abrir a proxima sprint (EPIC-004 — avaliacao reciproca, que nasce ja dentro do shell) incluindo STORY-082 (deflake cronometro F-B-1 W28 + housekeeping indice IDR-028/IDR-029/SCREEN-077) como carry-forward ortogonal, e decidir se a divida de a11y (telas pesadas + PIN/cronometro + teclado) vira estoria propria no escopo do EPIC-004 ou fica para wave posterior."
 }
