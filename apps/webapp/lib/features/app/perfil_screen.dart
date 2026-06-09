@@ -293,7 +293,9 @@ class _ReputacaoConteudo extends StatelessWidget {
         : TurniColors.textMutedLight;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      // stretch: resumo, header e cards ocupam a MESMA largura cheia da coluna de conteúdo
+      // (sem stretch, cada card fica com a largura do próprio texto e desalinha — SCREEN-084).
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Resumo (surface.card): score + nível + XP (prof).
         Container(
@@ -357,6 +359,7 @@ class _ReputacaoConteudo extends StatelessWidget {
         else
           Column(
             key: const Key('depoimento-list'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               for (var i = 0; i < perfil.depoimentos.length; i++) ...[
                 if (i > 0) const SizedBox(height: TurniSpacing.sm),

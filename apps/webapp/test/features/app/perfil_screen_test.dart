@@ -167,6 +167,48 @@ void main() {
     expect(find.text('Pontual e atencioso'), findsOneWidget);
   });
 
+  testWidgets(
+    'CA-1 depoimentos têm larguras IGUAIS (alinhados, não content-width)',
+    (tester) async {
+      AuthService().debugSetSession(_session());
+      await _pump(
+        tester,
+        _FakeReputacao(
+          () => ReputacaoCarregada(
+            _perfilProf(
+              depoimentos: [
+                Depoimento(
+                  estrelas: 5,
+                  comentario: 'Curto.',
+                  funcao: 'Garçom',
+                  autorNome: 'Bar A',
+                  data: DateTime.now().subtract(const Duration(days: 1)),
+                ),
+                Depoimento(
+                  estrelas: 4,
+                  comentario:
+                      'Comentário bem mais longo que o anterior para forçar '
+                      'larguras diferentes se os cards fossem content-width.',
+                  funcao: 'Auxiliar de Cozinha',
+                  autorNome: 'Restaurante do Porto',
+                  data: DateTime.now().subtract(const Duration(days: 2)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      final w0 = tester
+          .getSize(find.byKey(const Key('depoimento-item-0')))
+          .width;
+      final w1 = tester
+          .getSize(find.byKey(const Key('depoimento-item-1')))
+          .width;
+      expect(w0, w1); // mesma largura cheia, independente do tamanho do texto
+    },
+  );
+
   // ─────────────── T3: reciprocidade do contratante (CA-2) ───────────────
 
   testWidgets('CA-2 contratante: score + depoimentos, SEM nível e SEM XP', (
