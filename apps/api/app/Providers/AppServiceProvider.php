@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Email\MailEnviaEmailTransacional;
+use App\Events\AvaliacaoRegistrada;
 use App\Events\CandidaturaEnviada;
 use App\Events\CheckinSolicitado;
 use App\Events\CheckoutSolicitado;
@@ -28,6 +29,7 @@ use App\Listeners\NotificarTurnoCriado;
 use App\Listeners\NotificarTurnoFinalizado;
 use App\Listeners\NotificarTurnoIniciado;
 use App\Listeners\NotificarTurnoNoShow;
+use App\Listeners\RecalcularReputacaoListener;
 use App\Listeners\TurnoCanceladoListener;
 use App\Listeners\TurnoFinalizadoListener;
 use App\Listeners\TurnoNoShowListener;
@@ -89,5 +91,10 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(PixEnviado::class, NotificarPixEnviado::class);
         Event::listen(TurnoCancelado::class, NotificarTurnoCancelado::class);
         Event::listen(TurnoNoShow::class, NotificarTurnoNoShow::class);
+
+        // STORY-085 (CA-4/CA-5) — avaliação registrada dispara o motor de reputação SÍNCRONO
+        // (ADR-019 Decisão 3/4): recomputa score/XP/nível do avaliado dentro da MESMA transação
+        // que inseriu a avaliação. Idempotente por construção (recompute, não delta).
+        Event::listen(AvaliacaoRegistrada::class, RecalcularReputacaoListener::class);
     }
 }

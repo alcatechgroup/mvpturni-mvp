@@ -61,9 +61,16 @@ class MotorReputacao
 
     private function recalcularProfissional(User $pro, float $score): void
     {
+        // Defensivo: turno finalizado implica cadastro completo (profile existe). Se por algum
+        // resíduo de dados não existir, não derrubamos a transação que insere a avaliação
+        // (ADR-019 Decisão 3 — síncrona) por uma denormalização — espelha o no-op do
+        // contratanteProfile()->update() quando não há linha.
+        if (! $profile = $pro->profissionalProfile) {
+            return;
+        }
+
         $turnos = $this->turnosRealizados($pro);
         $xp = $this->xpDe($pro, $turnos);
-        $profile = $pro->profissionalProfile;
 
         // High-water-mark: o nível nunca rebaixa. Nível inválido/ausente parte de Iniciante.
         $nivelAtual = NivelProfissional::tryFrom((string) $profile->nivel) ?? NivelProfissional::Iniciante;

@@ -6,6 +6,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Avaliacao\AvaliacoesPendentesController;
+use App\Http\Controllers\Avaliacao\AvaliarTurnoController;
 use App\Http\Controllers\Cadastro\CompletarCadastroContratanteController;
 use App\Http\Controllers\Cadastro\CompletarCadastroProfissionalController;
 use App\Http\Controllers\Cadastro\ContratanteCadastroController;
@@ -208,4 +209,11 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     // aceite eletrônico inline para o modal somente-leitura (CA-5). Registrada DEPOIS de
     // `/turnos/meu-ativo` (path estático vence o binding `{turno}`).
     Route::get('/turnos/{turno}', [TurnoDetalheController::class, 'show']);
+
+    // Avaliação recíproca do turno (STORY-085 / ADR-019 — CA-3). Rota compartilhada pelos 2
+    // papéis: a direção e o avaliado derivam do papel do AUTOR no turno (RBAC fail-secure no
+    // service — não-participante → 403). Estrelas obrigatórias 1–5 + comentário opcional;
+    // estado não-avaliável → 422; reenvio na mesma direção → 409. Insere + dispara
+    // AvaliacaoRegistrada na transação (motor de reputação síncrono).
+    Route::post('/turnos/{turno}/avaliar', [AvaliarTurnoController::class, 'store']);
 });

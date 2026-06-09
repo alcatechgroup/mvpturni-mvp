@@ -174,6 +174,16 @@ test('recalcular duas vezes produz o mesmo XP/score (idempotente por construçã
         ->and($xp1)->toBe(60 + 10 + 3); // 30×2 + 10 + 3 = 73
 });
 
+test('profissional sem profile não derruba o motor (borda defensiva — no-op)', function () {
+    $pro = User::factory()->profissional()->ativo()->create(); // sem ProfissionalProfile
+    $turnos = turnosFinalizadosDoPro($pro, 1);
+    Avaliacao::factory()->paraTurno($turnos[0])->estrelas(5)->create();
+
+    motor()->recalcular($pro); // não lança
+
+    expect($pro->profissionalProfile)->toBeNull();
+});
+
 // ── Reciprocidade: contratante tem score, sem XP/nível — CA-4 ────────────────────────────
 
 test('contratante avaliado recebe score (média), sem XP nem nível', function () {
