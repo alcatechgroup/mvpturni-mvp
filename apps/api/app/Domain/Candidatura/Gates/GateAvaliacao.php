@@ -6,15 +6,20 @@ use App\Domain\Avaliacao\AvaliacoesPendentesProfissional;
 use App\Domain\Candidatura\GateResultado;
 use App\Models\User;
 use App\Models\Vaga;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
- * STORY-050 Gate 1 (CA-2) — PDR-005: avaliação bloqueante. Se o profissional tem turno
- * finalizado pendente de avaliação, não pode se candidatar — precisa avaliar antes.
+ * STORY-050 Gate 1 (CA-2) / STORY-086 (ADR-019 D5) — PDR-005: avaliação bloqueante. Se o
+ * profissional tem turno finalizado pendente de avaliação, não pode se candidatar — precisa
+ * avaliar antes.
  *
- * Reusa o mesmo julgamento do feed/detalhe (AvaliacoesPendentesProfissional, STORY-048),
- * que hoje é stub-honesto (sem turnos/avaliações no schema → sempre `true`). Quando o
- * EPIC-003 entrar, aquela classe passa a olhar turnos reais e o `detalhe.turno_id` guiará o
- * client para a tela de avaliação. Aqui o slot do contrato já existe (`turno_id` = null no MVP).
+ * Reusa o mesmo julgamento do feed/detalhe (AvaliacoesPendentesProfissional, STORY-048), agora
+ * ligado à pendência real derivada do estado (ADR-019 D2). O `detalhe.turno_id` carrega o turno
+ * por avaliar **mais antigo**, que guia o client à tela de avaliação (deep-link — STORY-087/088).
+ *
+ * Fail-secure (F2): qualquer erro ao consultar a pendência **bloqueia** a candidatura — o
+ * caminho de "não tenho certeza" nunca libera a ação (com `turno_id` null, sem deep-link).
  */
 final class GateAvaliacao
 {
@@ -22,16 +27,31 @@ final class GateAvaliacao
 
     public function verificar(User $profissional, Vaga $vaga): GateResultado
     {
-        if ($this->avaliacoes->podeCandidatar($profissional)) {
+        try {
+            $turno = $this->avaliacoes->turnoPendente($profissional);
+        } catch (Throwable $e) {
+            Log::warning('gate_avaliacao.consulta_falhou', [
+                'papel' => 'profissional',
+                'user_id' => $profissional->id,
+                'erro' => $e->getMessage(),
+            ]);
+
+            // Fail-secure: na dúvida, bloqueia — sem turno_id (o client cai no fluxo genérico).
+            return GateResultado::bloqueio(
+                'gate_avaliacao',
+                'Avalie seu último turno para se candidatar.',
+                ['turno_id' => null],
+            );
+        }
+
+        if ($turno === null) {
             return GateResultado::passou();
         }
 
         return GateResultado::bloqueio(
             'gate_avaliacao',
             'Avalie seu último turno para se candidatar.',
-            // Slot do contrato (CA-2): o id do turno por avaliar guiará o deep-link quando o
-            // EPIC-003 existir. O stub atual não expõe o turno, então fica null.
-            ['turno_id' => null],
+            ['turno_id' => $turno->id],
         );
     }
 }

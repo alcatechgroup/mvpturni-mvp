@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Vaga;
 
+use App\Domain\Avaliacao\PublicacaoBloqueadaPorAvaliacao;
 use App\Enums\CandidaturaEstado;
 use App\Enums\VagaEstado;
 use App\Http\Controllers\Controller;
@@ -27,7 +28,17 @@ class VagaController extends Controller
 
     public function store(StoreVagaRequest $request): JsonResponse
     {
-        $vaga = $this->service->publicar($request->user(), $request->validated());
+        try {
+            $vaga = $this->service->publicar($request->user(), $request->validated());
+        } catch (PublicacaoBloqueadaPorAvaliacao $e) {
+            // STORY-086 / ADR-019 D5 — gate PDR-005: turno pendente de avaliação. Mesma forma do
+            // gate de candidatura: erro estável + prosa verbatim + turno_id p/ o deep-link (CA-2).
+            return response()->json([
+                'erro' => 'gate_avaliacao',
+                'mensagem' => $e->getMessage(),
+                'detalhe' => ['turno_id' => $e->turnoId],
+            ], 422);
+        }
 
         return response()->json([
             'id' => $vaga->id,

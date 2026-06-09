@@ -9,6 +9,7 @@
 
 use App\Domain\Avaliacao\AvaliacoesPendentesProfissional;
 use App\Enums\CandidaturaEstado;
+use App\Enums\TurnoStatus;
 use App\Enums\VagaEstado;
 use App\Events\CandidaturaEnviada;
 use App\Models\AuditLog;
@@ -16,6 +17,7 @@ use App\Models\Candidatura;
 use App\Models\ContratanteProfile;
 use App\Models\Funcao;
 use App\Models\ProfissionalProfile;
+use App\Models\Turno;
 use App\Models\User;
 use App\Models\Vaga;
 use App\Models\VagaVersao;
@@ -194,16 +196,22 @@ test('gate avaliação ativo → 422 gate_avaliacao + detalhe.turno_id (CA-2)', 
     $prof = profCand(['funcao_id' => $funcao->id]);
     $vaga = vagaCand($funcao->id);
 
+    // STORY-086: o gate consome a pendência derivada (turnoPendente) e devolve o turno por
+    // avaliar no payload (deep-link). Mockamos o turno pendente para isolar do schema de turnos.
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)
+        ->create(['profissional_id' => $prof->id]);
+
     $this->mock(AvaliacoesPendentesProfissional::class)
-        ->shouldReceive('podeCandidatar')->andReturn(false);
+        ->shouldReceive('turnoPendente')->andReturn($turno);
 
     $this->actingAs($prof)->postJson("/api/vagas/{$vaga->id}/candidaturas")
         ->assertStatus(422)
         ->assertJsonPath('erro', 'gate_avaliacao')
         ->assertJsonPath('mensagem', 'Avalie seu último turno para se candidatar.')
-        ->assertJsonPath('detalhe.turno_id', null);
+        ->assertJsonPath('detalhe.turno_id', $turno->id);
 
-    $this->assertDatabaseCount('candidaturas', 0);
+    // Nenhuma candidatura deste profissional nesta vaga (a do turno-fixture é de outro par).
+    expect(Candidatura::where('profissional_id', $prof->id)->where('vaga_id', $vaga->id)->count())->toBe(0);
 });
 
 // ───────────────────────── CA-3 — conflito de horário ─────────────────────────
