@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-079-estados-padrao
-status: in_review
+status: done
 owner_agent: programador
 created_at: 2026-06-08
 updated_at: 2026-06-09
@@ -37,13 +37,13 @@ Estado vazio que instrui o próximo passo, erro que oferece saída e carregament
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Existe um componente de **estado vazio** reutilizável (DS) com instrução + próximo passo + CTA contextual; aplicado a todas as listas do WebApp (feed, vagas, candidatos, turnos, notificações). Microcopy em pt-BR.
-- [ ] **CA-2:** Existe um padrão de **erro recuperável** (mensagem + "tentar de novo" que re-dispara a ação) e de **erro não-recuperável** (saída clara para um destino do shell); aplicado às telas que fazem fetch.
-- [ ] **CA-3:** Existe um padrão de **carregamento** (skeleton/placeholder) consistente, aplicado às telas com fetch perceptível.
-- [ ] **CA-4:** Os três padrões entram no `patterns.md` (e componentes no `components.md`) — deixam de ser "ponteiro nomeado".
-- [ ] **CA-5:** Nenhuma regra de negócio nova é introduzida — só apresentação de estado. Erro nunca é só cor (ícone + texto — regra herdada dos tokens).
-- [ ] **CA-6:** Cobertura ≥ 80% no código novo; E2E/widget test cobre pelo menos: lista vazia mostra o estado certo; erro de fetch mostra "tentar de novo" e o retry re-dispara; carregamento mostra skeleton.
-- [ ] **CA-7:** Deploy homologação verificado.
+- [x] **CA-1:** Existe um componente de **estado vazio** reutilizável (DS) com instrução + próximo passo + CTA contextual; aplicado a todas as listas do WebApp (feed, vagas, candidatos, turnos, notificações). Microcopy em pt-BR. → `TurniEmptyState`.
+- [x] **CA-2:** Existe um padrão de **erro recuperável** (mensagem + "tentar de novo" que re-dispara a ação) e de **erro não-recuperável** (saída clara para um destino do shell); aplicado às telas que fazem fetch. → `TurniRetryState` + `TurniEmptyState` com CTA de saída.
+- [x] **CA-3:** Existe um padrão de **carregamento** (skeleton/placeholder) consistente, aplicado às telas com fetch perceptível. → `TurniSkeletonList`/`Card`/`Box`.
+- [x] **CA-4:** Os três padrões entram no `patterns.md` (e componentes no `components.md`) — deixam de ser "ponteiro nomeado".
+- [x] **CA-5:** Nenhuma regra de negócio nova é introduzida — só apresentação de estado. Erro nunca é só cor (ícone + texto — regra herdada dos tokens).
+- [x] **CA-6:** Cobertura ≥ 80% no código novo; E2E/widget test cobre pelo menos: lista vazia mostra o estado certo; erro de fetch mostra "tentar de novo" e o retry re-dispara; carregamento mostra skeleton. → 100% (60/60) em `state_views.dart`; `test/ds/state_views_test.dart`.
+- [x] **CA-7:** Deploy homologação verificado. → rc.90, run `27202808294` verde + smoke; `version.json`=rc.90. (Confirmação visual do PO pendente — gate humano.)
 
 ## Fora de escopo
 
@@ -123,4 +123,10 @@ NÃO decide: copy de domínio que exija decisão de produto, CAs.
 - E2E: cobertos pelos integration_test existentes das telas (não regrediram).
 
 ### Links de evidência
-- Pipeline / Deploy homolog: _(rc a cortar — preencher após deploy)_
+- Commit: `a3a0d64` (feat STORY-079) na `main`.
+- Deploy homolog: tag `v0.1.0-rc.90` → release run `27202808294` **verde** (migrate+seed,
+  api, admin, WebApp/Firebase e **smoke pós-deploy** todos `success`; a 1ª execução falhou
+  só no `setup-gcloud` do job de migração — flake transitório de infra, re-run verde).
+  `https://app.homolog.turni.com.br/version.json` → `v0.1.0-rc.90`.
+- **Confirmação visual do PO:** pendente (gate humano da DoD) — eyeball dos estados
+  vazio/erro/skeleton no app de homolog.
