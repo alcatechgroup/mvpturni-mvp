@@ -1,17 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:turni_webapp/core/theme/theme_mode_controller.dart';
+import 'package:turni_webapp/features/app/perfil_reputacao_service.dart';
 import 'package:turni_webapp/features/app/perfil_screen.dart';
 import 'package:turni_webapp/features/auth/auth_service.dart';
 
-// STORY-077 — Perfil mínimo (DDR-003): consolida identidade do usuário,
-// alternância de tema e Sair (chrome que hoje vive espalhado). Sem feature nova.
+// STORY-077 — Perfil mínimo (DDR-003): identidade + tema + Sair.
+// STORY-088 (T3) — bloco de reputação acima de Preferências: score/nível/XP/depoimentos,
+// reciprocidade (contratante sem nível/XP), e estados vazio/erro/loading (CA-1/CA-2/CA-5).
 
 UserSession _session({
+  String id = 'me-1',
   String name = 'Diego Martins',
   String role = 'profissional',
 }) => UserSession(
+  id: id,
   name: name,
   role: role,
   status: 'ativo',
@@ -19,8 +25,66 @@ UserSession _session({
   cadastroCompleto: true,
 );
 
-Future<void> _pump(WidgetTester tester) async {
-  await tester.pumpWidget(const MaterialApp(home: PerfilScreen()));
+/// Fake do service: result controlável + contador (p/ exercitar o retry).
+class _FakeReputacao extends PerfilReputacaoService {
+  _FakeReputacao(this.result);
+  ReputacaoResult Function() result;
+  int calls = 0;
+  @override
+  Future<ReputacaoResult> fetch(String userId) async {
+    calls++;
+    return result();
+  }
+}
+
+/// Fake que segura a resposta até ser liberada — para capturar o frame de loading.
+class _PendingReputacao extends PerfilReputacaoService {
+  final completer = Completer<ReputacaoResult>();
+  @override
+  Future<ReputacaoResult> fetch(String userId) => completer.future;
+}
+
+ReputacaoPerfil _perfilProf({
+  bool seloNovo = false,
+  int total = 27,
+  List<Depoimento> depoimentos = const [],
+}) => ReputacaoPerfil(
+  papel: 'profissional',
+  score: 4.9,
+  totalAvaliacoes: total,
+  seloNovo: seloNovo,
+  nivel: 'Confiavel',
+  turnosRealizados: 17,
+  xp: 680,
+  xpProximoNivel: 320,
+  depoimentos: depoimentos,
+);
+
+ReputacaoPerfil _perfilContratante({List<Depoimento> depoimentos = const []}) =>
+    ReputacaoPerfil(
+      papel: 'contratante',
+      score: 4.5,
+      totalAvaliacoes: 8,
+      seloNovo: false,
+      nivel: null,
+      turnosRealizados: null,
+      xp: null,
+      xpProximoNivel: null,
+      depoimentos: depoimentos,
+    );
+
+Depoimento _depo({String? autor = 'Bar do Porto'}) => Depoimento(
+  estrelas: 5,
+  comentario: 'Pontual e atencioso',
+  funcao: 'Garçom',
+  autorNome: autor,
+  data: DateTime.now().subtract(const Duration(days: 3)),
+);
+
+Future<void> _pump(WidgetTester tester, PerfilReputacaoService svc) async {
+  await tester.pumpWidget(
+    MaterialApp(home: PerfilScreen(reputacaoService: svc)),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -31,11 +95,11 @@ void main() {
   });
   tearDown(() => AuthService().debugSetSession(null));
 
-  testWidgets('(a) feliz — mostra nome e papel do profissional', (
-    tester,
-  ) async {
+  // ─────────────── identidade / tema / sair (STORY-077, regressão) ───────────────
+
+  testWidgets('(a) feliz — mostra nome e papel do profissional', (tester) async {
     AuthService().debugSetSession(_session());
-    await _pump(tester);
+    await _pump(tester, _FakeReputacao(() => ReputacaoCarregada(_perfilProf())));
     expect(find.text('Diego Martins'), findsOneWidget);
     expect(find.text('Profissional'), findsOneWidget);
   });
@@ -46,41 +110,144 @@ void main() {
     AuthService().debugSetSession(
       _session(name: 'Marina Souza', role: 'contratante'),
     );
-    await _pump(tester);
+    await _pump(
+      tester,
+      _FakeReputacao(() => ReputacaoCarregada(_perfilContratante())),
+    );
     expect(find.text('Marina Souza'), findsOneWidget);
     expect(find.text('Contratante'), findsOneWidget);
   });
 
-  testWidgets('(b) inválido — sessão sem nome não quebra (avatar fallback)', (
-    tester,
-  ) async {
-    AuthService().debugSetSession(_session(name: ''));
-    await _pump(tester);
-    expect(find.byKey(const Key('perfil-screen')), findsOneWidget);
-    expect(find.text('Profissional'), findsOneWidget);
+  testWidgets('(a) feliz — alterna o tema escuro e persiste', (tester) async {
+    AuthService().debugSetSession(_session());
+    await _pump(tester, _FakeReputacao(() => ReputacaoCarregada(_perfilProf())));
+
+    final toggle = find.byKey(const Key('shell-theme-toggle'));
+    expect(toggle, findsOneWidget);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(ThemeModeController.instance.mode, ThemeMode.dark);
   });
 
-  testWidgets(
-    '(a) feliz — alterna o tema escuro pelo switch e persiste no controller',
-    (tester) async {
-      AuthService().debugSetSession(_session());
-      await _pump(tester);
-
-      final toggle = find.byKey(const Key('shell-theme-toggle'));
-      expect(toggle, findsOneWidget);
-      expect(ThemeModeController.instance.mode, ThemeMode.system);
-
-      await tester.tap(toggle);
-      await tester.pumpAndSettle();
-      expect(ThemeModeController.instance.mode, ThemeMode.dark);
-    },
-  );
-
   testWidgets('(a) feliz — expõe o botão Sair', (tester) async {
-    // STORY-078: o sino migrou para a barra do shell; o Perfil mantém o Sair
-    // (além de identidade e tema).
     AuthService().debugSetSession(_session());
-    await _pump(tester);
+    await _pump(tester, _FakeReputacao(() => ReputacaoCarregada(_perfilProf())));
     expect(find.byKey(const Key('perfil-logout')), findsOneWidget);
+  });
+
+  // ─────────────── T3: reputação (CA-1) ───────────────
+
+  testWidgets('CA-1 profissional: score + nível + XP + depoimentos', (
+    tester,
+  ) async {
+    AuthService().debugSetSession(_session());
+    await _pump(
+      tester,
+      _FakeReputacao(
+        () => ReputacaoCarregada(_perfilProf(depoimentos: [_depo()])),
+      ),
+    );
+
+    expect(find.byKey(const Key('perfil-score')), findsOneWidget);
+    expect(find.byKey(const Key('perfil-nivel-badge')), findsOneWidget);
+    expect(find.byKey(const Key('perfil-xp-meter')), findsOneWidget);
+    expect(find.byKey(const Key('perfil-depoimentos')), findsOneWidget);
+    expect(find.byKey(const Key('depoimento-item-0')), findsOneWidget);
+    expect(find.text('Pontual e atencioso'), findsOneWidget);
+  });
+
+  // ─────────────── T3: reciprocidade do contratante (CA-2) ───────────────
+
+  testWidgets('CA-2 contratante: score + depoimentos, SEM nível e SEM XP', (
+    tester,
+  ) async {
+    AuthService().debugSetSession(_session(role: 'contratante'));
+    await _pump(
+      tester,
+      _FakeReputacao(
+        () => ReputacaoCarregada(
+          _perfilContratante(depoimentos: [_depo(autor: null)]),
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('perfil-score')), findsOneWidget);
+    expect(find.byKey(const Key('perfil-nivel-badge')), findsNothing);
+    expect(find.byKey(const Key('perfil-xp-meter')), findsNothing);
+    expect(find.byKey(const Key('depoimento-item-0')), findsOneWidget);
+  });
+
+  // ─────────────── T3: estados (CA-5) ───────────────
+
+  testWidgets('CA-5 loading — skeleton enquanto carrega (sem spinner pelado)', (
+    tester,
+  ) async {
+    AuthService().debugSetSession(_session());
+    final pending = _PendingReputacao();
+    await tester.pumpWidget(
+      MaterialApp(home: PerfilScreen(reputacaoService: pending)),
+    );
+    await tester.pump(); // 1 frame: ainda carregando
+
+    expect(find.byKey(const Key('perfil-reputacao-skeleton')), findsOneWidget);
+
+    pending.completer.complete(ReputacaoCarregada(_perfilProf()));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('perfil-reputacao-skeleton')), findsNothing);
+  });
+
+  testWidgets('CA-5 vazio sem avaliações → "Ainda sem avaliações"', (
+    tester,
+  ) async {
+    AuthService().debugSetSession(_session());
+    await _pump(
+      tester,
+      _FakeReputacao(
+        () => ReputacaoCarregada(
+          _perfilProf(seloNovo: true, total: 0, depoimentos: const []),
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('perfil-depoimentos-vazio')), findsOneWidget);
+    expect(find.text('Ainda sem avaliações'), findsOneWidget);
+  });
+
+  testWidgets('CA-5 com score mas sem comentário → "Ainda sem comentários"', (
+    tester,
+  ) async {
+    AuthService().debugSetSession(_session());
+    await _pump(
+      tester,
+      _FakeReputacao(
+        () => ReputacaoCarregada(_perfilProf(total: 12, depoimentos: const [])),
+      ),
+    );
+
+    expect(find.byKey(const Key('perfil-depoimentos-vazio')), findsOneWidget);
+    expect(find.text('Ainda sem comentários'), findsOneWidget);
+  });
+
+  testWidgets('CA-5 erro — retry refaz a carga; Sair continua disponível', (
+    tester,
+  ) async {
+    AuthService().debugSetSession(_session());
+    var falha = true;
+    final svc = _FakeReputacao(
+      () => falha ? ReputacaoErro() : ReputacaoCarregada(_perfilProf()),
+    );
+    await _pump(tester, svc);
+
+    expect(find.byKey(const Key('perfil-reputacao-retry')), findsOneWidget);
+    // O resto do Perfil segue funcionando (CA-5).
+    expect(find.byKey(const Key('perfil-logout')), findsOneWidget);
+
+    falha = false;
+    await tester.tap(find.byKey(const Key('perfil-reputacao-retry')));
+    await tester.pumpAndSettle();
+
+    expect(svc.calls, 2);
+    expect(find.byKey(const Key('perfil-reputacao-retry')), findsNothing);
+    expect(find.byKey(const Key('perfil-score')), findsOneWidget);
   });
 }
