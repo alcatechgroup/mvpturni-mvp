@@ -11,6 +11,7 @@ void main() {
   test('restaura a sessão persistida (boot frio)', () async {
     SharedPreferences.setMockInitialValues({
       'turni_session': jsonEncode({
+        'id': 'user-123',
         'name': 'Contratante Teste',
         'role': 'contratante',
         'status': 'ativo',
@@ -25,6 +26,8 @@ void main() {
     expect(AuthService().session, isNotNull);
     expect(AuthService().session!.role, 'contratante');
     expect(AuthService().session!.funnelState, FunnelState.active);
+    // STORY-088 — o id do usuário fica disponível p/ GET /api/perfil/{id}.
+    expect(AuthService().session!.id, 'user-123');
   });
 
   test('storage vazio mantém sessão nula (cai em /login, correto)', () async {
