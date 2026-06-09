@@ -145,6 +145,30 @@ abstract final class TurniDateTime {
     return '${h}h${_pad(m)}';
   }
 
+  // ───────────────────────── Data relativa (depoimentos) ─────────────────────────
+
+  /// Data relativa pt-BR para os depoimentos do perfil (STORY-088 / SCREEN-084 §5 / DDR-002):
+  /// `"agora"` (< 1 min), `"há N minuto(s)"`, `"há N hora(s)"`, `"há N dia(s)"`,
+  /// `"há N semana(s)"` e, a partir de **30 dias**, a data absoluta `dd/MM/aaaa` (a régua do
+  /// DDR-002 troca o relativo pelo absoluto quando "faz tempo demais" — meses não são exibidos).
+  /// `agora` é injetável para teste; em produção usa o relógio do dispositivo. Futuro (relógio
+  /// adiantado) degrada para `"agora"` em vez de número negativo.
+  static String tempoRelativo(DateTime instant, {DateTime? agora}) {
+    final ref = agora ?? DateTime.now();
+    final d = ref.difference(instant);
+
+    if (d.inMinutes < 1) return 'agora';
+    if (d.inMinutes < 60) return _plural(d.inMinutes, 'minuto');
+    if (d.inHours < 24) return _plural(d.inHours, 'hora');
+    if (d.inDays < 7) return _plural(d.inDays, 'dia');
+    if (d.inDays < 30) return _plural(d.inDays ~/ 7, 'semana');
+    return formatData(instant);
+  }
+
+  /// `"há 1 dia"` / `"há 3 dias"` — singular sem "s", plural com.
+  static String _plural(int n, String unidade) =>
+      'há $n $unidade${n == 1 ? '' : 's'}';
+
   // ───────────────────────── Comparação ─────────────────────────
 
   /// Dois instantes representam o mesmo ponto no tempo? (independe de fuso/representação)
