@@ -30,6 +30,9 @@ enum FunnelState {
 
 /// Sessão do usuário (payload do POST /api/login).
 class UserSession {
+  /// Id do usuário (UUID). Necessário p/ GET /api/perfil/{id} do próprio perfil (STORY-088).
+  /// Vazio em sessões persistidas antes desta versão — degrada sem o id (o perfil mostra erro).
+  final String id;
   final String name;
   final String role;
   final String status;
@@ -37,6 +40,7 @@ class UserSession {
   final bool cadastroCompleto;
 
   const UserSession({
+    this.id = '',
     this.name = '',
     required this.role,
     required this.status,
@@ -46,6 +50,7 @@ class UserSession {
 
   factory UserSession.fromJson(Map<String, dynamic> json) {
     return UserSession(
+      id: json['id'] as String? ?? '',
       name: json['name'] as String? ?? '',
       role: json['role'] as String,
       status: json['status'] as String,
@@ -59,6 +64,7 @@ class UserSession {
 
   UserSession copyWith({bool? welcomeVisto, bool? cadastroCompleto}) {
     return UserSession(
+      id: id,
       name: name,
       role: role,
       status: status,
@@ -256,6 +262,7 @@ class AuthService extends ChangeNotifier {
     await prefs.setString(
       _sessionKey,
       jsonEncode({
+        'id': s.id,
         'name': s.name,
         'role': s.role,
         'status': s.status,
