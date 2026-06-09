@@ -30,8 +30,13 @@ Future<void> pumpA11y(
   bool dark = false,
   Size surfaceSize = const Size(1280, 900),
 }) async {
-  await tester.binding.setSurfaceSize(surfaceSize);
-  addTearDown(() => tester.binding.setSurfaceSize(null));
+  // `physicalSize` + dpr=1.0 → a largura lógica é exatamente `surfaceSize.width`
+  // (breakpoints do shell determinísticos). `setSurfaceSize` escala por dpr e
+  // bagunça o breakpoint efetivo.
+  tester.view.devicePixelRatio = 1.0;
+  tester.view.physicalSize = surfaceSize;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
   final theme = dark ? buildDarkTheme() : buildLightTheme();
   await tester.pumpWidget(builder(theme));
   await tester.pumpAndSettle();
@@ -39,10 +44,24 @@ Future<void> pumpA11y(
 
 /// Roda os três guidelines de a11y sobre a árvore atualmente montada.
 /// Liga a semântica antes e desliga depois (exigência dos matchers).
-Future<void> expectScreenMeetsA11y(WidgetTester tester) async {
+///
+/// [tapTargetGuideline] default = [androidTapTargetGuideline] (≥48dp), o piso de
+/// toque do CA-3 para superfícies de toque (mobile, conteúdo das telas). Para a
+/// **NavigationRail de desktop** passe [iOSTapTargetGuideline] (≥44dp): o destino
+/// do rail Material fica em 44dp por padrão (não há knob de altura no widget) e
+/// 44dp é aceito em WCAG 2.1 AA (accessibility-basics.md §7 "WCAG aceita ≥44";
+/// 48dp é recomendação Material, não requisito AA). O rail é superfície de
+/// mouse/tablet, não de toque primário.
+Future<void> expectScreenMeetsA11y(
+  WidgetTester tester, {
+  AccessibilityGuideline? tapTargetGuideline,
+}) async {
   final handle = tester.ensureSemantics();
   await expectLater(tester, meetsGuideline(textContrastGuideline));
-  await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+  await expectLater(
+    tester,
+    meetsGuideline(tapTargetGuideline ?? androidTapTargetGuideline),
+  );
   await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
   handle.dispose();
 }

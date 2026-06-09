@@ -349,10 +349,10 @@ class AppShellView extends StatelessWidget {
             backgroundColor: chrome.accentSoft,
             child: Text(
               initials,
-              style: TextStyle(
-                color: chrome.accent,
-                fontWeight: FontWeight.w600,
-              ),
+              // `chrome.on` (quase-branco) e não `chrome.accent`: o monograma é
+              // texto 16px (AA = 4.5:1) e o accent sobre o accentSoft no chrome
+              // escuro reprovava (sage 3.63:1 / mostarda 4.25:1).
+              style: TextStyle(color: chrome.on, fontWeight: FontWeight.w600),
             ),
           ),
           const SizedBox(width: TurniSpacing.sm),
