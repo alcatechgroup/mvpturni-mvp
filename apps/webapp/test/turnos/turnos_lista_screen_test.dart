@@ -35,6 +35,7 @@ TurnoResumo _turno({
   TurnoEstadoResumo estado = TurnoEstadoResumo.confirmado,
   String? quem = 'Bar do Zé',
   double valor = 200.0,
+  bool avaliacaoPendente = false,
 }) => TurnoResumo(
   id: id,
   funcao: funcao,
@@ -43,6 +44,7 @@ TurnoResumo _turno({
   estado: estado,
   valor: valor,
   quem: quem,
+  avaliacaoPendente: avaliacaoPendente,
 );
 
 Widget _comRouter(
@@ -63,6 +65,13 @@ Widget _comRouter(
       GoRoute(
         path: '/contratante/vagas',
         builder: (_, _) => const Scaffold(body: Text('MINHAS VAGAS')),
+      ),
+      // STORY-088: o atalho "Avaliar" do card pendente navega à tela de avaliação.
+      // (antes de /turnos/:id para o sufixo /avaliar casar primeiro)
+      GoRoute(
+        path: '/turnos/:id/avaliar',
+        builder: (_, state) =>
+            Scaffold(body: Text('AVALIAR ${state.pathParameters['id']}')),
       ),
       // STORY-060: o card da lista navega para o detalhe.
       GoRoute(
@@ -331,5 +340,63 @@ void main() {
     expect(find.byKey(const Key('turnos-erro-banner')), findsNothing);
     expect(find.byKey(const Key('turno-card-u1')), findsOneWidget);
     expect(svc.calls, 2);
+  });
+
+  // ───────────────── STORY-088 — marcador "Avaliar" na lista ─────────────────
+
+  testWidgets('turno pendente de avaliação mostra o atalho "Avaliar"', (
+    tester,
+  ) async {
+    final svc = _FakeTurnosService(
+      () => TurnosSuccess([
+        GrupoTurnos(
+          grupo: TurnoGrupo.finalizado,
+          turnos: [
+            _turno(
+              id: 'p1',
+              estado: TurnoEstadoResumo.finalizado,
+              avaliacaoPendente: true,
+            ),
+            _turno(
+              id: 'p2',
+              estado: TurnoEstadoResumo.finalizado,
+              avaliacaoPendente: false,
+            ),
+          ],
+        ),
+      ]),
+    );
+    await tester.pumpWidget(_comRouter(svc));
+    await tester.pumpAndSettle();
+
+    // Só o pendente ganha o marcador.
+    expect(find.byKey(const Key('turno-card-p1-avaliar')), findsOneWidget);
+    expect(find.byKey(const Key('turno-card-p2-avaliar')), findsNothing);
+  });
+
+  testWidgets('tocar "Avaliar" deep-linka à tela de avaliação do turno', (
+    tester,
+  ) async {
+    final svc = _FakeTurnosService(
+      () => TurnosSuccess([
+        GrupoTurnos(
+          grupo: TurnoGrupo.finalizado,
+          turnos: [
+            _turno(
+              id: 'p1',
+              estado: TurnoEstadoResumo.finalizado,
+              avaliacaoPendente: true,
+            ),
+          ],
+        ),
+      ]),
+    );
+    await tester.pumpWidget(_comRouter(svc));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('turno-card-p1-avaliar')));
+    await tester.pumpAndSettle();
+    // O atalho leva à avaliação (não ao detalhe).
+    expect(find.text('AVALIAR p1'), findsOneWidget);
   });
 }
