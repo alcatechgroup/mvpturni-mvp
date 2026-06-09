@@ -2358,7 +2358,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": "SCREEN-STORY-077-app-shell",
-      "status": "in_progress",
+      "status": "in_review",
       "owner_agent": "claude-opus-4-8",
       "sprint_id": "SPRINT-2026-W29",
       "estimated_session_size": "M",

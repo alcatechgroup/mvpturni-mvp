@@ -8,7 +8,7 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-077-app-shell
-status: in_progress
+status: in_review
 owner_agent: claude-opus-4-8
 created_at: 2026-06-08
 updated_at: 2026-06-08
@@ -121,12 +121,17 @@ Mover o chrome de topo (título de seção, sino + painel, ação de turno ativo
 
 ### Descobertas
 - O `builder` do `StatefulShellRoute` re-roda no push in-branch e `state.uri` traz a sub-rota completa (probe). Habilita a barra dirigida pela rota sem listener manual.
+- **CAUSA RAIZ de uma maratona no gate E2E (não era o código da estória):** `app_shell/navegacao_test.dart` não chamava `IntegrationTestWidgetsFlutterBinding.ensureInitialized()`. Rodando STANDALONE (`--target=app_shell_test.dart`), o `flutter drive` cai no binding automatizado (FakeAsync) → o HTTP real do login nunca completa ("rota não mudou para /"). Só passava embutido no `web_test.dart` porque `auth_test.main()` roda antes e inicializa o binding. Todos os demais testes de integração já chamam `ensureInitialized` no seu `main()`. **Os arquivos de `integration_test/turnos/*` têm o mesmo gap latente** (rodam só via `web_test.dart`) — relevante p/ STORY-082/validador se quiserem rodá-los isolados.
+- **Toolchain (Flutter 3.44 + Chrome 148 + macOS 26):** (a) o **headless do Chrome 148** trava o `flutter drive` ("Timed out receiving message from renderer") — gate roda **visível** (`E2E_HEADLESS=0`) com Chrome **pinado**; (b) `enterText` na web não preenche de forma confiável (#100393) → `login_helper` usa tap+`testTextInput.enterText`+verificação; (c) o foco via `enterText` dispara "Build scheduled during frame" (ink_well/semântica) → `pump_app` fixa `FocusManager.highlightStrategy = alwaysTouch`. O **app em si carrega normal** no Chrome (login renderiza); o problema era todo de harness/binding/toolchain, comprovado por bisseção (código pré-078 falhava idêntico).
+- O Chrome instalado se auto-atualiza e quebra o gate (drift). Novo alvo de Makefile `e2e-webapp-pinned` baixa Chrome-for-Testing + chromedriver de versão cravada (`CFT_VERSION`, default `148.0.7778.168`) e usa `--chrome-binary` — independente do Chrome da máquina (`make e2e-webapp-pinned`, `E2E_HEADLESS=0` abre na tela, `E2E_TARGET=`, `E2E_USE_PROXY=0`).
 
 ### Bloqueios encontrados
-- 
+- Nenhum bloqueio de produto/arquitetura. A longa investigação do gate E2E foi 100% toolchain/binding (acima), resolvida.
 
 ### Cobertura final
-- Unitários:  / E2E: 
+- **Unitários/widget: 623 verdes** (suíte completa, Flutter 3.44.1). Código novo do shell: `shell_destinations.dart` 100% (incl. `isDestinationRoot`/`sectionTitleFor`), `app_shell_view.dart` ~98%, `app_shell.dart` 58% (resto = callbacks logout/nova-vaga exercitados por E2E), `perfil_screen.dart` ~91%.
+- **E2E:** `app_shell/navegacao_test.dart` (CA-1/CA-2/CA-3/CA-4/CA-6) — **2/2 cenários verdes** (profissional·mobile + contratante·desktop) via `make e2e-webapp-pinned E2E_TARGET=integration_test/app_shell_test.dart E2E_HEADLESS=0`.
 
 ### Links de evidência
-- PR / Pipeline / Deploy homolog: 
+- Commits na `main` (workflow sem PR): série `*(STORY-078)` — helpers, barra do shell, migração das telas, E2E + fix raiz do binding, Makefile do Chrome pinado.
+- Gate E2E navegação verde local (2/2). **Pendente p/ `done`:** rodar o gate completo + deploy homolog + PO confirmar "nenhuma órfã" (CA-7).
