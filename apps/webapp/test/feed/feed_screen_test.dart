@@ -89,6 +89,10 @@ Widget _comRouter(_FakeFeedService svc, {String? filtroInicial}) {
         path: '/login',
         builder: (_, _) => const Scaffold(body: Text('LOGIN')),
       ),
+      GoRoute(
+        path: '/turnos',
+        builder: (_, _) => const Scaffold(body: Text('TURNOS')),
+      ),
     ],
   );
   return MaterialApp.router(theme: buildLightTheme(), routerConfig: router);
@@ -341,6 +345,30 @@ void main() {
         find.byKey(const Key('feed-card-1-candidatar-btn')),
       );
       expect(btn.onPressed, isNull); // desabilitado
+    },
+  );
+
+  testWidgets(
+    'STORY-088 CA-4: banner do gate tem "Avaliar agora" que leva aos Turnos',
+    (tester) async {
+      final svc = _FakeFeedService(
+        handler: (_, _) =>
+            FeedSuccess([_vaga(podeCandidatar: false)], 1, false),
+      );
+      await tester.pumpWidget(_comRouter(svc));
+      await tester.pumpAndSettle();
+
+      // Copy do spec §5 (sem "voltar a").
+      expect(
+        find.text('Avalie seu último turno para se candidatar.'),
+        findsOneWidget,
+      );
+      final cta = find.byKey(const Key('gate-avaliar-btn'));
+      expect(cta, findsOneWidget);
+
+      await tester.tap(cta);
+      await tester.pumpAndSettle();
+      expect(find.text('TURNOS'), findsOneWidget);
     },
   );
 

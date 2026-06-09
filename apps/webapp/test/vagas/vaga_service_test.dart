@@ -40,6 +40,36 @@ void main() {
       );
       expect(await svc.fetchGate(), isNull);
     });
+
+    test('STORY-088: turnoId vem do turno pendente mais antigo (turnos[0])', () async {
+      final svc = VagaService(
+        client: MockClient(
+          (_) async => http.Response(
+            jsonEncode({
+              'pending': 2,
+              'turnos': [
+                {'turno_id': 'turno-7', 'data_fim': '2026-06-01T23:00:00Z'},
+                {'turno_id': 'turno-9', 'data_fim': '2026-06-05T23:00:00Z'},
+              ],
+            }),
+            200,
+          ),
+        ),
+      );
+      final gate = await svc.fetchGate();
+      expect(gate!.turnoId, 'turno-7');
+    });
+
+    test('STORY-088: sem turnos → turnoId null (fail-secure)', () async {
+      final svc = VagaService(
+        client: MockClient(
+          (_) async =>
+              http.Response(jsonEncode({'pending': 0, 'turnos': []}), 200),
+        ),
+      );
+      final gate = await svc.fetchGate();
+      expect(gate!.turnoId, isNull);
+    });
   });
 
   group('fetchFuncoes (CA-4)', () {

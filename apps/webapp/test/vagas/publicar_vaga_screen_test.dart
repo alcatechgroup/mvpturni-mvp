@@ -86,6 +86,15 @@ Widget _comRouter(_FakeVagaService svc) {
         path: '/contratante/vagas',
         builder: (_, s) => _ToastStub(message: s.extra as String?),
       ),
+      GoRoute(
+        path: '/turnos/:id/avaliar',
+        builder: (_, s) =>
+            Scaffold(body: Text('AVALIAR ${s.pathParameters['id']}')),
+      ),
+      GoRoute(
+        path: '/turnos',
+        builder: (_, _) => const Scaffold(body: Text('TURNOS')),
+      ),
     ],
   );
   return MaterialApp.router(theme: buildLightTheme(), routerConfig: router);
@@ -168,6 +177,42 @@ void main() {
         find.byKey(const Key('publicar-vaga-funcao-dropdown')),
         findsNothing,
       );
+    },
+  );
+
+  testWidgets(
+    'STORY-088 CA-4: gate da publicação deep-linka ao turno pendente mais antigo',
+    (tester) async {
+      _entrarContratante();
+      await tester.pumpWidget(
+        _comRouter(
+          _FakeVagaService(
+            gate: const GatePublicacao(pending: 2, turnoId: 'turno-7'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('publicar-vaga-gate-avaliar-btn')));
+      await tester.pumpAndSettle();
+      expect(find.text('AVALIAR turno-7'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'STORY-088 CA-4: gate sem turno_id (fail-secure) cai no destino Turnos',
+    (tester) async {
+      _entrarContratante();
+      await tester.pumpWidget(
+        _comRouter(
+          _FakeVagaService(gate: const GatePublicacao(pending: 1)),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('publicar-vaga-gate-avaliar-btn')));
+      await tester.pumpAndSettle();
+      expect(find.text('TURNOS'), findsOneWidget);
     },
   );
 

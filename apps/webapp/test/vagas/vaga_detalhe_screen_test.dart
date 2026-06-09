@@ -114,6 +114,10 @@ Widget _comRouter(_FakeService svc) {
         path: '/',
         builder: (_, _) => const Scaffold(body: Text('HOME')),
       ),
+      GoRoute(
+        path: '/turnos',
+        builder: (_, _) => const Scaffold(body: Text('TURNOS')),
+      ),
     ],
   );
   return MaterialApp.router(theme: buildLightTheme(), routerConfig: router);
@@ -309,6 +313,27 @@ void main() {
     );
     final btn = find.byKey(const Key('vaga-detalhe-candidatar-btn'));
     expect(tester.widget<FilledButton>(btn).onPressed, isNull);
+  });
+
+  testWidgets('STORY-088 CA-4: banner do detalhe tem "Avaliar agora" → Turnos', (
+    tester,
+  ) async {
+    final svc = _FakeService(
+      result: () => DetalheSuccess(
+        _detalhe(
+          podeCandidatar: false,
+          motivo: 'Avalie seu último turno para se candidatar.',
+        ),
+      ),
+    );
+    await tester.pumpWidget(_comRouter(svc));
+    await tester.pumpAndSettle();
+
+    final cta = find.byKey(const Key('gate-avaliar-btn'));
+    expect(cta, findsOneWidget);
+    await tester.tap(cta);
+    await tester.pumpAndSettle();
+    expect(find.text('TURNOS'), findsOneWidget);
   });
 
   // ───────────────── CA-6 — já candidatou ─────────────────
