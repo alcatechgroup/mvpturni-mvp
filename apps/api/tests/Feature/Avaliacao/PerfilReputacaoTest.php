@@ -7,8 +7,8 @@
 // PROFISSIONAL mostra o estabelecimento (nominal); depoimento sobre o CONTRATANTE NÃO traz o
 // nome do profissional (anônimo).
 
-use App\Models\Avaliacao;
 use App\Enums\TurnoStatus;
+use App\Models\Avaliacao;
 use App\Models\ContratanteProfile;
 use App\Models\ProfissionalProfile;
 use App\Models\Turno;

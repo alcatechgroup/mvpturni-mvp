@@ -58,7 +58,7 @@ function turnoWiring(): Turno
     return $turno;
 }
 
-it('renderiza e envia o e-mail dos 8 tipos sem placeholder faltando (CA-6)', function () {
+it('renderiza e envia o e-mail dos tipos de turno sem placeholder faltando (CA-6)', function () {
     $turno = turnoWiring();
 
     TurnoCriado::dispatch($turno->id);
@@ -70,7 +70,9 @@ it('renderiza e envia o e-mail dos 8 tipos sem placeholder faltando (CA-6)', fun
     TurnoCancelado::dispatch($turno->id, 'emp', 'Evento cancelado');
     TurnoNoShow::dispatch($turno->id);
 
-    // 8 tipos; no_show gera 2 linhas (ambos os lados) → 9 notificações de turno.
+    // 9 tipos de turno; no_show E avaliacao_pendente geram 2 linhas cada (ambos os lados) →
+    // 7 + 2 + 2 = 11 notificações de turno. (STORY-085: TurnoFinalizado passa a também emitir
+    // avaliacao_pendente aos dois lados, além de turno_finalizado ao profissional.)
     $notificacoes = Notificacao::whereNotIn('tipo', [
         NotificacaoTipo::CandidaturaRecebida,
         NotificacaoTipo::VagaEditadaMaterial,
@@ -79,8 +81,8 @@ it('renderiza e envia o e-mail dos 8 tipos sem placeholder faltando (CA-6)', fun
         NotificacaoTipo::VagaEditadaMaterialCandidaturaRetirada,
     ])->get();
 
-    expect($notificacoes)->toHaveCount(9)
-        ->and($notificacoes->pluck('tipo')->unique())->toHaveCount(8);
+    expect($notificacoes)->toHaveCount(11)
+        ->and($notificacoes->pluck('tipo')->unique())->toHaveCount(9);
 
     $envio = app(EnvioEmailNotificacao::class);
 

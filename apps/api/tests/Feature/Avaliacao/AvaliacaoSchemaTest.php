@@ -5,6 +5,7 @@
 // autoavalia (CHECK autor <> avaliado). São à prova de SQL cru, não disciplina de aplicação.
 
 use App\Enums\AvaliacaoDirecao;
+use App\Enums\TurnoStatus;
 use App\Models\Avaliacao;
 use App\Models\Turno;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,14 +38,14 @@ test('migração cria a tabela avaliacoes com as colunas do ADR-019', function (
 });
 
 test('UNIQUE(turno_id, direcao): rejeita a 2ª avaliação na mesma direção do mesmo turno', function () {
-    $turno = Turno::factory()->status(\App\Enums\TurnoStatus::Finalizado)->create();
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
     inserirAvaliacao($turno);
 
     expect(fn () => inserirAvaliacao($turno))->toThrow(Exception::class);
 });
 
 test('UNIQUE(turno_id, direcao): aceita uma avaliação em cada direção do mesmo turno', function () {
-    $turno = Turno::factory()->status(\App\Enums\TurnoStatus::Finalizado)->create();
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
 
     inserirAvaliacao($turno); // contratante → profissional
     inserirAvaliacao($turno, [
@@ -58,27 +59,42 @@ test('UNIQUE(turno_id, direcao): aceita uma avaliação em cada direção do mes
 });
 
 test('CHECK estrelas BETWEEN 1 AND 5: rejeita 0 e 6', function () {
-    $turno = Turno::factory()->status(\App\Enums\TurnoStatus::Finalizado)->create();
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
 
     expect(fn () => inserirAvaliacao($turno, ['estrelas' => 0]))->toThrow(Exception::class);
     expect(fn () => inserirAvaliacao($turno, ['estrelas' => 6]))->toThrow(Exception::class);
 });
 
 test('estrelas é NOT NULL (obrigatória — PDR-005)', function () {
-    $turno = Turno::factory()->status(\App\Enums\TurnoStatus::Finalizado)->create();
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
 
     expect(fn () => inserirAvaliacao($turno, ['estrelas' => null]))->toThrow(Exception::class);
 });
 
 test('CHECK autor <> avaliado: ninguém se autoavalia', function () {
-    $turno = Turno::factory()->status(\App\Enums\TurnoStatus::Finalizado)->create();
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
 
     expect(fn () => inserirAvaliacao($turno, ['avaliado_id' => $turno->contratante_id]))
         ->toThrow(Exception::class);
 });
 
+test('relations do model Avaliacao resolvem turno, autor e avaliado', function () {
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
+    $avaliacao = Avaliacao::create([
+        'turno_id' => $turno->id,
+        'autor_id' => $turno->contratante_id,
+        'avaliado_id' => $turno->profissional_id,
+        'direcao' => AvaliacaoDirecao::ContratanteParaProfissional,
+        'estrelas' => 5,
+    ]);
+
+    expect($avaliacao->turno->id)->toBe($turno->id)
+        ->and($avaliacao->autor->id)->toBe($turno->contratante_id)
+        ->and($avaliacao->avaliado->id)->toBe($turno->profissional_id);
+});
+
 test('Avaliacao usa UUIDv7 e persiste via Eloquent', function () {
-    $turno = Turno::factory()->status(\App\Enums\TurnoStatus::Finalizado)->create();
+    $turno = Turno::factory()->status(TurnoStatus::Finalizado)->create();
 
     $avaliacao = Avaliacao::create([
         'turno_id' => $turno->id,
