@@ -8,10 +8,10 @@ type: implementation
 target_role: programador
 requires_design: true
 design_screen_id: SCREEN-STORY-077-app-shell
-status: in_review
+status: done
 owner_agent: claude-opus-4-8
 created_at: 2026-06-08
-updated_at: 2026-06-08
+updated_at: 2026-06-09
 estimated_session_size: M
 produces_idr: null
 ---
@@ -73,9 +73,9 @@ NÃO decide: quais telas existem (inventário), destinos por papel (DDR-003), CA
 
 ## Definição de Pronto (DoD)
 
-- [ ] CAs passam; testes verdes; cobertura atingida.
-- [ ] Pipeline verde; deploy homolog verificado (PO confirma "nenhuma órfã").
-- [ ] `index.json` atualizado: status = `done`. "Notas do agente" preenchida.
+- [x] CAs passam; testes verdes (623 unit/widget + gate E2E de integração headless); cobertura atingida (≥80% no código novo).
+- [x] Pipeline verde; deploy homolog verificado — `v0.1.0-rc.89` no ar, backend up (login 200). PO (Alexandro) marcou `done`.
+- [x] `index.json` atualizado: status = `done`. "Notas do agente" preenchida.
 
 ## Protocolo do agente (obrigatório)
 
@@ -136,4 +136,5 @@ Mover o chrome de topo (título de seção, sino + painel, ação de turno ativo
 
 ### Links de evidência
 - Commits na `main` (workflow sem PR): série `*(STORY-078)` — helpers, barra do shell, migração das telas, E2E + fix raiz do binding, Makefile do Chrome pinado.
-- Gate E2E navegação verde local (2/2). **Pendente p/ `done`:** rodar o gate completo + deploy homolog + PO confirmar "nenhuma órfã" (CA-7).
+- Gate E2E de integração COMPLETO verde local em headless (menos `checkout`/STORY-082).
+- **Deploy homolog (CA-7): `v0.1.0-rc.89`** no ar em `app.homolog.turni.com.br` (release.yml run 27180827911, jobs verdes incl. "Migrar + seed (homolog)" e smoke pós-deploy). `/version.json` = rc.89; backend up (csrf 204 / login 200). **Gotcha:** o 1º run falhou em "Garantir Cloud SQL ligado" (cold start > 5min do wait); re-run do job (`gh run rerun --failed`) passou — Cloud SQL já RUNNABLE. Estória marcada `done` pelo PO (Alexandro).
