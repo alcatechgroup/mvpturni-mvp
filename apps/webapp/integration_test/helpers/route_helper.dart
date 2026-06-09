@@ -52,7 +52,9 @@ void assertOnRoute(WidgetTester tester, String path) {
 Future<void> awaitRouteChange(
   WidgetTester tester,
   String path, {
-  Duration timeout = const Duration(seconds: 10),
+  // 30s: o build web DEBUG (DDC) carrega módulos sob demanda na 1ª interação
+  // (login), o que pode passar de 10s a frio — sobretudo em Chrome 14x/macOS novos.
+  Duration timeout = const Duration(seconds: 30),
 }) async {
   final deadline = DateTime.now().add(timeout);
   while (currentRoute() != path) {
