@@ -130,6 +130,10 @@ class TurniRetryState extends StatelessWidget {
         ? TurniColors.textMutedDark
         : TurniColors.textMutedLight;
     final cta = accent ?? Theme.of(context).colorScheme.primary;
+    // on-accent segue o tema (tokens §6): acentos claros pareiam com branco;
+    // acentos escuros (todos claros visualmente) pareiam com quase-preto. Antes
+    // era `Colors.white` fixo — reprovava AA no escuro (branco/sage = 2.99:1).
+    final onCta = isDark ? TurniColors.onAccentDark : TurniColors.onAccentLight;
 
     return Center(
       child: Padding(
@@ -160,7 +164,7 @@ class TurniRetryState extends StatelessWidget {
               onPressed: onRetry,
               style: FilledButton.styleFrom(
                 backgroundColor: cta,
-                foregroundColor: Colors.white,
+                foregroundColor: onCta,
                 minimumSize: const Size(0, 48),
                 shape: const StadiumBorder(),
               ),

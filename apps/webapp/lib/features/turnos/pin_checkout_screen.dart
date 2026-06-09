@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../ds/tokens.dart';
+import '../../ds/typography.dart';
 import 'pin_checkin_service.dart'
     show PinCancelEstadoInvalido, PinCancelErro, PinCancelado;
 import 'pin_checkout_service.dart';
@@ -110,7 +110,7 @@ class _PinCheckoutScreenState extends State<PinCheckoutScreen> {
           child: Text(
             widget.pin,
             key: const Key('pin-checkout-codigo'),
-            style: GoogleFonts.jetBrainsMono(
+            style: dsMono(
               fontSize: desktop ? 96 : 72,
               fontWeight: FontWeight.w600,
               letterSpacing: desktop ? 17 : 13, // ~0.18em

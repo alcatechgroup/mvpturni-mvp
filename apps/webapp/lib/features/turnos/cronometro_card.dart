@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
+import '../../ds/typography.dart';
 import '../turno/cronometro_ancora.dart';
 import 'cronometro_service.dart';
 
@@ -361,7 +361,7 @@ class _CronometroCardState extends State<CronometroCard>
                 : CronometroAncora.placeholder(curto: _curto),
             key: const Key('cronometro-display'),
             textAlign: TextAlign.center,
-            style: GoogleFonts.jetBrainsMono(
+            style: dsMono(
               fontSize: largura >= 1024 ? 48 : 40,
               fontWeight: FontWeight.w600,
               color: textStrong,

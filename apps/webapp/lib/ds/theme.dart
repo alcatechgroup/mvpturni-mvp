@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'tokens.dart';
+import 'typography.dart';
 
 // DDR-001: profissional × light — esquema pré-login (verde-sage).
 // ColorScheme.fromSeed + override dos neutros conforme §3.1 e nota de implementação.
@@ -22,7 +22,7 @@ ThemeData buildLightTheme() {
     colorScheme: cs,
     scaffoldBackgroundColor: TurniColors.surfacePageLight,
     useMaterial3: true,
-    textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
+    textTheme: dsTextTheme(ThemeData.light().textTheme),
     cardTheme: const CardThemeData(
       color: TurniColors.surfaceLight,
       elevation: 1,
@@ -52,7 +52,7 @@ ThemeData buildDarkTheme() {
     colorScheme: cs,
     scaffoldBackgroundColor: TurniColors.surfacePageDark,
     useMaterial3: true,
-    textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+    textTheme: dsTextTheme(ThemeData.dark().textTheme),
     cardTheme: const CardThemeData(
       color: TurniColors.surfaceDark,
       elevation: 1,
