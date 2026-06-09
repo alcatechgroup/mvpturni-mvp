@@ -2415,7 +2415,8 @@
         "STORY-081"
       ],
       "created_at": "2026-06-08",
-      "updated_at": "2026-06-09"
+      "updated_at": "2026-06-09",
+      "agent_notes": "Gate de a11y (meetsGuideline nativo, IDR-030) no CI + sistemico de contraste (branco-sobre-accent no escuro = 2.99:1) corrigido nas 9 telas via TurniColors.onAccentFor; tokens errorInk{Light,Dark}. CA-4 microcopy do vazio de candidatos corrigida (PO). Escopo ajustado pelo dono 2026-06-09: CA-2 fora do MVP; restante de CA-1/CA-3 (PIN/cronometro + telas pesadas + amostragem manual) adiado. Falta CA-7 deploy homolog."
     },
     {
       "id": "STORY-081",

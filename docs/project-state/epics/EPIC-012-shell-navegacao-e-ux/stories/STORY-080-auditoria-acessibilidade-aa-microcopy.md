@@ -37,12 +37,14 @@ Acessibilidade não é "modo à parte" — é a única forma de o produto ser us
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Contraste **WCAG AA** (4.5:1 texto normal / 3:1 texto grande e ícone) verde em todas as telas autenticadas do WebApp, nos dois temas — evidência do gate automatizado + amostragem manual.
-- [ ] **CA-2:** Navegação por **teclado** funciona em todas as telas tocadas (tab order lógico, foco sempre visível, sem armadilha de foco).
-- [ ] **CA-3:** Alvos de toque **≥48dp** em ações primárias e itens de navegação; ícone-só como ação tem **label acessível**.
-- [ ] **CA-4:** Mensagens de erro associadas ao campo (não só cor); microcopy revisada em pt-BR (DDR-002) sem termos técnicos crus.
-- [ ] **CA-5:** O **gate automatizado de acessibilidade** (axe/lighthouse — `quality-standards.md`) roda no CI para as telas do WebApp e está verde; regressão futura passa a ser pega pelo gate.
-- [ ] **CA-6:** Correções não introduzem regressão funcional (suítes existentes verdes); mudanças de microcopy de domínio que exijam decisão de produto são escaladas ao PO, não decididas no código.
+> **Ajuste de escopo do dono (Alexandro, 2026-06-09):** CA-2 sai do MVP; o **restante** de CA-1/CA-3 (auditar PIN/cronômetro e as telas de harness pesado + amostragem manual no browser) fica **adiado** — não agora. O sistêmico de contraste foi corrigido nas 9 telas mesmo assim.
+
+- [~] **CA-1 (PARCIAL — restante adiado):** Contraste **WCAG AA** verde — sistêmico de CTA/chips/erro corrigido nas 9 telas e gate verde em 6 superfícies (DS, shell, Perfil, Feed, Minhas vagas, Turnos). **Adiado:** gate dedicado de vaga_detalhe/publicar/editar/painel/turno_detalhe + auditoria de PIN/cronômetro + amostragem manual.
+- [—] **CA-2 (FORA DO ESCOPO MVP):** navegação por teclado — descopado pelo dono em 2026-06-09.
+- [~] **CA-3 (PARCIAL — junto com CA-1):** alvo ≥48dp + label de ícone — verificado nas 6 superfícies do gate; restante adiado com CA-1.
+- [x] **CA-4:** Mensagens de erro associadas ao campo (não só cor) — já por construção (`errorText`/`validator`), coberto por testes; microcopy revisada — resíduo "Member Start:" do vazio de candidatos corrigido com texto aprovado pelo PO.
+- [x] **CA-5:** **Gate automatizado de acessibilidade** roda no CI (`flutter test test/a11y/`) e está verde; regressão futura é pega pelo gate. (Via `meetsGuideline` nativo, não axe/lighthouse — IDR-030.)
+- [x] **CA-6:** Sem regressão — suíte completa verde (660); microcopy de domínio escalada ao PO, não decidida no código.
 - [ ] **CA-7:** Deploy homologação verificado.
 
 ## Fora de escopo
@@ -131,14 +133,14 @@ NÃO decide: copy de domínio que mude significado (PO), alvo de conformidade (A
 - **Gate a11y verde** (`test/a11y/`, 24 casos): DS components, shell (3 breakpoints × 2 perfis × 2 temas), Perfil, Feed, Minhas vagas, Turnos (2 papéis). Roda no CI (step novo) e no pré-push.
 - **Fix sistêmico aplicado nas 9 telas** (verificado por suíte completa + analyze). Gate dedicado ainda **pendente** para: publicar_vaga, editar_vaga, vaga_detalhe, painel_candidatos, turno_detalhe (harness de serviço mais pesado) e PIN/cronômetro (ainda não auditados).
 
-### Progresso por CA
-- CA-1 (contraste AA): **sistêmico corrigido nas 9 telas**; gate verde em 6 superfícies. Falta gate dedicado nas telas pesadas + PIN/cronômetro + amostragem manual no browser.
-- CA-2 (teclado): **pendente** (cenário E2E `integration_test`) — adiado a pedido.
-- CA-3 (alvo ≥48dp + label): gate operante; shell/listas verdes. Falta gate nas telas pesadas.
-- CA-4 (erro associado a campo + microcopy): **pendente** — adiado a pedido.
+### Progresso por CA (após ajuste de escopo do dono em 2026-06-09)
+- CA-1 (contraste AA): **PARCIAL** — sistêmico corrigido nas 9 telas; gate verde em 6 superfícies. Restante (telas pesadas + PIN/cronômetro + amostragem manual) **adiado pelo dono**.
+- CA-2 (teclado): **FORA DO ESCOPO MVP** (dono, 2026-06-09).
+- CA-3 (alvo ≥48dp + label): **PARCIAL** — verificado nas 6 superfícies; restante adiado com CA-1.
+- CA-4 (erro associado a campo + microcopy): **FEITO** — errorText/validator (coberto por testes) + microcopy do vazio de candidatos corrigida (texto aprovado pelo PO).
 - CA-5 (gate no CI): **FEITO** — step no `ci.yml` + IDR-030.
-- CA-6 (sem regressão): suíte completa verde.
-- CA-7 (deploy homolog): **pendente** (story segue in_progress).
+- CA-6 (sem regressão): **FEITO** — suíte completa verde (660).
+- CA-7 (deploy homolog): pendente.
 
 ### Links de evidência
 - Commits (main, local — ainda não push): assume; gate offline + retry; gate shell+Perfil; fix feed+minhas; fix 6 telas (20 sites); fix botões verde/destrutivos; CI gate + IDR-030; gate turnos.
