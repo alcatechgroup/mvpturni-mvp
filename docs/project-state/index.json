@@ -2479,8 +2479,9 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "in_review",
+      "owner_agent": "claude-opus-4-8-programador-2026-06-09",
+      "produces_idr": "IDR-031",
       "sprint_id": "SPRINT-2026-W30",
       "estimated_session_size": "S",
       "path": "epics/EPIC-003-aceite-pin-e-pix/stories/STORY-082-deflake-cronometro-e-housekeeping-indice.md",
@@ -3954,6 +3955,16 @@
         "note": "pix_falhas guarda snapshot operacional + chave Pix cifrada com segredo dedicado (PIX_FALHA_CHAVE_KEY) compartilhado entre api/worker (escreve) e admin (lê p/ tratamento manual) — as APP_KEYs dos 2 apps são distintas. Espírito da ADR-009 5A (chave dedicada nunca implementada no EPIC-001). Cast ChavePixCompartilhada espelhado nos 2 apps; linha indecifrável degrada p/ 'chave não cadastrada' sem derrubar a fila."
       },
       {
+        "id": "IDR-029",
+        "title": "Shell de navegação com StatefulShellRoute.indexedStack + composição adaptativa manual",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-029-shell-statefulshellroute-e-composicao-adaptativa.md",
+        "decided_at": "2026-06-08",
+        "decided_by": "programador",
+        "source_story": "STORY-077",
+        "note": "Rotas autenticadas envolvidas em StatefulShellRoute.indexedStack (3 branches Vagas/Turnos/Perfil); superfície adaptativa composta à mão (NavigationBar + NavigationRail nativos + sidebar custom) em vez de NavigationSuiteScaffold; o shell entrega só navegação (telas mantêm AppBar/sino nesta estória). Preserva deep-links, funnel guard (ADR-009) e os E2E. Indexado tardiamente na STORY-082 (F-NB-4 do veredito do EPIC-012)."
+      },
+      {
         "id": "IDR-030",
         "title": "Gate de acessibilidade via meetsGuideline nativo do Flutter (não axe/lighthouse)",
         "status": "accepted",
@@ -3962,6 +3973,16 @@
         "decided_by": "programador",
         "source_story": "STORY-080",
         "note": "WebApp é Flutter canvas-rendered → axe/lighthouse dariam verde falso. Gate de a11y = matchers nativos (textContrast/androidTapTarget/labeledTapTarget) em `flutter test test/a11y/`, sem browser/banco, rodando na CI leve. Seam de tipografia (dsTextTheme/dsMono em lib/ds/typography.dart, ligado por test/flutter_test_config.dart) deixa a suíte offline/determinística. CTA com accent usa TurniColors.onAccentFor(brightness); texto de erro usa errorInk{Light,Dark}. NavigationRail desktop fica em 44dp (aceito WCAG 2.1 AA) via iOSTapTargetGuideline; demais superfícies 48dp."
+      },
+      {
+        "id": "IDR-031",
+        "title": "Medição da sincronia bilateral do cronômetro por skew local + diferença de medianas (modo-comum)",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-031-medicao-de-sincronia-do-cronometro-por-skew-modo-comum.md",
+        "decided_at": "2026-06-09",
+        "decided_by": "programador",
+        "source_story": "STORY-082",
+        "note": "Deflake do E2E gate do cronômetro (F-B-1). A forma antiga comparava o display do app (que carrega o erro de offset do próprio poll, ADR-017) contra um servidor_agora buscado fresco a cada amostra, tolerância ≤1s — media a latência do build debug sob carga, não a sincronia. Forma nova: skew_local = display − (agoraCliente − iniciadoEm) = −offset; veredito = |median(skew_pro) − median(skew_contr)| ≤ 2s. Os dois lados na mesma máquina contra a mesma âncora → skew de relógio e lentidão de ambiente são modo-comum e cancelam; a mediana rejeita o pico transitório que flakeava. Âncora lida 1×/lado (imutável enquanto ativo) → sem rede no laço de amostragem. Premissa: harness single-host (IDR-021); multi-host exigiria revisitar."
       }
     ],
     "ddr": [
@@ -4073,7 +4094,7 @@
         "id": "SCREEN-STORY-077-app-shell",
         "story": "STORY-076",
         "epic": "EPIC-012",
-        "status": "ready",
+        "status": "shipped",
         "path": "design/screens/SCREEN-STORY-077-app-shell/index.html",
         "viewports": [
           "mobile",

@@ -5,10 +5,17 @@
 // SAME-ORIGIN sob o harness (proxy reverso + --web-launch-url) — fluxo autenticado.
 import 'turnos/avaliar_turno_test.dart' as avaliar_turno;
 import 'turnos/cancelar_turno_test.dart' as cancelar_turno;
-// STORY-082: a suíte `checkout` tem flake estrutural (pendura ~8-9 min, gate de
-// release — veredito W28 F-B-1). DESATIVADA no gate por decisão explícita do PO
-// (Alexandro) até a STORY-082 estabilizar a medição. Reativar removendo o
-// comentário do import + `checkout.main()` abaixo.
+// STORY-082: `checkout` segue FORA do gate. Dois flakes ESTRUTURAIS foram corrigidos no
+// checkout_test.dart (deflake parcial): (1) a pendura de ~8-9 min — `pumpAndSettle` com
+// timer periódico vivo (tick do cronômetro / polling) nunca assenta e estoura no timeout
+// de 10 min → trocado por `_assenta` bombeado; (2) "multiple heroes share the same tag" —
+// SnackBar do passo anterior vivo durante o `pumpApp` → gate `_semSnackBar` antes de
+// remontar. RESÍDUO (NÃO estrutural, fora do escopo da STORY-082): o check-out rejeita o
+// PIN capturado na phase 2 como "PIN inválido" na phase 3 (mismatch capturado→validado);
+// o teste passava 5/5 antes da migração do shell (STORY-077) — provável regressão de
+// navegação/estado do detalhe OU semântica de TTL/regeneração do PIN. Precisa de
+// investigação de backend (própria estória). Por isso `checkout` continua DESATIVADO aqui.
+// Reativar no gate só após sanar o resíduo: descomentar o import + `checkout.main()`.
 // import 'turnos/checkout_test.dart' as checkout;
 import 'turnos/cronometro_test.dart' as cronometro;
 import 'turnos/detalhe_turno_test.dart' as detalhe_turno;

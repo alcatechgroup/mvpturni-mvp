@@ -1,6 +1,19 @@
 // integration_test — STORY-064 (E2E browser real: ciclo completo do turno, CA-8)
 // + STORY-065 (ciclo FINANCEIRO: captura + Pix — CA-4/CA-7).
 //
+// STATUS (STORY-082): DESATIVADO no gate (ver turnos_test.dart) — RODÁVEL SOB DEMANDA via
+// entrypoint top-level que inicialize o binding (imports `../helpers` não resolvem mirando
+// o leaf direto — IDR-021):
+//   printf "import 'package:integration_test/integration_test.dart';\n%s\n%s\n" \
+//     "import 'turnos/checkout_test.dart' as c;" \
+//     "void main(){IntegrationTestWidgetsFlutterBinding.ensureInitialized();c.main();}" \
+//     > integration_test/_checkout_solo_test.dart
+//   make e2e-webapp-pinned E2E_TARGET=integration_test/_checkout_solo_test.dart
+// A STORY-082 sanou 2 flakes ESTRUTURAIS (pendura por `pumpAndSettle`+timer → `_assenta`;
+// colisão de Hero do SnackBar no `pumpApp` → `_semSnackBar`), mas RESTA um resíduo NÃO
+// estrutural fora do seu escopo: o check-out rejeita o PIN da phase 2 como inválido na
+// phase 3 (passava 5/5 antes do shell da STORY-077 — provável regressão de navegação/PIN).
+//
 // Same-origin (proxy + --web-launch-url, IDR-021) contra o BACKEND REAL, com o par
 // exclusivo `*.checkout.seed` (turno `confirmado` dentro da janela de check-in).
 // UM cenário percorre o ciclo inteiro `confirmado → finalizado → Pix enviado`,
@@ -46,6 +59,34 @@ final _cardDeTurno = find.byWidgetPredicate((w) {
 Finder _cardComEstado(String estadoLabel) =>
     find.ancestor(of: find.text(estadoLabel), matching: _cardDeTurno).first;
 
+/// Assenta transições/microtasks SEM exigir quiescência TOTAL. `pumpAndSettle` PENDURA
+/// quando há timer periódico vivo na tela (tick do cronômetro a cada 1s, polling do
+/// detalhe e do Pix) — ele só retorna quando NÃO há frame agendado, e o timer reagenda
+/// pra sempre, estourando no timeout default de 10 min. Essa é a causa-raiz do flake
+/// estrutural do checkout (STORY-082 / F-B-1: "pendura ~8–9 min sem produzir resultado").
+/// Aqui bombeamos uma janela curta e fixa (flush de navegação/setState); quem espera a
+/// condição REAL é o `pumpUntilFound`/`_pumpUntil` logo abaixo de cada chamada.
+Future<void> _assenta(WidgetTester tester) async {
+  for (var i = 0; i < 8; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
+/// Espera (tempo real, bounded) qualquer SnackBar sumir ANTES de remontar o app.
+/// `pumpApp` troca o MaterialApp inteiro; se um SnackBar do passo anterior (ex.: o de
+/// "Check-in validado — turno iniciado.", cujo Text é keyado) ainda estiver vivo, o Hero
+/// que o Material cria para ele colide com o do app novo durante a transição inicial →
+/// "multiple heroes share the same tag" (StatefulElement DEFUNCT). O SnackBar some sozinho
+/// (timer ~4s); `pumpAndSettle` penduraria nesse timer + no do cronômetro. Best-effort:
+/// não falha se estourar o teto (o teste real falha adiante se algo estiver mesmo preso).
+Future<void> _semSnackBar(WidgetTester tester) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 8));
+  while (find.byType(SnackBar).evaluate().isNotEmpty) {
+    if (DateTime.now().isAfter(deadline)) break;
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
 /// Pumpa até [cond] (ou estoura [timeout]) — para condições de estado.
 Future<void> _pumpUntil(
   WidgetTester tester,
@@ -64,15 +105,16 @@ Future<void> _pumpUntil(
 
 /// Loga o PROFISSIONAL e navega até a lista de turnos dele.
 Future<void> _proAteOsTurnos(WidgetTester tester) async {
+  await _semSnackBar(tester);
   await pumpApp(tester);
   assertOnRoute(tester, '/login');
   await loginAs(tester, email: _profissionalSeed, password: _senha);
   await awaitRouteChange(tester, '/');
-  await tester.pumpAndSettle();
+  await _assenta(tester);
   await pumpUntilFound(tester, find.byKey(const Key('feed-screen')));
 
   await goToTurnos(tester, profissional: true);
-  await tester.pumpAndSettle();
+  await _assenta(tester);
   await pumpUntilFound(tester, find.byKey(const Key('meus-turnos-screen')));
 }
 
@@ -81,11 +123,12 @@ Future<void> _contratanteAteODetalhe(
   WidgetTester tester,
   String estadoLabel,
 ) async {
+  await _semSnackBar(tester);
   await pumpApp(tester);
   assertOnRoute(tester, '/login');
   await loginAs(tester, email: _contratanteSeed, password: _senha);
   await awaitRouteChange(tester, '/');
-  await tester.pumpAndSettle();
+  await _assenta(tester);
   await pumpUntilFound(tester, find.byKey(const Key('minhas-vagas-screen')));
 
   await goToTurnos(tester, profissional: false);
@@ -96,7 +139,7 @@ Future<void> _contratanteAteODetalhe(
   );
 
   await tester.tap(_cardComEstado(estadoLabel));
-  await tester.pumpAndSettle();
+  await _assenta(tester);
   await pumpUntilFound(tester, find.byKey(const Key('turno-detalhe-screen')));
 }
 
@@ -151,7 +194,7 @@ void main() {
       await tester.tap(
         _cardComEstado(confirmado ? 'Confirmado' : 'Aguardando check-in'),
       );
-      await tester.pumpAndSettle();
+      await _assenta(tester);
       await pumpUntilFound(
         tester,
         find.byKey(const Key('turno-detalhe-screen')),
@@ -173,7 +216,7 @@ void main() {
           .data!;
       expect(pinCheckin, matches(RegExp(r'^\d{4}$')));
       await tester.tap(find.byKey(const Key('pin-checkin-voltar')).first);
-      await tester.pumpAndSettle();
+      await _assenta(tester);
 
       // ── 1b. CONTRATANTE valida o check-in (062) → ativo ──
       await _contratanteAteODetalhe(tester, 'Aguardando check-in');
@@ -192,14 +235,14 @@ void main() {
         find.text('Check-in validado'),
         timeout: const Duration(seconds: 20),
       );
-      await tester.pumpAndSettle();
+      await _assenta(tester);
       // Cronômetro vivo nos dois lados a partir daqui (063).
       await pumpUntilFound(tester, find.byKey(const Key('cronometro-card')));
 
       // ── 2. PROFISSIONAL gera o PIN de check-out (CA-1/CA-2) ──
       await _proAteOsTurnos(tester);
       await tester.tap(_cardComEstado('Em andamento'));
-      await tester.pumpAndSettle();
+      await _assenta(tester);
       await pumpUntilFound(
         tester,
         find.byKey(const Key('turno-detalhe-screen')),
@@ -224,7 +267,7 @@ void main() {
       expect(find.byKey(const Key('pin-checkin-geo-nota')), findsNothing);
 
       await tester.tap(find.byKey(const Key('pin-checkout-voltar')).first);
-      await tester.pumpAndSettle();
+      await _assenta(tester);
 
       // CA-6 — cronômetro congelado com a microcopy aprovada da 064.
       await pumpUntilFound(
@@ -263,7 +306,7 @@ void main() {
         find.text('Check-out validado'),
         timeout: const Duration(seconds: 20),
       );
-      await tester.pumpAndSettle();
+      await _assenta(tester);
 
       // CA-3/CA-6/CA-7 — estado final: badge, cronômetro final e trilha.
       expect(
@@ -289,7 +332,7 @@ void main() {
       // `pix.enviado`; a linha do card troca via polling silencioso (10s/tick).
       await _proAteOsTurnos(tester);
       await tester.tap(_cardComEstado('Finalizado'));
-      await tester.pumpAndSettle();
+      await _assenta(tester);
       await pumpUntilFound(
         tester,
         find.byKey(const Key('turno-detalhe-screen')),
