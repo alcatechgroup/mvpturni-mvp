@@ -3,9 +3,11 @@
 // STORY-055 / ADR-015 (CA-7) — o TurnosSeeder cria um turno em cada um dos 11 estados,
 // é idempotente e anexa aceite imutável a cada turno. Production-safe: sem factories.
 
+use App\Enums\TipoOperacaoPagamento;
 use App\Enums\TurnoStatus;
 use App\Models\AceiteEletronicoTurno;
 use App\Models\AuditLog;
+use App\Models\PagamentoOperacao;
 use App\Models\Template;
 use App\Models\Turno;
 use App\Models\User;
@@ -49,15 +51,16 @@ test('seeder cria exatamente um turno em cada um dos 11 estados', function () {
 
 test('seeder anexa um aceite imutável a cada turno', function () {
     seedTurnosComDependencias();
-    // 11 do universo turnos.seed + turno PIN (061) + turno validar (062) + turno cronômetro (063).
-    expect(AceiteEletronicoTurno::count())->toBe(18);
+    // 11 do universo turnos.seed + PIN (061) + validar (062) + cronômetro (063) + checkout (064)
+    // + cancelar-pro/emp + no-show (066) + disputa (094).
+    expect(AceiteEletronicoTurno::count())->toBe(19);
 });
 
 test('seeder é idempotente (rodar 2x não duplica)', function () {
     seedTurnosComDependencias();
     test()->seed(TurnosSeeder::class);
     expect(turnosDoSeedPrincipal()->count())->toBe(11)
-        ->and(Turno::count())->toBe(18); // + PIN (061) + validar (062) + cronômetro (063) + checkout (064) + cancelar-pro/emp + no-show (066)
+        ->and(Turno::count())->toBe(19); // + PIN (061) + validar (062) + cronômetro (063) + checkout (064) + cancelar-pro/emp + no-show (066) + disputa (094)
 });
 
 test('o turno confirmado do seed demonstra o override de habitualidade (PJ)', function () {
@@ -328,4 +331,47 @@ test('STORY-066: cron transita o no-show seed e o turno consumido é recriado ve
                 ->where('status', TurnoStatus::Confirmado)->first()
                 ->data_inicio->isBefore(now()->subHours(2)),
         )->toBeTrue();
+});
+
+// ──────────────────────────────────────────────────────────────
+// STORY-094 — par de disputa em aguardando_checkout
+// ──────────────────────────────────────────────────────────────
+
+test('STORY-094: seeder cria o turno em aguardando_checkout com usuários exclusivos *.disputa.seed', function () {
+    seedTurnosComDependencias();
+
+    $pro = User::where('email', 'profissional.disputa.seed@turni.local')->first();
+    expect($pro)->not->toBeNull();
+
+    $turno = Turno::where('profissional_id', $pro->id)->first();
+    expect($turno)->not->toBeNull()
+        ->and($turno->status)->toBe(TurnoStatus::AguardandoCheckout)
+        ->and($turno->check_in_at)->not->toBeNull()
+        ->and($turno->aceite)->not->toBeNull()
+        // Pré-autorização sintética mantida (a disputa NÃO libera o bloqueio — ADR-020).
+        ->and(
+            PagamentoOperacao::where('turno_id', $turno->id)
+                ->where('tipo_operacao', TipoOperacaoPagamento::PreAutorizacao)->exists(),
+        )->toBeTrue();
+});
+
+test('STORY-094: turno disputa consumido (em_disputa) → reseed cria um NOVO aguardando_checkout', function () {
+    seedTurnosComDependencias();
+
+    $pro = User::where('email', 'profissional.disputa.seed@turni.local')->first();
+    $consumido = Turno::where('profissional_id', $pro->id)->first();
+    // E2E abriu a disputa: aguardando_checkout → em_disputa (não volta — máquina de estados).
+    $consumido->transitionTo(TurnoStatus::EmDisputa);
+
+    test()->seed(TurnosSeeder::class);
+
+    $turnos = Turno::where('profissional_id', $pro->id)->orderBy('id')->get();
+    expect($turnos)->toHaveCount(2)
+        ->and($turnos[0]->status)->toBe(TurnoStatus::EmDisputa)            // histórico fica
+        ->and($turnos[1]->status)->toBe(TurnoStatus::AguardandoCheckout)   // novo, pronto p/ E2E
+        ->and($turnos[1]->aceite)->not->toBeNull();
+
+    // Reseed seguinte só renova a janela do novo (não duplica).
+    test()->seed(TurnosSeeder::class);
+    expect(Turno::where('profissional_id', $pro->id)->count())->toBe(2);
 });

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:turni_webapp/ds/theme.dart';
+import 'package:turni_webapp/features/turnos/abrir_disputa_service.dart';
 import 'package:turni_webapp/features/turnos/cronometro_service.dart';
 import 'package:turni_webapp/features/turnos/turno_detalhe_screen.dart';
 import 'package:turni_webapp/features/turnos/turno_detalhe_service.dart';
@@ -63,6 +64,17 @@ class _FakeValidarCheckoutService extends ValidarCheckoutService {
   }
 }
 
+class _FakeAbrirDisputaService extends AbrirDisputaService {
+  AbrirDisputaResult Function(String justificativa)? aoAbrir;
+  final justificativas = <String>[];
+
+  @override
+  Future<AbrirDisputaResult> abrir(String turnoId, String justificativa) async {
+    justificativas.add(justificativa);
+    return aoAbrir!(justificativa);
+  }
+}
+
 TurnoDetalhe _turnoContratante({String estadoRaw = 'aguardando_checkout'}) =>
     TurnoDetalhe(
       id: 'u1',
@@ -96,7 +108,11 @@ TurnoDetalhe _turnoProfissionalAguardando() => TurnoDetalhe(
   timeline: const [],
 );
 
-Widget _app(_FakeDetalheService svc, _FakeValidarCheckoutService validar) {
+Widget _app(
+  _FakeDetalheService svc,
+  _FakeValidarCheckoutService validar, {
+  _FakeAbrirDisputaService? disputa,
+}) {
   final router = GoRouter(
     initialLocation: '/turnos/u1',
     routes: [
@@ -106,6 +122,7 @@ Widget _app(_FakeDetalheService svc, _FakeValidarCheckoutService validar) {
           turnoId: 'u1',
           service: svc,
           validarCheckoutService: validar,
+          abrirDisputaService: disputa ?? _FakeAbrirDisputaService(),
           cronometroService: _FakeCronoService(),
         ),
       ),
@@ -303,8 +320,48 @@ void main() {
     await _desmonta(tester);
   });
 
+  // STORY-094 — a entrada "Recusar check-out" abre a FOLHA de desambiguação (SCREEN-091
+  // §3.1), não o antigo dialog de recusa direto.
   testWidgets(
-    'CA-5: recusa abre dialog; confirmar com motivo → service recebe e recarrega',
+    'CA-1: "Recusar check-out" abre a folha de desambiguação com os dois ramos',
+    (tester) async {
+      final svc = _FakeDetalheService(
+        () => TurnoDetalheSuccess(_turnoContratante()),
+      );
+      await _monta(tester, _app(svc, _FakeValidarCheckoutService()));
+
+      expect(
+        find.text('Não vai validar agora? Recusar check-out'),
+        findsOneWidget,
+      );
+      await tester.ensureVisible(find.byKey(const Key('recusar-checkout-btn')));
+      await tester.tap(find.byKey(const Key('recusar-checkout-btn')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byKey(const Key('disputa-intencao-sheet')), findsOneWidget);
+      expect(find.text('Por que não vai validar?'), findsOneWidget);
+      expect(find.byKey(const Key('disputa-intencao-ativo')), findsOneWidget);
+      expect(
+        find.byKey(const Key('disputa-intencao-problema')),
+        findsOneWidget,
+      );
+      // Continuar começa desabilitado (nenhuma intenção escolhida — §4.1).
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.byKey(const Key('disputa-intencao-continuar')),
+            )
+            .enabled,
+        isFalse,
+      );
+
+      await _desmonta(tester);
+    },
+  );
+
+  testWidgets(
+    'folha "ainda não terminou" → recusar() sem motivo → ativo e recarrega',
     (tester) async {
       var estadoRaw = 'aguardando_checkout';
       final svc = _FakeDetalheService(
@@ -322,26 +379,14 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.byKey(const Key('recusar-checkout-dialog')), findsOneWidget);
-      expect(find.text('Recusar check-out?'), findsOneWidget);
-      expect(
-        find.text(
-          'O PIN atual deixa de valer e o turno volta para "Ativo" — o tempo '
-          'continua contando. O profissional poderá gerar um novo PIN.',
-        ),
-        findsOneWidget,
-      );
-
-      await tester.enterText(
-        find.byKey(const Key('recusar-checkout-motivo-input')),
-        'O turno ainda não terminou',
-      );
-      await tester.tap(find.byKey(const Key('recusar-checkout-confirmar-btn')));
+      await tester.tap(find.byKey(const Key('disputa-intencao-ativo')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('disputa-intencao-continuar')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(validar.motivosRecusados, ['O turno ainda não terminou']);
-      // Recarregou: validação saiu (turno voltou a ativo).
+      // Recusa benigna não manda motivo (campo removido — §3.1).
+      expect(validar.motivosRecusados, [null]);
       await tester.pump();
       expect(find.byKey(const Key('validar-checkout-area')), findsNothing);
 
@@ -349,30 +394,171 @@ void main() {
     },
   );
 
-  testWidgets('erro na recusa → erro inline no dialog; dialog não fecha', (
-    tester,
-  ) async {
-    final svc = _FakeDetalheService(
-      () => TurnoDetalheSuccess(_turnoContratante()),
-    );
-    final validar = _FakeValidarCheckoutService()
-      ..aoRecusar = (_) => RecusaErro();
-    await _monta(tester, _app(svc, validar));
+  testWidgets(
+    'CA-2: ramo disputa abre o diálogo; confirmar desabilitado sem justificativa',
+    (tester) async {
+      final svc = _FakeDetalheService(
+        () => TurnoDetalheSuccess(_turnoContratante()),
+      );
+      final disputa = _FakeAbrirDisputaService()
+        ..aoAbrir = (_) => AbrirDisputaOk('em_disputa');
+      await _monta(
+        tester,
+        _app(svc, _FakeValidarCheckoutService(), disputa: disputa),
+      );
 
-    await tester.ensureVisible(find.byKey(const Key('recusar-checkout-btn')));
-    await tester.tap(find.byKey(const Key('recusar-checkout-btn')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+      await tester.ensureVisible(find.byKey(const Key('recusar-checkout-btn')));
+      await tester.tap(find.byKey(const Key('recusar-checkout-btn')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.byKey(const Key('recusar-checkout-confirmar-btn')));
-    await tester.pump();
-    await tester.pump();
+      await tester.tap(find.byKey(const Key('disputa-intencao-problema')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('disputa-intencao-continuar')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.byKey(const Key('recusar-checkout-erro')), findsOneWidget);
-    expect(find.byKey(const Key('recusar-checkout-dialog')), findsOneWidget);
+      expect(find.byKey(const Key('abrir-disputa-dialog')), findsOneWidget);
+      expect(find.text('Abrir disputa deste turno?'), findsOneWidget);
+      // Confirmar desabilitado enquanto vazio; tocar não chama a API (CA-2).
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.byKey(const Key('abrir-disputa-confirmar-btn')),
+            )
+            .enabled,
+        isFalse,
+      );
+      await tester.tap(find.byKey(const Key('abrir-disputa-confirmar-btn')));
+      await tester.pump();
+      expect(disputa.justificativas, isEmpty);
 
-    await _desmonta(tester);
-  });
+      await _desmonta(tester);
+    },
+  );
+
+  testWidgets(
+    'CA-3: justificativa válida → abre disputa, snackbar de sucesso e em_disputa',
+    (tester) async {
+      var estadoRaw = 'aguardando_checkout';
+      final svc = _FakeDetalheService(
+        () => TurnoDetalheSuccess(_turnoContratante(estadoRaw: estadoRaw)),
+      );
+      final disputa = _FakeAbrirDisputaService()
+        ..aoAbrir = (_) {
+          estadoRaw = 'em_disputa';
+          return AbrirDisputaOk('em_disputa');
+        };
+      await _monta(
+        tester,
+        _app(svc, _FakeValidarCheckoutService(), disputa: disputa),
+      );
+
+      await tester.ensureVisible(find.byKey(const Key('recusar-checkout-btn')));
+      await tester.tap(find.byKey(const Key('recusar-checkout-btn')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.byKey(const Key('disputa-intencao-problema')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('disputa-intencao-continuar')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      await tester.enterText(
+        find.byKey(const Key('abrir-disputa-justificativa-input')),
+        'Saiu 40 min antes do fim combinado.',
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('abrir-disputa-confirmar-btn')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(disputa.justificativas, ['Saiu 40 min antes do fim combinado.']);
+      expect(find.byKey(const Key('abrir-disputa-sucesso')), findsOneWidget);
+      // Recarregou em em_disputa: área de validação sai; banner sóbrio aparece.
+      await tester.pump();
+      expect(find.byKey(const Key('validar-checkout-area')), findsNothing);
+      expect(
+        find.byKey(const Key('disputa-contratante-banner')),
+        findsOneWidget,
+      );
+
+      await _desmonta(tester);
+    },
+  );
+
+  testWidgets(
+    'CA-4: erro de envio da disputa → erro inline; diálogo não fecha e mantém o texto',
+    (tester) async {
+      final svc = _FakeDetalheService(
+        () => TurnoDetalheSuccess(_turnoContratante()),
+      );
+      final disputa = _FakeAbrirDisputaService()
+        ..aoAbrir = (_) => AbrirDisputaErro();
+      await _monta(
+        tester,
+        _app(svc, _FakeValidarCheckoutService(), disputa: disputa),
+      );
+
+      await tester.ensureVisible(find.byKey(const Key('recusar-checkout-btn')));
+      await tester.tap(find.byKey(const Key('recusar-checkout-btn')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.byKey(const Key('disputa-intencao-problema')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('disputa-intencao-continuar')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      await tester.enterText(
+        find.byKey(const Key('abrir-disputa-justificativa-input')),
+        'Problema no turno',
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('abrir-disputa-confirmar-btn')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byKey(const Key('abrir-disputa-erro')), findsOneWidget);
+      expect(find.byKey(const Key('abrir-disputa-dialog')), findsOneWidget);
+      // Texto preservado (CA-4 — não perde a justificativa).
+      expect(
+        tester
+            .widget<TextField>(
+              find.byKey(const Key('abrir-disputa-justificativa-input')),
+            )
+            .controller!
+            .text,
+        'Problema no turno',
+      );
+
+      await _desmonta(tester);
+    },
+  );
+
+  testWidgets(
+    'contratante em em_disputa: read-only — banner sóbrio, sem validar/recusar',
+    (tester) async {
+      final svc = _FakeDetalheService(
+        () => TurnoDetalheSuccess(_turnoContratante(estadoRaw: 'em_disputa')),
+      );
+      await _monta(tester, _app(svc, _FakeValidarCheckoutService()));
+
+      expect(
+        find.byKey(const Key('disputa-contratante-banner')),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Disputa em análise — você será avisado da decisão.'),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('validar-checkout-area')), findsNothing);
+      expect(find.byKey(const Key('recusar-checkout-btn')), findsNothing);
+      expect(find.text('Nenhuma ação disponível no momento'), findsNothing);
+
+      await _desmonta(tester);
+    },
+  );
 
   testWidgets(
     'RBAC visual: profissional em aguardando_checkout vê a geração (não a validação)',

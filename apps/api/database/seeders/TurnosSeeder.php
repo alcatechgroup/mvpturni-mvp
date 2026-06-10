@@ -365,6 +365,156 @@ class TurnosSeeder extends Seeder
             recriaConsumido: true,
             inicio: now()->subHours(3)->startOfMinute(),
         );
+
+        $this->seedTurnoEmCheckout(); // STORY-094 — E2E da abertura de disputa
+    }
+
+    /**
+     * STORY-094 — turno em `aguardando_checkout` com usuários exclusivos (`*.disputa.seed`)
+     * para o E2E da abertura de disputa pelo contratante (recusa → "tenho um problema" →
+     * justificativa → `em_disputa`). O cenário CONSOME o turno (em_disputa não volta a
+     * aguardando_checkout — máquina de estados/trigger), então quando o turno foi
+     * consumido o seed cria um NOVO (vaga+candidatura+aceite novos; o antigo fica como
+     * histórico real). Production-safe (sem fake()). Pré-autorização sintética mantida
+     * (a disputa NÃO libera o bloqueio — ADR-020).
+     */
+    private function seedTurnoEmCheckout(): void
+    {
+        $contratante = User::updateOrCreate(
+            ['email' => 'contratante.disputa.seed@turni.local'],
+            [
+                'name' => 'Estabelecimento Disputa Seed',
+                'password' => Hash::make('password'),
+                'role' => 'contratante',
+                'status' => 'ativo',
+                'email_verified_at' => now(),
+                'cadastro_completed_at' => now(),
+            ],
+        );
+
+        $profissional = User::updateOrCreate(
+            ['email' => 'profissional.disputa.seed@turni.local'],
+            [
+                'name' => 'Profissional Disputa Seed',
+                'password' => Hash::make('password'),
+                'role' => 'profissional',
+                'status' => 'ativo',
+                'email_verified_at' => now(),
+                'cadastro_completed_at' => now(),
+            ],
+        );
+
+        ProfissionalProfile::updateOrCreate(
+            ['user_id' => $profissional->id],
+            [
+                'tipo_pessoa' => 'MEI',
+                'telefone' => '11999990000',
+                'cidade' => 'São Paulo',
+                'bairro' => 'Centro',
+                'funcao_id' => Funcao::query()->orderBy('nome')->value('id'),
+                'chave_pix_encrypted' => 'profissional.disputa.seed@pix.turni.local',
+            ],
+        );
+
+        // Turno que já terminou (check-in há ~5h, fim agora) e aguarda a validação do
+        // check-out: o cronômetro entra congelado e o contratante vê validar/recusar.
+        $inicio = now()->subHours(5)->startOfMinute();
+        $checkIn = (clone $inicio)->addMinutes(2);
+        $fim = now()->startOfMinute();
+
+        $existente = Turno::query()
+            ->where('contratante_id', $contratante->id)
+            ->orderByDesc('id')
+            ->first();
+        if ($existente !== null) {
+            if ($existente->status === TurnoStatus::AguardandoCheckout) {
+                // Refresh da janela — o trigger só valida MUDANÇA de status; aqui status fica.
+                $existente->forceFill([
+                    'data_inicio' => $inicio,
+                    'data_fim' => $fim,
+                    'check_in_at' => $checkIn,
+                ])->save();
+                $existente->vaga?->update(['data_inicio' => $inicio, 'data_fim' => $fim]);
+                $this->garantePreAutorizacaoSintetica($existente);
+                $this->command?->info('TurnosSeeder: turno disputa seed renovado (aguardando_checkout).');
+
+                return;
+            }
+            // Consumido (em_disputa/terminal) → cai na criação de um turno novo abaixo.
+        }
+
+        $funcaoId = Funcao::query()->orderBy('nome')->value('id');
+        $templateVersaoId = TemplateVersao::query()
+            ->whereHas('template', fn ($q) => $q->where('slug', 'pf_autonomo_eventual'))
+            ->where('ativa', true)
+            ->value('id');
+
+        if ($funcaoId === null || $templateVersaoId === null) {
+            $this->command?->warn('TurnosSeeder: turno disputa seed requer FuncaoSeeder + TemplatesContratuaisSeeder. Pulado.');
+
+            return;
+        }
+
+        $vaga = Vaga::create([
+            'contratante_id' => $contratante->id,
+            'funcao_id' => $funcaoId,
+            'data_inicio' => $inicio,
+            'data_fim' => $fim,
+            'valor' => 200.00,
+            'posicoes' => 1,
+            'posicoes_preenchidas' => 1,
+            'observacoes' => 'Vaga seed da abertura de disputa (STORY-094)',
+            'lat' => -23.55,
+            'lng' => -46.63,
+            'cidade' => 'São Paulo',
+            'uf' => 'SP',
+            'estado' => VagaEstado::Fechada,
+            'versao_atual' => 1,
+            'publicada_em' => now(),
+            'fechada_em' => now(),
+        ]);
+
+        $candidatura = Candidatura::create([
+            'vaga_id' => $vaga->id,
+            'profissional_id' => $profissional->id,
+            'estado' => CandidaturaEstado::Aprovada,
+            'aprovada_em' => now(),
+        ]);
+
+        $turno = Turno::create([
+            'candidatura_id' => $candidatura->id,
+            'vaga_id' => $vaga->id,
+            'vaga_versao_id' => null,
+            'profissional_id' => $profissional->id,
+            'contratante_id' => $contratante->id,
+            'estabelecimento_id' => $contratante->id,
+            'status' => TurnoStatus::AguardandoCheckout,
+            'valor' => 200.00,
+            'taxa_turni' => 30.00,
+            'total_contratante' => 230.00,
+            'data_inicio' => $inicio,
+            'data_fim' => $fim,
+            'check_in_at' => $checkIn,
+        ]);
+
+        $aceite = AceiteEletronicoTurno::create([
+            'turno_id' => $turno->id,
+            'template_versao_id' => $templateVersaoId,
+            'conteudo_renderizado' => 'Contrato eventual de turno — abertura de disputa. Valor R$ 200,00.',
+            'dados_renderizados' => [
+                'turno.valor' => 'R$ 200,00',
+                'turno.taxa_turni' => 'R$ 30,00',
+                'turno.total_contratante' => 'R$ 230,00',
+            ],
+            'ip' => '127.0.0.1',
+            'fingerprint' => hash('sha256', 'seed:'.$turno->id.':'.now()->toDateString()),
+            'habitualidade_override' => false,
+        ]);
+
+        $this->garantePreAutorizacaoSintetica($turno);
+        $this->seedTimeline($turno, $aceite, TurnoStatus::AguardandoCheckout);
+
+        $this->command?->info('TurnosSeeder: turno disputa seed (aguardando_checkout) criado.');
     }
 
     private function seedTurnoNaJanela(

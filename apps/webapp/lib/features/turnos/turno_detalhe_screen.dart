@@ -9,6 +9,7 @@ import '../../core/format/brl.dart';
 import '../../core/time/turni_datetime.dart';
 import '../../ds/tokens.dart';
 import '../auth/auth_service.dart';
+import 'abrir_disputa_service.dart';
 import 'cancelar_turno_service.dart';
 import 'cronometro_card.dart';
 import 'cronometro_service.dart';
@@ -40,6 +41,7 @@ class TurnoDetalheScreen extends StatefulWidget {
     CronometroService? cronometroService,
     PinCheckoutService? pinCheckoutService,
     ValidarCheckoutService? validarCheckoutService,
+    AbrirDisputaService? abrirDisputaService,
     CancelarTurnoService? cancelarService,
   }) : _service = service,
        _pinService = pinService,
@@ -47,6 +49,7 @@ class TurnoDetalheScreen extends StatefulWidget {
        _cronometroService = cronometroService,
        _pinCheckoutService = pinCheckoutService,
        _validarCheckoutService = validarCheckoutService,
+       _abrirDisputaService = abrirDisputaService,
        _cancelarService = cancelarService;
 
   final String turnoId;
@@ -56,6 +59,7 @@ class TurnoDetalheScreen extends StatefulWidget {
   final CronometroService? _cronometroService;
   final PinCheckoutService? _pinCheckoutService;
   final ValidarCheckoutService? _validarCheckoutService;
+  final AbrirDisputaService? _abrirDisputaService;
   final CancelarTurnoService? _cancelarService;
 
   @override
@@ -77,6 +81,8 @@ class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
       widget._pinCheckoutService ?? PinCheckoutService();
   late final ValidarCheckoutService _validarCheckoutService =
       widget._validarCheckoutService ?? ValidarCheckoutService();
+  late final AbrirDisputaService _abrirDisputaService =
+      widget._abrirDisputaService ?? AbrirDisputaService();
   late final CancelarTurnoService _cancelarService =
       widget._cancelarService ?? CancelarTurnoService();
 
@@ -210,6 +216,7 @@ class _TurnoDetalheScreenState extends State<TurnoDetalheScreen> {
           cronometroService: _cronometroService,
           pinCheckoutService: _pinCheckoutService,
           validarCheckoutService: _validarCheckoutService,
+          abrirDisputaService: _abrirDisputaService,
           cancelarService: _cancelarService,
           avisoCheckin: _avisoCheckin,
           onAvisoCheckin: (msg) => setState(() => _avisoCheckin = msg),
@@ -270,6 +277,7 @@ class _DetalheView extends StatelessWidget {
     required this.cronometroService,
     required this.pinCheckoutService,
     required this.validarCheckoutService,
+    required this.abrirDisputaService,
     required this.cancelarService,
     required this.avisoCheckin,
     required this.onAvisoCheckin,
@@ -284,6 +292,7 @@ class _DetalheView extends StatelessWidget {
   final CronometroService cronometroService;
   final PinCheckoutService pinCheckoutService;
   final ValidarCheckoutService validarCheckoutService;
+  final AbrirDisputaService abrirDisputaService;
   final CancelarTurnoService cancelarService;
   final String? avisoCheckin;
   final ValueChanged<String> onAvisoCheckin;
@@ -392,9 +401,14 @@ class _DetalheView extends StatelessWidget {
               isDark: isDark,
               accent: accent,
               validarService: validarCheckoutService,
+              abrirDisputaService: abrirDisputaService,
               onAvisoCheckin: onAvisoCheckin,
               onRecarregar: onRecarregar,
             )
+          // STORY-094 / SCREEN-091 §4.1 — contratante em `em_disputa`: read-only
+          // (sem ação), banner sóbrio "em análise" no lugar do placeholder genérico.
+          else if (turno.souContratante && turno.estadoRaw == 'em_disputa')
+            _DisputaContratanteBanner(isDark: isDark)
           else
             _AcoesPlaceholder(isDark: isDark),
         ],
@@ -2406,6 +2420,7 @@ class _AcoesValidarCheckout extends StatefulWidget {
     required this.isDark,
     required this.accent,
     required this.validarService,
+    required this.abrirDisputaService,
     required this.onAvisoCheckin,
     required this.onRecarregar,
   });
@@ -2414,6 +2429,7 @@ class _AcoesValidarCheckout extends StatefulWidget {
   final bool isDark;
   final Color accent;
   final ValidarCheckoutService validarService;
+  final AbrirDisputaService abrirDisputaService;
   final ValueChanged<String> onAvisoCheckin;
   final Future<void> Function() onRecarregar;
 
@@ -2499,15 +2515,56 @@ class _AcoesValidarCheckoutState extends State<_AcoesValidarCheckout> {
     }
   }
 
+  /// SCREEN-091 §2.1 — a entrada "Recusar check-out" não vai mais direto ao
+  /// `dialog.confirm` de recusa→ativo: abre a folha de DESAMBIGUAÇÃO de intenção
+  /// (pattern.intent-disambiguation / DDR-005). Dois ramos:
+  ///   • "ainda não terminou" → `recusar()` → `ativo` (cronômetro retoma — comportamento
+  ///     herdado da 064, agora sem campo de motivo);
+  ///   • "tenho um problema" → diálogo de disputa (justificativa OBRIGATÓRIA) →
+  ///     `AbrirDisputaService` → `em_disputa`.
   Future<void> _abrirRecusa() async {
-    final recusou = await showDialog<bool>(
+    final escolha = await showDialog<_RecusaIntencao>(
       context: context,
-      builder: (_) => _RecusaCheckoutDialog(
+      builder: (_) => _FolhaIntencaoCheckout(
         turnoId: widget.turno.id,
         validarService: widget.validarService,
       ),
     );
-    if (recusou == true) await widget.onRecarregar();
+    if (!mounted || escolha == null) return;
+
+    switch (escolha) {
+      case _RecusaIntencao.recusou:
+        // Ramo benigno concluído na folha (recusar()→ativo): só recarrega a verdade.
+        await widget.onRecarregar();
+      case _RecusaIntencao.problema:
+        await _abrirDisputa();
+    }
+  }
+
+  /// SCREEN-091 §2.1/§3.2 — diálogo de disputa (variante campo-obrigatório). Sucesso →
+  /// snackbar + reload (o turno em `em_disputa` esvazia este bloco). `estado_invalido`
+  /// (mudou em outra aba) → reload silencioso, SEM o snackbar de sucesso.
+  Future<void> _abrirDisputa() async {
+    final r = await showDialog<_DisputaResultado>(
+      context: context,
+      builder: (_) => _AbrirDisputaDialog(
+        turnoId: widget.turno.id,
+        service: widget.abrirDisputaService,
+      ),
+    );
+    if (!mounted || r == null) return;
+
+    if (r == _DisputaResultado.aberta) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Disputa aberta — a equipe Turni vai mediar.',
+            key: Key('abrir-disputa-sucesso'),
+          ),
+        ),
+      );
+    }
+    await widget.onRecarregar();
   }
 
   @override
@@ -2698,7 +2755,7 @@ class _AcoesValidarCheckoutState extends State<_AcoesValidarCheckout> {
                   minimumSize: const Size.fromHeight(48),
                 ),
                 child: const Text(
-                  'Turno ainda não terminou? Recusar check-out',
+                  'Não vai validar agora? Recusar check-out',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
@@ -2711,12 +2768,32 @@ class _AcoesValidarCheckoutState extends State<_AcoesValidarCheckout> {
   }
 }
 
-/// Dialog de confirmação da recusa de check-out (CA-5 / §3.4 — dialog.confirm, 2º uso).
-/// A recusa devolve o turno a `ativo` — o tempo CONTINUA contando (nunca `em_disputa`,
-/// EPIC-005 fora de escopo). Devolve `true` quando efetivada (inclui estado_invalido:
-/// a tela recarrega a verdade do mesmo jeito).
-class _RecusaCheckoutDialog extends StatefulWidget {
-  const _RecusaCheckoutDialog({
+/// Resultado da folha de desambiguação (SCREEN-091 §2.1): o contratante escolheu um ramo.
+enum _RecusaIntencao {
+  /// "O turno ainda não terminou" → recusar()→`ativo` (já efetivado dentro da folha).
+  recusou,
+
+  /// "Tenho um problema com este turno" → segue para o diálogo de disputa.
+  problema,
+}
+
+/// Resultado do diálogo de disputa.
+enum _DisputaResultado {
+  /// 200 — disputa aberta (`em_disputa`): mostra o snackbar de sucesso e recarrega.
+  aberta,
+
+  /// 422 estado_invalido — o turno mudou em outra aba: recarrega a verdade, sem snackbar.
+  estadoInvalido,
+}
+
+/// SCREEN-091 §3.1 — folha de DESAMBIGUAÇÃO de intenção (pattern.intent-disambiguation /
+/// DDR-005). Substitui a entrada direta do antigo `dialog.confirm` de recusa→ativo:
+/// dois rádios + "Continuar". "Ainda não terminou" resolve a recusa benigna aqui mesmo
+/// (recusar()→`ativo`, sem campo de motivo); "tenho um problema" devolve `problema` para
+/// o chamador abrir o diálogo de disputa. No desktop é um AlertDialog central; o uso em
+/// mobile (paridade) reaproveita o mesmo widget (decisão consciente — Notas do agente).
+class _FolhaIntencaoCheckout extends StatefulWidget {
+  const _FolhaIntencaoCheckout({
     required this.turnoId,
     required this.validarService,
   });
@@ -2725,36 +2802,29 @@ class _RecusaCheckoutDialog extends StatefulWidget {
   final ValidarCheckoutService validarService;
 
   @override
-  State<_RecusaCheckoutDialog> createState() => _RecusaCheckoutDialogState();
+  State<_FolhaIntencaoCheckout> createState() => _FolhaIntencaoCheckoutState();
 }
 
-class _RecusaCheckoutDialogState extends State<_RecusaCheckoutDialog> {
-  final _motivoController = TextEditingController();
+class _FolhaIntencaoCheckoutState extends State<_FolhaIntencaoCheckout> {
+  _RecusaIntencao? _intencao;
   bool _enviando = false;
   bool _erro = false;
 
-  @override
-  void dispose() {
-    _motivoController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _confirmar() async {
+  Future<void> _continuar() async {
+    if (_intencao == _RecusaIntencao.problema) {
+      Navigator.of(context).pop(_RecusaIntencao.problema);
+      return;
+    }
+    // Ramo benigno: recusar()→ativo (motivo agora omitido — SCREEN-091 §3.1).
     setState(() {
       _enviando = true;
       _erro = false;
     });
-
-    final motivo = _motivoController.text.trim();
-    final result = await widget.validarService.recusar(
-      widget.turnoId,
-      motivo: motivo.isEmpty ? null : motivo,
-    );
+    final result = await widget.validarService.recusar(widget.turnoId);
     if (!mounted) return;
-
     switch (result) {
       case RecusaOk() || RecusaEstadoInvalido():
-        Navigator.of(context).pop(true);
+        Navigator.of(context).pop(_RecusaIntencao.recusou);
       case RecusaErro():
         setState(() {
           _enviando = false;
@@ -2766,43 +2836,71 @@ class _RecusaCheckoutDialogState extends State<_RecusaCheckoutDialog> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textStrong = isDark
+        ? TurniColors.textStrongDark
+        : TurniColors.textStrongLight;
     final textMuted = isDark
         ? TurniColors.textMutedDark
         : TurniColors.textMutedLight;
     final errorColor = isDark ? TurniColors.errorDark : TurniColors.errorLight;
 
+    Widget opcao({
+      required _RecusaIntencao valor,
+      required Key key,
+      required String titulo,
+      required String descricao,
+    }) => RadioListTile<_RecusaIntencao>(
+      key: key,
+      value: valor,
+      // ignore: deprecated_member_use
+      groupValue: _intencao,
+      // ignore: deprecated_member_use
+      onChanged: _enviando
+          ? null
+          : (v) => setState(() {
+              _intencao = v;
+              _erro = false;
+            }),
+      controlAffinity: ListTileControlAffinity.leading,
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        titulo,
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: textStrong,
+        ),
+      ),
+      subtitle: Text(
+        descricao,
+        style: TextStyle(fontSize: 13.5, color: textMuted, height: 1.4),
+      ),
+    );
+
     return AlertDialog(
-      key: const Key('recusar-checkout-dialog'),
-      title: const Text('Recusar check-out?'),
+      key: const Key('disputa-intencao-sheet'),
+      title: const Text('Por que não vai validar?'),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 432),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'O PIN atual deixa de valer e o turno volta para "Ativo" — o '
-              'tempo continua contando. O profissional poderá gerar um novo '
-              'PIN.',
-              style: TextStyle(fontSize: 14, color: textMuted, height: 1.5),
+            opcao(
+              valor: _RecusaIntencao.recusou,
+              key: const Key('disputa-intencao-ativo'),
+              titulo: 'O turno ainda não terminou',
+              descricao:
+                  'Volta para “Em andamento”. O tempo continua contando e o '
+                  'profissional gera um novo PIN.',
             ),
-            const SizedBox(height: TurniSpacing.md),
-            const Text(
-              'Motivo (opcional)',
-              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 6),
-            TextField(
-              key: const Key('recusar-checkout-motivo-input'),
-              controller: _motivoController,
-              enabled: !_enviando,
-              maxLines: 3,
-              maxLength: 280,
-              decoration: const InputDecoration(
-                counterText: '',
-                hintText: 'Ex.: o turno ainda não terminou',
-                hintMaxLines: 2,
-              ),
+            opcao(
+              valor: _RecusaIntencao.problema,
+              key: const Key('disputa-intencao-problema'),
+              titulo: 'Tenho um problema com este turno',
+              descricao:
+                  'Abre uma disputa: a equipe Turni media em até 30 minutos. '
+                  'Esta ação é irreversível.',
             ),
             if (_erro) ...[
               const SizedBox(height: TurniSpacing.sm),
@@ -2810,7 +2908,7 @@ class _RecusaCheckoutDialogState extends State<_RecusaCheckoutDialog> {
                 liveRegion: true,
                 child: Text(
                   'Não foi possível recusar. Tente de novo.',
-                  key: const Key('recusar-checkout-erro'),
+                  key: const Key('disputa-intencao-erro'),
                   style: TextStyle(fontSize: 13.5, color: errorColor),
                 ),
               ),
@@ -2820,16 +2918,14 @@ class _RecusaCheckoutDialogState extends State<_RecusaCheckoutDialog> {
       ),
       actions: [
         TextButton(
-          key: const Key('recusar-checkout-voltar-btn'),
-          onPressed: _enviando ? null : () => Navigator.of(context).pop(false),
+          key: const Key('disputa-intencao-voltar'),
+          onPressed: _enviando ? null : () => Navigator.of(context).pop(),
           child: const Text('Voltar'),
         ),
         FilledButton(
-          key: const Key('recusar-checkout-confirmar-btn'),
-          onPressed: _enviando ? null : _confirmar,
+          key: const Key('disputa-intencao-continuar'),
+          onPressed: (_intencao == null || _enviando) ? null : _continuar,
           style: FilledButton.styleFrom(
-            backgroundColor: TurniColors.errorLight,
-            foregroundColor: Colors.white,
             minimumSize: const Size(0, 48),
             shape: const StadiumBorder(),
           ),
@@ -2842,9 +2938,236 @@ class _RecusaCheckoutDialogState extends State<_RecusaCheckoutDialog> {
                     color: Colors.white,
                   ),
                 )
-              : const Text('Recusar check-out'),
+              : const Text('Continuar'),
         ),
       ],
+    );
+  }
+}
+
+/// SCREEN-091 §3.2 — diálogo de DISPUTA (dialog.confirm, variante campo-obrigatório).
+/// Justificativa OBRIGATÓRIA (confirmar desabilitado até ter texto — CA-2) + aviso de
+/// irreversibilidade. Foco inicial no CAMPO (§6). Erro de envio NÃO fecha e mantém o
+/// texto digitado (CA-4). Devolve `aberta` (200) / `estadoInvalido` (422 estado) / null
+/// (voltar/cancelar). 403 e erro de rede viram erro inline no diálogo.
+class _AbrirDisputaDialog extends StatefulWidget {
+  const _AbrirDisputaDialog({required this.turnoId, required this.service});
+
+  final String turnoId;
+  final AbrirDisputaService service;
+
+  @override
+  State<_AbrirDisputaDialog> createState() => _AbrirDisputaDialogState();
+}
+
+class _AbrirDisputaDialogState extends State<_AbrirDisputaDialog> {
+  final _controller = TextEditingController();
+  final _focus = FocusNode();
+  bool _enviando = false;
+  bool _erroEnvio = false;
+  bool _mostrarErroVazio = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // §4.1 — ao desfocar vazio, sinaliza o campo obrigatório (sem depender só de cor).
+    _focus.addListener(() {
+      if (!_focus.hasFocus && _vazio && mounted) {
+        setState(() => _mostrarErroVazio = true);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  bool get _vazio => _controller.text.trim().isEmpty;
+
+  Future<void> _confirmar() async {
+    if (_vazio) {
+      // CA-2 — defesa: erro acionável e NÃO chama a API (o botão já está desabilitado).
+      setState(() => _mostrarErroVazio = true);
+      return;
+    }
+    setState(() {
+      _enviando = true;
+      _erroEnvio = false;
+    });
+    final r = await widget.service.abrir(
+      widget.turnoId,
+      _controller.text.trim(),
+    );
+    if (!mounted) return;
+    switch (r) {
+      case AbrirDisputaOk():
+        Navigator.of(context).pop(_DisputaResultado.aberta);
+      case AbrirDisputaEstadoInvalido():
+        Navigator.of(context).pop(_DisputaResultado.estadoInvalido);
+      case AbrirDisputaJustificativaObrigatoria():
+        setState(() {
+          _enviando = false;
+          _mostrarErroVazio = true;
+        });
+      case AbrirDisputaForbidden() || AbrirDisputaErro():
+        setState(() {
+          _enviando = false;
+          _erroEnvio = true;
+        });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textMuted = isDark
+        ? TurniColors.textMutedDark
+        : TurniColors.textMutedLight;
+    final errorColor = isDark ? TurniColors.errorDark : TurniColors.errorLight;
+    final mostrarErroVazio = _mostrarErroVazio && _vazio;
+
+    return AlertDialog(
+      key: const Key('abrir-disputa-dialog'),
+      title: const Text('Abrir disputa deste turno?'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 432),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'O turno fica em disputa e a equipe Turni vai mediar em até 30 '
+              'minutos. O valor continua reservado até a decisão. Esta ação é '
+              'irreversível.',
+              style: TextStyle(fontSize: 14, color: textMuted, height: 1.5),
+            ),
+            const SizedBox(height: TurniSpacing.md),
+            const Text(
+              'O que aconteceu? (obrigatório)',
+              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 6),
+            TextField(
+              key: const Key('abrir-disputa-justificativa-input'),
+              controller: _controller,
+              focusNode: _focus,
+              autofocus: true,
+              enabled: !_enviando,
+              maxLines: 3,
+              maxLength: 280,
+              decoration: const InputDecoration(
+                counterText: '',
+                hintText: 'Descreva o problema com o turno',
+                hintMaxLines: 2,
+              ),
+              onChanged: (_) => setState(() {
+                _mostrarErroVazio = false;
+                _erroEnvio = false;
+              }),
+            ),
+            if (mostrarErroVazio) ...[
+              const SizedBox(height: 6),
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  'Conte o que aconteceu para abrir.',
+                  key: const Key('abrir-disputa-justificativa-erro'),
+                  style: TextStyle(fontSize: 13.5, color: errorColor),
+                ),
+              ),
+            ],
+            if (_erroEnvio) ...[
+              const SizedBox(height: TurniSpacing.sm),
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  'Não foi possível abrir a disputa. Tente de novo.',
+                  key: const Key('abrir-disputa-erro'),
+                  style: TextStyle(fontSize: 13.5, color: errorColor),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          key: const Key('abrir-disputa-voltar-btn'),
+          onPressed: _enviando ? null : () => Navigator.of(context).pop(),
+          child: const Text('Voltar'),
+        ),
+        FilledButton(
+          key: const Key('abrir-disputa-confirmar-btn'),
+          onPressed: (_enviando || _vazio) ? null : _confirmar,
+          style: FilledButton.styleFrom(
+            backgroundColor: TurniColors.errorLight,
+            foregroundColor: Colors.white,
+            minimumSize: const Size(0, 48),
+            shape: const StadiumBorder(),
+          ),
+          child: _enviando
+              ? const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Text('Abrindo…'),
+                  ],
+                )
+              : const Text('Abrir disputa'),
+        ),
+      ],
+    );
+  }
+}
+
+/// SCREEN-091 §4.1 — banner sóbrio do CONTRATANTE em `em_disputa`: read-only, sem ação;
+/// substitui o placeholder genérico. Disputa = semântica `error` (DDR-005), mas o tom é
+/// calmo (Princípio #3 — sem alarmismo): ele mesmo abriu, só aguarda a mediação.
+class _DisputaContratanteBanner extends StatelessWidget {
+  const _DisputaContratanteBanner({required this.isDark});
+
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final errorInk = isDark ? TurniColors.errorDark : TurniColors.errorLight;
+    return Container(
+      key: const Key('disputa-contratante-banner'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(TurniSpacing.md),
+      decoration: BoxDecoration(
+        color: isDark ? TurniColors.errorSoftDark : TurniColors.errorSoftLight,
+        borderRadius: const BorderRadius.all(TurniRadius.md),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.gavel_outlined, size: 20, color: errorInk),
+          const SizedBox(width: TurniSpacing.sm),
+          Expanded(
+            child: Text(
+              'Disputa em análise — você será avisado da decisão.',
+              style: TextStyle(
+                fontSize: 14,
+                color: errorInk,
+                height: 1.45,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
