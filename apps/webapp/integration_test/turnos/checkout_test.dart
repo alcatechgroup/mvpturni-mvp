@@ -1,24 +1,25 @@
 // integration_test — STORY-064 (E2E browser real: ciclo completo do turno, CA-8)
 // + STORY-065 (ciclo FINANCEIRO: captura + Pix — CA-4/CA-7).
 //
-// STATUS (STORY-082): DESATIVADO no gate (ver turnos_test.dart) — RODÁVEL SOB DEMANDA via
-// entrypoint top-level que inicialize o binding (imports `../helpers` não resolvem mirando
-// o leaf direto — IDR-021):
+// STATUS (STORY-082): DEFLAKADO e ESTÁVEL (7/7 isolado). Mantido FORA do gate por decisão
+// do PO (custo ~2-3 min); RODÁVEL SOB DEMANDA via entrypoint top-level que inicialize o
+// binding (imports `../helpers` não resolvem mirando o leaf direto — IDR-021):
 //   printf "import 'package:integration_test/integration_test.dart';\n%s\n%s\n" \
 //     "import 'turnos/checkout_test.dart' as c;" \
 //     "void main(){IntegrationTestWidgetsFlutterBinding.ensureInitialized();c.main();}" \
 //     > integration_test/_checkout_solo_test.dart
 //   make e2e-webapp-pinned E2E_TARGET=integration_test/_checkout_solo_test.dart
-// A STORY-082 sanou 2 flakes ESTRUTURAIS (pendura por `pumpAndSettle`+timer → `_assenta`;
-// colisão de Hero do SnackBar no `pumpApp` → `_semSnackBar`), mas RESTA um flake
-// INTERMITENTE fora do seu escopo (4 runs: 1 PASS / 2 "PIN inválido" / 1 outro race). O
-// PIN de check-out é EFÊMERO ("Se sair desta tela, será preciso gerar um novo PIN" —
-// pin-checkout-efemero-msg) e o backend expira o PIN em 3 erros: o teste captura o PIN na
-// fase 2, SAI da tela (voltar) e valida só na fase 3 após logins/navegações — janela em
-// que o PIN pode rotacionar → "PIN inválido". É fragilidade de DESIGN do teste contra PIN
-// efêmero (não feature quebrada — o ciclo passa quando o timing alinha), agravada pelo
-// timing do shell (STORY-077). Deflake completo = re-desenhar a fase para minimizar a
-// janela capturar→validar; é estória própria.
+// Foram 3 flakes, todos sanados na STORY-082:
+//   (1) PENDURA ~9 min — `pumpAndSettle` com timer periódico vivo (tick do cronômetro /
+//       polling) nunca assenta → `_assenta` bombeado e limitado;
+//   (2) "multiple heroes share the same tag" — SnackBar keyado do passo anterior vivo no
+//       `pumpApp` colide Hero → `_semSnackBar` antes de remontar;
+//   (3) "PIN inválido" intermitente — CAUSA-RAIZ (provada por audit): o teste selecionava
+//       o card por RÓTULO DE ESTADO com `.first`, e o par `*.checkout.seed` acumula turnos
+//       LEFTOVER (o seeder cria um novo `confirmado` quando um run falho deixa o anterior
+//       em `ativo`/`aguardando_checkout`). Com vários turnos no mesmo estado, a fase 2
+//       gerava o PIN num turno e a fase 3 validava em OUTRO. Fix: fixar o turno pelo id da
+//       rota captado na fase 1 (`_cardComId`) — todas as fases operam o MESMO turno.
 //
 // Same-origin (proxy + --web-launch-url, IDR-021) contra o BACKEND REAL, com o par
 // exclusivo `*.checkout.seed` (turno `confirmado` dentro da janela de check-in).
@@ -124,10 +125,18 @@ Future<void> _proAteOsTurnos(WidgetTester tester) async {
   await pumpUntilFound(tester, find.byKey(const Key('meus-turnos-screen')));
 }
 
-/// Loga o CONTRATANTE e navega até o detalhe do card com [estadoLabel].
+/// Card de UM turno específico por id (`turno-card-{uuid}`). O par `*.checkout.seed` pode
+/// ter turnos LEFTOVER de runs interrompidos (o seeder cria um novo `confirmado` e deixa o
+/// antigo em `ativo`/`aguardando_checkout` — TurnosSeeder::seedTurnoNaJanela). Selecionar
+/// por rótulo de estado com `.first` faria a fase 2 gerar o PIN num turno e a fase 3 validar
+/// em OUTRO → "PIN inválido". Fixar pelo id captado na fase 1 mantém o teste no MESMO turno.
+Finder _cardComId(String turnoId) =>
+    find.byKey(ValueKey<String>('turno-card-$turnoId'));
+
+/// Loga o CONTRATANTE e abre o detalhe do turno [cardFinder] (por id — ver `_cardComId`).
 Future<void> _contratanteAteODetalhe(
   WidgetTester tester,
-  String estadoLabel,
+  Finder cardFinder,
 ) async {
   await _semSnackBar(tester);
   await pumpApp(tester);
@@ -144,7 +153,9 @@ Future<void> _contratanteAteODetalhe(
     find.byKey(const Key('contratante-turnos-screen')),
   );
 
-  await tester.tap(_cardComEstado(estadoLabel));
+  await pumpUntilFound(tester, cardFinder);
+  await tester.ensureVisible(cardFinder);
+  await tester.tap(cardFinder);
   await _assenta(tester);
   await pumpUntilFound(tester, find.byKey(const Key('turno-detalhe-screen')));
 }
@@ -184,205 +195,197 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   tearDown(() => debugCapturarPosicaoOverride = null);
 
-  testWidgets(
-    'ciclo completo confirmado → finalizado (CA-8): check-in bilateral, cronômetro, '
-    'check-out bilateral, duração final e trilha',
-    (tester) async {
-      debugCapturarPosicaoOverride = () async =>
-          const PosicaoGeo(lat: -23.550135, lng: -46.63, accuracyM: 10);
+  testWidgets('ciclo completo confirmado → finalizado (CA-8): check-in bilateral, cronômetro, '
+      'check-out bilateral, duração final e trilha', (tester) async {
+    debugCapturarPosicaoOverride = () async =>
+        const PosicaoGeo(lat: -23.550135, lng: -46.63, accuracyM: 10);
 
-      // ── 1a. PROFISSIONAL gera o PIN de check-in (061) ──
-      await _proAteOsTurnos(tester);
-      final confirmado = find
-          .ancestor(of: find.text('Confirmado'), matching: _cardDeTurno)
+    // ── 1a. PROFISSIONAL gera o PIN de check-in (061) ──
+    await _proAteOsTurnos(tester);
+    final confirmado = find
+        .ancestor(of: find.text('Confirmado'), matching: _cardDeTurno)
+        .evaluate()
+        .isNotEmpty;
+    await tester.tap(
+      _cardComEstado(confirmado ? 'Confirmado' : 'Aguardando check-in'),
+    );
+    await _assenta(tester);
+    await pumpUntilFound(tester, find.byKey(const Key('turno-detalhe-screen')));
+
+    // Fixa o turno desta execução pelo id da rota (`/turnos/{uuid}`) — daqui pra frente
+    // todas as fases selecionam ESTE turno por id, nunca por rótulo de estado, imune a
+    // turnos leftover do par seed (ver `_cardComId`).
+    final turnoId = currentRoute().split('/').last;
+    expect(turnoId, matches(RegExp(r'^[0-9a-f-]{36}$')));
+
+    final gerarCheckin = confirmado
+        ? find.byKey(const Key('turno-pin-gerar-btn'))
+        : find.byKey(const Key('turno-pin-regen-btn'));
+    await pumpUntilFound(tester, gerarCheckin);
+    await tester.ensureVisible(gerarCheckin);
+    await tester.tap(gerarCheckin);
+    await pumpUntilFound(
+      tester,
+      find.byKey(const Key('pin-checkin-screen')),
+      timeout: const Duration(seconds: 20),
+    );
+    final pinCheckin = tester
+        .widget<Text>(find.byKey(const Key('pin-checkin-codigo')))
+        .data!;
+    expect(pinCheckin, matches(RegExp(r'^\d{4}$')));
+    await tester.tap(find.byKey(const Key('pin-checkin-voltar')).first);
+    await _assenta(tester);
+
+    // ── 1b. CONTRATANTE valida o check-in (062) → ativo ──
+    await _contratanteAteODetalhe(tester, _cardComId(turnoId));
+    await pumpUntilFound(tester, find.byKey(const Key('validar-checkin-area')));
+    await _validarCom(
+      tester,
+      pinCheckin,
+      inputKey: const Key('validar-checkin-pin-input'),
+      btnKey: const Key('validar-checkin-btn'),
+    );
+    await pumpUntilFound(
+      tester,
+      find.text('Check-in validado'),
+      timeout: const Duration(seconds: 20),
+    );
+    await _assenta(tester);
+    // Cronômetro vivo nos dois lados a partir daqui (063).
+    await pumpUntilFound(tester, find.byKey(const Key('cronometro-card')));
+
+    // ── 2. PROFISSIONAL gera o PIN de check-out (CA-1/CA-2) ──
+    await _proAteOsTurnos(tester);
+    await pumpUntilFound(tester, _cardComId(turnoId));
+    await tester.ensureVisible(_cardComId(turnoId));
+    await tester.tap(_cardComId(turnoId));
+    await _assenta(tester);
+    await pumpUntilFound(tester, find.byKey(const Key('turno-detalhe-screen')));
+    await pumpUntilFound(tester, find.byKey(const Key('cronometro-card')));
+
+    final gerarCheckout = find.byKey(const Key('turno-checkout-gerar-btn'));
+    await pumpUntilFound(tester, gerarCheckout);
+    await tester.ensureVisible(gerarCheckout);
+    await tester.tap(gerarCheckout);
+    await pumpUntilFound(
+      tester,
+      find.byKey(const Key('pin-checkout-screen')),
+      timeout: const Duration(seconds: 20),
+    );
+
+    // CA-2 — PIN em plaintext UMA vez, SEM nota de geofencing (silenciosa).
+    final pinCheckout = tester
+        .widget<Text>(find.byKey(const Key('pin-checkout-codigo')))
+        .data!;
+    expect(pinCheckout, matches(RegExp(r'^\d{4}$')));
+    expect(find.byKey(const Key('pin-checkin-geo-nota')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('pin-checkout-voltar')).first);
+    await _assenta(tester);
+
+    // CA-6 — cronômetro congelado com a microcopy aprovada da 064.
+    await pumpUntilFound(
+      tester,
+      find.byKey(const Key('cronometro-aguardando-checkout')),
+      timeout: const Duration(seconds: 20),
+    );
+    expect(
+      find.textContaining('Aguardando validação — duração:'),
+      findsOneWidget,
+    );
+
+    // ── 3. CONTRATANTE valida o check-out (CA-3) → finalizado ──
+    await _contratanteAteODetalhe(tester, _cardComId(turnoId));
+    await pumpUntilFound(
+      tester,
+      find.byKey(const Key('validar-checkout-area')),
+    );
+    // SEM card de aviso de geofencing no check-out (diferença intencional da 062).
+    expect(find.byKey(const Key('validar-checkin-geo-aviso')), findsNothing);
+
+    await _validarCom(
+      tester,
+      pinCheckout,
+      inputKey: const Key('validar-checkout-pin-input'),
+      btnKey: const Key('validar-checkout-btn'),
+    );
+
+    await pumpUntilFound(
+      tester,
+      find.byKey(const Key('validar-checkout-sucesso')),
+      timeout: const Duration(seconds: 20),
+    );
+    await pumpUntilFound(
+      tester,
+      find.text('Check-out validado'),
+      timeout: const Duration(seconds: 20),
+    );
+    await _assenta(tester);
+
+    // CA-3/CA-6/CA-7 — estado final: badge, cronômetro final e trilha.
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('turno-detalhe-estado')),
+        matching: find.text('Finalizado'),
+      ),
+      findsOneWidget,
+    );
+    await pumpUntilFound(
+      tester,
+      find.byKey(const Key('cronometro-finalizado')),
+    );
+    expect(find.textContaining('Turno finalizado — duração:'), findsOneWidget);
+    expect(find.text('Turno finalizado.'), findsOneWidget);
+    expect(find.byKey(const Key('validar-checkout-area')), findsNothing);
+
+    // ── 4. (065 CA-4) PROFISSIONAL vê o Pix chegar — sem refresh manual ──
+    // O worker processa captura + Pix contra o fake (SLA 0) e o webhook grava
+    // `pix.enviado`; a linha do card troca via polling silencioso (10s/tick).
+    await _proAteOsTurnos(tester);
+    await pumpUntilFound(tester, _cardComId(turnoId));
+    await tester.ensureVisible(_cardComId(turnoId));
+    await tester.tap(_cardComId(turnoId));
+    await _assenta(tester);
+    await pumpUntilFound(tester, find.byKey(const Key('turno-detalhe-screen')));
+
+    // A linha de status existe desde o primeiro frame (a caminho OU já enviado —
+    // o fake confirma rápido demais para fixar o intermediário aqui; o estado
+    // "a caminho" determinístico é coberto nos widget tests da 065).
+    await pumpUntilFound(
+      tester,
+      find.byKey(const Key('turno-detalhe-pix-status')),
+    );
+
+    // Flip para "Pix enviado em HH:MM" — espera generosa: job do worker (poll da
+    // fila ~2s) + webhook do fake + tick do polling da tela (10s).
+    await _pumpUntil(
+      tester,
+      () => find
+          .byKey(const Key('turno-detalhe-pix-enviado'))
           .evaluate()
-          .isNotEmpty;
-      await tester.tap(
-        _cardComEstado(confirmado ? 'Confirmado' : 'Aguardando check-in'),
-      );
-      await _assenta(tester);
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('turno-detalhe-screen')),
-      );
+          .isNotEmpty,
+      timeout: const Duration(seconds: 60),
+      descricao: 'linha "Pix enviado em HH:MM" no card de valor (CA-4)',
+    );
+    expect(
+      tester
+          .widget<Text>(
+            find.descendant(
+              of: find.byKey(const Key('turno-detalhe-pix-enviado')),
+              matching: find.byType(Text),
+            ),
+          )
+          .data,
+      matches(RegExp(r'^Pix enviado em \d{2}:\d{2}$')), // 24h (DDR-002)
+    );
 
-      final gerarCheckin = confirmado
-          ? find.byKey(const Key('turno-pin-gerar-btn'))
-          : find.byKey(const Key('turno-pin-regen-btn'));
-      await pumpUntilFound(tester, gerarCheckin);
-      await tester.ensureVisible(gerarCheckin);
-      await tester.tap(gerarCheckin);
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('pin-checkin-screen')),
-        timeout: const Duration(seconds: 20),
-      );
-      final pinCheckin = tester
-          .widget<Text>(find.byKey(const Key('pin-checkin-codigo')))
-          .data!;
-      expect(pinCheckin, matches(RegExp(r'^\d{4}$')));
-      await tester.tap(find.byKey(const Key('pin-checkin-voltar')).first);
-      await _assenta(tester);
-
-      // ── 1b. CONTRATANTE valida o check-in (062) → ativo ──
-      await _contratanteAteODetalhe(tester, 'Aguardando check-in');
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('validar-checkin-area')),
-      );
-      await _validarCom(
-        tester,
-        pinCheckin,
-        inputKey: const Key('validar-checkin-pin-input'),
-        btnKey: const Key('validar-checkin-btn'),
-      );
-      await pumpUntilFound(
-        tester,
-        find.text('Check-in validado'),
-        timeout: const Duration(seconds: 20),
-      );
-      await _assenta(tester);
-      // Cronômetro vivo nos dois lados a partir daqui (063).
-      await pumpUntilFound(tester, find.byKey(const Key('cronometro-card')));
-
-      // ── 2. PROFISSIONAL gera o PIN de check-out (CA-1/CA-2) ──
-      await _proAteOsTurnos(tester);
-      await tester.tap(_cardComEstado('Em andamento'));
-      await _assenta(tester);
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('turno-detalhe-screen')),
-      );
-      await pumpUntilFound(tester, find.byKey(const Key('cronometro-card')));
-
-      final gerarCheckout = find.byKey(const Key('turno-checkout-gerar-btn'));
-      await pumpUntilFound(tester, gerarCheckout);
-      await tester.ensureVisible(gerarCheckout);
-      await tester.tap(gerarCheckout);
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('pin-checkout-screen')),
-        timeout: const Duration(seconds: 20),
-      );
-
-      // CA-2 — PIN em plaintext UMA vez, SEM nota de geofencing (silenciosa).
-      final pinCheckout = tester
-          .widget<Text>(find.byKey(const Key('pin-checkout-codigo')))
-          .data!;
-      expect(pinCheckout, matches(RegExp(r'^\d{4}$')));
-      expect(find.byKey(const Key('pin-checkin-geo-nota')), findsNothing);
-
-      await tester.tap(find.byKey(const Key('pin-checkout-voltar')).first);
-      await _assenta(tester);
-
-      // CA-6 — cronômetro congelado com a microcopy aprovada da 064.
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('cronometro-aguardando-checkout')),
-        timeout: const Duration(seconds: 20),
-      );
-      expect(
-        find.textContaining('Aguardando validação — duração:'),
-        findsOneWidget,
-      );
-
-      // ── 3. CONTRATANTE valida o check-out (CA-3) → finalizado ──
-      await _contratanteAteODetalhe(tester, 'Aguardando check-out');
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('validar-checkout-area')),
-      );
-      // SEM card de aviso de geofencing no check-out (diferença intencional da 062).
-      expect(find.byKey(const Key('validar-checkin-geo-aviso')), findsNothing);
-
-      await _validarCom(
-        tester,
-        pinCheckout,
-        inputKey: const Key('validar-checkout-pin-input'),
-        btnKey: const Key('validar-checkout-btn'),
-      );
-
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('validar-checkout-sucesso')),
-        timeout: const Duration(seconds: 20),
-      );
-      await pumpUntilFound(
-        tester,
-        find.text('Check-out validado'),
-        timeout: const Duration(seconds: 20),
-      );
-      await _assenta(tester);
-
-      // CA-3/CA-6/CA-7 — estado final: badge, cronômetro final e trilha.
-      expect(
-        find.descendant(
-          of: find.byKey(const Key('turno-detalhe-estado')),
-          matching: find.text('Finalizado'),
-        ),
-        findsOneWidget,
-      );
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('cronometro-finalizado')),
-      );
-      expect(
-        find.textContaining('Turno finalizado — duração:'),
-        findsOneWidget,
-      );
-      expect(find.text('Turno finalizado.'), findsOneWidget);
-      expect(find.byKey(const Key('validar-checkout-area')), findsNothing);
-
-      // ── 4. (065 CA-4) PROFISSIONAL vê o Pix chegar — sem refresh manual ──
-      // O worker processa captura + Pix contra o fake (SLA 0) e o webhook grava
-      // `pix.enviado`; a linha do card troca via polling silencioso (10s/tick).
-      await _proAteOsTurnos(tester);
-      await tester.tap(_cardComEstado('Finalizado'));
-      await _assenta(tester);
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('turno-detalhe-screen')),
-      );
-
-      // A linha de status existe desde o primeiro frame (a caminho OU já enviado —
-      // o fake confirma rápido demais para fixar o intermediário aqui; o estado
-      // "a caminho" determinístico é coberto nos widget tests da 065).
-      await pumpUntilFound(
-        tester,
-        find.byKey(const Key('turno-detalhe-pix-status')),
-      );
-
-      // Flip para "Pix enviado em HH:MM" — espera generosa: job do worker (poll da
-      // fila ~2s) + webhook do fake + tick do polling da tela (10s).
-      await _pumpUntil(
-        tester,
-        () => find
-            .byKey(const Key('turno-detalhe-pix-enviado'))
-            .evaluate()
-            .isNotEmpty,
-        timeout: const Duration(seconds: 60),
-        descricao: 'linha "Pix enviado em HH:MM" no card de valor (CA-4)',
-      );
-      expect(
-        tester
-            .widget<Text>(
-              find.descendant(
-                of: find.byKey(const Key('turno-detalhe-pix-enviado')),
-                matching: find.byType(Text),
-              ),
-            )
-            .data,
-        matches(RegExp(r'^Pix enviado em \d{2}:\d{2}$')), // 24h (DDR-002)
-      );
-
-      // Trilha (timeline 060): "Pix enviado" + valor integral do profissional.
-      await _pumpUntil(
-        tester,
-        () => find.text('Pix enviado').evaluate().isNotEmpty,
-        timeout: const Duration(seconds: 15),
-        descricao: 'evento "Pix enviado" na trilha',
-      );
-      expect(find.textContaining('enviados para você.'), findsOneWidget);
-    },
-  );
+    // Trilha (timeline 060): "Pix enviado" + valor integral do profissional.
+    await _pumpUntil(
+      tester,
+      () => find.text('Pix enviado').evaluate().isNotEmpty,
+      timeout: const Duration(seconds: 15),
+      descricao: 'evento "Pix enviado" na trilha',
+    );
+    expect(find.textContaining('enviados para você.'), findsOneWidget);
+  });
 }

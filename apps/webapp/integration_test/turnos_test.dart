@@ -10,13 +10,11 @@ import 'turnos/cancelar_turno_test.dart' as cancelar_turno;
 // timer periódico vivo (tick do cronômetro / polling) nunca assenta e estoura no timeout
 // de 10 min → trocado por `_assenta` bombeado; (2) "multiple heroes share the same tag" —
 // SnackBar do passo anterior vivo durante o `pumpApp` → gate `_semSnackBar` antes de
-// remontar. RESÍDUO (NÃO estrutural, fora do escopo da STORY-082): flake INTERMITENTE
-// (4 runs: 1 PASS / 2 "PIN inválido" / 1 outro race). O PIN de check-out é EFÊMERO e o
-// backend expira em 3 erros; o teste captura o PIN na phase 2, sai da tela e valida só na
-// phase 3 após navegações → janela em que o PIN rotaciona. Feature NÃO quebrada (passa
-// quando o timing alinha); é design do teste contra PIN efêmero, agravado pelo timing do
-// shell (STORY-077). Deflake completo (re-desenhar a fase) = estória própria. Por isso
-// `checkout` segue DESATIVADO. Reativar só após sanar: descomentar import + `checkout.main()`.
+// remontar; (3) "PIN inválido" intermitente — o teste selecionava o card por RÓTULO DE
+// ESTADO com `.first` e o par `*.checkout.seed` acumula turnos LEFTOVER, então a phase 2
+// gerava o PIN num turno e a phase 3 validava em OUTRO → fixado pelo id da rota da phase 1
+// (`_cardComId`). DEFLAKADO e ESTÁVEL (7/7 isolado). Mantido FORA do gate por decisão do PO
+// (custo ~2-3 min) — pronto para reativar: descomentar o import + `checkout.main()`.
 // import 'turnos/checkout_test.dart' as checkout;
 import 'turnos/cronometro_test.dart' as cronometro;
 import 'turnos/detalhe_turno_test.dart' as detalhe_turno;
