@@ -2688,8 +2688,8 @@
       "type": "spike",
       "target_role": "designer",
       "requires_design": true,
-      "design_screen_id": null,
-      "status": "ready",
+      "design_screen_id": "SCREEN-STORY-091-disputa",
+      "status": "done",
       "owner_agent": null,
       "sprint_id": "SPRINT-2026-W31",
       "estimated_session_size": "M",
@@ -2766,7 +2766,6 @@
       "estimated_session_size": "M",
       "path": "epics/EPIC-005-disputa-minima/stories/STORY-094-frontend-contratante-recusar-checkout-justificativa.md",
       "blocked_by": [
-        "STORY-091",
         "STORY-092"
       ],
       "blocks": [
@@ -2789,7 +2788,6 @@
       "estimated_session_size": "S",
       "path": "epics/EPIC-005-disputa-minima/stories/STORY-095-frontend-profissional-banner-disputa.md",
       "blocked_by": [
-        "STORY-091",
         "STORY-092"
       ],
       "blocks": [
@@ -2812,7 +2810,6 @@
       "estimated_session_size": "M",
       "path": "epics/EPIC-005-disputa-minima/stories/STORY-096-backoffice-admin-fila-caso-resolver-disputa.md",
       "blocked_by": [
-        "STORY-091",
         "STORY-093"
       ],
       "blocks": [
@@ -4305,6 +4302,22 @@
           "SCREEN-STORY-084-avaliacao-e-perfil"
         ],
         "source_story": "STORY-084"
+      },
+      {
+        "id": "DDR-005",
+        "title": "Disputa de check-out — desambiguação da recusa (entrada única), banner read-only do profissional e tela de caso do admin",
+        "status": "accepted",
+        "path": "decisions/ddr/DDR-005-disputa-recusa-banner-caso.md",
+        "decided_at": "2026-06-10",
+        "decided_by": "designer",
+        "approved_by": "Alexandro",
+        "scope": "disputa",
+        "affects_screens": [
+          "SCREEN-STORY-091-disputa",
+          "SCREEN-STORY-064-pin-checkout",
+          "SCREEN-STORY-060-detalhe-turno"
+        ],
+        "source_story": "STORY-091"
       }
     ]
   },
@@ -5014,6 +5027,39 @@
         "owner_designer": "claude-opus-4-8",
         "created_at": "2026-06-06",
         "updated_at": "2026-06-06"
+      },
+      {
+        "id": "SCREEN-STORY-091-disputa",
+        "story": "STORY-091",
+        "epic": "EPIC-005",
+        "status": "ready",
+        "path": "design/screens/SCREEN-STORY-091-disputa.md",
+        "viewports": [
+          "mobile",
+          "desktop"
+        ],
+        "related_ddrs": [
+          "DDR-005",
+          "DDR-001",
+          "DDR-002",
+          "DDR-003"
+        ],
+        "related_idrs": [],
+        "ds_components_used": [
+          "button.primary",
+          "button.text",
+          "dialog.confirm",
+          "banner.status",
+          "badge.status",
+          "timeline.event",
+          "sidebar.admin",
+          "data-table",
+          "drawer-detail",
+          "toast"
+        ],
+        "owner_designer": "claude-opus-4-8",
+        "created_at": "2026-06-10",
+        "updated_at": "2026-06-10"
       }
     ],
     "system": {

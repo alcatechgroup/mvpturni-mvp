@@ -14,6 +14,7 @@ A versão 0.1 (fundação EPIC-000) ainda não catalogava padrões compostos. A 
 | `pattern.error` | EPIC-001+ | recuperável (`state.error` `TurniRetryState`: ícone + texto + "Tentar de novo") vs não-recuperável (`state.empty` com ícone de bloqueio + saída para um destino do shell). Ver abaixo. | **decidido (STORY-079)** |
 | `pattern.loading` | EPIC-001+ | `state.loading` (`TurniSkeletonList`/`TurniSkeletonCard`/`TurniSkeletonBox`): skeleton/placeholder no formato do conteúdo que vem, no lugar de spinner solto. Ver abaixo. | **decidido (STORY-079)** |
 | `pattern.gate-avaliacao` | EPIC-004 (avaliação recíproca) | `banner.gate` **bloqueante proativo** no topo do destino onde a ação vive; conteúdo segue visível; CTA "Avaliar agora" deep-linka ao turno pendente. Ver **DDR-004** / **ADR-019**. | **decidido (DDR-004)** |
+| `pattern.intent-disambiguation` | EPIC-005 (disputa) | Folha (`showModalBottomSheet` mobile / `AlertDialog` desktop) que, antes de uma ação **ramificada de alto custo**, pergunta a **intenção** com `RadioListTile` (cada opção com descrição da consequência) e só então segue. 1º uso: recusa do check-out (benigno → `ativo` × disputa → `em_disputa`). Ver **DDR-005**. | **decidido (DDR-005)** |
 
 > Regra herdada dos tokens: tabela com >5 colunas vira lista de cards no mobile; estado vazio sempre instrui o próximo passo; erro nunca é só cor.
 
@@ -105,3 +106,34 @@ Skeleton/placeholder no **formato do conteúdo que vem** (card de lista, linha c
 - **Editar/cancelar vaga existente NÃO é bloqueado** — o gate é sobre *publicar nova* (ADR-019).
 
 **Acessibilidade.** CTA ≥48dp, foco visível; `error.soft` na variante "ação tentada" mantém ícone + texto.
+
+---
+
+## `pattern.intent-disambiguation` — desambiguação de intenção
+
+> Decidido em **DDR-005** (`decisions/ddr/DDR-005-disputa-recusa-banner-caso.md`). 1º uso: recusa do check-out do contratante (SCREEN-091/094). Protótipo: `design/screens/SCREEN-STORY-091-disputa/index.html`.
+
+**Problema.** Uma mesma entrada de UI ("não vou validar") leva a **dois caminhos** com custos muito diferentes — um **benigno e reversível** (turno volta a `ativo`, "ainda não terminou") e um **pesado e irreversível** (abre disputa, `em_disputa`, mediação de 30 min). Oferecer os dois como ações irmãs lado a lado faz dois verbos parecidos competirem (carga cognitiva do não-técnico, Princípio #1) e convida ao erro caro (abrir disputa por engano).
+
+**Composição.** Uma **entrada única** de baixa ênfase (`button.text`) abre uma **folha** que **não executa nada** — só pergunta a **intenção**:
+
+```
+[      ação primária      ]              ← a chamada da tela segue em 1 toque
+
+  <entrada única secundária> ────┐ (button.text)
+                                 ▼  bottom-sheet (mobile) / AlertDialog (desktop)
+  ┌──────────────────────────────────────┐
+  │ <pergunta de intenção>                │
+  │  ○ <opção benigna>                    │  RadioListTile + descrição da consequência
+  │  ○ <opção de alto custo (irreversível)│  RadioListTile + descrição da consequência
+  │                [ Voltar ] [ Continuar ]│  Continuar disabled até escolher
+  └──────────────────────────────────────┘
+```
+
+**Regras.**
+- A folha **não comete a ação** — só captura a intenção. "Continuar" desabilitado até uma opção ser escolhida.
+- Cada opção descreve a **consequência** em linguagem de não-técnico (o que muda, se é reversível, o prazo).
+- O ramo de **alto custo** segue para um **`dialog.confirm` (variante campo obrigatório)** que reforça a irreversibilidade e exige o dado (justificativa) — segundo gate.
+- O ramo **benigno** confirma e executa direto.
+- **Flutter:** `showModalBottomSheet` (compact) / `AlertDialog` (≥medium) + `RadioListTile`; foco inicial no **título** (nunca num rádio); ←/→ entre opções, Enter confirma; ESC/Voltar fecha sem efeito.
+- **Acessibilidade:** label + descrição de cada opção lidos juntos; alvos ≥48dp; não usar **só cor** para distinguir os caminhos (o texto da consequência carrega o significado).

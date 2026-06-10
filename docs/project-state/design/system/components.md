@@ -155,6 +155,31 @@ profissional). **Não usar quando:** a ação é do próprio dono e reversível 
 (cancelar o próprio PIN — 061/064 — não pede confirmação) ou for só leitura
 (`dialog.document`).
 
+**Variante campo obrigatório (DDR-005).** Quando a decisão **exige** o dado para a trilha
+(justificativa da disputa do contratante · nota da resolução do admin), o campo deixa de ser
+opcional: `errorText` quando vazio (após blur ou tentativa de enviar), botão de confirmação
+**desabilitado** até haver texto, foco inicial **no campo** (não no botão destrutivo). Mesma
+anatomia do `dialog.confirm`; só muda a obrigatoriedade. 1º uso: SCREEN-091 (abrir disputa /
+resolver: pagar integral).
+
+---
+
+## `banner.status`
+
+**Descrição:** banner **persistente, não-dispensável e read-only** que comunica um **estado**
+do recurso (não é erro recuperável, nem gate de ação). `*.soft` da cor semântica + ícone +
+título + corpo — **sem CTA** (não há o que fazer; só informar). Nasce na **SCREEN-091 /
+DDR-005**: "valor em disputa" no detalhe do turno do profissional em `em_disputa` (`error
+soft`). Família visual do `banner.gate` (DDR-004), do qual difere por **não ter ação** e não
+bloquear nada — só descrever a situação.
+
+**Flutter:** `Container` (`*.soft` + `radius.lg` + borda na cor semântica ≥3:1) com `Row(Icon,
+Column(título, corpo))`. `Semantics(liveRegion: true)` ao aparecer; ícone decorativo
+(`ExcludeSemantics`) — o texto carrega o significado (cor nunca é canal único). **Não**
+anunciar como clicável.
+
+**Não confundir com:** o **banner de erro recuperável** mid-flow (com "Tentar de novo" — micro-padrão local das telas de PIN/cronômetro) nem o **`banner.gate`** (bloqueante proativo com CTA). `banner.status` é puramente informativo de estado.
+
 ---
 
 ## `button.text`

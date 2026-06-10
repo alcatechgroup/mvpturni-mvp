@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<!--
+  Protótipo de VALIDAÇÃO HUMANA — NÃO é código de produção.
+  STORY-091 / DDR-005 — Disputa de check-out (3 superfícies).
+  HTML/CSS/JS vanilla, sem rede, sem build. Abra clicando no arquivo.
+  Tokens reais do DS (DDR-001). Microcopy = SCREEN-STORY-091-disputa.md §5 (palavra por palavra).
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STORY-091 · Disputa de check-out — protótipo</title>
+<style>
+  /* ---- Tokens neutros (DDR-001 §3) ---- */
+  :root{
+    --page:#F7F4EC; --surface:#FFFFFF; --sunken:#F0EDE3; --muted:#E8E5DB;
+    --border:#E0DDD3; --border-strong:#C8C5BB;
+    --text:#0F1B2D; --text-muted:#42504A; --text-subtle:#6F7C72;
+    /* semânticas claro */
+    --success:#2D7A4F; --success-soft:#E2F0E5;
+    --warning:#9A6E25; --warning-soft:#FBEED1;
+    --error:#B83A3A;   --error-soft:#FBE2E2;
+    --info:#4A6FA5;    --info-soft:#E0E9F5;
+    --brand:#00A868;
+    --radius-md:12px; --radius-lg:16px; --radius-xl:24px; --radius-full:999px;
+    --sp-xs:4px; --sp-sm:8px; --sp-md:16px; --sp-lg:24px; --sp-xl:32px;
+    --shadow1:0 1px 2px rgba(15,27,45,.06); --shadow2:0 4px 12px rgba(15,27,45,.08);
+    --shadow3:0 8px 24px rgba(15,27,45,.12);
+  }
+  [data-theme="dark"]{
+    --page:#0F1411; --surface:#1A2018; --sunken:#232A24; --muted:#2C342E;
+    --border:#2A322D; --border-strong:#3A4338;
+    --text:#ECEDE5; --text-muted:#A8B2A8; --text-subtle:#8B9590;
+    --success:#5FA37C; --success-soft:rgba(95,163,124,.14);
+    --warning:#D4A95C; --warning-soft:rgba(212,169,92,.14);
+    --error:#D85A5A;   --error-soft:rgba(216,90,90,.16);
+    --info:#6A8FCC;    --info-soft:rgba(106,143,204,.16);
+    --shadow1:0 1px 2px rgba(0,0,0,.2); --shadow2:0 4px 12px rgba(0,0,0,.18);
+    --shadow3:0 8px 24px rgba(0,0,0,.25);
+  }
+  /* ---- Acento por perfil (DDR-001 §2.2) ---- */
+  [data-profile="contratante"]{ --accent:#9A6E25; --accent-ink:#6E4E12; --accent-soft:#FBEED1; --on-accent:#FFFFFF; --chrome:#3D2A0E; }
+  [data-profile="contratante"][data-theme="dark"]{ --accent:#D4A95C; --accent-ink:#D4A95C; --accent-soft:rgba(212,169,92,.14); --on-accent:#0F1411; }
+  [data-profile="profissional"]{ --accent:#2D5F3F; --accent-ink:#2D5F3F; --accent-soft:#E5F0E8; --on-accent:#FFFFFF; --chrome:#1B2E1F; }
+  [data-profile="profissional"][data-theme="dark"]{ --accent:#5FA37C; --accent-ink:#5FA37C; --accent-soft:rgba(95,163,124,.14); --on-accent:#0F1411; }
+  [data-profile="admin"]{ --accent:#2A4D8F; --accent-ink:#2A4D8F; --accent-soft:#E4EAF6; --on-accent:#FFFFFF; --chrome:#15233B; }
+  [data-profile="admin"][data-theme="dark"]{ --accent:#5B8DEF; --accent-ink:#5B8DEF; --accent-soft:rgba(91,141,239,.16); --on-accent:#0E1626; --chrome:#15233B; }
+
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,-apple-system,Segoe UI,Roboto,sans-serif;background:#3a3a3a;color:var(--text);}
+  /* ---- Barra de controle do protótipo ---- */
+  .proto-bar{position:sticky;top:0;z-index:50;background:#1e1e1e;color:#eee;padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid #000;font-size:13px}
+  .proto-bar strong{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#aaa;margin-right:4px}
+  .proto-bar .grp{display:flex;gap:4px;align-items:center;background:#2a2a2a;border-radius:999px;padding:3px}
+  .proto-bar button{border:0;background:transparent;color:#ccc;padding:5px 11px;border-radius:999px;cursor:pointer;font-size:12.5px;font-family:inherit}
+  .proto-bar button.on{background:var(--accent,#5b8def);color:#fff;font-weight:600}
+  .proto-bar .sep{flex:1}
+  .note{font-size:11.5px;color:#888;width:100%;margin-top:2px}
+
+  /* ---- Palco ---- */
+  .stage{display:flex;justify-content:center;padding:24px 12px 80px}
+  .device{background:var(--page);border-radius:22px;box-shadow:0 12px 40px rgba(0,0,0,.45);overflow:hidden;position:relative;transition:width .2s}
+  .device.mobile{width:390px;min-height:760px;border:8px solid #111}
+  .device.desktop{width:1180px;min-height:720px;border:1px solid #000;border-radius:10px}
+  .narrow-warn{display:none}
+
+  /* ---- WebApp chrome (contratante/profissional) ---- */
+  .appbar{display:flex;align-items:center;gap:10px;padding:14px var(--sp-md);border-bottom:1px solid var(--border);background:var(--surface)}
+  .appbar .back{font-size:20px;color:var(--text-muted);cursor:pointer}
+  .appbar h1{font-size:18px;font-weight:600;margin:0}
+  .brand{font-family:'Bebas Neue',Inter,sans-serif;font-weight:800;letter-spacing:.04em;text-align:center;padding:12px;color:var(--text)}
+  .brand i{color:var(--brand);font-style:normal}
+  .content{padding:var(--sp-md);display:flex;flex-direction:column;gap:var(--sp-md)}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--sp-lg);box-shadow:var(--shadow1)}
+  .muted{color:var(--text-muted);font-size:14px;line-height:1.5}
+  .h-sec{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin:8px 0 4px}
+
+  .badge{display:inline-flex;align-items:center;gap:6px;border-radius:var(--radius-full);padding:4px 12px;font-size:13px;font-weight:600;border:1px solid}
+  .badge.disputa{background:var(--error-soft);color:var(--error);border-color:var(--error)}
+  .badge.finalizado{background:var(--sunken);color:var(--text-muted);border-color:var(--border-strong)}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:var(--radius-full);font-weight:600;font-size:15px;cursor:pointer;border:0;min-height:48px;padding:0 24px;font-family:inherit}
+  .btn.primary{background:var(--accent);color:var(--on-accent);width:100%}
+  .btn.text{background:transparent;color:var(--accent-ink);min-height:48px;width:100%;font-size:15px}
+  .btn.success{background:var(--success);color:#fff}
+  .btn.danger{background:var(--error);color:#fff}
+  .btn[disabled]{opacity:.38;cursor:not-allowed}
+  .btn.outline{background:transparent;border:1px solid var(--border-strong);color:var(--text);min-height:auto;padding:7px 14px;font-size:13px;border-radius:var(--radius-md)}
+
+  /* ---- banner.status (novo) ---- */
+  .banner-status{display:flex;gap:10px;background:var(--error-soft);border:1px solid var(--error);border-radius:var(--radius-lg);padding:var(--sp-md)}
+  .banner-status .ic{color:var(--error);font-size:18px;line-height:1.3}
+  .banner-status .tt{font-weight:700;font-size:15px;margin:0 0 4px}
+  .banner-status.sober{background:var(--warning-soft);border-color:var(--warning)}
+  .banner-status.sober .ic{color:var(--warning)}
+
+  /* ---- timeline.event ---- */
+  .tl{display:flex;flex-direction:column;gap:0}
+  .tl .ev{display:grid;grid-template-columns:18px 1fr;gap:10px;padding-bottom:16px;position:relative}
+  .tl .ev .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);margin:5px 0 0 4px}
+  .tl .ev:not(:last-child)::before{content:"";position:absolute;left:8px;top:14px;bottom:0;width:2px;background:var(--border-strong)}
+  .tl .ev .ti{font-weight:700;font-size:14.5px}
+  .tl .ev .de{color:var(--text-muted);font-size:13.5px}
+  .tl .ev .tm{color:var(--text-muted);font-size:12.5px}
+
+  /* ---- Sheet / Dialog (overlay) ---- */
+  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:30}
+  .device.desktop .scrim{align-items:center}
+  .sheet{background:var(--surface);width:100%;border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:var(--sp-lg);box-shadow:var(--shadow3);max-height:90%;overflow:auto}
+  .device.desktop .sheet{max-width:480px;border-radius:var(--radius-lg)}
+  .sheet h2{font-size:18px;font-weight:600;margin:0 0 16px}
+  .opt{display:grid;grid-template-columns:24px 1fr;gap:10px;padding:14px;border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:12px;cursor:pointer}
+  .opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+  .opt .radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--border-strong);margin-top:2px;position:relative}
+  .opt.sel .radio{border-color:var(--accent)}
+  .opt.sel .radio::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--accent)}
+  .opt .ot{font-weight:600;font-size:15px}
+  .opt .od{color:var(--text-muted);font-size:13.5px;margin-top:3px;line-height:1.45}
+  .row-end{display:flex;justify-content:flex-end;gap:12px;margin-top:8px}
+  textarea{width:100%;min-height:88px;border:1px solid var(--border-strong);border-radius:var(--radius-md);padding:10px 12px;font-family:inherit;font-size:14px;color:var(--text);background:var(--surface);resize:vertical}
+  textarea.err{border-color:var(--error)}
+  .field-label{font-size:13.5px;font-weight:600;margin:4px 0 6px}
+  .field-err{color:var(--error);font-size:13px;margin-top:6px;display:none}
+  .field-err.show{display:block}
+  .dlg-err{color:var(--error);font-size:13px;margin-top:10px;display:none}
+  .dlg-err.show{display:block}
+  .snackbar{position:absolute;left:50%;transform:translateX(-50%);bottom:24px;background:#222;color:#fff;padding:12px 18px;border-radius:var(--radius-md);font-size:13.5px;z-index:40;box-shadow:var(--shadow2);max-width:88%}
+
+  /* ---- Backoffice (admin) ---- */
+  .bo{display:grid;grid-template-columns:240px 1fr;min-height:720px}
+  .device.mobile .bo{grid-template-columns:1fr}
+  .device.mobile .bo .side{display:none}
+  .side{background:var(--chrome);color:#ECEDE5;padding:16px 12px;display:flex;flex-direction:column;gap:4px}
+  .side .logo{font-family:'Bebas Neue',Inter;font-weight:800;font-size:22px;color:#fff;padding:6px 8px 14px}
+  .side .logo i{color:var(--brand)}
+  .side .grp-h{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:rgba(236,237,229,.5);margin:14px 8px 4px}
+  .side a{display:flex;justify-content:space-between;align-items:center;color:rgba(236,237,229,.82);text-decoration:none;padding:9px 10px;border-radius:8px;font-size:13.5px}
+  .side a.on{background:var(--accent-soft);color:#fff;font-weight:600}
+  [data-theme="dark"] .side a.on{color:var(--accent)}
+  .side .cnt{background:var(--error);color:#fff;border-radius:999px;font-size:11px;padding:1px 7px;font-weight:700}
+  .main{background:var(--page);padding:22px 26px}
+  .crumb{font-size:12px;color:var(--text-muted)}
+  .main h1{font-size:24px;font-weight:600;margin:4px 0 2px}
+  .sub{color:var(--text-muted);font-size:13.5px}
+  .stats{display:flex;gap:12px;margin:16px 0}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 16px;min-width:130px}
+  .stat .n{font-size:24px;font-weight:700}
+  .stat .l{font-size:12px;color:var(--text-muted)}
+  .stat.alert .n{color:var(--error)}
+  .fb-banner{display:flex;gap:8px;background:var(--warning-soft);border:1px solid var(--warning);color:var(--text);border-radius:var(--radius-md);padding:10px 14px;font-size:13.5px;margin-bottom:14px}
+  .fb-banner .ic{color:var(--warning)}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+  .panel .ph{padding:12px 16px;border-bottom:1px solid var(--border);font-weight:600;font-size:14px}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);text-align:left;padding:10px 16px;border-bottom:1px solid var(--border)}
+  td{padding:14px 16px;border-bottom:1px solid var(--border);font-size:13.5px;vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  .parties{font-weight:600}
+  .fn{color:var(--text-muted);font-size:12.5px}
+  .sla{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:13px}
+  .sla.g{color:var(--success)} .sla.y{color:var(--warning)} .sla.r{color:var(--error)}
+  .empty-bo{text-align:center;padding:56px 20px;color:var(--text-muted)}
+  .empty-bo .big{width:54px;height:54px;border-radius:50%;background:var(--success-soft);color:var(--success);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px}
+  /* drawer do caso */
+  .drawer{position:absolute;top:0;right:0;bottom:0;width:640px;max-width:94%;background:var(--surface);box-shadow:var(--shadow3);z-index:30;display:flex;flex-direction:column}
+  .device.mobile .drawer{width:100%}
+  .drawer .dh{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px;border-bottom:1px solid var(--border)}
+  .drawer .db{padding:18px 20px;overflow:auto;flex:1}
+  .drawer .df{padding:16px 20px;border-top:1px solid var(--border)}
+  .just-box{background:var(--sunken);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;font-size:14.5px;line-height:1.5}
+  .expand{color:var(--accent-ink);cursor:pointer;font-size:12px}
+  .x{cursor:pointer;font-size:20px;color:var(--text-muted);border:0;background:none}
+  .toast{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--page);padding:11px 18px;border-radius:var(--radius-md);font-size:13.5px;z-index:40;box-shadow:var(--shadow2)}
+  .toast.err{background:var(--error);color:#fff}
+  .hidden{display:none !important}
+</style>
+</head>
+<body data-profile="contratante" data-theme="light">
+
+<div class="proto-bar">
+  <strong>Superfície</strong>
+  <span class="grp" id="g-surface">
+    <button data-surface="contratante" class="on">Contratante</button>
+    <button data-surface="profissional">Profissional</button>
+    <button data-surface="admin">Admin (backoffice)</button>
+  </span>
+  <strong>Viewport</strong>
+  <span class="grp" id="g-view">
+    <button data-view="mobile" class="on">Mobile</button>
+    <button data-view="desktop">Desktop</button>
+  </span>
+  <strong>Tema</strong>
+  <span class="grp" id="g-theme">
+    <button data-theme-set="light" class="on">Claro</button>
+    <button data-theme-set="dark">Escuro</button>
+  </span>
+  <span class="sep"></span>
+  <strong>Estado</strong>
+  <span class="grp" id="g-state"></span>
+  <div class="note" id="proto-note"></div>
+</div>
+
+<div class="stage">
+  <div class="device mobile" id="device"></div>
+</div>
+
+<script>
+/* ============ ESTADO DO PROTÓTIPO ============ */
+const S = { surface:'contratante', view:'mobile', theme:'light', state:'validacao' };
+const STATES = {
+  contratante:[['validacao','Validação'],['folha','Folha de intenção'],['dialogo-disputa','Diálogo disputa'],['dialogo-erro','Disputa: erro envio'],['em-disputa','Em disputa']],
+  profissional:[['em-disputa','Em disputa (banner)']],
+  admin:[['lista','Fila'],['vazio','Fila vazia'],['erro','Erro carregar'],['caso','Caso (drawer)'],['resolver','Resolver: pagar integral'],['resolver-erro','Resolver: erro'],['toast-resolvido','Toast resolvido'],['toast-race','Toast race']]
+};
+const PROFILE = { contratante:'contratante', profissional:'profissional', admin:'admin' };
+let intencao = null; // 'ativo' | 'problema'
+let justOk = false, notaOk = false;
+
+/* ============ RENDER ============ */
+function render(){
+  document.body.dataset.profile = PROFILE[S.surface];
+  document.body.dataset.theme = S.theme;
+  const dev = document.getElementById('device');
+  dev.className = 'device ' + (S.surface==='admin' && S.view==='mobile' ? 'mobile' : S.view);
+  renderStateChips();
+  if(S.surface==='contratante') dev.innerHTML = viewContratante();
+  else if(S.surface==='profissional') dev.innerHTML = viewProfissional();
+  else dev.innerHTML = viewAdmin();
+  wire();
+  document.getElementById('proto-note').textContent = noteFor();
+}
+function noteFor(){
+  if(S.surface==='admin' && S.view==='mobile') return 'Backoffice é desktop-first (PDR-003) — mobile é fallback que não quebra. Use Desktop para o shell completo.';
+  if(S.surface==='contratante') return 'Fluxo: Validação → “Recusar check-out” → folha → “tenho um problema” → diálogo (justificativa obrigatória) → Em disputa.';
+  if(S.surface==='profissional') return 'Read-only: banner.status persistente, sem ação. A justificativa do contratante NÃO é exibida (DDR-005).';
+  return 'Fila derivada do estado em_disputa; caso em drawer com trilha; resolver com nota obrigatória.';
+}
+function renderStateChips(){
+  const g = document.getElementById('g-state'); g.innerHTML='';
+  STATES[S.surface].forEach(([k,label])=>{
+    const b=document.createElement('button'); b.textContent=label; b.dataset.state=k;
+    if(S.state===k) b.className='on';
+    b.onclick=()=>{ S.state=k; if(k==='folha') intencao=null; render(); };
+    g.appendChild(b);
+  });
+}
+
+/* ============ CONTRATANTE ============ */
+function viewContratante(){
+  const inDisputa = S.state==='em-disputa';
+  let overlay='';
+  if(S.state==='folha') overlay = sheetIntencao();
+  if(S.state==='dialogo-disputa'||S.state==='dialogo-erro') overlay = dialogDisputa(S.state==='dialogo-erro');
+  const snack = inDisputa ? `<div class="snackbar" data-testid="abrir-disputa-sucesso">Disputa aberta — a equipe Turni vai mediar.</div>`:'';
+  return `
+  <div class="appbar"><span class="back">←</span><h1>Detalhe do turno</h1></div>
+  <div class="content">
+    ${inDisputa?`
+      <div class="banner-status sober" data-testid="disputa-contratante-banner">
+        <span class="ic">⚠</span><div><div class="tt">Disputa em análise</div>
+        <div class="muted">Disputa em análise — você será avisado da decisão.</div></div></div>`:''}
+    <div class="card">
+      <div class="badge ${inDisputa?'disputa':'finalizado'}" style="margin-bottom:10px">${inDisputa?'⚠ Em disputa':'⧖ Aguardando check-out'}</div>
+      <div style="font-size:22px;font-weight:600">Garçom</div>
+      <div class="muted">Carlos H. Silva</div>
+      <div class="muted">Sex, 12/06 · 18:00–23:00</div>
+    </div>
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:4px">Pagamento deste turno</div>
+      <div class="muted">Valor do profissional — R$ 200,00</div>
+      <div class="muted">Taxa Turni — R$ 30,00</div>
+      <div style="font-weight:700;margin-top:6px">Total — R$ 230,00</div>
+    </div>
+    ${inDisputa?'':`
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:4px">Turno concluído?</div>
+      <div class="muted" style="margin-bottom:14px">Peça o PIN de 4 dígitos que aparece no celular do profissional e digite abaixo.</div>
+      <div style="text-align:center;font-family:monospace;font-size:26px;letter-spacing:.3em;border:1px solid var(--border-strong);border-radius:12px;padding:10px;margin-bottom:14px;color:var(--text-muted)">– – – –</div>
+      <button class="btn primary">Validar check-out</button>
+      <button class="btn text" id="recusar" data-testid="recusar-checkout-btn">Não vai validar agora? Recusar check-out</button>
+    </div>`}
+    ${inDisputa?`
+    <div class="h-sec">Histórico</div>
+    <div class="tl">
+      <div class="ev"><span class="dot"></span><div><div class="ti">Disputa aberta</div><div class="de">Você contestou o check-out.</div><div class="tm">Sex, 12/06 · 23:14</div></div></div>
+      <div class="ev"><span class="dot"></span><div><div class="ti">PIN de check-out gerado</div><div class="tm">Sex, 12/06 · 23:10</div></div></div>
+      <div class="ev"><span class="dot"></span><div><div class="ti">Check-in validado</div><div class="de">Turno iniciado.</div><div class="tm">Sex, 12/06 · 18:02</div></div></div>
+    </div>`:''}
+  </div>${overlay}${snack}`;
+}
+function sheetIntencao(){
+  const cont = intencao!==null;
+  return `<div class="scrim"><div class="sheet" data-testid="disputa-intencao-sheet">
+    <h2 tabindex="-1">Por que não vai validar?</h2>
+    <div class="opt ${intencao==='ativo'?'sel':''}" data-int="ativo" data-testid="disputa-intencao-ativo">
+      <span class="radio"></span><div><div class="ot">O turno ainda não terminou</div>
+      <div class="od">Volta para “Em andamento”. O tempo continua contando e o profissional gera um novo PIN.</div></div></div>
+    <div class="opt ${intencao==='problema'?'sel':''}" data-int="problema" data-testid="disputa-intencao-problema">
+      <span class="radio"></span><div><div class="ot">Tenho um problema com este turno</div>
+      <div class="od">Abre uma disputa: a equipe Turni media em até 30 minutos. Esta ação é irreversível.</div></div></div>
+    <div class="row-end">
+      <button class="btn text" style="width:auto" data-testid="disputa-intencao-voltar" id="folha-voltar">Voltar</button>
+      <button class="btn primary" style="width:auto" ${cont?'':'disabled'} data-testid="disputa-intencao-continuar" id="folha-continuar">Continuar</button>
+    </div></div></div>`;
+}
+function dialogDisputa(erro){
+  return `<div class="scrim"><div class="sheet" data-testid="abrir-disputa-dialog" style="border-radius:16px">
+    <h2 tabindex="-1">Abrir disputa deste turno?</h2>
+    <div class="muted" style="margin-bottom:14px">O turno fica em disputa e a equipe Turni vai mediar em até 30 minutos. O valor continua reservado até a decisão. Esta ação é irreversível.</div>
+    <div class="field-label">O que aconteceu? (obrigatório)</div>
+    <textarea id="just" data-testid="abrir-disputa-justificativa-input" placeholder="Descreva o problema com o turno"></textarea>
+    <div class="field-err" id="just-err" data-testid="abrir-disputa-justificativa-erro">Conte o que aconteceu para abrir.</div>
+    <div class="dlg-err ${erro?'show':''}" data-testid="abrir-disputa-erro">Não foi possível abrir a disputa. Tente de novo.</div>
+    <div class="row-end">
+      <button class="btn text" style="width:auto" id="disp-voltar" data-testid="abrir-disputa-voltar-btn">Voltar</button>
+      <button class="btn danger" style="width:auto" id="disp-confirmar" data-testid="abrir-disputa-confirmar-btn" disabled>Abrir disputa</button>
+    </div></div></div>`;
+}
+
+/* ============ PROFISSIONAL ============ */
+function viewProfissional(){
+  return `
+  <div class="appbar"><span class="back">←</span><h1>Detalhe do turno</h1></div>
+  <div class="content">
+    <div class="banner-status" data-testid="disputa-banner">
+      <span class="ic">⚠</span><div>
+        <div class="tt">Valor em disputa</div>
+        <div class="muted">O contratante contestou o check-out deste turno. A equipe Turni vai mediar em até 30 minutos e avisaremos você do desfecho.</div>
+      </div></div>
+    <div class="card">
+      <div class="badge disputa" style="margin-bottom:10px">⚠ Em disputa</div>
+      <div style="font-size:22px;font-weight:600">Garçom</div>
+      <div class="muted">Bar do Zé</div>
+      <div class="muted">Sex, 12/06 · 18:00–23:00</div>
+    </div>
+    <div class="card">
+      <div style="font-weight:600">Você recebe</div>
+      <div style="font-size:30px;font-weight:600;margin:2px 0">R$ 200,00</div>
+      <div class="muted">valor integral · taxa Turni cobrada do contratante</div>
+    </div>
+    <div class="h-sec">Histórico</div>
+    <div class="tl">
+      <div class="ev"><span class="dot"></span><div><div class="ti">Disputa aberta</div><div class="de">O contratante contestou o check-out.</div><div class="tm">Sex, 12/06 · 23:14</div></div></div>
+      <div class="ev"><span class="dot"></span><div><div class="ti">Check-out solicitado</div><div class="tm">Sex, 12/06 · 23:10</div></div></div>
+      <div class="ev"><span class="dot"></span><div><div class="ti">Check-in validado</div><div class="de">Turno iniciado.</div><div class="tm">Sex, 12/06 · 18:02</div></div></div>
+    </div>
+  </div>`;
+}
+
+/* ============ ADMIN ============ */
+function viewAdmin(){
+  const showCaso = (S.state==='caso'||S.state==='resolver'||S.state==='resolver-erro');
+  const showDialog = (S.state==='resolver'||S.state==='resolver-erro');
+  let bodyMain='';
+  if(S.state==='vazio'){
+    bodyMain = `<div class="panel"><div class="ph">Fila de disputas</div>
+      <div class="empty-bo" data-testid="disputas-empty"><div class="big">✓</div>
+      <div style="font-weight:600;color:var(--text)">Nenhuma disputa em aberto</div>
+      <div>Casos novos aparecem aqui assim que um contratante contestar um check-out.</div></div></div>`;
+  } else if(S.state==='erro'){
+    bodyMain = `<div class="fb-banner" style="background:var(--error-soft);border-color:var(--error)"><span class="ic" style="color:var(--error)">⚠</span>
+      Não foi possível carregar as disputas. <a class="expand" style="margin-left:6px">Tentar de novo</a></div>`;
+  } else {
+    bodyMain = tabelaDisputas();
+  }
+  const narrow = (S.view==='mobile') ? `<div class="fb-banner" style="border-radius:0;margin:0"><span class="ic">⚠</span>Backoffice é desktop-first (≥1024px). Alargue a janela para ver o shell completo.</div>`:'';
+  let toast='';
+  if(S.state==='toast-resolvido') toast = `<div class="toast" data-testid="disputas-toast">Disputa resolvida — pagamento integral liberado.</div>`;
+  if(S.state==='toast-race') toast = `<div class="toast err" data-testid="disputas-toast">Esta disputa já foi resolvida por outro admin.</div>`;
+  return `<div class="bo">
+    <div class="side">
+      <div class="logo">TURN<i>I</i>.</div>
+      <div class="grp-h">Operação</div>
+      <a href="#">Visão geral</a>
+      <a href="#">Cadastros pendentes <span class="cnt">3</span></a>
+      <a href="#" class="on" data-testid="nav-disputas">Disputas <span class="cnt">2</span></a>
+      <div class="grp-h">Cadastro</div>
+      <a href="#">Profissionais</a>
+      <a href="#">Contratantes</a>
+      <a href="#">Configurações</a>
+      <div style="flex:1"></div>
+      <a href="#">⏻ Sair</a>
+    </div>
+    <div class="main" data-testid="screen-disputas">
+      ${narrow}
+      <div class="crumb">Backoffice · Admin</div>
+      <h1>Disputas</h1>
+      <div class="sub">2 em aberto · SLA público de 30 min</div>
+      ${(S.state==='lista'||S.state==='caso'||S.state==='resolver'||S.state==='resolver-erro')?`
+      <div class="stats">
+        <div class="stat"><div class="n" data-testid="disputas-count-aberto">2</div><div class="l">Em aberto</div></div>
+        <div class="stat alert"><div class="n" data-testid="disputas-count-sla">1</div><div class="l">Com SLA estourado</div></div>
+      </div>
+      <div class="fb-banner" data-testid="disputas-sla-banner"><span class="ic">⚠</span>1 disputa há mais de 30 min em aberto — priorize.</div>`:''}
+      ${bodyMain}
+    </div>
+    ${showCaso?drawerCaso():''}
+    ${showDialog?dialogResolver(S.state==='resolver-erro'):''}
+    ${toast}
+  </div>`;
+}
+function tabelaDisputas(){
+  return `<div class="panel"><div class="ph">Fila de disputas</div>
+   <table data-testid="disputas-list"><thead><tr><th>Partes</th><th>Valor</th><th>Aberta há</th><th></th></tr></thead><tbody>
+   <tr data-testid="disputas-item-T1"><td><div class="parties">Bar do Zé ⇄ Carlos H. Silva</div><div class="fn">Garçom</div></td>
+     <td>R$ 230,00</td><td><span class="sla r" data-testid="disputas-item-T1-sla">🔴 há 42 min</span></td>
+     <td><button class="btn outline" data-testid="disputas-item-T1-ver" id="ver-caso">Ver caso</button></td></tr>
+   <tr data-testid="disputas-item-T2"><td><div class="parties">Hotel Aurora ⇄ Ana Lima</div><div class="fn">Cozinheira</div></td>
+     <td>R$ 264,00</td><td><span class="sla y" data-testid="disputas-item-T2-sla">🟡 há 18 min</span></td>
+     <td><button class="btn outline">Ver caso</button></td></tr>
+   </tbody></table></div>`;
+}
+function drawerCaso(){
+  return `<div class="drawer" data-testid="disputas-caso">
+    <div class="dh"><div>
+      <div style="font-weight:700;font-size:16px">Bar do Zé &nbsp;⇄&nbsp; Carlos H. Silva</div>
+      <div class="muted">Garçom · R$ 230,00 · <span class="sla r">🔴 há 42 min · SLA 30 min</span></div>
+    </div><button class="x" data-testid="disputas-caso-close" id="caso-close" aria-label="Fechar caso">✕</button></div>
+    <div class="db">
+      <div class="h-sec">Justificativa do contratante</div>
+      <div class="just-box" data-testid="caso-justificativa">“O profissional saiu 40 min antes do fim combinado e não terminou a limpeza do salão.”</div>
+      <div class="h-sec" style="margin-top:18px">Trilha do turno</div>
+      <div class="tl" data-testid="caso-trilha">
+        <div class="ev"><span class="dot"></span><div><div class="ti">Disputa aberta</div><div class="de">Contratante contestou o check-out.</div><div class="tm">Sex, 12/06 · 23:14</div></div></div>
+        <div class="ev"><span class="dot"></span><div><div class="ti">Check-out solicitado</div><div class="de">Geofencing: a 12 m do estabelecimento.</div><div class="tm">Sex, 12/06 · 23:10</div></div></div>
+        <div class="ev"><span class="dot"></span><div><div class="ti">Cronômetro encerrado</div><div class="de">Duração 04:58:00.</div><div class="tm">Sex, 12/06 · 23:10</div></div></div>
+        <div class="ev"><span class="dot"></span><div><div class="ti">Checklist: 6/8 itens concluídos <span class="expand">⌄ ver</span></div></div></div>
+        <div class="ev"><span class="dot"></span><div><div class="ti">Chat (4 mensagens) <span class="expand">⌄ ver</span></div></div></div>
+        <div class="ev"><span class="dot"></span><div><div class="ti">Check-in validado</div><div class="tm">Sex, 12/06 · 18:02</div></div></div>
+        <div class="ev"><span class="dot"></span><div><div class="ti"><a class="expand" data-testid="caso-vaga-original">Vaga original ↗</a></div></div></div>
+        <div class="ev"><span class="dot"></span><div><div class="ti">Turno confirmado</div><div class="tm">Qua, 03/06 · 15:46</div></div></div>
+      </div>
+    </div>
+    <div class="df"><button class="btn success" style="width:100%" data-testid="disputas-caso-resolver" id="resolver-btn">Resolver: pagar integral</button></div>
+  </div>`;
+}
+function dialogResolver(erro){
+  return `<div class="scrim"><div class="sheet" data-testid="dialog-resolver" style="border-radius:16px;max-width:480px">
+    <h2 tabindex="-1">Resolver: pagar integral?</h2>
+    <div class="muted" style="margin-bottom:14px">Captura o valor e libera o Pix ao profissional. O turno será finalizado. Esta ação é irreversível.</div>
+    <div class="field-label">Nota da decisão (obrigatória)</div>
+    <textarea id="nota" data-testid="resolver-nota-input"></textarea>
+    <div class="field-err" id="nota-err" data-testid="resolver-nota-erro">Descreva o motivo da decisão.</div>
+    <div class="dlg-err ${erro?'show':''}">Não foi possível resolver. Tente novamente.</div>
+    <div class="row-end">
+      <button class="btn text" style="width:auto" id="res-voltar" data-testid="dialog-resolver-cancel">Voltar</button>
+      <button class="btn success" style="width:auto" id="res-confirmar" data-testid="dialog-resolver-confirm" disabled>Pagar integral</button>
+    </div></div></div>`;
+}
+
+/* ============ INTERAÇÕES ============ */
+function wire(){
+  // contratante
+  const rec=document.getElementById('recusar'); if(rec) rec.onclick=()=>{S.state='folha';intencao=null;render();};
+  document.querySelectorAll('.opt[data-int]').forEach(o=>o.onclick=()=>{intencao=o.dataset.int;render();});
+  const fv=document.getElementById('folha-voltar'); if(fv) fv.onclick=()=>{S.state='validacao';render();};
+  const fc=document.getElementById('folha-continuar'); if(fc) fc.onclick=()=>{
+    if(intencao==='problema'){S.state='dialogo-disputa';render();}
+    else {S.state='validacao';render();} // “ainda não terminou” → volta a ativo (mock)
+  };
+  const just=document.getElementById('just');
+  if(just){ const c=document.getElementById('disp-confirmar'); const e=document.getElementById('just-err');
+    just.oninput=()=>{const ok=just.value.trim().length>0;c.disabled=!ok;just.classList.toggle('err',!ok&&just.value.length>0);if(ok)e.classList.remove('show');};
+    just.onblur=()=>{if(just.value.trim().length===0){e.classList.add('show');just.classList.add('err');}};
+  }
+  const dv=document.getElementById('disp-voltar'); if(dv) dv.onclick=()=>{S.state='folha';render();};
+  const dc=document.getElementById('disp-confirmar'); if(dc) dc.onclick=()=>{S.state='em-disputa';render();};
+  // admin
+  const vc=document.getElementById('ver-caso'); if(vc) vc.onclick=()=>{S.state='caso';render();};
+  const cc=document.getElementById('caso-close'); if(cc) cc.onclick=()=>{S.state='lista';render();};
+  const rb=document.getElementById('resolver-btn'); if(rb) rb.onclick=()=>{S.state='resolver';render();};
+  const nota=document.getElementById('nota');
+  if(nota){ const c=document.getElementById('res-confirmar'); const e=document.getElementById('nota-err');
+    nota.oninput=()=>{const ok=nota.value.trim().length>0;c.disabled=!ok;nota.classList.toggle('err',!ok&&nota.value.length>0);if(ok)e.classList.remove('show');};
+    nota.onblur=()=>{if(nota.value.trim().length===0){e.classList.add('show');nota.classList.add('err');}};
+  }
+  const rv=document.getElementById('res-voltar'); if(rv) rv.onclick=()=>{S.state='caso';render();};
+  const rc=document.getElementById('res-confirmar'); if(rc) rc.onclick=()=>{S.state='toast-resolvido';render();};
+  // foco no título de sheet/dialog
+  const h=document.querySelector('.sheet h2[tabindex]'); if(h) h.focus();
+}
+
+/* ============ CONTROLES ============ */
+document.getElementById('g-surface').onclick=e=>{if(e.target.dataset.surface){S.surface=e.target.dataset.surface;S.state=STATES[S.surface][0][0];if(S.surface==='admin')S.view='desktop';setOn('g-surface','surface',S.surface);setOn('g-view','view',S.view);render();}};
+document.getElementById('g-view').onclick=e=>{if(e.target.dataset.view){S.view=e.target.dataset.view;setOn('g-view','view',S.view);render();}};
+document.getElementById('g-theme').onclick=e=>{if(e.target.dataset.themeSet){S.theme=e.target.dataset.themeSet;setOn('g-theme','themeSet',S.theme);render();}};
+function setOn(grp,attr,val){document.querySelectorAll('#'+grp+' button').forEach(b=>b.classList.toggle('on', b.dataset[attr]===val));}
+render();
+</script>
+</body>
+</html>
