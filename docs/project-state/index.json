@@ -2736,8 +2736,8 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
-      "owner_agent": null,
+      "status": "done",
+      "owner_agent": "claude-opus-4-8-programador-2026-06-10",
       "sprint_id": "SPRINT-2026-W31",
       "estimated_session_size": "M",
       "path": "epics/EPIC-005-disputa-minima/stories/STORY-093-backend-resolucao-paga-integral-captura-pix.md",
@@ -4238,6 +4238,16 @@
         "decided_by": "programador",
         "source_story": "STORY-082",
         "note": "Deflake do E2E gate do cronômetro (F-B-1). A forma antiga comparava o display do app (que carrega o erro de offset do próprio poll, ADR-017) contra um servidor_agora buscado fresco a cada amostra, tolerância ≤1s — media a latência do build debug sob carga, não a sincronia. Forma nova: skew_local = display − (agoraCliente − iniciadoEm) = −offset; veredito = |median(skew_pro) − median(skew_contr)| ≤ 2s. Os dois lados na mesma máquina contra a mesma âncora → skew de relógio e lentidão de ambiente são modo-comum e cancelam; a mediana rejeita o pico transitório que flakeava. Âncora lida 1×/lado (imutável enquanto ativo) → sem rede no laço de amostragem. Premissa: harness single-host (IDR-021); multi-host exigiria revisitar."
+      },
+      {
+        "id": "IDR-032",
+        "title": "Canal admin→api do comando \"pagar integral\" via endpoint interno + segredo compartilhado (X-Internal-Token)",
+        "status": "accepted",
+        "path": "decisions/idr/IDR-032-canal-service-to-service-admin-api-pagar-integral.md",
+        "decided_at": "2026-06-10",
+        "decided_by": "programador",
+        "source_story": "STORY-093",
+        "note": "ADR-020 (Decisão 3A) fixou que a resolução paga_integral é comando da api (só ela emite o evento in-process TurnoFinalizado que dispara captura+Pix) e delegou o MECANISMO do canal admin→api a este IDR. Decisão: endpoint INTERNO POST /api/internal/turnos/{turno}/resolver-disputa, FORA de auth:web/WebAppOnly, protegido por InternalServiceAuth (segredo compartilhado INTERNAL_SERVICE_TOKEN no header X-Internal-Token, hash_equals; fail-secure 401 se ausente/divergente). RBAC em 2 camadas (ADR-007): o segredo prova que o chamador é o app admin confiável; a identidade admin_id chega no corpo e é re-verificada por isAdmin() (id inexistente/contratante/profissional → 403). Segredo nos 2 .env, default só dev/CI em services.internal.token, homolog/prod via Secret Manager (mesmo padrão do PIX_FALHA_CHAVE_KEY/IDR-028). Cliente HTTP do lado admin é da STORY-096. Alternativa (guard/token Sanctum por-admin na api) preterida por desproporcional ao MVP de 1 comando; reversível. Trade-off aceito: admin_id é asserido pelo app admin (autenticado pelo segredo), não provado por credencial do admin na própria api."
       }
     ],
     "ddr": [

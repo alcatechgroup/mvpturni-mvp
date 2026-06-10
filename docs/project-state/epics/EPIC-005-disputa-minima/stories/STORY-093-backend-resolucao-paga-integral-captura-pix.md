@@ -7,8 +7,8 @@ sprint_id: SPRINT-2026-W31
 type: implementation
 target_role: programador
 requires_design: false
-status: blocked
-owner_agent: null
+status: done
+owner_agent: claude-opus-4-8
 created_at: 2026-06-10
 updated_at: 2026-06-10
 estimated_session_size: M
@@ -91,16 +91,40 @@ Siga `docs/skills/po/references/agent-task-format.md`.
 ## Notas do agente (preenchido durante/após execução)
 
 ### Decisões tomadas
-- <data> — <decisão>
+- 2026-06-10 — **`nota_admin` OBRIGATÓRIA** (422 `nota_admin_obrigatoria`). A CA-3/§"O quê" diziam
+  "opcional", mas a ADR-020 (Decisão 3, passo 1) diz "nota_admin **presente** (a trilha precisa da
+  história)". Conflito real entre estória e modelo; resolvido a favor do **ADR** (a estória não decide
+  modelo — §"Liberdade técnica"). Confirmado com o dono em chat antes de codar.
+- 2026-06-10 — **Canal admin→api = endpoint interno service-to-service** (`POST
+  /api/internal/turnos/{turno}/resolver-disputa`, `InternalServiceAuth` + `X-Internal-Token`,
+  `admin_id` no corpo re-verificado por `isAdmin()`). É o IDR que a ADR-020 (Decisão 3A) delegou a esta
+  estória. Confirmado com o dono em chat. Ver **IDR-032**.
+- 2026-06-10 — **Reuso LITERAL de `TurnoFinalizado`** (sem evento novo): `ResolverDisputaService`
+  transita `em_disputa → finalizado` e re-emite o mesmo evento do check-out feliz. Captura+Pix (065),
+  notificação ao profissional (067) e gate de avaliação recíproca (085) vêm de graça — CA-1/CA-2/CA-6/
+  CA-7 sem caminho financeiro novo (ADR-020 Decisão 3/4).
 
 ### Descobertas
-- <data> — <descoberta>
+- 2026-06-10 — O `CapturarEPagarTurnoJob` se fixa na fila `database` (`onConnection('database')`),
+  então **não roda inline** mesmo com `QUEUE_CONNECTION=sync`. Os testes de captura via comando do
+  admin asseguram o **enfileiramento** (`Queue::assertPushed`) — o motor do job é coberto pelo 065/056.
+- 2026-06-10 — Idempotência da resolução em 3 camadas (ADR-020): (1) o guard de estado do service (2º
+  "pagar integral" cai em `estado_invalido` 422 — turno já `finalizado`); (2) guard `=== Finalizado` do
+  job; (3) índice único `(turno_id, tipo_operacao)` em `pagamento_operacoes`. Provei a camada (1) aqui.
+- 2026-06-10 — Helper de teste `turnoEmDisputa()` já existe global no `NotificarDisputaAbertaTest`
+  (Pest = funções globais); renomeei o meu para `turnoParaResolver()` para evitar `redeclare`.
+- 2026-06-10 — `contracts/` (OpenAPI, ADR-003) segue **placeholder vazio** — nenhum endpoint o populou
+  ainda (igual à STORY-092). O contrato do endpoint vive na rota + neste IDR; nada a atualizar lá.
 
 ### IDRs criados
-- IDR-XXX — <título>
+- IDR-032 — Canal admin→api do comando "pagar integral" via endpoint interno + segredo compartilhado.
 
 ### Cobertura final
-- Unitários: <%> · Núcleo: <%>
+- Suíte api: **1114 verdes** (6583 asserts), gate ≥80% OK. Núcleo do comando
+  (`ResolverDisputaService`): **100%** linhas/métodos. 14 testes novos no `ResolverDisputaTest`
+  (CA-1..7 + RBAC do canal + nota obrigatória + núcleo). `pint --test` limpo.
 
 ### Links de evidência
-- PR / Pipeline / Deploy homolog: <urls>
+- PR / Pipeline / Deploy homolog: <commit na main — preencher após push/CI>
+- Arquivos: `ResolverDisputaService` + `NotaAdminObrigatoriaException`, `InternalServiceAuth`,
+  `ResolverDisputaController`, rota `/api/internal/...`, `config/services.php` + `.env.example` (api+admin).

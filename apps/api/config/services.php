@@ -67,4 +67,13 @@ return [
         'pix_falha_chave_key' => env('PIX_FALHA_CHAVE_KEY', 'base64:QSaMggP0jJQeXLjsVeaVSbzjYRuI/jafz7urwOGT7Mg='),
     ],
 
+    // STORY-093 / ADR-020 (Decisão 3A) · IDR-032 — segredo do canal service-to-service admin→api
+    // para o comando "pagar integral" (rotas /api/internal/*; InternalServiceAuth). O admin é um
+    // processo separado e NÃO emite o evento in-process TurnoFinalizado, então a captura é
+    // single-sourced na api. COMPARTILHADO nos 2 .env (mesmo racional do pix_falha_chave_key/IDR-028);
+    // default só para dev/CI, homolog/prod via Secret Manager (ADR-004), nunca do código.
+    'internal' => [
+        'token' => env('INTERNAL_SERVICE_TOKEN', 'dev-internal-s2s-token-change-me'),
+    ],
+
 ];

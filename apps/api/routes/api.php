@@ -24,6 +24,7 @@ use App\Http\Controllers\Turno\CheckinGeoController;
 use App\Http\Controllers\Turno\CronometroController;
 use App\Http\Controllers\Turno\PinCheckinController;
 use App\Http\Controllers\Turno\PinCheckoutController;
+use App\Http\Controllers\Turno\ResolverDisputaController;
 use App\Http\Controllers\Turno\TurnoAtivoController;
 use App\Http\Controllers\Turno\TurnoDetalheController;
 use App\Http\Controllers\Turno\TurnosController;
@@ -34,6 +35,7 @@ use App\Http\Controllers\Vaga\CandidatosController;
 use App\Http\Controllers\Vaga\VagaController;
 use App\Http\Controllers\Webhook\PagarmeWebhookController;
 use App\Http\Middleware\FunnelGuard;
+use App\Http\Middleware\InternalServiceAuth;
 use App\Http\Middleware\WebAppOnly;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Auth;
@@ -230,4 +232,16 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     // o XP atual + XP até o próximo nível só aparecem para o próprio dono (visibilidade). A
     // assimetria LGPD dos depoimentos (autor anônimo sobre o contratante) vive na Query.
     Route::get('/perfil/{user}', [PerfilReputacaoController::class, 'show']);
+});
+
+// Canal INTERNO service-to-service admin→api (STORY-093 / ADR-020 Decisão 3A · IDR-032). FORA do
+// grupo auth:web/WebApp: o backoffice (apps/admin, processo separado) NÃO tem a sessão por cookie
+// do Flutter e NÃO consegue emitir o evento in-process TurnoFinalizado — por isso a captura+Pix da
+// disputa é single-sourced AQUI. Autenticação do canal = segredo compartilhado (InternalServiceAuth,
+// X-Internal-Token); a identidade do admin chega no corpo (admin_id) e é re-verificada (isAdmin) no
+// controller (RBAC fail-secure, CA-5).
+Route::middleware([InternalServiceAuth::class])->prefix('internal')->group(function () {
+    // "Pagar integral": transita em_disputa → finalizado, grava a trilha da resolução e re-emite
+    // TurnoFinalizado (captura padrão + Pix + notificação + gate de avaliação, reusados do EPIC-004).
+    Route::post('/turnos/{turno}/resolver-disputa', [ResolverDisputaController::class, 'resolver']);
 });
