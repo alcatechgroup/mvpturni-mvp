@@ -309,10 +309,21 @@
       ],
       "validation_report": {
         "path": "epics/EPIC-004-avaliacao-reciproca/validation/report.md",
-        "verdict": "rejected",
+        "verdict": "approved",
         "validated_at": "2026-06-09",
-        "validated_by": "validador (claude-opus-4-8, sessão 2026-06-09)"
+        "revalidated_at": "2026-06-09",
+        "validated_by": "validador (claude-opus-4-8, sessão 2026-06-09)",
+        "note": "Re-validação 2026-06-09: F-B-1 (único bloqueante, CI vermelho/Pint) sanado em 4e2dc83 e re-verificado no HEAD 355bc09 (CI verde 10/10, Pint PASS, Trivy voltou a passar). Veredito atualizado rejected → approved. Veredito inicial preservado no validation_history e no verdict_history do report."
       },
+      "validation_history": [
+        {
+          "path": "epics/EPIC-004-avaliacao-reciproca/validation/report.md",
+          "verdict": "rejected",
+          "validated_at": "2026-06-09",
+          "validated_by": "validador (claude-opus-4-8, sessão 2026-06-09)",
+          "note": "1ª passada: 1 fail bloqueante F-B-1 (pipeline CI vermelho na main por violação de estilo Pint em TurnosListaTest.php). Mesmo arquivo report.md, seção Histórico/verdict_history."
+        }
+      ],
       "created_at": "2026-05-26",
       "updated_at": "2026-06-09"
     },

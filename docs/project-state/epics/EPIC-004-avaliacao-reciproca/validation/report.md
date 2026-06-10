@@ -3,7 +3,11 @@ epic_id: EPIC-004
 type: validation-report
 validated_at: 2026-06-09
 validated_by: validador (claude-opus-4-8, sessão 2026-06-09)
-verdict: rejected
+verdict: approved
+verdict_history:
+  - { verdict: rejected, at: 2026-06-09, reason: "1 bloqueante F-B-1 (CI vermelho na main por Pint)" }
+  - { verdict: approved, at: 2026-06-09, reason: "F-B-1 sanado em 4e2dc83; re-verificado no HEAD 355bc09 (CI verde, Pint PASS)" }
+revalidated_at: 2026-06-09
 checklist_source: epics/EPIC-004-avaliacao-reciproca/validation/checklist.md
 ---
 
@@ -11,9 +15,10 @@ checklist_source: epics/EPIC-004-avaliacao-reciproca/validation/checklist.md
 
 ## TL;DR
 
-> **Veredito: REJECTED.**
-> **Contagem**: 14 itens-bloco `pass`, 3 `pass com ressalva`, 1 `fail` (1 bloqueante, 0 não-bloqueante), 1 `n/a` justificado.
-> **Bloqueante (resumo factual)**: a branch principal `main` está com o pipeline **CI vermelho** desde o commit `feat(STORY-088): marca turnos pendentes…` (follow-up rc.101) — uma violação de estilo Pint (`fully_qualified_strict_types`/`ordered_imports`) em `apps/api/tests/Feature/Turno/TurnosListaTest.php`, reproduzível localmente no HEAD `3e25b14`.
+> **Veredito atual: APPROVED** (re-validação 2026-06-09 — ver §Revalidação e A.9).
+> **Veredito inicial: REJECTED** (mesma data) — preservado abaixo como registro honesto da 1ª passada.
+> **Contagem (re-validação)**: 16 itens-bloco `pass`, 2 `pass com ressalva` (§9.3, §12.1), 0 `fail`, 1 `n/a` justificado. O único bloqueante da 1ª passada (F-B-1) foi sanado pelo Programador em `4e2dc83` e **re-verificado** no HEAD `355bc09`; a ressalva §13.3 (Trivy pulado) também caiu — o container scan voltou a rodar e passou.
+> **Registro da 1ª passada (factual)**: a branch principal `main` esteve com o pipeline **CI vermelho** desde o commit `feat(STORY-088): marca turnos pendentes…` (follow-up rc.101) — violação de estilo Pint (`fully_qualified_strict_types`/`ordered_imports`) em `apps/api/tests/Feature/Turno/TurnosListaTest.php`, reproduzida no então-HEAD `3e25b14`.
 
 ---
 
@@ -22,6 +27,26 @@ checklist_source: epics/EPIC-004-avaliacao-reciproca/validation/checklist.md
 O EPIC-004 entrega o fechamento do ciclo: após um turno `finalizado`, ambos os lados ficam com avaliação pendente, o gate bloqueia a próxima ação (candidatar/publicar) até avaliarem, e o motor recompõe XP/score/nível com depoimentos visíveis no perfil. **A funcionalidade do épico está implementada, testada e demonstrável ao vivo em homologação** — o ciclo ponta a ponta foi exercitado na própria homolog (rc.101): gate bloqueando (`pode_candidatar=False` com 3 turnos pendentes) → submissão das avaliações (HTTP 201×3) → gate destravando (`pode_candidatar=True`), com perfil mostrando score/nível/depoimentos e a assimetria LGPD (nominal sobre o profissional, anônimo sobre o contratante). A suíte api passa (1082 testes, cobertura total 94.6%, núcleo `MotorReputacao`/`NivelProfissional` 100%); a webapp passa (≈737 testes); o E2E de browser real do perfil+gate passa same-origin.
 
 O único impedimento é de **higiene de pipeline**: a `main` está vermelha no workflow **CI** desde o follow-up rc.101 por uma violação de estilo (Pint) num arquivo de teste. O workflow de **Release/deploy** é verde e independente — por isso rc.101 subiu em homolog normalmente. A natureza do fail é cosmética (uso de `\App\Models\Avaliacao` inline em vez de `use`), mas, pela régua objetiva de `verdict-criteria.md`, **pipeline vermelho na branch principal é fail bloqueante** (entre outros motivos, mascara futuras falhas reais sob o vermelho preexistente).
+
+---
+
+## Revalidação (2026-06-09) — F-B-1 sanado, veredito → APPROVED
+
+A 1ª passada reprovou o épico por **um único bloqueante**: F-B-1 (CI vermelho na `main` por violação de estilo Pint em `TurnosListaTest.php` — não-funcional). Após o relatório, o Programador corrigiu o bloqueante em `4e2dc83` (`fix(IDR-021): … corrige Pint (F-B-1)`). Esta re-validação **apenas re-verifica** o estado do bloqueante no HEAD atual (`355bc09`) — o validador não consertou nada.
+
+**Resultado da re-verificação (evidência em A.9):**
+
+| Item | 1ª passada | Re-validação (HEAD `355bc09`) |
+|---|---|---|
+| §12.2 — CI verde na `main` | ❌ F-B-1 | ✅ run `27243459408` — **10/10 jobs `success`** |
+| §13.3 — Container scan (Trivy) | ⚠️ pulado (efeito de F-B-1) | ✅ Trivy api+admin **rodou e passou** |
+| Pint (api) local | ❌ 1 style issue | ✅ **433 files PASS**, 0 issues |
+| `TurnosListaTest` | (verde, mas Pint reprovava) | ✅ **18 passed (46 assertions)** |
+| Guard anti-recorrência (webapp) | — | ✅ `All tests passed!` (novo teste do `4e2dc83`) |
+
+Nenhum outro item do checklist foi reaberto: a funcionalidade do épico não mudou entre o relatório inicial e a correção (o `diff` de `4e2dc83` toca apenas estilo de import num teste, inicialização de binding em leaves de E2E e um teste-guard — nada de domínio). Os 14 `pass` e o `n/a` da 1ª passada seguem válidos; das 3 ressalvas, a §13.3 caiu, restando §9.3 e §12.1 (ambas não-bloqueantes).
+
+**Veredito atualizado: APPROVED.** 0 fails. O veredito inicial `rejected` fica preservado neste documento como registro honesto da 1ª passada (`verdict_history` no front-matter).
 
 ---
 
@@ -135,7 +160,7 @@ O único impedimento é de **higiene de pipeline**: a `main` está vermelha no w
 | Item | Status | Evidência |
 |---|---|---|
 | 12.1 — `make setup` offline | ✅ (ressalva) | Não re-executado do zero nesta validação; ambiente local já provisionado rodou suítes/E2E offline. Sem regressão observada |
-| 12.2 — Pipeline CI verde na main | ❌ | **F-B-1** — CI vermelho desde rc.101 (A.8) |
+| 12.2 — Pipeline CI verde na main | ✅ (re-valid.) | 1ª passada: ❌ **F-B-1** (A.8). Sanado em `4e2dc83`; HEAD `355bc09` CI **verde, 10/10 jobs success** — run `27243459408` (A.9) |
 | 12.3 — Deploy homolog por tag; produção gated | ✅ | rc.101 Release todos os jobs ✓; produção pulada (gate humano) (A.7) |
 
 ### §13 — RBAC + segurança
@@ -144,7 +169,7 @@ O único impedimento é de **higiene de pipeline**: a `main` está vermelha no w
 |---|---|---|
 | 13.1 — Só participante avalia (403) | ✅ | `RegistrarAvaliacaoTest` |
 | 13.2 — Não vaza turno alheio | ✅ | `TurnosListaTest`/`GateAvaliacaoTest`; **homolog** turnos escopados ao usuário |
-| 13.3 — Scanner CI sem crítico novo | ✅ (ressalva) | gitleaks ✓ verde; Trivy/Container scan **pulado** nos últimos runs por depender do job de lint que falha (consequência de F-B-1) — não verificável no HEAD atual |
+| 13.3 — Scanner CI sem crítico novo | ✅ (re-valid.) | gitleaks ✓; com F-B-1 sanado, **Container scan (Trivy — api/admin) voltou a rodar e passou** no HEAD `355bc09` (run `27243459408`, A.9) — ressalva da 1ª passada (Trivy pulado) caiu |
 
 ### §14 — LGPD + dados pessoais
 
@@ -167,9 +192,11 @@ O único impedimento é de **higiene de pipeline**: a `main` está vermelha no w
 
 ## Fails identificados
 
+> **Estado pós-re-validação (2026-06-09):** o único fail bloqueante (F-B-1) foi **sanado** e re-verificado — ver §Revalidação e A.9. A descrição abaixo é o registro factual da 1ª passada.
+
 ### Bloqueantes
 
-#### F-B-1 — Pipeline CI vermelho na `main` (violação de estilo Pint em arquivo de teste)
+#### F-B-1 — Pipeline CI vermelho na `main` (violação de estilo Pint em arquivo de teste) — ✅ SANADO (re-validação)
 - **Bloco**: §12.2 (e consequências em §13.3).
 - **Critério esperado**: "Pipeline CI verde no branch principal nos deploys do épico."
 - **O que verifiquei**:
@@ -179,6 +206,7 @@ O único impedimento é de **higiene de pipeline**: a `main` está vermelha no w
   - Origem: commit `14e23e5` (rc.101) introduziu uso inline de `\App\Models\Avaliacao::factory()` (linhas 194 e 217) em vez de `use App\Models\Avaliacao;`.
 - **Classificação**: **bloqueante** — `verdict-criteria.md`: "Pipeline está vermelho" é condição objetiva de fail bloqueante. Natureza factual adicional: é regra de **estilo** (não falha de teste/funcional); a suíte api passa (1082 verde) e o **deploy é verde** (workflow Release separado, rc.101 vivo). O vermelho persistente, porém, degrada o gate de qualidade da `main` e mascara futuras falhas reais sob o vermelho preexistente.
 - **Evidência**: A.8.
+- **Sanado (re-validação 2026-06-09)**: Programador corrigiu em `4e2dc83` (`use App\Models\Avaliacao;` substituindo o uso inline). Re-verificado no HEAD `355bc09`: `pint --test` (api) → **433 files PASS, 0 issues**; `TurnosListaTest` → **18 passed (46 assertions)**; CI da `main` **verde, 10/10 jobs** (run `27243459408`). Detalhe em **A.9**.
 
 ### Não-bloqueantes
 
@@ -190,7 +218,7 @@ Nenhum.
 
 - **§9.3** — Subida de nível reflete via recompute síncrono e leitura sem cache (verificado ao vivo que o perfil reflete os valores recomputados); a latência ≤1s **não foi cronometrada isoladamente** — é inferida do desenho síncrono na transação, não medida com timestamp dedicado.
 - **§12.1** — `make setup` em máquina limpa **não foi re-executado** nesta validação; o ambiente local pré-existente rodou suítes e E2E offline sem regressão, mas o "um comando do zero" não foi re-provado nesta sessão.
-- **§13.3** — gitleaks verde, porém **Trivy/Container scan está sendo pulado** nos runs recentes por depender do job de lint que falha (efeito colateral de F-B-1); logo, a varredura de container não é verificável no estado atual da `main`.
+- **§13.3** — *(1ª passada)* gitleaks verde, porém **Trivy/Container scan pulado** por depender do job de lint que falha (efeito colateral de F-B-1). **Resolvido na re-validação**: com F-B-1 sanado, o Container scan (Trivy — api/admin) voltou a rodar e passou no HEAD `355bc09` (A.9) — não é mais ressalva.
 
 ---
 
@@ -231,8 +259,16 @@ Tentativa 1 (`E2E_TARGET=integration_test/turnos_test.dart`) **inválida**: o en
 ### A.8 — CI vermelho na main (F-B-1)
 `gh run view 27241489911` (e 3 runs anteriores): job "PHP lint & audit (api)" → "Lint (Pint — check mode)" exit 1; `433 files, 1 style issue`; `⨯ tests/Feature/Turno/TurnosListaTest.php fully_qualified_strict_types, ordered_imports`. Reprodução local (HEAD `3e25b14`): `docker compose exec -T api ./vendor/bin/pint --test` → mesmo FAIL. Primeiro run vermelho: `feat(STORY-088): marca turnos pendentes…` (CI 27240458232); commits anteriores verdes.
 
+### A.9 — Re-verificação do F-B-1 (re-validação 2026-06-09, HEAD `355bc09`)
+Correção do Programador em `4e2dc83` (`fix(IDR-021): … corrige Pint (F-B-1)`): troca o uso inline de `\App\Models\Avaliacao` por `use App\Models\Avaliacao;` em `TurnosListaTest.php` (mudança de estilo, semanticamente idêntica), além de inicializar o binding nos leaves de `integration_test/turnos/` + um guard anti-recorrência (IDR-021).
+- **CI da `main` no HEAD `355bc09`** (`gh run view 27243459408`): **10/10 jobs `success`** — Secret scan (gitleaks), PHP lint & audit (api), PHP lint & audit (admin), Commit lint, Flutter lint & analyze, Smoke build (api/admin/Flutter web), **Container scan (Trivy — api)**, **Container scan (Trivy — admin)**. O run imediatamente anterior verde é exatamente `fix(IDR-021): … corrige Pint (F-B-1)` (`27243201697`); o último run vermelho foi o relatório inicial (`27242718028`), onde "PHP lint & audit (api)" = `failure` e Smoke build/Container scan = `skipped`.
+- **Local (HEAD)** — `docker compose run --rm --no-deps api ./vendor/bin/pint --test` → `PASS — 433 files`, 0 style issues.
+- **Local (HEAD)** — `pest tests/Feature/Turno/TurnosListaTest.php` → `PASS … 18 passed (46 assertions)`.
+- **Local (HEAD)** — webapp `flutter test test/integration_test_binding_guard_test.dart` (guard que assegura `ensureInitialized` em todo leaf de `integration_test/`) → `All tests passed!`.
+
 ---
 
 ## Histórico
 
 - 2026-06-09 — relatório inicial submetido por validador (claude-opus-4-8). Veredito: REJECTED (1 fail bloqueante: F-B-1).
+- 2026-06-09 — **re-validação** (validador, claude-opus-4-8). F-B-1 sanado pelo Programador em `4e2dc83`; re-verificado no HEAD `355bc09` (CI verde 10/10, Pint PASS, testes verdes — A.9). Ressalva §13.3 (Trivy pulado) caiu. **Veredito atualizado: APPROVED** (0 fails; 2 ressalvas remanescentes §9.3/§12.1, ambas não-bloqueantes). Sem conserto pelo validador — apenas re-verificação com evidência.
