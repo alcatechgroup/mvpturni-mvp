@@ -7,6 +7,7 @@ use App\Events\AvaliacaoRegistrada;
 use App\Events\CandidaturaEnviada;
 use App\Events\CheckinSolicitado;
 use App\Events\CheckoutSolicitado;
+use App\Events\DisputaAberta;
 use App\Events\Pagamento\PixEnviado;
 use App\Events\Pagamento\PixFalhou;
 use App\Events\TurnoCancelado;
@@ -24,6 +25,7 @@ use App\Listeners\HandleVagaEditadaMaterialmente;
 use App\Listeners\NotificarAvaliacaoPendente;
 use App\Listeners\NotificarCheckinSolicitado;
 use App\Listeners\NotificarCheckoutSolicitado;
+use App\Listeners\NotificarDisputaAberta;
 use App\Listeners\NotificarPixEnviado;
 use App\Listeners\NotificarTurnoCancelado;
 use App\Listeners\NotificarTurnoCriado;
@@ -94,6 +96,12 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(PixEnviado::class, NotificarPixEnviado::class);
         Event::listen(TurnoCancelado::class, NotificarTurnoCancelado::class);
         Event::listen(TurnoNoShow::class, NotificarTurnoNoShow::class);
+
+        // STORY-092 (CA-6 / ADR-020 Decisão 4) — abertura de disputa notifica o PROFISSIONAL
+        // (in-app + e-mail, SLA 30 min). Evento NOVO (não reusa TurnoFinalizado: a abertura não
+        // finaliza nem captura). Registro explícito (discovery off); evento disparado pós-commit
+        // pelo AbrirDisputaService; idempotente pela chave do CriarNotificacaoService.
+        Event::listen(DisputaAberta::class, NotificarDisputaAberta::class);
 
         // STORY-085 (CA-4/CA-5) — avaliação registrada dispara o motor de reputação SÍNCRONO
         // (ADR-019 Decisão 3/4): recomputa score/XP/nível do avaliado dentro da MESMA transação

@@ -39,6 +39,8 @@ class NotificacoesEmailTemplatesSeeder extends Seeder
         NotificacaoTipo::NoShowPro->value => 'E-mail — Turno encerrado por check-in não realizado (ambos)',
         // STORY-085 — avaliação recíproca (ADR-019): "avalie seu turno" aos dois lados.
         NotificacaoTipo::AvaliacaoPendente->value => 'E-mail — Avalie seu turno (ambos)',
+        // STORY-092 — disputa aberta (ADR-020): "valor em disputa" ao profissional (SLA 30 min).
+        NotificacaoTipo::DisputaAberta->value => 'E-mail — Valor em disputa (profissional)',
     ];
 
     public function run(): void

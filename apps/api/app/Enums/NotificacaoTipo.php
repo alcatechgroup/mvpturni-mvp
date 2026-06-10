@@ -38,6 +38,9 @@ enum NotificacaoTipo: string
     // STORY-085 / ADR-019 — turno finalizado: "avalie seu turno" para os dois lados (CA-2).
     case AvaliacaoPendente = 'avaliacao_pendente';
 
+    // STORY-092 / ADR-020 (Decisão 4) — disputa aberta: notifica o PROFISSIONAL (SLA 30 min).
+    case DisputaAberta = 'disputa_aberta';
+
     /** Slug do template editável correspondente (STORY-020, categoria `email`). */
     public function templateSlug(): string
     {
@@ -65,6 +68,8 @@ enum NotificacaoTipo: string
             self::TurnoCancelado => 'Turno de {vaga_funcao} cancelado',
             self::NoShowPro => 'Turno encerrado — check-in não realizado',
             self::AvaliacaoPendente => 'Avalie seu turno de {vaga_funcao} para continuar',
+            // STORY-092 — disputa aberta ao profissional; SLA público de 30 min (CA-6/ADR-020).
+            self::DisputaAberta => 'Valor em disputa — mediação em até 30 min',
         };
     }
 }

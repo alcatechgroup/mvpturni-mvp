@@ -18,6 +18,7 @@ use App\Http\Controllers\Candidatura\CandidaturaController;
 use App\Http\Controllers\Feed\FeedController;
 use App\Http\Controllers\Feed\VagaDetalheController;
 use App\Http\Controllers\Notificacao\NotificacaoController;
+use App\Http\Controllers\Turno\AbrirDisputaController;
 use App\Http\Controllers\Turno\CancelarTurnoController;
 use App\Http\Controllers\Turno\CheckinGeoController;
 use App\Http\Controllers\Turno\CronometroController;
@@ -199,6 +200,12 @@ Route::middleware(['auth:web', WebAppOnly::class, FunnelGuard::class, StartSessi
     Route::post('/turnos/{turno}/cancelar-pin-checkout', [PinCheckoutController::class, 'cancelar']);
     Route::post('/turnos/{turno}/validar-checkout', [ValidarCheckoutController::class, 'validar']);
     Route::post('/turnos/{turno}/recusar-checkout', [ValidarCheckoutController::class, 'recusar']);
+
+    // Abertura de disputa (STORY-092, ADR-020 Decisão 2) — o OUTRO ramo de `aguardando_checkout`,
+    // distinto de /recusar-checkout: contesta por mérito com justificativa OBRIGATÓRIA, transita
+    // para `em_disputa`, mantém a pré-autorização bloqueada e notifica o profissional (evento
+    // DisputaAberta). RBAC: só o contratante dono do turno (403). Resolução é a STORY-093.
+    Route::post('/turnos/{turno}/abrir-disputa', [AbrirDisputaController::class, 'abrir']);
 
     // Cancelamento antes do check-in (STORY-066 CA-2, PDR-007) — rota compartilhada pelos
     // 2 papéis; RBAC no controller decide o lado (cancelado_pro|cancelado_emp); 422 fora
