@@ -10,9 +10,15 @@
 //     > integration_test/_checkout_solo_test.dart
 //   make e2e-webapp-pinned E2E_TARGET=integration_test/_checkout_solo_test.dart
 // A STORY-082 sanou 2 flakes ESTRUTURAIS (pendura por `pumpAndSettle`+timer → `_assenta`;
-// colisão de Hero do SnackBar no `pumpApp` → `_semSnackBar`), mas RESTA um resíduo NÃO
-// estrutural fora do seu escopo: o check-out rejeita o PIN da phase 2 como inválido na
-// phase 3 (passava 5/5 antes do shell da STORY-077 — provável regressão de navegação/PIN).
+// colisão de Hero do SnackBar no `pumpApp` → `_semSnackBar`), mas RESTA um flake
+// INTERMITENTE fora do seu escopo (4 runs: 1 PASS / 2 "PIN inválido" / 1 outro race). O
+// PIN de check-out é EFÊMERO ("Se sair desta tela, será preciso gerar um novo PIN" —
+// pin-checkout-efemero-msg) e o backend expira o PIN em 3 erros: o teste captura o PIN na
+// fase 2, SAI da tela (voltar) e valida só na fase 3 após logins/navegações — janela em
+// que o PIN pode rotacionar → "PIN inválido". É fragilidade de DESIGN do teste contra PIN
+// efêmero (não feature quebrada — o ciclo passa quando o timing alinha), agravada pelo
+// timing do shell (STORY-077). Deflake completo = re-desenhar a fase para minimizar a
+// janela capturar→validar; é estória própria.
 //
 // Same-origin (proxy + --web-launch-url, IDR-021) contra o BACKEND REAL, com o par
 // exclusivo `*.checkout.seed` (turno `confirmado` dentro da janela de check-in).
