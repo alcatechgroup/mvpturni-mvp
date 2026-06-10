@@ -7,7 +7,7 @@ sprint_id: SPRINT-2026-W31
 type: implementation
 target_role: programador
 requires_design: false
-status: in_progress
+status: done
 owner_agent: claude-opus-4-8-programador-2026-06-10
 created_at: 2026-06-10
 updated_at: 2026-06-10
@@ -85,13 +85,13 @@ Você decide estrutura de código, serviços, estrutura de testes e refatoraçõ
 
 ## Definição de Pronto (DoD)
 
-- [ ] Todos os CAs passam, com testes cobrindo cada um.
-- [ ] Coberturas exigidas atingidas (núcleo ≥ 98%).
-- [ ] Pipeline CI verde; deploy de homologação verificado.
-- [ ] OpenAPI/contrato atualizado se um endpoint novo foi exposto.
-- [ ] IDR registrado se houve decisão de baixo nível com impacto futuro.
-- [ ] `index.json` atualizado: `status: done`; STORY-093/094/095 destravadas.
-- [ ] "Notas do agente" preenchida.
+- [x] Todos os CAs passam, com testes cobrindo cada um.
+- [x] Coberturas exigidas atingidas (núcleo 100% ≥ 98%; suíte 94,64% ≥ 80%).
+- [x] Pipeline CI verde (run 27281018048, todos os jobs success); deploy de homologação verificado (deploy-stage run 27281326138 success: job de migração + Deploy API com gate de health-check passaram).
+- [x] OpenAPI/contrato atualizado se um endpoint novo foi exposto — **N/A** (repo não mantém spec OpenAPI; rota documentada em `routes/api.php`).
+- [x] IDR registrado se houve decisão de baixo nível com impacto futuro — **N/A** (decisões ficaram dentro da ADR-020 e dos padrões 053/064/067).
+- [x] `index.json` atualizado: `status: done`; STORY-093 já `ready`, STORY-094/095 destravadas (blocked→ready).
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo do agente (obrigatório)
 
@@ -121,4 +121,6 @@ Siga `docs/skills/po/references/agent-task-format.md`. Ao iniciar: `status: in_p
 - Testes: `tests/Feature/Turno/AbrirDisputaTest.php` (CA-1..5, CA-7, idempotência de abertura) + `tests/Feature/Notificacao/NotificarDisputaAbertaTest.php` (CA-6 + não-vazamento da justificativa + idempotência + fila de e-mail).
 
 ### Links de evidência
-- Commit/push em `main` (git workflow Turni): ver hash abaixo. Pipeline CI + deploy homolog disparados pelo push.
+- Commit em `main`: `6439395` feat(STORY-092). 
+- CI (push main): run **27281018048** — todos os jobs success (commit lint, PHP lint api/admin, Flutter analyze, smoke builds, Trivy).
+- Deploy homolog: deploy-stage run **27281326138** — success; jobs "Migrar (stage — sem seed)" e "Deploy API → stage" (com health-check 200) verdes → migrações `turnos.disputa` + enum `disputa_aberta` aplicadas e imagem nova no ar. Smoke externo direto não rodou (DNS de `api.stage.turni.com.br` não resolve no sandbox); régua = gate de health da pipeline.
