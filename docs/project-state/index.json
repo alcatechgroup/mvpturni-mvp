@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-06-09",
+  "generated_at": "2026-06-10",
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
-    "current_sprint": null,
+    "current_sprint": "SPRINT-2026-W31",
     "last_closed_sprint": "SPRINT-2026-W30",
-    "phase": "wave-2026-01-entre-sprints-W30-fechada-EPIC-004-done-aguardando-decisao-W31-do-dono",
-    "next_action": "SPRINT-2026-W30 FECHADA em 2026-06-10 por goal-atingido (8/8 done): EPIC-004 (avaliacao reciproca) done e vivo em homolog rc.101; STORY-089 APPROVED; STORY-082 (carry-forward) done (cronometro deflakado IDR-031 20/20, index reconciliado, checkout deflakado 7/7 fora do gate). NENHUMA sprint ativa agora. PROXIMO: abrir SPRINT-2026-W31 — DECISAO DE PLANEJAMENTO DO DONO (adiada). Pendencias parqueadas: divida de a11y do EPIC-012; reativar checkout_test no gate; revisar tempo do gate E2E; chore de higiene do seeder (leftovers). Pendencia de papel: revisao de ADR-005/ADR-016 pos-PDR-017 pelo Arquiteto.",
-    "notes": "Snapshot 2026-06-10 (fechamento da W30 pelo PO). Historico recente: W29 fechou o EPIC-012 (shell de navegacao + pente fino UX) por goal-atingido em 2026-06-09; W30 (aberta 2026-06-09) entregou o EPIC-004 (avaliacao reciproca e fechamento do ciclo) — ADR-019 + DDR-004 accepted, motor de reputacao idempotente, gate bloqueante fail-secure, depoimentos com assimetria LGPD. STORY-082 quitou a divida da W28/W29 (deflake cronometro + housekeeping). O bloco project ficou desatualizado durante a W30 (apontava W29) — corrigido neste fechamento. A definicao do EPIC/sprint da W31 fica para o dono."
+    "phase": "wave-2026-01-sprint-W31-ABERTA-EPIC-005-ADR-020-accepted-092-093-096-ready-aguarda-DDR-005-091",
+    "next_action": "SPRINT-2026-W31 ABERTA. EPIC-005 (disputa minima) — ULTIMO epico da WAVE-2026-01. STORY-090 DONE em 2026-06-10: ADR-020 ACCEPTED (disputa embutida em turnos.disputa jsonb; abertura via AbrirDisputaService aguardando_checkout->em_disputa com justificativa obrigatoria e pre-autorizacao mantida; resolucao paga_integral = comando da API ResolverDisputaService reusando TurnoFinalizado + captura+Pix existentes, idempotente em 3 camadas, admin e CLIENTE nunca escreve no banco; evento novo DisputaAberta + fila do admin derivada do estado; paga_parcial/sem_pagamento fora do MVP -> EPIC-007). STORY-092/093/096 destravadas (blocked->ready). PROXIMO PASSO: (a) STORY-091 (Designer -> DDR-005 + prototipo recusa/banner/caso) ainda pendente — aprovar antes de liberar 094/095; (b) STORY-092 (BE abertura, L — gatilho de quebra: modelo+transicao+justificativa | evento+notificacao) pode iniciar com ADR-020 aceito; depois 093 (resolucao) destrava 096 (backoffice). Ordem: {090 done, 091} -> 092 -> {093, 094, 095} -> 096 -> 097 (validador fecha epico e onda).",
+    "notes": "Snapshot 2026-06-10 (abertura da W31 pelo PO). W30 fechou o EPIC-004 por goal-atingido (8/8 done); o dono decidiu que a W31 ataca o EPIC-005 (disputa minima) para FECHAR a WAVE-2026-01. EPIC-005 saiu de draft->active e foi decomposto via Fluxo B. ADR-020 e DDR-005 ainda nao existem — sao entregaveis dos spikes 090/091 (nada inventado). | ANTERIOR: Snapshot 2026-06-10 (fechamento da W30 pelo PO). Historico recente: W29 fechou o EPIC-012 (shell de navegacao + pente fino UX) por goal-atingido em 2026-06-09; W30 (aberta 2026-06-09) entregou o EPIC-004 (avaliacao reciproca e fechamento do ciclo) — ADR-019 + DDR-004 accepted, motor de reputacao idempotente, gate bloqueante fail-secure, depoimentos com assimetria LGPD. STORY-082 quitou a divida da W28/W29 (deflake cronometro + housekeeping). O bloco project ficou desatualizado durante a W30 (apontava W29) — corrigido neste fechamento. A definicao do EPIC/sprint da W31 fica para o dono."
   },
   "product": {
     "vision": "product/vision.md",
@@ -332,12 +332,21 @@
       "slug": "disputa-minima",
       "title": "Disputa mínima de check-out via backoffice",
       "wave": "WAVE-2026-01",
-      "status": "draft",
+      "status": "active",
       "path": "epics/EPIC-005-disputa-minima/epic.md",
-      "story_ids": [],
+      "story_ids": [
+        "STORY-090",
+        "STORY-091",
+        "STORY-092",
+        "STORY-093",
+        "STORY-094",
+        "STORY-095",
+        "STORY-096",
+        "STORY-097"
+      ],
       "validation_report": null,
       "created_at": "2026-05-26",
-      "updated_at": "2026-05-26"
+      "updated_at": "2026-06-10"
     },
     {
       "id": "EPIC-006",
@@ -2650,6 +2659,191 @@
       "blocks": [],
       "created_at": "2026-06-09",
       "updated_at": "2026-06-09"
+    },
+    {
+      "id": "STORY-090",
+      "epic_id": "EPIC-005",
+      "title": "Spike Arquiteto — modelo de disputa + transição em_disputa + comando de captura do admin (ADR-020)",
+      "type": "spike",
+      "target_role": "arquiteto",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "done",
+      "owner_agent": "claude-opus-4-8-arquiteto-2026-06-10",
+      "sprint_id": "SPRINT-2026-W31",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-005-disputa-minima/stories/STORY-090-spike-arquiteto-modelo-disputa-transicao-captura-admin.md",
+      "blocked_by": [],
+      "blocks": [
+        "STORY-092",
+        "STORY-093"
+      ],
+      "created_at": "2026-06-10",
+      "updated_at": "2026-06-10"
+    },
+    {
+      "id": "STORY-091",
+      "epic_id": "EPIC-005",
+      "title": "Spike Designer — recusar check-out + justificativa, banner de disputa e tela de caso no backoffice (DDR-005)",
+      "type": "spike",
+      "target_role": "designer",
+      "requires_design": true,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W31",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-005-disputa-minima/stories/STORY-091-spike-designer-telas-recusa-banner-caso-disputa.md",
+      "blocked_by": [],
+      "blocks": [
+        "STORY-094",
+        "STORY-095",
+        "STORY-096"
+      ],
+      "created_at": "2026-06-10",
+      "updated_at": "2026-06-10"
+    },
+    {
+      "id": "STORY-092",
+      "epic_id": "EPIC-005",
+      "title": "Backend — abertura de disputa (transição em_disputa + justificativa + pré-autorização mantida + notificação ao profissional)",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W31",
+      "estimated_session_size": "L",
+      "path": "epics/EPIC-005-disputa-minima/stories/STORY-092-backend-abertura-disputa-transicao-notificacao.md",
+      "blocked_by": [
+        "STORY-090"
+      ],
+      "blocks": [
+        "STORY-093",
+        "STORY-094",
+        "STORY-095",
+        "STORY-097"
+      ],
+      "created_at": "2026-06-10",
+      "updated_at": "2026-06-10"
+    },
+    {
+      "id": "STORY-093",
+      "epic_id": "EPIC-005",
+      "title": "Backend — resolução \"paga integral\" pelo admin (captura via ACL fake + Pix + finalizado + trilha)",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W31",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-005-disputa-minima/stories/STORY-093-backend-resolucao-paga-integral-captura-pix.md",
+      "blocked_by": [
+        "STORY-090",
+        "STORY-092"
+      ],
+      "blocks": [
+        "STORY-096",
+        "STORY-097"
+      ],
+      "created_at": "2026-06-10",
+      "updated_at": "2026-06-10"
+    },
+    {
+      "id": "STORY-094",
+      "epic_id": "EPIC-005",
+      "title": "Frontend Contratante — recusar check-out e abrir disputa com justificativa obrigatória",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": null,
+      "status": "blocked",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W31",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-005-disputa-minima/stories/STORY-094-frontend-contratante-recusar-checkout-justificativa.md",
+      "blocked_by": [
+        "STORY-091",
+        "STORY-092"
+      ],
+      "blocks": [
+        "STORY-097"
+      ],
+      "created_at": "2026-06-10",
+      "updated_at": "2026-06-10"
+    },
+    {
+      "id": "STORY-095",
+      "epic_id": "EPIC-005",
+      "title": "Frontend Profissional — banner de disputa no detalhe do turno + estado em_disputa nas listas",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": null,
+      "status": "blocked",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W31",
+      "estimated_session_size": "S",
+      "path": "epics/EPIC-005-disputa-minima/stories/STORY-095-frontend-profissional-banner-disputa.md",
+      "blocked_by": [
+        "STORY-091",
+        "STORY-092"
+      ],
+      "blocks": [
+        "STORY-097"
+      ],
+      "created_at": "2026-06-10",
+      "updated_at": "2026-06-10"
+    },
+    {
+      "id": "STORY-096",
+      "epic_id": "EPIC-005",
+      "title": "Backoffice Admin — fila de disputas + caso com trilha completa + resolver \"pagar integral\"",
+      "type": "implementation",
+      "target_role": "programador",
+      "requires_design": true,
+      "design_screen_id": null,
+      "status": "ready",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W31",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-005-disputa-minima/stories/STORY-096-backoffice-admin-fila-caso-resolver-disputa.md",
+      "blocked_by": [
+        "STORY-091",
+        "STORY-093"
+      ],
+      "blocks": [
+        "STORY-097"
+      ],
+      "created_at": "2026-06-10",
+      "updated_at": "2026-06-10"
+    },
+    {
+      "id": "STORY-097",
+      "epic_id": "EPIC-005",
+      "title": "Validação final do EPIC-005 — disputa mínima e fechamento da WAVE-2026-01",
+      "type": "validation",
+      "target_role": "validador",
+      "requires_design": false,
+      "design_screen_id": null,
+      "status": "blocked",
+      "owner_agent": null,
+      "sprint_id": "SPRINT-2026-W31",
+      "estimated_session_size": "M",
+      "path": "epics/EPIC-005-disputa-minima/stories/STORY-097-validacao-final-epic-005.md",
+      "blocked_by": [
+        "STORY-092",
+        "STORY-093",
+        "STORY-094",
+        "STORY-095",
+        "STORY-096"
+      ],
+      "blocks": [],
+      "created_at": "2026-06-10",
+      "updated_at": "2026-06-10"
     }
   ],
   "sprints": [
@@ -3290,6 +3484,54 @@
       "closed_at": "2026-06-10",
       "closed_by": "PO (Alexandro / Claude)",
       "goal_outcome": "achieved"
+    },
+    {
+      "id": "SPRINT-2026-W31",
+      "wave": "WAVE-2026-01",
+      "status": "active",
+      "start_date": "2026-06-10",
+      "end_date": null,
+      "soft_cap_date": "2026-07-15",
+      "opened_at": "2026-06-10",
+      "opened_by": "PO (Alexandro / Claude)",
+      "activated_at": "2026-06-10",
+      "activated_by": "PO (Alexandro / chat)",
+      "closure_rule": "Fechamento por goal-atingido: encerra quando STORY-090..096 estiverem done E STORY-097 (validador) emitir veredito aceitavel pelo PO (approved ou approved_with_pending). ULTIMO epico da WAVE-2026-01: o veredito positivo fecha o EPIC-005 e a onda. Soft-cap 2026-07-15 (~35d) e gatilho de reavaliacao, nao prazo. Pendencias parqueadas da W30 (a11y do EPIC-012, reativar checkout_test, revisar tempo do gate E2E, chore do seeder) ficam FORA por foco — candidatas a WAVE-2026-02.",
+      "goal": "Fechar a WAVE-2026-01 entregando o caminho de excecao do check-out (EPIC-005 — disputa minima): contratante recusa validar o check-out com justificativa obrigatoria -> turno em_disputa (pre-autorizacao mantida) -> profissional notificado (in-app + e-mail) + banner -> admin ve na fila do backoffice e resolve 'pagar integral' -> captura + Pix via fake (PDR-017) -> turno finalizado, com trilha de auditoria completa — demonstravel em homolog. Decisoes em ADR-020 (modelo/transicoes/comando de captura do admin) e DDR-005 (telas de recusa, banner e caso de disputa).",
+      "path": "sprints/SPRINT-2026-W31.md",
+      "story_ids": [
+        "STORY-090",
+        "STORY-091",
+        "STORY-092",
+        "STORY-093",
+        "STORY-094",
+        "STORY-095",
+        "STORY-096",
+        "STORY-097"
+      ],
+      "stretch_story_ids": [],
+      "sizing_total": "1 S + 6 M + 1 L (8 estorias) — EPIC-005 inteiro decomposto via Fluxo B (2 spikes + 5 impl + 1 validacao). Mesma regua da W30.",
+      "epics": [
+        "EPIC-005"
+      ],
+      "scope_changes": [],
+      "delivered_story_ids": [],
+      "in_progress_story_ids": [],
+      "pending_story_ids": [
+        "STORY-090",
+        "STORY-091",
+        "STORY-092",
+        "STORY-093",
+        "STORY-094",
+        "STORY-095",
+        "STORY-096",
+        "STORY-097"
+      ],
+      "last_progress_update": "2026-06-10",
+      "progress_summary": "ABERTA em 2026-06-10 logo apos o fechamento da W30. Dono escolheu EPIC-005 (fecha a WAVE-2026-01) como escopo da W31 (decisao que estava adiada). EPIC-005 decomposto via Fluxo B em 8 estorias (mix 1 S + 6 M + 1 L, mesma regua da W30): STORY-090 (spike arq, ADR-020) e STORY-091 (spike designer, DDR-005) ready e em paralelo; STORY-092..097 blocked aguardando os spikes. checklist.md de validacao escrito. Proximo passo: Arquiteto produz ADR-020 e Designer produz DDR-005 + prototipo; humano aprova ambos antes da implementacao (092+).",
+      "closed_at": null,
+      "closed_by": null,
+      "goal_outcome": null
     }
   ],
   "decisions": {
@@ -3692,6 +3934,19 @@
         "superseded_by": null,
         "source_story": "STORY-083",
         "note": "ACEITA por Alexandro em chat (2026-06-09). Destrava STORY-085 (modelo+motor) e STORY-086 (gate). 5 decisões: tabela avaliacoes separada; pendência derivada; eventos TurnoFinalizado(notificação)+AvaliacaoRegistrada(motor) síncronos na transação; motor por recomputação idempotente + nível high-water-mark (xp vira signed, contratante ganha score); gate no service layer fail-secure reusando AvaliacoesPendentes*."
+      },
+      {
+        "id": "ADR-020",
+        "title": "Disputa de check-out — disputa embutida no turno (jsonb), transições em_disputa via comandos próprios, resolução paga_integral reusando TurnoFinalizado + máquina financeira, fila do admin derivada do estado",
+        "status": "accepted",
+        "path": "decisions/adr/ADR-020-modelo-disputa-transicoes-comando-captura-admin.md",
+        "decided_at": "2026-06-10",
+        "decided_by": "arquiteto",
+        "approved_by": "Alexandro",
+        "supersedes": null,
+        "superseded_by": null,
+        "source_story": "STORY-090",
+        "note": "ACEITA por Alexandro em chat (2026-06-10). Destrava STORY-092 (abertura) e STORY-093 (resolução); STORY-096 via 093. 6 decisões: (1) disputa embutida em turnos.disputa jsonb (grão de cancelamento), não tabela; (2) abertura via AbrirDisputaService (aguardando_checkout->em_disputa, justificativa obrigatória, pré-autorização mantida) distinto do recusar() existente; (3) resolução paga_integral = comando da API ResolverDisputaService reusando TurnoFinalizado + captura+Pix existentes, idempotente em 3 camadas, admin é cliente (nunca escrita direta no banco); (4) evento novo DisputaAberta + reuso de TurnoFinalizado na resolução, fila do admin derivada do estado; (5) paga_parcial/sem_pagamento fora do MVP (estados já modelados; comandos ao EPIC-007); (6) trilha de leitura do admin = agregação de dados existentes."
       }
     ],
     "idr": [
