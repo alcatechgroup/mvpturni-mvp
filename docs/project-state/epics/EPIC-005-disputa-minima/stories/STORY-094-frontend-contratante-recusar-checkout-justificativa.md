@@ -102,4 +102,5 @@ Siga `docs/skills/po/references/agent-task-format.md`.
 ### Links de evidência
 - E2E local: `make e2e-webapp-pinned E2E_TARGET=integration_test/_disputa_solo_test.dart` → **All tests passed** (Chrome 148 pinado, same-origin).
 - Lint: `flutter analyze` (só 2 infos pré-existentes em pre_cadastro_*), `dart format --set-exit-if-changed` limpo, `pint --test` api (447) + admin (91) PASS.
-- Pipeline / Deploy homolog: <preencher após push na main>
+- Commit `77ed096` na `main`; pré-push verde (api+admin+webapp). CI run `27288202266` (workflow CI) — **success** (3m48s).
+- Deploy homolog: workflow **Deploy Stage** é `workflow_dispatch` (manual) — pendente disparo + verificação na homolog antes de `done`.
