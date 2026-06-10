@@ -7,7 +7,7 @@ sprint_id: SPRINT-2026-W31
 type: implementation
 target_role: programador
 requires_design: true
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-programador-2026-06-10-s094
 created_at: 2026-06-10
 updated_at: 2026-06-10
@@ -72,9 +72,9 @@ Você decide estrutura de componentes/serviços/testes de FE dentro do DS e do s
 
 ## Definição de Pronto (DoD)
 
-- [x] CAs passam; E2E do fluxo verde (local, browser real same-origin). Homologação: após push (deploy automatizado).
-- [x] Coberturas atingidas (serviço + widget + E2E). CI verde / deploy homolog: pendente push na main.
-- [ ] `index.json`: `status: done` (após CI verde + homolog).
+- [x] CAs passam; E2E do fluxo verde (browser real same-origin).
+- [x] Coberturas atingidas (serviço + widget + E2E). CI verde na main; **deploy Stage/homolog verde** (Firebase Hosting + Cloud Run api/admin + health check da API; `app.homolog.turni.com.br` HTTP 200).
+- [x] `index.json`: `status: done`.
 - [x] "Notas do agente" preenchida.
 
 ## Protocolo do agente (obrigatório)
@@ -103,4 +103,4 @@ Siga `docs/skills/po/references/agent-task-format.md`.
 - E2E local: `make e2e-webapp-pinned E2E_TARGET=integration_test/_disputa_solo_test.dart` → **All tests passed** (Chrome 148 pinado, same-origin).
 - Lint: `flutter analyze` (só 2 infos pré-existentes em pre_cadastro_*), `dart format --set-exit-if-changed` limpo, `pint --test` api (447) + admin (91) PASS.
 - Commit `77ed096` na `main`; pré-push verde (api+admin+webapp). CI run `27288202266` (workflow CI) — **success** (3m48s).
-- Deploy homolog: workflow **Deploy Stage** é `workflow_dispatch` (manual) — pendente disparo + verificação na homolog antes de `done`.
+- Deploy homolog: **Deploy Stage** run `27288748754` — **success** (Firebase Hosting stage + Cloud Run api/admin + health check da API). `app.homolog.turni.com.br` → HTTP 200.
