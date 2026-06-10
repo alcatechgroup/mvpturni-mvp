@@ -8,10 +8,10 @@ type: bugfix
 target_role: programador
 requires_design: false
 design_screen_id: null
-status: in_review
+status: done
 owner_agent: claude-opus-4-8-programador-2026-06-09
 created_at: 2026-06-08
-updated_at: 2026-06-09
+updated_at: 2026-06-10
 estimated_session_size: S
 produces_idr: IDR-031
 ---

@@ -4,11 +4,11 @@
   "project": {
     "name": "Turni",
     "current_wave": "WAVE-2026-01",
-    "current_sprint": "SPRINT-2026-W29",
-    "last_closed_sprint": "SPRINT-2026-W28",
-    "phase": "wave-2026-01-pausa-entre-epic-003-e-epic-004-SPRINT-W29-UX-UI-ABERTA-epic-012-shell-de-navegacao",
-    "next_action": "SPRINT-2026-W29 aberta (2026-06-08) por PDR-018, ocupando a pausa planejada entre EPIC-003 e EPIC-004. Abre o EPIC-012 (Shell de navegacao + pente fino de UX do WebApp). AGORA (na ordem): (1) agente DESIGNER executa STORY-076 (decide e registra DDR-003 = padrao de navegacao global + protótipo HTML navegavel; apresenta ao humano para 'vai'); (2) com DDR-003 accepted, agente PROGRAMADOR executa STORY-077 (app shell adaptativo, L — gatilho de quebra documentado), depois STORY-078 (migrar telas para o shell), STORY-079 (estados vazios/erro/loading) e STORY-080 (auditoria a11y AA + microcopy); (3) agente VALIDADOR roda STORY-081 (validacao final EPIC-012); (4) PO fecha a W29 por goal-atingido e abre o EPIC-004. Ortogonal, pode iniciar ja: STORY-082 (deflake do E2E de sincronia do cronometro F-B-1 + housekeeping do indice F-NB-4 — divida do veredito da W28). Pendencia de papel que NAO bloqueia: revisao de ADR-005/ADR-016 pos-PDR-017 pelo Arquiteto.",
-    "notes": "Snapshot 2026-06-08 (abertura da W29 pelo PO): EPIC-003 fechado em 2026-06-07 (16/16, goal-atingido). Por PDR-018, a pausa entre EPIC-003 e EPIC-004 vira sprint de UX/UI: EPIC-012 (shell de navegacao responsivo — sidebar/rail no desktop p/ contratante, nav inferior no mobile p/ profissional — + pente fino: estados vazios/erro/loading, a11y AA, microcopy). Superficies: WebApp contratante+profissional; Backoffice fora. Padrao de navegacao sera DDR-003 (do Designer, na STORY-076). EPIC-004 (avaliacao reciproca) segue draft e passa a nascer dentro do shell. Dividas do veredito W28 carregadas na STORY-082 (ortogonal). DDR-003 ainda nao indexado — sera adicionado pelo Designer quando produzido."
+    "current_sprint": null,
+    "last_closed_sprint": "SPRINT-2026-W30",
+    "phase": "wave-2026-01-entre-sprints-W30-fechada-EPIC-004-done-aguardando-decisao-W31-do-dono",
+    "next_action": "SPRINT-2026-W30 FECHADA em 2026-06-10 por goal-atingido (8/8 done): EPIC-004 (avaliacao reciproca) done e vivo em homolog rc.101; STORY-089 APPROVED; STORY-082 (carry-forward) done (cronometro deflakado IDR-031 20/20, index reconciliado, checkout deflakado 7/7 fora do gate). NENHUMA sprint ativa agora. PROXIMO: abrir SPRINT-2026-W31 — DECISAO DE PLANEJAMENTO DO DONO (adiada). Pendencias parqueadas: divida de a11y do EPIC-012; reativar checkout_test no gate; revisar tempo do gate E2E; chore de higiene do seeder (leftovers). Pendencia de papel: revisao de ADR-005/ADR-016 pos-PDR-017 pelo Arquiteto.",
+    "notes": "Snapshot 2026-06-10 (fechamento da W30 pelo PO). Historico recente: W29 fechou o EPIC-012 (shell de navegacao + pente fino UX) por goal-atingido em 2026-06-09; W30 (aberta 2026-06-09) entregou o EPIC-004 (avaliacao reciproca e fechamento do ciclo) — ADR-019 + DDR-004 accepted, motor de reputacao idempotente, gate bloqueante fail-secure, depoimentos com assimetria LGPD. STORY-082 quitou a divida da W28/W29 (deflake cronometro + housekeeping). O bloco project ficou desatualizado durante a W30 (apontava W29) — corrigido neste fechamento. A definicao do EPIC/sprint da W31 fica para o dono."
   },
   "product": {
     "vision": "product/vision.md",
@@ -2479,7 +2479,7 @@
       "target_role": "programador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "in_review",
+      "status": "done",
       "owner_agent": "claude-opus-4-8-programador-2026-06-09",
       "produces_idr": "IDR-031",
       "sprint_id": "SPRINT-2026-W30",
@@ -2488,7 +2488,7 @@
       "blocked_by": [],
       "blocks": [],
       "created_at": "2026-06-08",
-      "updated_at": "2026-06-09"
+      "updated_at": "2026-06-10"
     },
     {
       "id": "STORY-083",
@@ -3245,9 +3245,9 @@
     {
       "id": "SPRINT-2026-W30",
       "wave": "WAVE-2026-01",
-      "status": "active",
+      "status": "closed",
       "start_date": "2026-06-09",
-      "end_date": null,
+      "end_date": "2026-06-10",
       "soft_cap_date": "2026-07-14",
       "opened_at": "2026-06-09",
       "opened_by": "PO (Alexandro / Claude)",
@@ -3273,9 +3273,7 @@
         "EPIC-003"
       ],
       "scope_changes": [],
-      "delivered_story_ids": [],
-      "in_progress_story_ids": [],
-      "pending_story_ids": [
+      "delivered_story_ids": [
         "STORY-083",
         "STORY-084",
         "STORY-085",
@@ -3285,8 +3283,13 @@
         "STORY-089",
         "STORY-082"
       ],
-      "last_progress_update": "2026-06-09",
-      "progress_summary": "D0 (2026-06-09): aberta logo apos o fechamento da W29 (EPIC-012 done). EPIC-004 decomposto em 8 estorias (ready). Caminho de entrada: STORY-083 (Arquiteto, ADR-019) + STORY-084 (Designer, DDR-004 + prototipo) em paralelo; humano aprova ADR e prototipo antes da implementacao (085..088); STORY-089 valida. STORY-082 carry-forward ortogonal pode iniciar ja. a11y do EPIC-012 fora por decisao do dono."
+      "in_progress_story_ids": [],
+      "pending_story_ids": [],
+      "last_progress_update": "2026-06-10",
+      "progress_summary": "FECHADA por goal-atingido em 2026-06-10. 8/8 estorias done. EPIC-004 (avaliacao reciproca) done: ciclo fechado — pendencia derivada do estado nos 2 lados, gate bloqueante fail-secure (candidatar/publicar), MotorReputacao idempotente (XP/score/nivel high-water-mark), perfil com score/nivel/XP + depoimentos com assimetria LGPD (DDR-004) + selo 'Novo' ate 3 avaliacoes. ADR-019 + DDR-004 accepted; flows/avaliacao-reciproca.md. Vivo em homolog rc.101 (ciclo ponta a ponta: gate bloqueando 3 pendentes -> 201x3 -> destravando). STORY-089 (validador): veredito inicial REJECTED por F-B-1 (CI vermelho na main por Pint em TurnosListaTest.php — nao-funcional), sanado em 4e2dc83 e re-verificado em 355bc09 -> APPROVED (0 fail). STORY-082 (carry-forward ortogonal) done: deflake do cronometro por re-especificacao da medicao (IDR-031 — skew modo-comum + mediana, 20/20 estavel), index reconciliado (IDR-028/029 + IDR-031 indexados, SCREEN-077 shipped), e checkout_test deflakado dos 3 flakes (pumpAndSettle+timer, Hero do SnackBar, 'PIN invalido' por selecao de card por estado sobre turnos leftover) 7/7 — mantido FORA do gate por decisao do PO (custo). Pendencias carregadas adiante: divida de a11y do EPIC-012 (fora da W30 por decisao do dono); checkout_test pronto para reativar no gate; gate E2E longo (revisar tempo); higiene do seeder seedTurnoNaJanela (leftovers). Proximo epico/sprint (W31): a definir pelo dono.",
+      "closed_at": "2026-06-10",
+      "closed_by": "PO (Alexandro / Claude)",
+      "goal_outcome": "achieved"
     }
   ],
   "decisions": {
@@ -4794,5 +4797,5 @@
       "note": "Inventário GCP homolog pós-rc.68 com previsão de custos (~$20–29/mês). Substitui gcp-inventory-2026-05-28.md (worker GCE→Cloud Run Job, fake de pagamento PDR-017). Alavanca de economia nº 1: alinhar scheduler do worker à janela do SQL."
     }
   ],
-  "next_action": "SPRINT-2026-W30 ABERTA e ATIVA em 2026-06-09 para o EPIC-004 (avaliacao reciproca e fechamento do ciclo). EPIC-004 decomposto em 8 estorias (STORY-083..089 ready + STORY-082 carry-forward ortogonal). PROXIMO: agentes Arquiteto (STORY-083 -> ADR-019: modelo de avaliacao + eventos de dominio + ponto do gate + spec do fluxo) e Designer (STORY-084 -> DDR-004: visibilidade de depoimentos + SCREENs das telas de avaliacao/perfil + prototipo navegavel) executam EM PARALELO; o humano aprova ADR-019 e o prototipo ANTES de iniciar a implementacao (disciplina decisao-antes-de-implementacao W27/W28). Depois: STORY-085 (BE modelo+motor XP/score/nivel) -> STORY-086 (BE gate) e STORY-087 (FE telas) -> STORY-088 (FE perfil+UX do gate) -> STORY-089 (validador). STORY-082 (deflake cronometro + housekeeping indice IDR-028/029 + SCREEN-077) pode iniciar a qualquer momento. Antes da STORY-089 o PO escreve validation/checklist.md do EPIC-004. DIVIDA DE A11Y do EPIC-012 (telas pesadas + PIN/cronometro + teclado) fica FORA da W30 por decisao do dono — permanece parqueada para wave futura."
+  "next_action": "SPRINT-2026-W30 FECHADA em 2026-06-10 por goal-atingido (8/8 done). EPIC-004 (avaliacao reciproca) done e vivo em homolog rc.101; STORY-089 (validador) APPROVED apos sanar F-B-1 (CI vermelho na main por Pint, nao-funcional). STORY-082 (carry-forward) done: cronometro deflakado por re-especificacao (IDR-031, 20/20), index reconciliado, checkout_test deflakado 7/7 (fora do gate por decisao do PO). PROXIMO: abrir SPRINT-2026-W31 — DECISAO DE PLANEJAMENTO DO DONO (adiada para outro momento). Candidatas/pendencias parqueadas: (1) divida de a11y do EPIC-012 (gate das telas pesadas + PIN/cronometro + navegacao por teclado — fora da W30 por decisao do dono); (2) reativar checkout_test no gate (pronto, mas custa ~2-3 min — gate ja longo); (3) revisar tempo total do gate E2E; (4) chore de higiene do seeder seedTurnoNaJanela (acumula turnos leftover). Pendencia de papel pre-existente: revisao de ADR-005/ADR-016 pos-PDR-017 pelo Arquiteto."
 }

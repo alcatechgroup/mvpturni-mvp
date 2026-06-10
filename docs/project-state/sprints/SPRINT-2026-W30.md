@@ -1,9 +1,9 @@
 ---
 sprint_id: SPRINT-2026-W30
 wave: WAVE-2026-01
-status: active  # planned | active | closed
+status: closed  # planned | active | closed
 start_date: 2026-06-09
-end_date: null  # fechamento por goal-atingido
+end_date: 2026-06-10  # fechamento por goal-atingido (EPIC-004 APPROVED + STORY-082 done)
 opened_at: 2026-06-09
 opened_by: "PO (Alexandro / Claude)"
 activated_at: 2026-06-09
@@ -33,13 +33,13 @@ O problema que esta sprint resolve: hoje o turno termina em `finalizado` e nada 
 | ID        | Título                                                                                      | Épico    | Tipo           | Papel       | Tamanho | Status |
 | --------- | ------------------------------------------------------------------------------------------- | -------- | -------------- | ----------- | ------- | ------ |
 | STORY-083 | Spike Arquiteto — modelo + eventos + ponto do gate (ADR-019) + spec do fluxo                | EPIC-004 | spike          | arquiteto   | M       | done   |
-| STORY-084 | Spike Designer — DDR-004 (depoimentos) + telas de avaliação + perfil + protótipo            | EPIC-004 | spike          | designer    | M       | ready  |
+| STORY-084 | Spike Designer — DDR-004 (depoimentos) + telas de avaliação + perfil + protótipo            | EPIC-004 | spike          | designer    | M       | done   |
 | STORY-085 | Backend — modelo de avaliação + motor de XP/score + subida de nível + evento                | EPIC-004 | implementation | programador | L       | done   |
 | STORY-086 | Backend — gate bloqueante (sem candidatar/publicar com avaliação pendente)                  | EPIC-004 | implementation | programador | M       | done   |
-| STORY-087 | Frontend — telas de avaliação recíproca (estrelas + comentário) no shell                    | EPIC-004 | implementation | programador | M       | ready  |
-| STORY-088 | Frontend — perfil (score/nível/XP/depoimentos) + UX do gate bloqueante                      | EPIC-004 | implementation | programador | M       | ready  |
-| STORY-089 | Validação final do EPIC-004                                                                 | EPIC-004 | validation     | validador   | M       | ready  |
-| STORY-082 | Deflake cronômetro (F-B-1) + housekeeping índice (IDR-028/029 + SCREEN-077) — carry-forward | EPIC-003 | bugfix         | programador | S       | ready  |
+| STORY-087 | Frontend — telas de avaliação recíproca (estrelas + comentário) no shell                    | EPIC-004 | implementation | programador | M       | done   |
+| STORY-088 | Frontend — perfil (score/nível/XP/depoimentos) + UX do gate bloqueante                      | EPIC-004 | implementation | programador | M       | done   |
+| STORY-089 | Validação final do EPIC-004                                                                 | EPIC-004 | validation     | validador   | M       | done   |
+| STORY-082 | Deflake cronômetro (F-B-1) + housekeeping índice (IDR-028/029 + SCREEN-077) — carry-forward | EPIC-003 | bugfix         | programador | S       | done   |
 
 **Sizing total**: **1 S + 6 M + 1 L (8 estórias)**.
 
@@ -111,6 +111,7 @@ STORY-082 (deflake cronômetro + housekeeping) — ORTOGONAL TOTAL, inicia a qua
 | 2026-06-09 | STORY-086 done — gate bloqueante (programador) | Fecha o lado server do ciclo: a pendência **derivada do estado** (ADR-019 D2) agora barra ação nos dois papéis (ADR-019 D5). Profissional — `GateAvaliacao` consome `AvaliacoesPendentesProfissional::turnoPendente` (turno avaliável sem avaliação na direção dele, **mais antigo**) → 422 `gate_avaliacao` + `detalhe.turno_id` (deep-link). Contratante — `AvaliacoesPendentesContratante::para` conta a pendência real; `PublicarVagaService` aborta com `PublicacaoBloqueadaPorAvaliacao` **antes** da transação e `VagaController` traduz p/ 422 na mesma forma do gate de candidatura. **Fail-secure** nos dois (erro de consulta → bloqueia, sem `turno_id`); **sem vazamento** entre papéis/contratantes; RBAC inalterado. Não toca Editar/Cancelar vaga (gate é só sobre **publicar nova**). Suíte api **1070 verde**; código novo 100% (PublicarVagaService/GateAvaliacao/AvaliacoesPendentes*); total 94.5%; pint limpo. Deploy homolog via **rc.97** (migrate+seed + smoke pós-deploy verdes; produção pulada — gate humano). **Destrava STORY-088** (UX do gate) e STORY-089 (validação). Ajuste herdado: o teste CA-2 da STORY-050 (`CandidaturaTest`) passou a mockar `turnoPendente` e asserir `turno_id` real (contrato evoluiu). |
 | 2026-06-09 | STORY-084 done — DDR-004 accepted (Designer) | Segundo gargalo de entrada resolvido — agora os **dois** spikes fecharam. DDR-004 ratificado pelo dono em chat: visibilidade de depoimentos **assimétrica** (estabelecimento nominal sobre profissional; profissional anônimo sobre contratante — LGPD) + score com **selo "Novo" até 3 avaliações** + ordenação/quantidade (3)/sem-comentário-não-é-depoimento. SCREEN-STORY-084-avaliacao-e-perfil (`ready`) cobre as 4 superfícies (2 telas de avaliação + perfil score/nível/XP/depoimentos + UX do gate) com todos os estados, dentro do shell; protótipo HTML navegável mobile/desktop. DS ganhou 6 componentes + `pattern.gate-avaliacao` (sem exceções). **Destrava STORY-087/088** (telas e perfil). Anotado para o back (085/088): contrato de leitura de depoimentos do contratante não pode trafegar nome do profissional (assimetria LGPD). Protótipo **aprovado pelo dono em 2026-06-09** (sem ajustes) — `prototype_last_validated_at` registrado. 087/088 destravadas. |
 | 2026-06-09 | STORY-085 done — backend avaliação recíproca (programador) | Coração transacional do EPIC-004 entregue numa sessão (a L **não** precisou ser quebrada). Implementa ADR-019 por TDD (vermelho→verde por CA): tabela `avaliacoes` (UNIQUE direção/turno + CHECK estrelas 1–5/autor≠avaliado + índice de cobertura), `xp`→signed, `score` do contratante; `MotorReputacao` por recomputação idempotente + nível high-water-mark (núcleo **100%** de cobertura); evento `AvaliacaoRegistrada` síncrono na transação + listener do motor; `TurnoFinalizado` passa a notificar os 2 lados (`avaliacao_pendente`, pendência **derivada** — não materializada); `POST /turnos/{turno}/avaliar` (RBAC por papel, 403/422/409); `GET /perfil/{user}` (score 1 casa/nível/XP só p/ dono/depoimentos com **assimetria LGPD** da DDR-004 — anônimo sobre o contratante). Suíte completa **1052 verde**, pint limpo. Deploy homolog via **rc.92** (migração + smoke pós-deploy verdes). **Destrava STORY-086** (gate — costuras `AvaliacoesPendentes*` agora têm o modelo derivável) e alimenta 087/088. Descoberta: XP não fica negativo via avaliações no MVP (líquido por turno ≥ +25); o negativo só viria das penalidades placeholder (PDR-007). |
+| 2026-06-10 | **Fechamento da sprint (PO)** | W30 encerrada por **goal-atingido**. EPIC-004 `done` (083..089, validador **APPROVED** após F-B-1 = CI vermelho por Pint sanado em `4e2dc83`/re-verificado em `355bc09`). STORY-082 (carry-forward) `done`: cronômetro deflakado 20/20 (IDR-031), índice reconciliado, checkout deflakado 7/7 (fora do gate por decisão do PO). 8/8 estórias `done`. Seção "Fechamento" preenchida. Próximo épico/sprint (W31) adiado para definição do dono. |
 | 2026-06-09 | STORY-083 done — ADR-019 accepted (Arquiteto) | Primeiro gargalo de entrada resolvido. ADR-019 aprovada pelo dono em chat: tabela `avaliacoes` separada (UNIQUE por direção/turno) divergindo do esboço jsonb de turno.md; pendência derivada do estado; eventos síncronos na transação (reuso de `TurnoFinalizado` p/ notificação + novo `AvaliacaoRegistrada` p/ motor); motor de reputação por recomputação idempotente + nível high-water-mark (`xp`→signed, contratante ganha `score`, enum `NivelProfissional` recomendado); gate no service layer fail-secure reusando as costuras `AvaliacoesPendentes*` (profissional já ligado; falta ligar `PublicarVagaService`). Spec `flows/avaliacao-reciproca.md` escrita. **Destrava STORY-085/086** (que ainda dependem do protótipo da STORY-084). Risco de idempotência (motor) mitigado por construção. Próximo gargalo: aprovação do protótipo da STORY-084. |
 
 ## Mudanças no escopo do sprint
@@ -123,17 +124,27 @@ STORY-082 (deflake cronômetro + housekeeping) — ORTOGONAL TOTAL, inicia a qua
 
 ## Fechamento do sprint (preencher no encerramento)
 
+> Encerrada em **2026-06-10** por **goal-atingido**. Condição da `closure_rule` satisfeita: STORY-083..088 `done` + STORY-089 (validador) com veredito **APPROVED**. STORY-082 (ortogonal) também concluída. 8/8 estórias `done`.
+
 ### O que foi entregue
-- 
+- **EPIC-004 — Avaliação recíproca e fechamento do ciclo (goal):** após um turno `finalizado`, pendência **derivada do estado** nos dois lados; **gate bloqueante** fail-secure barra candidatar/publicar até avaliar (deep-link para o turno pendente); `MotorReputacao` recompõe **XP/score/nível** por recomputação idempotente (nível high-water-mark); perfil com score público (1 casa), nível, XP (só p/ o dono) e **depoimentos com assimetria LGPD** (nominal sobre o profissional, anônimo sobre o contratante — DDR-004) + selo "Novo" até 3 avaliações. Decisões: **ADR-019** (modelo/eventos/gate) e **DDR-004** (visibilidade) accepted; `flows/avaliacao-reciproca.md`. Vivo em homolog **rc.101**: ciclo ponta a ponta exercitado (gate bloqueando com 3 pendentes → 201×3 → gate destravando). Suíte api **1082** (cobertura 94.6%, núcleo MotorReputacao/NivelProfissional 100%), webapp **≈737**, E2E perfil+gate same-origin verde.
+- **STORY-082 (carry-forward, ortogonal):** deflake do E2E de sincronia do cronômetro (F-B-1 da W28) por re-especificação da medição (**IDR-031** — skew modo-comum + diferença de medianas), **20/20** estável; `index.json` reconciliado (IDR-028/029 indexados, SCREEN-STORY-077 `shipped`, IDR-031 indexado); e, como bônus, o `checkout_test` deflakado dos 3 flakes (pendura por `pumpAndSettle`+timer, colisão de Hero do SnackBar, "PIN inválido" por seleção de card por estado sobre turnos leftover) — **7/7**, mantido FORA do gate por decisão do PO (custo).
 
 ### O que ficou para trás (e por quê)
-- 
+- **Dívida de a11y do EPIC-012** (gate das telas pesadas + PIN/cronômetro + navegação por teclado) — deliberadamente **fora da W30** (decisão do dono 2026-06-09); permanece parqueada para wave futura.
+- **`checkout_test` fora do gate E2E padrão** — deflakado e estável, mas custa ~2-3 min; o PO optou por mantê-lo sob demanda (gate já longo). Pronto para reativar (descomentar no `turnos_test.dart`).
+- **Fora do MVP (do `epic.md`):** decay de score/XP; motor de penalidade (PDR-007 placeholder); moderação por UI; nível de contratante; push web.
 
 ### Aprendizados de produto
-- 
+- **Assimetria de visibilidade de depoimentos é decisão de produto sensível** (LGPD): estabelecimento nominal sobre o profissional, profissional anônimo sobre o contratante — resolvida explicitamente na DDR-004 com aprovação do dono, não no código.
+- **Pendência derivada do estado** (não materializada) provou-se suficiente para o gate e a notificação — menos uma fonte de inconsistência.
 
 ### Aprendizados de processo
-- 
+- **Pipeline vermelho na `main` é bloqueante mesmo quando cosmético.** O F-B-1 da W30 foi um Pint (`fully_qualified_strict_types`/`ordered_imports`) num arquivo de teste que deixou o workflow **CI** vermelho enquanto o **Release** seguia verde (deploy subiu). A régua objetiva reprovou; lição: CI vermelho mascara falhas reais futuras — corrigir antes de fechar. (Não confundir com o F-B-1 da W28, do cronômetro.)
+- **Deflake faithful > repetir o teste:** o cronômetro estabilizou re-especificando a medição (sincronia bilateral como quantidade modo-comum, IDR-031), não afrouxando tolerância.
+- **Em E2E sobre par seed exclusivo, fixe o turno pelo ID, nunca por rótulo de estado.** O seeder `seedTurnoNaJanela` acumula turnos leftover; `find.ancestor(of: find.text('Em andamento'), …).first` é não-determinístico — causou o "PIN inválido" intermitente do checkout. **O audit do Postgres fechou o diagnóstico onde a leitura de código não bastou** (a 1ª hipótese — PIN efêmero — estava errada).
 
 ### Ajustes para o próximo sprint
-- 
+- **W31 / próximo épico:** decisão de planejamento adiada pelo dono (a definir em outro momento). Candidata conhecida: dívida de a11y do EPIC-012.
+- **Gate E2E está longo** (sinalizado pelo PO) — vale uma revisão de tempo total sem perder cobertura; a janela de amostragem do cronômetro (~60s) é o maior item.
+- **Higiene do seeder (não-bloqueante):** `seedTurnoNaJanela` deixa turnos leftover em `ativo`/`aguardando_checkout` a cada run interrompido; o teste já é imune (fix por id), mas limpar/terminalizar leftovers manteria a base de teste enxuta — candidato a chore.
