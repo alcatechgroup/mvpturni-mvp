@@ -9,6 +9,7 @@
 
 use App\Services\Disputas\ResolverDisputaClient;
 use App\Services\Disputas\ResultadoResolucao;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
@@ -72,7 +73,14 @@ test('CA-4: 500 da api → Erro', function () {
 
 test('CA-4: erro de conexão (api fora do ar) → Erro, sem propagar exceção', function () {
     Http::fake(function () {
-        throw new \Illuminate\Http\Client\ConnectionException('connection refused');
+        throw new ConnectionException('connection refused');
+    });
+    expect(cliente()->resolver('t', 'a', 'nota'))->toBe(ResultadoResolucao::Erro);
+});
+
+test('CA-4: erro inesperado (Throwable genérico) → Erro, sem propagar exceção', function () {
+    Http::fake(function () {
+        throw new \RuntimeException('algo inesperado');
     });
     expect(cliente()->resolver('t', 'a', 'nota'))->toBe(ResultadoResolucao::Erro);
 });
