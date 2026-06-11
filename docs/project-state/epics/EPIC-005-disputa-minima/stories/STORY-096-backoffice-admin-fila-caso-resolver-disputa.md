@@ -37,12 +37,12 @@ Sem a ferramenta, o admin não tem como mediar — o caminho de exceção fica s
 
 ## Critérios de aceite
 
-- [ ] **CA-1:** Em `/disputas`, o admin vê a **fila** de turnos em `em_disputa` (consumindo a pendência derivada do estado — ADR-020), com contratante, profissional, valor e **tempo decorrido vs SLA 30 min**, ordenada por mais antigo primeiro.
-- [ ] **CA-2:** Ao abrir um caso, o admin vê a **trilha completa**: chat, geofencing (check-in/out), checklist, cronômetro, `justificativa_contratante`, vaga original e dados de ambos os lados, conforme `disputa.md` e a fronteira de dados da ADR-020.
-- [ ] **CA-3:** A ação **"Resolver: pagar integral"** abre um diálogo de confirmação com campo `nota_admin` opcional; ao confirmar, chama o comando da STORY-093 e, em sucesso, o caso sai da fila e o turno aparece como `finalizado`.
-- [ ] **CA-4:** Estados tratados: lista vazia ("nenhuma disputa aberta"), loading, erro de carga, erro/sucesso da resolução, e o caso de resolução concorrente (turno já resolvido por outro admin → 409 com mensagem clara, sem efeito duplicado).
-- [ ] **CA-5:** RBAC: somente perfil **admin** acessa `/disputas` e resolve; outros papéis recebem bloqueio (sem vazar dados de disputa). Fail-secure.
-- [ ] **CA-6:** Acessibilidade AA no nível das telas do backoffice já vigente (foco, rótulos, contraste; estado não só por cor).
+- [x] **CA-1:** Em `/disputas`, o admin vê a **fila** de turnos em `em_disputa` (consumindo a pendência derivada do estado — ADR-020), com contratante, profissional, valor e **tempo decorrido vs SLA 30 min**, ordenada por mais antigo primeiro.
+- [x] **CA-2:** Ao abrir um caso, o admin vê a **trilha completa**: ~~chat~~, geofencing (check-in/out), ~~checklist~~, cronômetro, `justificativa_contratante`, vaga original e dados de ambos os lados, conforme `disputa.md` e a fronteira de dados da ADR-020. **(Nota D3: chat/checklist NÃO existem no MVP — sem dado de origem; a trilha reusa o que existe, ADR-020 D6.)**
+- [x] **CA-3:** A ação **"Resolver: pagar integral"** abre um diálogo de confirmação com campo `nota_admin` ~~opcional~~ **OBRIGATÓRIO** (D1 — DDR-005 Decisão 3 / ADR-020 + api; chancela do PO no DDR-005); ao confirmar, chama o comando da STORY-093 e, em sucesso, o caso sai da fila e o turno aparece como `finalizado`.
+- [x] **CA-4:** Estados tratados: lista vazia ("nenhuma disputa aberta"), loading, erro de carga, erro/sucesso da resolução, e o caso de resolução concorrente (turno já resolvido por outro admin → mensagem clara, sem efeito duplicado). **(Nota D2: a api retorna `422 estado_invalido`, não 409; tratei a substância — race-check no banco + mapeamento do 422.)**
+- [x] **CA-5:** RBAC: somente perfil **admin** acessa `/disputas` e resolve; outros papéis recebem bloqueio (sem vazar dados de disputa). Fail-secure.
+- [x] **CA-6:** Acessibilidade AA no nível das telas do backoffice já vigente (foco, rótulos, contraste; estado não só por cor).
 
 ## Fora de escopo
 
@@ -75,10 +75,10 @@ Você decide estrutura de componentes/serviços/testes do backoffice dentro do D
 
 ## Definição de Pronto (DoD)
 
-- [ ] CAs passam; E2E do fluxo do admin verde em homologação.
-- [ ] Coberturas atingidas; CI verde; deploy homolog verificado.
-- [ ] `index.json`: `status: done`.
-- [ ] "Notas do agente" preenchida.
+- [x] CAs passam; E2E do fluxo do admin verde (gate **local** — IDR-004; integration E2E não roda contra homolog).
+- [x] Coberturas atingidas (100% no código novo do admin); suíte completa verde local (api 1118 · admin 153); `pint --test` limpo. CI/deploy homolog: a verificar após push (Deploy Stage manual).
+- [ ] `index.json`: `status: done` (após CI verde + smoke homolog).
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo do agente (obrigatório)
 
@@ -118,11 +118,32 @@ Siga `docs/skills/po/references/agent-task-format.md`.
 - **CA-5 (RBAC):** `rota 200 admin`, `guest → /login`, `não-admin → 403`, `cliente não vaza dados sem admin`.
 - **CA-6 (a11y):** rótulos/foco/estado-não-só-cor no nível das telas vigentes (verificado em view + E2E).
 
+### Decisões tomadas
+- 2026-06-11 — Trilha do caso (CA-2) = agregação dos `audit_logs` reais do turno (rótulos amigáveis) + seções estruturadas (geofencing do check-out, cronômetro, vaga original do snapshot do turno). **Chat/checklist omitidos** (não existem no MVP — D3). Coerente com ADR-020 Decisão 6 (sem contrato de domínio novo).
+- 2026-06-11 — Função do turno derivada de `ProfissionalProfile.funcao_id → Funcao.nome` (dado já existente no admin); estabelecimento = `ContratanteProfile.nome_estabelecimento` (fallback `User.name`).
+- 2026-06-11 — Espelhos de teste no admin (turnos + audit_logs, subset, status string) — mesma disciplina das réplicas de `pix_falhas`/profiles (canônica é da api). Admin só LÊ; a mutação financeira é comando da api (IDR-032).
+- 2026-06-11 — `nota_admin` OBRIGATÓRIA na UI (D1, alinha api+DDR-005). Concorrência tratada em 2 camadas: race-check no banco antes de chamar + mapeamento do `422 estado_invalido` da api (D2).
+
 ### Descobertas
-- 2026-06-11 — ver D1/D2/D3 acima.
+- 2026-06-11 — ver D1/D2/D3 (divergências) acima. D3 (chat/checklist inexistentes) foi a de maior impacto: o protótipo os mostra, mas a trilha "reusa dados existentes" — não inventei dados.
+- 2026-06-11 — E2E exercita o canal cross-app de verdade: ao resolver, o turno transita `em_disputa → finalizado` **na api** (`resolucao=paga_integral`, `resolvida_por=<admin>`, audit `turno.disputa_resolvida`) — captura+Pix single-sourced na api (ADR-020 D3) confirmada em dev.
+
+### Mapeamento CA → teste (final)
+Testes em `apps/admin/tests/Feature/Disputas/DisputasTest.php` (Livewire) e `.../ResolverDisputaClientTest.php` (cliente); E2E em `apps/admin/tests/e2e/disputas.spec.ts`; seed em `apps/api/tests/Feature/Turno/TurnosSeederTest.php`.
+- **CA-1 (fila derivada, mais antigo primeiro, partes/valor/SLA):** `CA-1: fila lista turnos em_disputa, do mais antigo primeiro...`; `CA-1: turnos fora de em_disputa não aparecem na fila`; `CA-1: SLA classifica verde/amarelo/vermelho`; `CA-1/CA-4: contadores`. E2E (a).
+- **CA-2 (caso/trilha completa):** `CA-2: abrir caso mostra a justificativa...`; `CA-2: a trilha compõe os audit_logs reais...`; `CA-2: trilha NÃO mostra chat nem checklist...`. E2E (a) assevera justificativa + "Disputa aberta" + "Check-in validado".
+- **CA-3 (resolver pagar integral + nota obrigatória):** `CA-3: nota vazia... NÃO resolve`; `CA-3: resolver com nota → chama a api... e o caso SAI da fila`; cliente: `CA-3: 200 da api → Ok; envia X-Internal-Token, admin_id e nota_admin`. E2E (a) resolve de verdade; (b) nota vazia bloqueia.
+- **CA-4 (estados: vazio/erro/concorrência):** `CA-4: fila vazia...`; `CA-4: concorrência — turno já não está em_disputa no banco...`; `CA-4: concorrência detectada pela api (422 estado_invalido)...`; `CA-4: erro da api (500/rede) → toast`; cliente: 401/403/422-outro/500/conexão/Throwable/token-ausente.
+- **CA-5 (RBAC fail-secure):** `CA-5: rota /disputas responde 200 para admin`; `... redireciona não-autenticado para /login`; `... 403 para não-admin (sem vazar dados)`; cliente fail-secure quando o token não está configurado.
+- **CA-6 (a11y AA no nível vigente):** rótulos/`role`/`aria-*`/foco gerenciado e estado-não-só-cor (ícone+texto no SLA) na view; reuso dos padrões do shell admin (SCREEN-019/065). Verificado em E2E (navegação por sidebar, foco no drawer/close, mensagem de erro textual).
 
 ### Cobertura final
-- Unitários/Feature: <%> · E2E: <cenários>
+- **Admin (código novo):** `Livewire/Disputas` 100% · `Services/Disputas/ResolverDisputaClient` 100% · `Services/Disputas/ResultadoResolucao` 100% · `Models/Turno` 100% · `Models/TurnoAuditLog` 100%. Suíte admin: **153 passed**.
+- **Api:** seeder novo coberto (`TurnosSeeder` 98,5% linhas); suíte api: **1118 passed**.
+- **E2E (gate local — IDR-004):** 2 cenários verdes (resolver pagar integral ponta a ponta; nota vazia bloqueia).
+- **Lint:** `pint --test` limpo em api e admin.
 
 ### Links de evidência
-- Commits / Pipeline / Deploy homolog: <urls>
+- Commits na `main` (ver `git log --grep STORY-096`): assumir → espelhos/config → cliente [red/green] → Livewire+view+rota+sidebar [red/green] → E2E+seed → cobertura/seeder tests.
+- Pipeline/CI: **a verificar após push** (run do GitHub Actions na main).
+- Deploy homolog: **Deploy Stage manual** (mesmo padrão da STORY-094) — smoke de `/disputas` no backoffice de homolog a confirmar.
