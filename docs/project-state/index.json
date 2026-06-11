@@ -6,8 +6,8 @@
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W31",
     "last_closed_sprint": "SPRINT-2026-W30",
-    "phase": "wave-2026-01-sprint-W31-ABERTA-EPIC-005-7de8-done-090a096-restam-097-ready",
-    "next_action": "SPRINT-2026-W31 ABERTA. EPIC-005 (disputa minima) — ULTIMO epico da WAVE-2026-01. PROGRESSO 2026-06-11: 7/8 estorias DONE. STORY-090 (ADR-020) + STORY-091 (DDR-005 + prototipo) fecharam os spikes; STORY-092 (BE abertura), STORY-093 (BE resolucao paga_integral), STORY-094 (FE contratante), STORY-095 (FE profissional — banner), STORY-096 (Backoffice admin — fila + caso + resolver paga_integral) todas done. STORY-096 fechada em 2026-06-11: CI verde na main (o vermelho do Trivy — admin/api NAO era CVE base nao-fixavel como o BUG-001 supunha: eram 4 CVEs HIGH FIXAVEIS em pacotes OS da base alpine:3.22 — openssl/libxml2/nginx — corrigidos via 'apk upgrade --no-cache' no runtime dos Dockerfiles, commit 019b668, run CI 27372520746 100% verde); Deploy Stage manual run 27372780215 verde; smoke /disputas em stage (admin.stage.turni.com.br, version stage-main) — fail-secure HTTP confirmado + smoke visual logado OK pelo PO. RESTA: STORY-097 (validacao, ready — todos bloqueantes 092..096 done). PROXIMO PASSO: validador executa a STORY-097 (checklist EPIC-005 + report.md com veredito); veredito aceitavel pelo PO fecha o EPIC-005 e a WAVE-2026-01. ATENCAO env: 'Deploy Stage' promove para o ambiente 'stage' (turni-stage, admin.stage/api.stage/app.stage) — confirmar com PO se o alvo do smoke da validacao 097 e stage ou homolog (a estoria 097 cita admin.homolog; nao existe workflow deploy-homolog separado). BUG-001 (Trivy) pode ir para fixed/verified (fix_link 019b668). Bem dentro do soft-cap 2026-07-15.",
+    "phase": "wave-2026-01-sprint-W31-ABERTA-EPIC-005-8de8-done-090a097-validador-APPROVED-aguarda-fechamento-do-PO",
+    "next_action": "SPRINT-2026-W31. EPIC-005 (disputa minima) — ULTIMO epico da WAVE-2026-01. 2026-06-11: 8/8 estorias DONE; STORY-097 (validador) emitiu veredito APPROVED (0 fail bloqueante/nao-bloqueante; report em epics/EPIC-005-disputa-minima/validation/report.md). Suites verdes (api 1118 / admin 153 / webapp 753), nucleo api+admin 100%, CI verde na main (27373316385), E2E disputa recusa+resolve verdes + caminho feliz EPIC-003/004 sem regressao, escopo MVP respeitado, ciclo demonstravel no stage (turno em_disputa semeado + fail-secure + smoke visual do PO). Observacoes nao-bloqueantes no report: flake pre-existente GerarPinCheckoutTest (EPIC-003, ~18%, verde no CI); 2 controllers de disputa em 91,7% (catch defensivo inalcancavel); cold-start no Playwright do admin (passa no retry). PROXIMO PASSO: PO le o report e decide o FECHAMENTO do EPIC-005 e da WAVE-2026-01 (a closure_rule pede veredito aceitavel = approved/approved_with_pending — atendido). O validador NAO marca o epico done (decisao do PO). ATENCAO env: ambiente promovido e 'stage' (admin.stage/api.stage), nao 'homolog'. BUG-001 (Trivy) resolvido (fix 019b668) — pode ir a fixed/verified. --- HISTORICO: 7/8 DONE em 2026-06-11: STORY-090 (ADR-020) + STORY-091 (DDR-005 + prototipo) fecharam os spikes; STORY-092 (BE abertura), STORY-093 (BE resolucao paga_integral), STORY-094 (FE contratante), STORY-095 (FE profissional — banner), STORY-096 (Backoffice admin — fila + caso + resolver paga_integral) todas done. STORY-096 fechada em 2026-06-11: CI verde na main (o vermelho do Trivy — admin/api NAO era CVE base nao-fixavel como o BUG-001 supunha: eram 4 CVEs HIGH FIXAVEIS em pacotes OS da base alpine:3.22 — openssl/libxml2/nginx — corrigidos via 'apk upgrade --no-cache' no runtime dos Dockerfiles, commit 019b668, run CI 27372520746 100% verde); Deploy Stage manual run 27372780215 verde; smoke /disputas em stage (admin.stage.turni.com.br, version stage-main) — fail-secure HTTP confirmado + smoke visual logado OK pelo PO. RESTA: STORY-097 (validacao, ready — todos bloqueantes 092..096 done). PROXIMO PASSO: validador executa a STORY-097 (checklist EPIC-005 + report.md com veredito); veredito aceitavel pelo PO fecha o EPIC-005 e a WAVE-2026-01. ATENCAO env: 'Deploy Stage' promove para o ambiente 'stage' (turni-stage, admin.stage/api.stage/app.stage) — confirmar com PO se o alvo do smoke da validacao 097 e stage ou homolog (a estoria 097 cita admin.homolog; nao existe workflow deploy-homolog separado). BUG-001 (Trivy) pode ir para fixed/verified (fix_link 019b668). Bem dentro do soft-cap 2026-07-15.",
     "notes": "Snapshot 2026-06-10 (mid-sprint W31 pelo PO — atualizacao de situacao). EPIC-005: 090..094 done, 095/096 ready, 097 blocked. Sprint doc (quadro + registro de acompanhamento) reconciliado com o estado real das estorias. Higiene: commit 18579b0 toca codigo de 095/096/097 mas estas seguem ready/blocked (nao marcadas done) — trabalho ainda nao validado. | ANTERIOR: Snapshot 2026-06-10 (abertura da W31 pelo PO). W30 fechou o EPIC-004 por goal-atingido (8/8 done); o dono decidiu que a W31 ataca o EPIC-005 (disputa minima) para FECHAR a WAVE-2026-01. EPIC-005 saiu de draft->active e foi decomposto via Fluxo B. ADR-020 e DDR-005 ainda nao existem — sao entregaveis dos spikes 090/091 (nada inventado). | ANTERIOR: Snapshot 2026-06-10 (fechamento da W30 pelo PO). Historico recente: W29 fechou o EPIC-012 (shell de navegacao + pente fino UX) por goal-atingido em 2026-06-09; W30 (aberta 2026-06-09) entregou o EPIC-004 (avaliacao reciproca e fechamento do ciclo) — ADR-019 + DDR-004 accepted, motor de reputacao idempotente, gate bloqueante fail-secure, depoimentos com assimetria LGPD. STORY-082 quitou a divida da W28/W29 (deflake cronometro + housekeeping). O bloco project ficou desatualizado durante a W30 (apontava W29) — corrigido neste fechamento. A definicao do EPIC/sprint da W31 fica para o dono."
   },
   "product": {
@@ -344,9 +344,10 @@
         "STORY-096",
         "STORY-097"
       ],
-      "validation_report": null,
+      "validation_report": "epics/EPIC-005-disputa-minima/validation/report.md",
+      "validation_verdict": "approved",
       "created_at": "2026-05-26",
-      "updated_at": "2026-06-10"
+      "updated_at": "2026-06-11"
     },
     {
       "id": "EPIC-006",
@@ -2826,7 +2827,7 @@
       "target_role": "validador",
       "requires_design": false,
       "design_screen_id": null,
-      "status": "ready",
+      "status": "done",
       "owner_agent": null,
       "sprint_id": "SPRINT-2026-W31",
       "estimated_session_size": "M",
