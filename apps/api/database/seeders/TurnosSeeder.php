@@ -367,6 +367,170 @@ class TurnosSeeder extends Seeder
         );
 
         $this->seedTurnoEmCheckout(); // STORY-094 — E2E da abertura de disputa
+        $this->seedTurnoEmDisputa(); // STORY-096 — E2E da fila/caso/resolução do admin
+    }
+
+    /**
+     * STORY-096 — turno em `em_disputa` com usuários exclusivos (`*.disputa096.seed`) para o E2E
+     * do BACKOFFICE (fila → caso → resolver "pagar integral"). O E2E CONSOME o turno (a resolução
+     * via comando da api o transita para `finalizado`), então quando consumido o seed cria um NOVO.
+     * Aberta há ~42 min de propósito: SLA estourado (🔴) determinístico para o E2E asseverar o
+     * indicador + o banner. Pré-autorização sintética mantida (a disputa NÃO libera — ADR-020).
+     * Production-safe (sem fake()).
+     */
+    private function seedTurnoEmDisputa(): void
+    {
+        $contratante = User::updateOrCreate(
+            ['email' => 'contratante.disputa096.seed@turni.local'],
+            [
+                'name' => 'Estabelecimento Disputa 096 Seed',
+                'password' => Hash::make('password'),
+                'role' => 'contratante',
+                'status' => 'ativo',
+                'email_verified_at' => now(),
+                'cadastro_completed_at' => now(),
+            ],
+        );
+
+        $profissional = User::updateOrCreate(
+            ['email' => 'profissional.disputa096.seed@turni.local'],
+            [
+                'name' => 'Profissional Disputa 096 Seed',
+                'password' => Hash::make('password'),
+                'role' => 'profissional',
+                'status' => 'ativo',
+                'email_verified_at' => now(),
+                'cadastro_completed_at' => now(),
+            ],
+        );
+
+        ProfissionalProfile::updateOrCreate(
+            ['user_id' => $profissional->id],
+            [
+                'tipo_pessoa' => 'MEI',
+                'telefone' => '11999990096',
+                'cidade' => 'São Paulo',
+                'bairro' => 'Centro',
+                'funcao_id' => Funcao::query()->orderBy('nome')->value('id'),
+                'chave_pix_encrypted' => 'profissional.disputa096.seed@pix.turni.local',
+            ],
+        );
+
+        $abertaEm = now()->subMinutes(42); // SLA estourado (🔴) determinístico para o E2E.
+        $inicio = now()->subHours(6)->startOfMinute();
+        $checkIn = (clone $inicio)->addMinutes(2);
+        $fim = now()->subMinutes(50)->startOfMinute();
+
+        $existente = Turno::query()
+            ->where('contratante_id', $contratante->id)
+            ->orderByDesc('id')
+            ->first();
+        if ($existente !== null && $existente->status === TurnoStatus::EmDisputa) {
+            // Refresh da janela/abertura — o trigger só valida MUDANÇA de status; aqui status fica.
+            $existente->forceFill([
+                'data_inicio' => $inicio,
+                'data_fim' => $fim,
+                'check_in_at' => $checkIn,
+                'disputa' => array_merge($existente->disputa ?? [], ['aberta_em' => $abertaEm->toIso8601String()]),
+            ])->save();
+            $this->garantePreAutorizacaoSintetica($existente);
+            $this->command?->info('TurnosSeeder: turno disputa096 seed renovado (em_disputa).');
+
+            return;
+        }
+
+        $funcaoId = Funcao::query()->orderBy('nome')->value('id');
+        $templateVersaoId = TemplateVersao::query()
+            ->whereHas('template', fn ($q) => $q->where('slug', 'pf_autonomo_eventual'))
+            ->where('ativa', true)
+            ->value('id');
+
+        if ($funcaoId === null || $templateVersaoId === null) {
+            $this->command?->warn('TurnosSeeder: turno disputa096 seed requer FuncaoSeeder + TemplatesContratuaisSeeder. Pulado.');
+
+            return;
+        }
+
+        $vaga = Vaga::create([
+            'contratante_id' => $contratante->id,
+            'funcao_id' => $funcaoId,
+            'data_inicio' => $inicio,
+            'data_fim' => $fim,
+            'valor' => 230.00,
+            'posicoes' => 1,
+            'posicoes_preenchidas' => 1,
+            'observacoes' => 'Vaga seed da fila de disputa do admin (STORY-096)',
+            'lat' => -23.55,
+            'lng' => -46.63,
+            'cidade' => 'São Paulo',
+            'uf' => 'SP',
+            'estado' => VagaEstado::Fechada,
+            'versao_atual' => 1,
+            'publicada_em' => now(),
+            'fechada_em' => now(),
+        ]);
+
+        $candidatura = Candidatura::create([
+            'vaga_id' => $vaga->id,
+            'profissional_id' => $profissional->id,
+            'estado' => CandidaturaEstado::Aprovada,
+            'aprovada_em' => now(),
+        ]);
+
+        $turno = Turno::create([
+            'candidatura_id' => $candidatura->id,
+            'vaga_id' => $vaga->id,
+            'vaga_versao_id' => null,
+            'profissional_id' => $profissional->id,
+            'contratante_id' => $contratante->id,
+            'estabelecimento_id' => $contratante->id,
+            'status' => TurnoStatus::EmDisputa,
+            'valor' => 230.00,
+            'taxa_turni' => 34.50,
+            'total_contratante' => 264.50,
+            'data_inicio' => $inicio,
+            'data_fim' => $fim,
+            'check_in_at' => $checkIn,
+            'geofencing_check_out' => ['ok' => true, 'distancia_metros' => 12, 'capturado_em' => $fim->toIso8601String()],
+            'disputa' => [
+                'aberta_em' => $abertaEm->toIso8601String(),
+                'aberta_por' => $contratante->id,
+                'justificativa_contratante' => 'O profissional saiu 40 min antes do fim combinado e não terminou a limpeza do salão.',
+                'resolucao' => null,
+                'nota_admin' => null,
+                'resolvida_em' => null,
+                'resolvida_por' => null,
+            ],
+        ]);
+
+        $aceite = AceiteEletronicoTurno::create([
+            'turno_id' => $turno->id,
+            'template_versao_id' => $templateVersaoId,
+            'conteudo_renderizado' => 'Contrato eventual de turno — fila de disputa do admin. Valor R$ 230,00.',
+            'dados_renderizados' => [
+                'turno.valor' => 'R$ 230,00',
+                'turno.taxa_turni' => 'R$ 34,50',
+                'turno.total_contratante' => 'R$ 264,50',
+            ],
+            'ip' => '127.0.0.1',
+            'fingerprint' => hash('sha256', 'seed096:'.$turno->id.':'.now()->toDateString()),
+            'habitualidade_override' => false,
+        ]);
+
+        $this->garantePreAutorizacaoSintetica($turno);
+        $this->seedTimeline($turno, $aceite, TurnoStatus::EmDisputa);
+
+        // A abertura da disputa (no fluxo real é o AbrirDisputaService) — fecha a trilha do caso.
+        AuditLog::query()->forceCreate([
+            'actor_id' => $contratante->id,
+            'action' => 'turno.disputa_aberta',
+            'target_type' => 'Turno',
+            'target_id' => $turno->id,
+            'payload' => ['justificativa_contratante' => $turno->disputa['justificativa_contratante']],
+            'created_at' => $abertaEm,
+        ]);
+
+        $this->command?->info('TurnosSeeder: turno disputa096 seed (em_disputa) criado.');
     }
 
     /**
