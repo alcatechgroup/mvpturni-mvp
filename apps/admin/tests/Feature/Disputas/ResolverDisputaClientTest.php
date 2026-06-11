@@ -80,7 +80,7 @@ test('CA-4: erro de conexão (api fora do ar) → Erro, sem propagar exceção',
 
 test('CA-4: erro inesperado (Throwable genérico) → Erro, sem propagar exceção', function () {
     Http::fake(function () {
-        throw new \RuntimeException('algo inesperado');
+        throw new RuntimeException('algo inesperado');
     });
     expect(cliente()->resolver('t', 'a', 'nota'))->toBe(ResultadoResolucao::Erro);
 });
