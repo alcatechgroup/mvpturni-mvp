@@ -40,7 +40,11 @@ RUN mkdir -p bootstrap/cache \
 # ── Stage 2: runtime ──────────────────────────────────────────────────────────
 FROM alpine:3.22 AS runtime
 
-RUN apk add --no-cache \
+# `apk upgrade` antes do add: a base alpine:3.22 traz pacotes (openssl/libcrypto3,
+# libssl3, libxml2) em revisões anteriores às já corrigidas no repo 3.22; o `apk add`
+# sozinho não atualiza o que já vem instalado, deixando CVEs fixáveis HIGH no gate Trivy.
+RUN apk upgrade --no-cache \
+    && apk add --no-cache \
     nginx supervisor \
     php84 php84-fpm php84-pdo php84-pdo_pgsql php84-pcntl php84-opcache \
     php84-mbstring php84-ctype php84-curl php84-dom php84-fileinfo \
