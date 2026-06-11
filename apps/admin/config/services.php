@@ -42,4 +42,18 @@ return [
         'chave_key' => env('PIX_FALHA_CHAVE_KEY', 'base64:QSaMggP0jJQeXLjsVeaVSbzjYRuI/jafz7urwOGT7Mg='),
     ],
 
+    // STORY-096 (IDR-032) — canal service-to-service admin→api do comando "pagar integral".
+    // O admin é CLIENTE: a captura+Pix é single-sourced na api (ADR-020 Decisão 3), disparada
+    // por evento in-process que o backoffice não emite. `api.internal_url` aponta para o app api
+    // (no compose: http://api:8000; homolog/prod: URL do Cloud Run, via Terraform). `internal.token`
+    // é o segredo compartilhado (mesmo valor nos 2 .env; default só dev/CI, homolog via Secret
+    // Manager — mesmo racional do pix_falha.chave_key).
+    'api' => [
+        'internal_url' => env('INTERNAL_API_URL', 'http://api:8000'),
+    ],
+
+    'internal' => [
+        'token' => env('INTERNAL_SERVICE_TOKEN', 'dev-internal-s2s-token-change-me'),
+    ],
+
 ];
