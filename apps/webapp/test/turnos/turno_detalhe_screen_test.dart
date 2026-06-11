@@ -320,6 +320,116 @@ void main() {
     expect(find.byKey(const Key('turno-detalhe-acoes')), findsNothing);
   });
 
+  // ───────────────── STORY-095 — banner de disputa do profissional ─────────────────
+
+  testWidgets(
+    'profissional em em_disputa: banner read-only com título+corpo, sem ações',
+    (tester) async {
+      final svc = _FakeService(
+        () => TurnoDetalheSuccess(
+          _turno(estadoRaw: 'em_disputa', estado: TurnoEstadoResumo.emDisputa),
+        ),
+      );
+      await tester.pumpWidget(_comRouter(svc));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('disputa-banner')), findsOneWidget);
+      expect(find.text('Valor em disputa'), findsOneWidget);
+      expect(
+        find.text(
+          'O contratante contestou o check-out deste turno. A equipe '
+          'Turni vai mediar em até 30 minutos e avisaremos você do '
+          'desfecho.',
+        ),
+        findsOneWidget,
+      );
+      // §3.3 — read-only: o placeholder de ações é omitido (o banner já comunica).
+      expect(find.byKey(const Key('turno-detalhe-acoes')), findsNothing);
+      expect(find.text('Nenhuma ação disponível no momento'), findsNothing);
+      // A justificativa do contratante NUNCA é exposta ao profissional (DDR-005 §2).
+      expect(find.textContaining('justificativa'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'banner do profissional é liveRegion para leitor de tela (CA-4)',
+    (tester) async {
+      final handle = tester.ensureSemantics();
+      final svc = _FakeService(
+        () => TurnoDetalheSuccess(
+          _turno(estadoRaw: 'em_disputa', estado: TurnoEstadoResumo.emDisputa),
+        ),
+      );
+      await tester.pumpWidget(_comRouter(svc));
+      await tester.pumpAndSettle();
+
+      // O banner é anunciado como liveRegion e carrega o significado no label
+      // (cor nunca é canal único — CA-4). Lemos a Semantics que envolve o banner.
+      final sem = tester.widget<Semantics>(
+        find
+            .ancestor(
+              of: find.byKey(const Key('disputa-banner')),
+              matching: find.byType(Semantics),
+            )
+            .first,
+      );
+      expect(sem.properties.liveRegion, isTrue);
+      expect(sem.properties.label, contains('Valor em disputa'));
+      handle.dispose();
+    },
+  );
+
+  testWidgets('banner de disputa ausente em estado normal (confirmado)', (
+    tester,
+  ) async {
+    final svc = _FakeService(() => TurnoDetalheSuccess(_turno()));
+    await tester.pumpWidget(_comRouter(svc));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('disputa-banner')), findsNothing);
+  });
+
+  testWidgets('CA-3: resolvida → finalizado, sem resíduo de disputa', (
+    tester,
+  ) async {
+    final svc = _FakeService(
+      () => TurnoDetalheSuccess(
+        _turno(estadoRaw: 'finalizado', estado: TurnoEstadoResumo.finalizado),
+      ),
+    );
+    await tester.pumpWidget(_comRouter(svc));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('disputa-banner')), findsNothing);
+    expect(find.text('Valor em disputa'), findsNothing);
+  });
+
+  testWidgets(
+    'contratante em em_disputa NÃO vê o banner do profissional (vê o sóbrio)',
+    (tester) async {
+      final svc = _FakeService(
+        () => TurnoDetalheSuccess(
+          _turno(
+            estadoRaw: 'em_disputa',
+            estado: TurnoEstadoResumo.emDisputa,
+            // taxaTurni/total/profissional → souContratante = true.
+            taxaTurni: 30.0,
+            totalContratante: 230.0,
+            profissional: 'Júlia Santos',
+          ),
+        ),
+      );
+      await tester.pumpWidget(_comRouter(svc));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('disputa-banner')), findsNothing);
+      expect(
+        find.byKey(const Key('disputa-contratante-banner')),
+        findsOneWidget,
+      );
+    },
+  );
+
   // ───────────────── CA-5 — modal do aceite ─────────────────
 
   testWidgets('link abre modal do aceite somente-leitura; fechar volta', (

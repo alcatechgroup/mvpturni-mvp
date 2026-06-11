@@ -321,11 +321,24 @@ class _DetalheView extends StatelessWidget {
   bool get _mostraValidacaoCheckout =>
       turno.souContratante && turno.estadoRaw == 'aguardando_checkout';
 
+  /// STORY-095 / SCREEN-091 §3.3 — o PROFISSIONAL em `em_disputa` é read-only: o
+  /// `banner.status` no topo do conteúdo já comunica o estado e o prazo, então a
+  /// área de ações (placeholder genérico) é omitida — o banner diz "aguarde".
+  bool get _profissionalEmDisputa =>
+      !turno.souContratante && turno.estadoRaw == 'em_disputa';
+
   @override
   Widget build(BuildContext context) {
     final colTurno = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // STORY-095 / SCREEN-091 §3.3 — banner read-only de disputa do PROFISSIONAL,
+        // no topo do conteúdo (acima do card de estado), em `em_disputa`. Some
+        // sozinho quando o turno vira `finalizado` (CA-3 — a condição é só este estado).
+        if (_profissionalEmDisputa) ...[
+          _DisputaProfissionalBanner(isDark: isDark),
+          const SizedBox(height: TurniSpacing.md),
+        ],
         _HeaderCard(turno: turno, isDark: isDark),
         // STORY-063 / SCREEN-063 §3.1 — em `ativo` o tempo é a informação mais quente
         // da tela: o cronômetro entra logo abaixo do header (congelado em
@@ -357,7 +370,9 @@ class _DetalheView extends StatelessWidget {
           _AvisoBanner(mensagem: avisoCheckin!, isDark: isDark),
         ],
         // CA-4 da 060 — moldura do "botão grande"; terminais não têm (§4.1).
-        if (!turno.estadoTerminal) ...[
+        // STORY-095 §3.3 — profissional em `em_disputa` também não tem moldura de
+        // ação: o `banner.status` no topo é a única pista (placeholder seria ruído).
+        if (!turno.estadoTerminal && !_profissionalEmDisputa) ...[
           const SizedBox(height: TurniSpacing.sm),
           if (_mostraCheckin)
             _AcoesCheckin(
@@ -3167,6 +3182,79 @@ class _DisputaContratanteBanner extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// STORY-095 / SCREEN-091 §3.3 / DDR-005 Decisão 2 — `banner.status` read-only do
+/// PROFISSIONAL em `em_disputa`: persistente, sem CTA, sem expor a justificativa do
+/// contratante (insumo do admin). Disputa = semântica `error` soft; tom calmo
+/// (Princípio #3). `liveRegion` para o leitor de tela anunciar ao aparecer; o ícone é
+/// decorativo (o título+corpo carregam o significado — cor nunca é canal único, §6).
+class _DisputaProfissionalBanner extends StatelessWidget {
+  const _DisputaProfissionalBanner({required this.isDark});
+
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final errorInk = isDark ? TurniColors.errorDark : TurniColors.errorLight;
+    return Semantics(
+      liveRegion: true,
+      container: true,
+      label:
+          'Valor em disputa. O contratante contestou o check-out deste turno. '
+          'A equipe Turni vai mediar em até 30 minutos e avisaremos você do desfecho.',
+      child: Container(
+        key: const Key('disputa-banner'),
+        width: double.infinity,
+        padding: const EdgeInsets.all(TurniSpacing.md),
+        decoration: BoxDecoration(
+          color: isDark
+              ? TurniColors.errorSoftDark
+              : TurniColors.errorSoftLight,
+          borderRadius: const BorderRadius.all(TurniRadius.md),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ExcludeSemantics(
+              child: Icon(Icons.warning_amber, size: 20, color: errorInk),
+            ),
+            const SizedBox(width: TurniSpacing.sm),
+            Expanded(
+              child: ExcludeSemantics(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Valor em disputa',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: errorInk,
+                        height: 1.3,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: TurniSpacing.xs),
+                    Text(
+                      'O contratante contestou o check-out deste turno. A equipe '
+                      'Turni vai mediar em até 30 minutos e avisaremos você do '
+                      'desfecho.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: errorInk,
+                        height: 1.45,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
