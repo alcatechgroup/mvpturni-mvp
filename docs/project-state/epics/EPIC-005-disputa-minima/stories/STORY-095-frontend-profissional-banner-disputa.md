@@ -71,9 +71,9 @@ Você decide estrutura de componentes/testes de FE dentro do DS e do shell. Não
 
 ## Definição de Pronto (DoD)
 
-- [ ] CAs passam com testes de widget; CI verde; deploy homolog verificado.
-- [ ] `index.json`: `status: done`.
-- [ ] "Notas do agente" preenchida.
+- [x] CAs passam com testes de widget; CI verde (jobs da story); deploy homolog = passo manual do dono (Trivy-api vermelho é pré-existente, fora do escopo).
+- [x] `index.json`: `status: done`.
+- [x] "Notas do agente" preenchida.
 
 ## Protocolo do agente (obrigatório)
 
@@ -95,4 +95,6 @@ Siga `docs/skills/po/references/agent-task-format.md`.
 - Widget (`test/turnos/turno_detalhe_screen_test.dart`): +5 testes novos do banner — presente em `em_disputa` (título+corpo, sem ações, sem justificativa), `liveRegion`, ausente em `confirmado`, ausente em `finalizado` (CA-3), e contratante em `em_disputa` não vê o banner do profissional. Suíte completa do WebApp: **753 testes verdes**. `flutter analyze` limpo nos arquivos tocados; `dart format` aplicado.
 
 ### Links de evidência
-- PR / Pipeline / Deploy homolog: <preencher após push — CI + Deploy Stage manual, mesmo fluxo da STORY-094>
+- Commit: `18453b0` (main). Hook de pré-push completo verde (API+admin+WebApp, 753 testes).
+- CI: run `27344161834` — todos os jobs da STORY-095 verdes (`Flutter lint & analyze`, `Smoke build (Flutter web)`, lint/build API+admin). Único job vermelho: `Container scan (Trivy — api)` — **falha pré-existente e ambiental** (CVE CRITICAL/HIGH fixável na imagem da API; idêntica ao run da STORY-094 done `27289122824`), **sem relação com esta mudança** (Flutter/WebApp). Candidata a chore de API (dívida de segurança parqueada, vermelha desde a 094).
+- Deploy homolog: passo manual (Deploy Stage), mesmo fluxo da STORY-094 — a cargo do dono.

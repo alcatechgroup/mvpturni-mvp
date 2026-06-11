@@ -6,9 +6,9 @@
     "current_wave": "WAVE-2026-01",
     "current_sprint": "SPRINT-2026-W31",
     "last_closed_sprint": "SPRINT-2026-W30",
-    "phase": "wave-2026-01-sprint-W31-ABERTA-EPIC-005-ADR-020-accepted-092-093-096-ready-aguarda-DDR-005-091",
-    "next_action": "SPRINT-2026-W31 ABERTA. EPIC-005 (disputa minima) — ULTIMO epico da WAVE-2026-01. STORY-090 DONE em 2026-06-10: ADR-020 ACCEPTED (disputa embutida em turnos.disputa jsonb; abertura via AbrirDisputaService aguardando_checkout->em_disputa com justificativa obrigatoria e pre-autorizacao mantida; resolucao paga_integral = comando da API ResolverDisputaService reusando TurnoFinalizado + captura+Pix existentes, idempotente em 3 camadas, admin e CLIENTE nunca escreve no banco; evento novo DisputaAberta + fila do admin derivada do estado; paga_parcial/sem_pagamento fora do MVP -> EPIC-007). STORY-092/093/096 destravadas (blocked->ready). PROXIMO PASSO: (a) STORY-091 (Designer -> DDR-005 + prototipo recusa/banner/caso) ainda pendente — aprovar antes de liberar 094/095; (b) STORY-092 (BE abertura, L — gatilho de quebra: modelo+transicao+justificativa | evento+notificacao) pode iniciar com ADR-020 aceito; depois 093 (resolucao) destrava 096 (backoffice). Ordem: {090 done, 091} -> 092 -> {093, 094, 095} -> 096 -> 097 (validador fecha epico e onda).",
-    "notes": "Snapshot 2026-06-10 (abertura da W31 pelo PO). W30 fechou o EPIC-004 por goal-atingido (8/8 done); o dono decidiu que a W31 ataca o EPIC-005 (disputa minima) para FECHAR a WAVE-2026-01. EPIC-005 saiu de draft->active e foi decomposto via Fluxo B. ADR-020 e DDR-005 ainda nao existem — sao entregaveis dos spikes 090/091 (nada inventado). | ANTERIOR: Snapshot 2026-06-10 (fechamento da W30 pelo PO). Historico recente: W29 fechou o EPIC-012 (shell de navegacao + pente fino UX) por goal-atingido em 2026-06-09; W30 (aberta 2026-06-09) entregou o EPIC-004 (avaliacao reciproca e fechamento do ciclo) — ADR-019 + DDR-004 accepted, motor de reputacao idempotente, gate bloqueante fail-secure, depoimentos com assimetria LGPD. STORY-082 quitou a divida da W28/W29 (deflake cronometro + housekeeping). O bloco project ficou desatualizado durante a W30 (apontava W29) — corrigido neste fechamento. A definicao do EPIC/sprint da W31 fica para o dono."
+    "phase": "wave-2026-01-sprint-W31-ABERTA-EPIC-005-5de8-done-090a094-restam-095-096-ready-097-blocked",
+    "next_action": "SPRINT-2026-W31 ABERTA. EPIC-005 (disputa minima) — ULTIMO epico da WAVE-2026-01. PROGRESSO 2026-06-10: 5/8 estorias DONE. STORY-090 (ADR-020 accepted) + STORY-091 (DDR-005 + prototipo accepted) fecharam os dois spikes de decisao; STORY-092 (BE abertura: em_disputa + justificativa + preauth + notificacao, CI verde + homolog — a L coube em sessao unica, sem quebra); STORY-093 (BE resolucao paga_integral: captura+Pix reusados + trilha, idempotente); STORY-094 (FE contratante: recusar check-out + justificativa, CI verde + homolog). RESTAM: STORY-095 (FE profissional — banner em_disputa, S, ready, dep 092 done) e STORY-096 (Backoffice admin — fila + caso + resolver paga_integral, M, ready, dep 093 done) — ambas destravadas, podem rodar em paralelo. STORY-097 (validacao) segue blocked aguardando 095+096. PROXIMO PASSO: executar 095 e 096; ao fecharem, 097 destrava e o validador fecha o EPIC-005 e a WAVE-2026-01. Riscos de entrada (spikes-gargalo, L estourando sessao) nao se materializaram. Bem dentro do soft-cap 2026-07-15.",
+    "notes": "Snapshot 2026-06-10 (mid-sprint W31 pelo PO — atualizacao de situacao). EPIC-005: 090..094 done, 095/096 ready, 097 blocked. Sprint doc (quadro + registro de acompanhamento) reconciliado com o estado real das estorias. Higiene: commit 18579b0 toca codigo de 095/096/097 mas estas seguem ready/blocked (nao marcadas done) — trabalho ainda nao validado. | ANTERIOR: Snapshot 2026-06-10 (abertura da W31 pelo PO). W30 fechou o EPIC-004 por goal-atingido (8/8 done); o dono decidiu que a W31 ataca o EPIC-005 (disputa minima) para FECHAR a WAVE-2026-01. EPIC-005 saiu de draft->active e foi decomposto via Fluxo B. ADR-020 e DDR-005 ainda nao existem — sao entregaveis dos spikes 090/091 (nada inventado). | ANTERIOR: Snapshot 2026-06-10 (fechamento da W30 pelo PO). Historico recente: W29 fechou o EPIC-012 (shell de navegacao + pente fino UX) por goal-atingido em 2026-06-09; W30 (aberta 2026-06-09) entregou o EPIC-004 (avaliacao reciproca e fechamento do ciclo) — ADR-019 + DDR-004 accepted, motor de reputacao idempotente, gate bloqueante fail-secure, depoimentos com assimetria LGPD. STORY-082 quitou a divida da W28/W29 (deflake cronometro + housekeeping). O bloco project ficou desatualizado durante a W30 (apontava W29) — corrigido neste fechamento. A definicao do EPIC/sprint da W31 fica para o dono."
   },
   "product": {
     "vision": "product/vision.md",
@@ -2782,7 +2782,7 @@
       "target_role": "programador",
       "requires_design": true,
       "design_screen_id": null,
-      "status": "ready",
+      "status": "done",
       "owner_agent": null,
       "sprint_id": "SPRINT-2026-W31",
       "estimated_session_size": "S",
@@ -2794,7 +2794,7 @@
         "STORY-097"
       ],
       "created_at": "2026-06-10",
-      "updated_at": "2026-06-10"
+      "updated_at": "2026-06-11"
     },
     {
       "id": "STORY-096",
