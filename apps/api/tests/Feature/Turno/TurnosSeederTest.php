@@ -399,7 +399,7 @@ test('STORY-096: seeder cria o turno em em_disputa com usuários exclusivos *.di
         )->toBeTrue()
         // Trilha de abertura registrada (caso do admin — ADR-020 Decisão 6).
         ->and(
-            \App\Models\AuditLog::where('target_id', $turno->id)
+            AuditLog::where('target_id', $turno->id)
                 ->where('action', 'turno.disputa_aberta')->exists(),
         )->toBeTrue();
 });
