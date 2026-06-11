@@ -7,7 +7,7 @@ sprint_id: SPRINT-2026-W31
 type: implementation
 target_role: programador
 requires_design: true
-status: in_progress
+status: in_review
 owner_agent: claude-opus-4-8-programador-2026-06-11
 created_at: 2026-06-10
 updated_at: 2026-06-11
@@ -144,6 +144,6 @@ Testes em `apps/admin/tests/Feature/Disputas/DisputasTest.php` (Livewire) e `...
 - **Lint:** `pint --test` limpo em api e admin.
 
 ### Links de evidência
-- Commits na `main` (ver `git log --grep STORY-096`): assumir → espelhos/config → cliente [red/green] → Livewire+view+rota+sidebar [red/green] → E2E+seed → cobertura/seeder tests.
-- Pipeline/CI: **a verificar após push** (run do GitHub Actions na main).
-- Deploy homolog: **Deploy Stage manual** (mesmo padrão da STORY-094) — smoke de `/disputas` no backoffice de homolog a confirmar.
+- Commits na `main` (ver `git log --grep STORY-096`): assumir → espelhos/config → cliente [red/green] → Livewire+view+rota+sidebar [red/green] → E2E+seed → cobertura/seeder tests → 2 ajustes de pint.
+- **CI (run 27367886235, commit `09cdd11`):** TODOS os jobs da estória **verdes** — Commit lint ✅, PHP lint & audit (api) ✅, PHP lint & audit (admin) ✅, Secret scan ✅, Flutter lint ✅, Smoke build (api/admin/Flutter web) ✅. **Único job vermelho:** `Container scan (Trivy — admin)` (api cancelado por fail-fast) — **scan de CVE da imagem base** (CRITICAL/HIGH, DB Trivy do dia `cache-trivy-2026-06-11`), **NÃO introduzido por esta estória** (diff toca só PHP/blade/test/docs — zero mudança em `composer.lock`/Dockerfile). É o mesmo "CI vermelho cosmético" (F-B-1) que reprovou a STORY-095 (Trivy — api) e que foi `done` mesmo assim ("CI jobs da story verde"). **Requer chancela do PO** para tratar como pendência de infra fora do escopo (candidata à WAVE-2026-02), igual ao precedente.
+- Deploy homolog: **Deploy Stage manual** (mesmo padrão da STORY-094) — smoke de `/disputas` no backoffice de homolog a confirmar (não disparável pelo agente).
