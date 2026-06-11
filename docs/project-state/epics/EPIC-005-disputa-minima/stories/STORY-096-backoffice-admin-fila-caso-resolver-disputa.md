@@ -7,10 +7,10 @@ sprint_id: SPRINT-2026-W31
 type: implementation
 target_role: programador
 requires_design: true
-status: blocked
-owner_agent: null
+status: in_progress
+owner_agent: claude-opus-4-8-programador-2026-06-11
 created_at: 2026-06-10
-updated_at: 2026-06-10
+updated_at: 2026-06-11
 estimated_session_size: M
 ---
 
@@ -86,14 +86,43 @@ Siga `docs/skills/po/references/agent-task-format.md`.
 
 ## Notas do agente (preenchido durante/após execução)
 
-### Decisões tomadas
-- <data> — <decisão>
+### Documentos lidos
+- STORY-096 inteira; SPRINT-2026-W31; protocolo `agent-task-format.md`; SKILL do programador.
+- **ADR-020** (modelo de disputa, transições, fila derivada, trilha = agregação de leitura — Decisão 6).
+- **DDR-005** (entrada única; profissional não vê justificativa; **nota_admin obrigatória**; testids do admin).
+- **IDR-032** (canal admin→api: endpoint interno `/api/internal/turnos/{turno}/resolver-disputa`, header `X-Internal-Token`, body `{admin_id, nota_admin}`; RBAC re-verificado na api).
+- Código da api: `ResolverDisputaController`, `ResolverDisputaService`, `InternalServiceAuth`, `config/services.php`.
+- Código do admin (precedentes): `PixFalhas` (fila + dialog + nota + race-safe), `AdminOnly`, `AuditLogService`, mirror migration `pix_falhas`, layout admin (estilos/sidebar), protótipo `SCREEN-STORY-091-disputa`.
+
+### Entendimento consolidado (minhas palavras)
+- Entrego no app `admin`: rota `/disputas` (fila derivada de `turnos.status='em_disputa'`, mais antigo primeiro), drawer do caso com a trilha completa (agregação de leitura, ADR-020 D6) e a ação "Resolver: pagar integral" que chama o comando da api (IDR-032). Admin é **cliente** — nunca escreve a transição/captura no banco.
+- A fila é derivada do estado (sem tabela). O caso sai da fila ao virar `finalizado`. SLA visível = "há {m} min · SLA 30 min" derivado de `disputa.aberta_em` (🟢 ≤15 · 🟡 15–30 · 🔴 >30).
+
+### Divergências detectadas (resolução já decidida — não reabrir)
+- **D1 — `nota_admin`: CA-3 diz "opcional"; DDR-005 (Decisão 3) e ADR-020 dizem OBRIGATÓRIA.** A api (`ResolverDisputaService`/controller) já **exige**. DDR-005 foi aprovada pelo dono **incluindo a chancela do PO para editar o CA-3 de "opcional"→"obrigatória"**. Implemento **obrigatória** (alinha com api + trilha de auditoria). CA-3 da estória deve ser relido com essa edição.
+- **D2 — concorrência: CA-4 diz "409"; a api retorna `422 {motivo:"estado_invalido"}`** quando o turno não está mais em `em_disputa` (resolvido por outro admin). Implemento a **substância** da CA-4 (mensagem clara, sem efeito duplicado): race-check no banco antes de chamar (espelha PixFalhas) + mapeio o `422 estado_invalido` para "já resolvida por outro admin". O código HTTP exato (422 vs 409) é contrato da STORY-093 (done) — não altero a api.
+- **D3 — chat e checklist NÃO existem no MVP** (sem tabela/modelo na api). O protótipo/DDR os listam na trilha, mas a trilha "reusa dados já existentes" (ADR-020 D6). Componho a trilha apenas com o que existe: **justificativa, audit_logs do turno (criado/check-in/check-out/disputa aberta), geofencing, cronômetro, vaga original** — chat/checklist são **omitidos** (sem dado de origem; não invento).
+
+### Plano (5 bullets)
+1. Espelhos de teste no admin: migrations `turnos` (subset, status string) + `audit_logs` (subset); models read-only `Turno` (+ scope `emDisputa`, relations) e `TurnoAuditLog`; factories. Config `services.api.internal_url` + `services.internal.token`.
+2. `ResolverDisputaClient` (POST interno, X-Internal-Token, mapeia respostas) — testes com `Http::fake`.
+3. Livewire `Disputas` (full-page) + view com testids do protótipo; rota `/disputas` sob `AdminOnly`; item de sidebar com contador.
+4. Testes Feature/Livewire cobrindo CA-1..CA-6 nas 4 categorias; E2E Playwright (fila→caso→resolver→sai; vazio; erro) + seed `em_disputa` na api.
+5. Lint (pint) + suíte completa + CI verde + homolog; Notas finais (CA→teste, cobertura).
+
+### Mapeamento CA → testes (a confirmar nomes finais)
+- **CA-1 (fila):** `fila lista em_disputa do mais antigo`, `fila vazia mostra estado vazio`, `SLA classifica verde/amarelo/vermelho`.
+- **CA-2 (caso/trilha):** `caso mostra justificativa e trilha`, `caso compõe geofencing/cronômetro/vaga`, `trilha omite chat/checklist inexistentes`.
+- **CA-3 (resolver):** `resolver exige nota (vazia bloqueia)`, `resolver sucesso chama client e sai da fila → finalizado`.
+- **CA-4 (estados):** `vazio`, `erro de carga`, `erro de resolução (toast)`, `concorrência 422 → já resolvida por outro admin (sem efeito duplicado)`.
+- **CA-5 (RBAC):** `rota 200 admin`, `guest → /login`, `não-admin → 403`, `cliente não vaza dados sem admin`.
+- **CA-6 (a11y):** rótulos/foco/estado-não-só-cor no nível das telas vigentes (verificado em view + E2E).
 
 ### Descobertas
-- <data> — <descoberta>
+- 2026-06-11 — ver D1/D2/D3 acima.
 
 ### Cobertura final
-- Unitários: <%> · E2E: <cenários>
+- Unitários/Feature: <%> · E2E: <cenários>
 
 ### Links de evidência
-- PR / Pipeline / Deploy homolog: <urls>
+- Commits / Pipeline / Deploy homolog: <urls>
