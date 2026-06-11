@@ -237,6 +237,15 @@
             <a href="{{ route('aprovacoes') }}" class="sb-item {{ request()->routeIs('aprovacoes') ? 'active' : '' }}" wire:navigate data-testid="nav-aprovacoes">
                 <span class="ic"></span> Cadastros pendentes
             </a>
+            {{-- STORY-096 (DDR-005 Decisão 3) — fila de disputas, abaixo de "Cadastros pendentes".
+                 Contador VERMELHO quando há disputa aberta (SLA público de 30 min, mediação humana). --}}
+            @php($disputasAbertas = \App\Models\Turno::emDisputa()->count())
+            <a href="{{ route('disputas') }}" class="sb-item {{ request()->routeIs('disputas') ? 'active' : '' }}" wire:navigate data-testid="nav-disputas">
+                <span class="ic"></span> Disputas
+                @if ($disputasAbertas > 0)
+                    <span class="sb-count" style="background:var(--error);color:#fff" data-testid="nav-disputas-count">{{ $disputasAbertas }}</span>
+                @endif
+            </a>
             {{-- STORY-065 (SCREEN-065 §B.2) — fila de falhas; contador VERMELHO quando há
                  dinheiro parado (PDR-010: tratamento manual é o único caminho).
                  STORY-066 (SCREEN-066 §B.1) generalizou: Pix + liberação de pré-autorização. --}}

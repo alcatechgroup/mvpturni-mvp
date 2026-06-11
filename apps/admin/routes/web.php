@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\AdminOnly;
+use App\Livewire\Disputas;
 use App\Livewire\FilaAprovacao;
 use App\Livewire\PixFalhas;
 use App\Livewire\TemplateDetalhe;
@@ -54,6 +55,10 @@ Route::middleware([AdminOnly::class])->group(function () {
 
     // STORY-065 — Fila "Pix com falha" (PDR-010: tratamento manual; SCREEN-065 §B).
     Route::get('/pix-falhas', PixFalhas::class)->name('pix-falhas');
+
+    // STORY-096 — Fila de disputas + caso com trilha + resolver "pagar integral"
+    // (ADR-020: fila derivada do estado em_disputa; resolução via comando da api — IDR-032).
+    Route::get('/disputas', Disputas::class)->name('disputas');
 
     // STORY-020 — Editor de templates contratuais (catálogo · detalhe · editor de nova versão).
     Route::get('/templates', TemplatesCatalogo::class)->name('templates.catalogo');
