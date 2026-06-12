@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TURNI · Cadastro</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com/" crossorigin="">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<!-- Mesmas fontes da landing (Bebas Neue / Inter / JetBrains Mono). -->
+<link href="./turnioficial_files/fonts.css" rel="stylesheet">
+<style>
+  :root{
+    --F:'Bebas Neue',sans-serif;   /* display */
+    --B:'Inter',-apple-system,sans-serif; /* corpo */
+    --M:'JetBrains Mono',monospace; /* mono/eyebrow */
+    --logo-green:#00A868;
+    --emp:#E0922F;   /* âmbar · empresário */
+    --emp-cta:#EAD7A4;
+    --emp-ink:#1F1608;
+    --pro:#5FA37C;   /* verde · trabalhador */
+    --pro-cta:#9DD4B0;
+    --pro-ink:#0F2918;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:var(--B);background:#000;color:#fff;
+    -webkit-font-smoothing:antialiased;line-height:1.5;
+    min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;
+  }
+  a{text-decoration:none;color:inherit}
+  .arrow{width:16px;height:16px;flex:none;stroke:currentColor;stroke-width:2;fill:none}
+
+  /* ── Header ───────────────────────────────────────────────── */
+  .top{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:32px 40px;max-width:1200px;margin:0 auto;width:100%;
+  }
+  .logo{font-family:var(--F);font-size:32px;letter-spacing:3px;line-height:1;color:#fff}
+  .logo .di{color:var(--logo-green)}
+  .logo .de{-webkit-text-stroke:1.5px var(--logo-green);color:transparent}
+  .enter{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--M);font-size:11px;letter-spacing:1.8px;text-transform:uppercase;
+    color:rgba(255,255,255,.82);
+    padding:12px 20px;border:1px solid rgba(255,255,255,.18);border-radius:999px;
+    background:rgba(255,255,255,.04);transition:all .18s;
+  }
+  .enter:hover{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.35);color:#fff}
+
+  /* ── Conteúdo ─────────────────────────────────────────────── */
+  .wrap{
+    flex:1;display:flex;flex-direction:column;justify-content:center;
+    max-width:1040px;margin:0 auto;width:100%;padding:24px 40px 80px;
+  }
+  .eyebrow{
+    display:flex;align-items:center;justify-content:center;gap:14px;
+    font-family:var(--M);font-size:12px;letter-spacing:3.5px;text-transform:uppercase;
+    color:rgba(255,255,255,.55);margin-bottom:22px;
+  }
+  .eyebrow::before{content:'';width:40px;height:1px;background:rgba(255,255,255,.4)}
+  .title{
+    font-family:var(--F);font-weight:400;text-align:center;
+    font-size:clamp(40px,7vw,72px);line-height:.98;letter-spacing:0;
+    color:#fff;margin:0 auto;max-width:14ch;
+  }
+  .sub{
+    text-align:center;color:rgba(255,255,255,.62);font-size:clamp(15px,2vw,18px);
+    margin:22px auto 0;max-width:540px;
+  }
+
+  .grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:32px;
+    margin-top:56px;
+  }
+  .card{
+    position:relative;border-radius:24px;padding:40px;min-width:0;
+    display:flex;flex-direction:column;gap:18px;min-height:280px;
+    border:1px solid rgba(255,255,255,.10);transition:transform .18s, box-shadow .18s;
+  }
+  .card.emp{
+    background:linear-gradient(155deg,#2C2008 0%,#1B1406 55%,#0B0904 100%);
+    border-color:rgba(224,146,47,.45);
+    box-shadow:0 0 0 1px rgba(224,146,47,.10), 0 30px 70px -28px rgba(224,146,47,.40);
+  }
+  .card.pro{
+    background:linear-gradient(155deg,#10271B 0%,#0C1C14 55%,#050B08 100%);
+    border-color:rgba(95,163,124,.45);
+    box-shadow:0 0 0 1px rgba(95,163,124,.10), 0 30px 70px -28px rgba(95,163,124,.40);
+  }
+  .card:hover{transform:translateY(-3px)}
+  .card.emp:hover{box-shadow:0 0 0 1px rgba(224,146,47,.18), 0 36px 80px -26px rgba(224,146,47,.55)}
+  .card.pro:hover{box-shadow:0 0 0 1px rgba(95,163,124,.18), 0 36px 80px -26px rgba(95,163,124,.55)}
+
+  .tag{
+    align-self:flex-start;font-family:var(--M);font-size:10.5px;font-weight:500;
+    letter-spacing:2px;text-transform:uppercase;padding:6px 14px;border-radius:999px;
+  }
+  .card.emp .tag{background:rgba(224,146,47,.16);color:#E8B873;border:1px solid rgba(224,146,47,.32)}
+  .card.pro .tag{background:rgba(95,163,124,.16);color:#9DD4B0;border:1px solid rgba(95,163,124,.32)}
+  .card h2{
+    font-family:var(--F);font-weight:400;font-size:clamp(32px,4.5vw,44px);
+    letter-spacing:.5px;line-height:1;color:#fff;
+  }
+  .card p{color:rgba(255,255,255,.72);font-size:16px;line-height:1.6;max-width:34ch}
+  .cta{
+    margin-top:auto;align-self:flex-start;display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--B);font-size:15px;font-weight:600;letter-spacing:-.1px;
+    padding:15px 26px;border-radius:999px;transition:all .18s;
+  }
+  .card.emp .cta{background:var(--emp-cta);color:var(--emp-ink)}
+  .card.emp .cta:hover{background:#F4E4B8;transform:translateX(2px)}
+  .card.pro .cta{background:var(--pro-cta);color:var(--pro-ink)}
+  .card.pro .cta:hover{background:#B6E2C6;transform:translateX(2px)}
+
+  /* ── Responsivo (celular) ─────────────────────────────────── */
+  @media (max-width:760px){
+    .top{padding:18px 20px}
+    .enter{padding:10px 14px;letter-spacing:1.2px;font-size:10px;white-space:nowrap}
+    .enter .enter-long{display:none} /* mostra só "Entrar" no celular */
+    .enter .arrow{width:13px;height:13px}
+    .wrap{padding:8px 20px 56px;justify-content:flex-start}
+    .eyebrow{font-size:10.5px;letter-spacing:2.5px;margin-bottom:16px}
+    .eyebrow::before{width:24px}
+    .grid{grid-template-columns:1fr;gap:18px;margin-top:36px}
+    .card{padding:28px 24px;min-height:0;gap:14px}
+    .cta{width:100%;justify-content:center;margin-top:8px}
+    .card p{max-width:none}
+  }
+</style>
+</head>
+<body>
+  <header class="top">
+    <a class="logo" href="index.html" aria-label="TURNI">TURN<span class="di">I</span><span class="de">.</span></a>
+    <a class="enter" href="__WEBAPP_URL__/login">
+      <span class="enter-long">Já tem conta?</span> Entrar
+      <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
+  </header>
+
+  <main class="wrap">
+    <p class="eyebrow">Cadastro inicial · 2 minutos</p>
+    <h1 class="title">De que lado você está no turno?</h1>
+    <p class="sub">Cada lado tem uma jornada de cadastro diferente. Escolha sua rota.</p>
+
+    <div class="grid">
+      <!-- Empresário → cadastro do contratante (estabelecimento) -->
+      <a class="card emp" href="__WEBAPP_URL__/cadastro/contratante">
+        <span class="tag">Tenho a dor</span>
+        <h2>Sou empresário</h2>
+        <p>Bar, restaurante, hotel, evento, catering. Preciso de gente qualificada agora.</p>
+        <span class="cta">
+          Cadastrar estabelecimento
+          <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </a>
+
+      <!-- Trabalhador → cadastro do profissional -->
+      <a class="card pro" href="__WEBAPP_URL__/cadastro/profissional">
+        <span class="tag">Quero a escolha</span>
+        <h2>Sou trabalhador</h2>
+        <p>Garçom, cozinheira, bartender, hostess. Quero turno na minha mão.</p>
+        <span class="cta">
+          Começar a trabalhar
+          <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </a>
+    </div>
+  </main>
+</body>
+</html>

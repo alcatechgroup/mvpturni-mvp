@@ -98,10 +98,10 @@ jobs:
           echo "::add-mask::$LANDING_SECRET_PATH"
           cd apps/landing/public
           mv _lp "$LANDING_SECRET_PATH"
-          perl -pi -e "s|__WEBAPP_URL__|${WEBAPP_URL}|g" "$LANDING_SECRET_PATH/index.html"
+          perl -pi -e "s|__WEBAPP_URL__|${WEBAPP_URL}|g" "$LANDING_SECRET_PATH"/*.html
           perl -pi -e "s|__LANDING_PATH__|${LANDING_SECRET_PATH}|g" robots.txt
           # validações: zero placeholders restantes; zero app.html
-          ! grep -q "__WEBAPP_URL__" "$LANDING_SECRET_PATH/index.html"
+          ! grep -rq "__WEBAPP_URL__" "$LANDING_SECRET_PATH"
           ! grep -q "__LANDING_PATH__" robots.txt
           ! grep -q 'href="app.html' "$LANDING_SECRET_PATH/index.html"
           echo "bundle preparado (path mascarado)"
@@ -204,7 +204,7 @@ jobs:
           echo "::add-mask::$LANDING_SECRET_PATH"
           cd apps/landing/public
           mv _lp "$LANDING_SECRET_PATH"
-          perl -pi -e "s|__WEBAPP_URL__|${WEBAPP_URL}|g" "$LANDING_SECRET_PATH/index.html"
+          perl -pi -e "s|__WEBAPP_URL__|${WEBAPP_URL}|g" "$LANDING_SECRET_PATH"/*.html
           perl -pi -e "s|__LANDING_PATH__|${LANDING_SECRET_PATH}|g" robots.txt
       # Keyless (WIF): exporta GOOGLE_APPLICATION_CREDENTIALS (ADC p/ o firebase CLI).
       - name: Autenticar no GCP via WIF
