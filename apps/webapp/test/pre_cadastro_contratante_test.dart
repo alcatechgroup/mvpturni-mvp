@@ -180,4 +180,33 @@ void main() {
 
     expect(find.textContaining('ao menos 10 caracteres'), findsOneWidget);
   });
+
+  testWidgets('desktop (≥840) mostra o painel hero ao lado do formulário', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildLightTheme(),
+        home: PreCadastroContratanteScreen(
+          service: _FakeService(() => CadastroSuccess('ok')),
+          photoPicker: _fakePhoto,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Painel hero (lado esquerdo, só desktop).
+    expect(find.text('CADASTRO · CONTRATANTE'), findsOneWidget);
+    expect(
+      find.text('Planeje seu turno.\nOpere com precisão.'),
+      findsOneWidget,
+    );
+    // Formulário (lado direito) permanece intacto.
+    expect(find.byKey(const Key('input-nome')), findsOneWidget);
+    expect(find.byKey(const Key('btn-submit-cadastro')), findsOneWidget);
+  });
 }

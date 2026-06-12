@@ -6,6 +6,7 @@ import '../../core/install/install.dart';
 import '../../core/install/widgets/install_action_slot.dart';
 import '../../ds/components/app_version_label.dart';
 import '../../ds/tokens.dart';
+import '../../ds/typography.dart';
 import 'contratante_cadastro_service.dart';
 import 'shared/cadastro_widgets.dart';
 
@@ -191,35 +192,50 @@ class _PreCadastroContratanteScreenState
         ? TurniColors.contratanteAccentDark
         : TurniColors.contratanteAccentInkLight;
 
+    // Coluna do formulário (inalterada): Card no desktop, direto no mobile.
+    Widget formColumn(Widget child) => Center(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          horizontal: TurniSpacing.lg,
+          vertical: isDesktop ? TurniSpacing.x3l : TurniSpacing.x2l,
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: isDesktop ? 560 : 480),
+          child: child,
+        ),
+      ),
+    );
+
+    final form = isDesktop
+        ? Card(
+            child: Padding(
+              padding: const EdgeInsets.all(TurniSpacing.xl),
+              child: _buildForm(isDark, isDesktop, accentCta, accentInk),
+            ),
+          )
+        : _buildForm(isDark, isDesktop, accentCta, accentInk);
+
     return Scaffold(
       key: const Key('screen-cadastro-contratante'),
       backgroundColor: surfacePage,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: TurniSpacing.lg,
-            vertical: isDesktop ? TurniSpacing.x3l : TurniSpacing.x2l,
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: isDesktop ? 560 : 480),
-            child: _submitted
-                ? CadastroSuccessView(accent: accentCta)
-                : (isDesktop
-                      ? Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(TurniSpacing.xl),
-                            child: _buildForm(
-                              isDark,
-                              isDesktop,
-                              accentCta,
-                              accentInk,
-                            ),
-                          ),
-                        )
-                      : _buildForm(isDark, isDesktop, accentCta, accentInk)),
-          ),
-        ),
-      ),
+      // Desktop (≥840) na Vista A: split editorial — painel à esquerda
+      // (SCREEN-STORY-018), formulário atual à direita. Mobile e a Vista B
+      // (recebido) seguem centralizados como antes.
+      body: (isDesktop && !_submitted)
+          ? Row(
+              children: [
+                const Expanded(child: _ContratanteHero()),
+                Expanded(
+                  child: ColoredBox(
+                    color: surfacePage,
+                    child: formColumn(form),
+                  ),
+                ),
+              ],
+            )
+          : formColumn(
+              _submitted ? CadastroSuccessView(accent: accentCta) : form,
+            ),
     );
   }
 
@@ -286,8 +302,9 @@ class _PreCadastroContratanteScreenState
               final t = v?.trim() ?? '';
               if (t.isEmpty) return 'Informe o nome do responsável.';
               if (t.length < 3) return 'O nome deve ter ao menos 3 caracteres.';
-              if (t.length > 120)
+              if (t.length > 120) {
                 return 'O nome deve ter no máximo 120 caracteres.';
+              }
               return _serverErrors['name'];
             },
           ),
@@ -492,4 +509,177 @@ class _PreCadastroContratanteScreenState
         ? 'Informe a cidade.'
         : _serverErrors['cidade'],
   );
+}
+
+// ──────────────────────────────────────────────────────────────
+// Painel hero (desktop) — lado esquerdo do cadastro do contratante
+// ──────────────────────────────────────────────────────────────
+
+/// Coluna editorial à esquerda do cadastro de contratante em desktop
+/// (SCREEN-STORY-018): fundo escuro quente (assinatura + perfil mostarda),
+/// brand statement e os pilares da operação. Renderizado só em ≥840.
+class _ContratanteHero extends StatelessWidget {
+  const _ContratanteHero();
+
+  // Acento mostarda do perfil contratante (DDR-001 / tokens.md §6).
+  static const _accent = TurniColors.contratanteAccentDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1A150C), Color(0xFF0E0B07)],
+        ),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: TurniSpacing.x2l,
+            vertical: TurniSpacing.x2l,
+          ),
+          child: Center(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Eyebrow com traço.
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(width: 32, height: 1, color: Colors.white30),
+                      const SizedBox(width: TurniSpacing.sm),
+                      Text(
+                        'CADASTRO · CONTRATANTE',
+                        style: dsMono(
+                          fontSize: 11,
+                          letterSpacing: 3,
+                          color: Colors.white.withAlpha(160),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: TurniSpacing.lg),
+
+                  // Brand statement.
+                  const Text(
+                    'Planeje seu turno.\nOpere com precisão.',
+                    style: TextStyle(
+                      fontFamily: 'BebasNeue',
+                      fontSize: 52,
+                      height: 1.0,
+                      letterSpacing: 0.5,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: TurniSpacing.md),
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        const TextSpan(
+                          text:
+                              'Conecte sua empresa aos melhores profissionais '
+                              'de Hospitalidade. ',
+                        ),
+                        TextSpan(
+                          text:
+                              'PIN bilateral, Pix automático e operação '
+                              'documentada.',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    style: TextStyle(
+                      color: Colors.white.withAlpha(180),
+                      fontSize: 15.5,
+                      height: 1.6,
+                    ),
+                  ),
+                  const SizedBox(height: TurniSpacing.xl),
+
+                  // Pilares da operação.
+                  const _HeroFeature(
+                    icon: Icons.bolt,
+                    title: 'Match inteligente',
+                    desc: ' · profissional certo para cada turno',
+                  ),
+                  const _HeroFeature(
+                    icon: Icons.verified_user_outlined,
+                    title: 'PIN bilateral',
+                    desc: ' de check-in · geofencing 100m',
+                  ),
+                  const _HeroFeature(
+                    icon: Icons.payments_outlined,
+                    title: 'Pagar.me nativo',
+                    desc: ' · pré-autorização no aceite',
+                  ),
+                  const _HeroFeature(
+                    icon: Icons.checklist,
+                    title: 'Checklist Core FHP',
+                    desc: ' · 40+ funções com tarefas prontas',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Um pilar do hero — ícone mostarda + título e descrição, com divisor acima.
+class _HeroFeature extends StatelessWidget {
+  const _HeroFeature({
+    required this.icon,
+    required this.title,
+    required this.desc,
+  });
+
+  final IconData icon;
+  final String title;
+  final String desc;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: TurniSpacing.md),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: Color(0x1FFFFFFF))),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18, color: _ContratanteHero._accent),
+          const SizedBox(width: TurniSpacing.md),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  TextSpan(
+                    text: desc,
+                    style: TextStyle(color: Colors.white.withAlpha(150)),
+                  ),
+                ],
+              ),
+              style: const TextStyle(fontSize: 14, height: 1.3),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

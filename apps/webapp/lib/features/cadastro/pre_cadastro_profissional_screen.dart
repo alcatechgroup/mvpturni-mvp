@@ -6,6 +6,7 @@ import '../../core/install/install.dart';
 import '../../core/install/widgets/install_action_slot.dart';
 import '../../ds/components/app_version_label.dart';
 import '../../ds/tokens.dart';
+import '../../ds/typography.dart';
 import 'cadastro_service.dart';
 import 'shared/cadastro_widgets.dart';
 
@@ -202,30 +203,48 @@ class _PreCadastroProfissionalScreenState
     final isDesktop = width >= 840;
     final accent = isDark ? TurniColors.accentDark : TurniColors.accentLight;
 
+    // Coluna do formulário (inalterada): Card no desktop, direto no mobile.
+    Widget formColumn(Widget child) => Center(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          horizontal: TurniSpacing.lg,
+          vertical: isDesktop ? TurniSpacing.x3l : TurniSpacing.x2l,
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: isDesktop ? 560 : 480),
+          child: child,
+        ),
+      ),
+    );
+
+    final form = isDesktop
+        ? Card(
+            child: Padding(
+              padding: const EdgeInsets.all(TurniSpacing.xl),
+              child: _buildForm(isDark, isDesktop, accent),
+            ),
+          )
+        : _buildForm(isDark, isDesktop, accent);
+
     return Scaffold(
       key: const Key('screen-cadastro-profissional'),
       backgroundColor: surfacePage,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: TurniSpacing.lg,
-            vertical: isDesktop ? TurniSpacing.x3l : TurniSpacing.x2l,
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: isDesktop ? 560 : 480),
-            child: _submitted
-                ? CadastroSuccessView(accent: accent)
-                : (isDesktop
-                      ? Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(TurniSpacing.xl),
-                            child: _buildForm(isDark, isDesktop, accent),
-                          ),
-                        )
-                      : _buildForm(isDark, isDesktop, accent)),
-          ),
-        ),
-      ),
+      // Desktop (≥840) na Vista A: split editorial — painel à esquerda
+      // (SCREEN-STORY-017), formulário atual à direita. Mobile e a Vista B
+      // (recebido) seguem centralizados como antes.
+      body: (isDesktop && !_submitted)
+          ? Row(
+              children: [
+                const Expanded(child: _ProfissionalHero()),
+                Expanded(
+                  child: ColoredBox(
+                    color: surfacePage,
+                    child: formColumn(form),
+                  ),
+                ),
+              ],
+            )
+          : formColumn(_submitted ? CadastroSuccessView(accent: accent) : form),
     );
   }
 
@@ -287,8 +306,9 @@ class _PreCadastroProfissionalScreenState
               final t = v?.trim() ?? '';
               if (t.isEmpty) return 'Informe seu nome completo.';
               if (t.length < 3) return 'O nome deve ter ao menos 3 caracteres.';
-              if (t.length > 120)
+              if (t.length > 120) {
                 return 'O nome deve ter no máximo 120 caracteres.';
+              }
               return _serverErrors['name'];
             },
           ),
@@ -529,6 +549,175 @@ class _PreCadastroProfissionalScreenState
           _tipoPessoa = s.isEmpty ? null : s.first;
           _tipoError = null;
         }),
+      ),
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// Painel hero (desktop) — lado esquerdo do cadastro do profissional
+// ──────────────────────────────────────────────────────────────
+
+/// Coluna editorial à esquerda do cadastro de profissional em desktop
+/// (SCREEN-STORY-017): fundo escuro frio (assinatura + perfil verde), brand
+/// statement e os pilares do trabalhador. Renderizado só em ≥840.
+class _ProfissionalHero extends StatelessWidget {
+  const _ProfissionalHero();
+
+  // Acento verde do perfil profissional (DDR-001 §2.2).
+  static const _accent = TurniColors.accentDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF101813), Color(0xFF0A0F0C)],
+        ),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: TurniSpacing.x2l,
+            vertical: TurniSpacing.x2l,
+          ),
+          child: Center(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Eyebrow com traço.
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(width: 32, height: 1, color: Colors.white30),
+                      const SizedBox(width: TurniSpacing.sm),
+                      Text(
+                        'CADASTRO · TRABALHADOR',
+                        style: dsMono(
+                          fontSize: 11,
+                          letterSpacing: 3,
+                          color: Colors.white.withAlpha(160),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: TurniSpacing.lg),
+
+                  // Brand statement.
+                  const Text(
+                    'O turno na sua mão.\nSempre.',
+                    style: TextStyle(
+                      fontFamily: 'BebasNeue',
+                      fontSize: 52,
+                      height: 1.0,
+                      letterSpacing: 0.5,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: TurniSpacing.md),
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        const TextSpan(text: 'A plataforma que '),
+                        TextSpan(
+                          text: 'transforma seu talento em escolha real',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const TextSpan(
+                          text: '. Sua agenda, seu preço, sua carreira.',
+                        ),
+                      ],
+                    ),
+                    style: TextStyle(
+                      color: Colors.white.withAlpha(180),
+                      fontSize: 15.5,
+                      height: 1.6,
+                    ),
+                  ),
+                  const SizedBox(height: TurniSpacing.xl),
+
+                  // Pilares do trabalhador.
+                  const _HeroFeature(
+                    icon: Icons.event_available_outlined,
+                    title: 'Sua agenda, suas regras',
+                    desc: ' · trabalhe quando, onde, por quanto',
+                  ),
+                  const _HeroFeature(
+                    icon: Icons.bolt,
+                    title: 'Pix em 15 minutos',
+                    desc: ' · check-out validado, dinheiro na conta',
+                  ),
+                  const _HeroFeature(
+                    icon: Icons.workspace_premium_outlined,
+                    title: 'Score recíproco',
+                    desc: ' · histórico que abre portas',
+                  ),
+                  const _HeroFeature(
+                    icon: Icons.trending_up,
+                    title: 'Carreira de verdade',
+                    desc: ' · você é a sua própria empresa',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Um pilar do hero — ícone verde + título e descrição, com divisor acima.
+class _HeroFeature extends StatelessWidget {
+  const _HeroFeature({
+    required this.icon,
+    required this.title,
+    required this.desc,
+  });
+
+  final IconData icon;
+  final String title;
+  final String desc;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: TurniSpacing.md),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: Color(0x1FFFFFFF))),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: _ProfissionalHero._accent),
+          const SizedBox(width: TurniSpacing.md),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  TextSpan(
+                    text: desc,
+                    style: TextStyle(color: Colors.white.withAlpha(150)),
+                  ),
+                ],
+              ),
+              style: const TextStyle(fontSize: 14, height: 1.3),
+            ),
+          ),
+        ],
       ),
     );
   }
