@@ -1,14 +1,18 @@
 name: Deploy Stage
 
-# Deploy MANUAL do ambiente stage (projeto GCP independente turni-stage).
-# Disparado sob demanda (workflow_dispatch) com o ref a promover (tag/branch/sha).
-# Constrói as imagens a partir do ref, empurra para o Artifact Registry do turni-stage,
-# roda migração (SEM o seed de teste do homolog) e faz deploy de api/admin/pagarme-mock
+# Deploy MANUAL do ambiente stage (co-localizado no projeto turni-homol — unificação
+# homol+stage). Disparado sob demanda (workflow_dispatch) com o ref a promover.
+# Constrói as imagens a partir do ref, empurra para o Artifact Registry do turni-homol
+# (tags :stage-*), roda migração no database turni_stage do instance COMPARTILHADO
+# turni-homolog (SEM o seed de teste do homolog) e faz deploy de api/admin/pagarme-mock
 # + WebApp (Firebase target stage). NÃO mexe no detect-env do release.yml (ADR-004).
 #
-# Secrets vêm do GitHub Environment `stage` (GCP_PROJECT_ID=turni-stage,
-# GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT). Deploy do Firebase é keyless
-# (firebase CLI usa a credencial WIF como ADC).
+# Secrets vêm do GitHub Environment `stage` (GCP_PROJECT_ID=turni-homol,
+# GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT do turni-homol). Deploy do Firebase
+# é keyless (firebase CLI usa a credencial WIF como ADC).
+#
+# Banco: instance ÚNICO turni-homolog (compartilhado com homol); stage usa database/user
+# turni_stage (isolamento). VPC compartilhada turni-homolog, subnet própria de stage.
 
 on:
   workflow_dispatch:
@@ -109,14 +113,15 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
       - name: Garantir Cloud SQL ligado
         run: |
-          STATE=$(gcloud sql instances describe turni-stage \
+          # Instance COMPARTILHADO com o homol (unificação). Ligar aqui também serve o homol.
+          STATE=$(gcloud sql instances describe turni-homolog \
             --project=${{ secrets.GCP_PROJECT_ID }} --format="value(state)")
           echo "estado atual: $STATE"
           if [ "$STATE" != "RUNNABLE" ]; then
-            gcloud sql instances patch turni-stage \
+            gcloud sql instances patch turni-homolog \
               --project=${{ secrets.GCP_PROJECT_ID }} --activation-policy=ALWAYS --quiet
             for i in $(seq 1 30); do
-              ST=$(gcloud sql instances describe turni-stage \
+              ST=$(gcloud sql instances describe turni-homolog \
                 --project=${{ secrets.GCP_PROJECT_ID }} --format="value(state)")
               [ "$ST" = "RUNNABLE" ] && { echo "RUNNABLE"; break; }
               echo "aguardando RUNNABLE ($i/30) — $ST"; sleep 10
@@ -125,16 +130,16 @@ jobs:
       - name: Deploy + executa job de migração (migrate --force, SEM seed)
         run: |
           IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/api:stage-${{ inputs.ref }}"
-          CONN="${{ secrets.GCP_PROJECT_ID }}:${{ env.GCP_REGION }}:turni-stage"
+          CONN="${{ secrets.GCP_PROJECT_ID }}:${{ env.GCP_REGION }}:turni-homolog"
           gcloud run jobs deploy turni-migrate-stage \
             --image="$IMAGE" \
             --region=${{ env.GCP_REGION }} \
             --project=${{ secrets.GCP_PROJECT_ID }} \
             --service-account=turni-apps@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
             --set-cloudsql-instances="$CONN" \
-            --network=turni-stage --subnet=turni-stage-${{ env.GCP_REGION }} \
+            --network=turni-homolog --subnet=turni-stage-${{ env.GCP_REGION }} \
             --vpc-egress=private-ranges-only \
-            --set-env-vars="APP_ENV=production,APP_DEBUG=false,LOG_CHANNEL=stderr,DB_CONNECTION=pgsql,DB_SOCKET=/cloudsql/${CONN},DB_DATABASE=turni,DB_USERNAME=turni,QUEUE_CONNECTION=database,SESSION_DRIVER=array" \
+            --set-env-vars="APP_ENV=production,APP_DEBUG=false,LOG_CHANNEL=stderr,DB_CONNECTION=pgsql,DB_SOCKET=/cloudsql/${CONN},DB_DATABASE=turni_stage,DB_USERNAME=turni_stage,QUEUE_CONNECTION=database,SESSION_DRIVER=array" \
             --set-secrets="APP_KEY=turni-stage-app-key-api:latest,DB_PASSWORD=turni-stage-db-password:latest,PIX_FALHA_CHAVE_KEY=turni-stage-pix-falha-chave-key:latest" \
             --command=sh \
             --args='-c,php artisan migrate --force' \

@@ -2,19 +2,17 @@
   "projects": {
     "default": "turni-homol",
     "homolog": "turni-homol",
-    "stage": "turni-stage",
+    "stage": "turni-homol",
     "prod": "turni-prod"
   },
   "targets": {
+    "//": "homol E stage vivem no mesmo projeto turni-homol (unificação 2026-06). Os ids turni-webapp-stage/turni-landing-stage ficaram reservados pelo delete do turni-stage → usados turni-homol-stage-webapp/turni-homol-stage-landing.",
     "turni-homol": {
       "hosting": {
         "homolog": ["turni-homol-webapp"],
-        "landing-homolog": ["turni-homol-landing"]
-      }
-    },
-    "turni-stage": {
-      "hosting": {
-        "stage": ["turni-webapp-stage"]
+        "landing-homolog": ["turni-homol-landing"],
+        "stage": ["turni-homol-stage-webapp"],
+        "landing-stage": ["turni-homol-stage-landing"]
       }
     },
     "//": "Landing + redirect www de prod vivem no mesmo projeto turni-prod (migrados do workaround turni-prod-web em 2026-06, após o Firebase resolver o channel órfão 409). Os ids antigos turni-landing-prod/turni-redirect-prod ficaram reservados pelo delete do turni-prod-web (hold global do Firebase) → usados turni-prod-landing/turni-prod-redirect.",
