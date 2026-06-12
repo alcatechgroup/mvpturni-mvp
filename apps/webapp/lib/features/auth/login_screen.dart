@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/app_update/app_update.dart';
 import '../../core/install/install.dart';
 import '../../core/install/widgets/install_action_slot.dart';
+import '../../core/theme/theme_mode_controller.dart';
 import '../../ds/components/app_version_label.dart';
 import '../../ds/tokens.dart';
 import 'auth_service.dart';
@@ -95,19 +96,49 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       key: const ValueKey('login:screen'),
       backgroundColor: surfacePage,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: TurniSpacing.lg,
-            vertical: isDesktop ? TurniSpacing.x3l : TurniSpacing.x2l,
+      body: Stack(
+        children: [
+          // Alternância de tema pré-login (mesma fonte do Perfil/shell —
+          // [ThemeModeController]). DDR-001 §1: o acento segue neutro; só o
+          // claro/escuro é alternável e persistido.
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(TurniSpacing.sm),
+                child: const _LoginThemeToggle(),
+              ),
+            ),
           ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: isDesktop
-                ? Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(TurniSpacing.xl),
-                      child: _LoginForm(
+          Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: TurniSpacing.lg,
+                vertical: isDesktop ? TurniSpacing.x3l : TurniSpacing.x2l,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: isDesktop
+                    ? Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(TurniSpacing.xl),
+                          child: _LoginForm(
+                            formKey: _formKey,
+                            emailCtrl: _emailCtrl,
+                            passwordCtrl: _passwordCtrl,
+                            obscurePassword: _obscurePassword,
+                            loading: _loading,
+                            banner: _banner,
+                            accent: accent,
+                            isDark: isDark,
+                            onTogglePassword: () => setState(
+                              () => _obscurePassword = !_obscurePassword,
+                            ),
+                            onSubmit: _submit,
+                          ),
+                        ),
+                      )
+                    : _LoginForm(
                         formKey: _formKey,
                         emailCtrl: _emailCtrl,
                         passwordCtrl: _passwordCtrl,
@@ -121,24 +152,38 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         onSubmit: _submit,
                       ),
-                    ),
-                  )
-                : _LoginForm(
-                    formKey: _formKey,
-                    emailCtrl: _emailCtrl,
-                    passwordCtrl: _passwordCtrl,
-                    obscurePassword: _obscurePassword,
-                    loading: _loading,
-                    banner: _banner,
-                    accent: accent,
-                    isDark: isDark,
-                    onTogglePassword: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
-                    onSubmit: _submit,
-                  ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
+    );
+  }
+}
+
+/// Alternância claro↔escuro na tela de login. Espelha o `_ShellThemeToggle`
+/// (mesma fonte: [ThemeModeController]) para que a escolha valha já no
+/// pré-login e persista após o usuário entrar.
+class _LoginThemeToggle extends StatelessWidget {
+  const _LoginThemeToggle();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = ThemeModeController.instance;
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final platform = MediaQuery.platformBrightnessOf(context);
+        final dark = controller.isDark(platform);
+        return IconButton(
+          key: const ValueKey('login:theme-toggle'),
+          tooltip: dark ? 'Tema claro' : 'Tema escuro',
+          icon: Icon(
+            dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+          ),
+          onPressed: () => controller.setDark(!dark),
+        );
+      },
     );
   }
 }

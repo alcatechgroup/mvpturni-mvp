@@ -84,6 +84,15 @@ void main() {
       );
     });
 
+    testWidgets('tem toggle de tema claro/escuro com key correta', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_loginApp());
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('login:theme-toggle')), findsOneWidget);
+    });
+
     testWidgets('tem rótulo de versão discreto no rodapé (STORY-037 CA-8)', (
       tester,
     ) async {
