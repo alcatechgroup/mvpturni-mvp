@@ -69,6 +69,22 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
+          fetch-depth: 0 # histórico + tags p/ `git describe` (versão real)
+      - name: Computar versão do build (tag mais próxima + commits + sha)
+        id: version
+        # Stage promove um ref arbitrário (geralmente main, à frente da última
+        # tag): em vez do nome do ref ("main"), exibimos uma versão derivada das
+        # tags de release v* (ex.: v0.1.0-rc.107-3-gabc1234). --always garante
+        # um valor (cai no sha) mesmo sem tag alcançável — nunca fica vazio/dev.
+        run: |
+          V=$(git describe --tags --always --match 'v[0-9]*' --dirty)
+          # Garantia (CI/CD): nunca deployar stage sem versão resolvida.
+          if [ -z "$V" ] || [ "$V" = "dev" ]; then
+            echo "::error::APP_VERSION vazio/dev — abortando deploy de stage."
+            exit 1
+          fi
+          echo "value=$V" >> "$GITHUB_OUTPUT"
+          echo "Versão do build de stage: $V"
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.x"
@@ -77,9 +93,11 @@ jobs:
         working-directory: apps/webapp
         run: flutter pub get
       - name: Gerar version.json e health.json
+        env:
+          APP_VERSION: ${{ steps.version.outputs.value }}
         run: |
-          echo '{"version":"${{ inputs.ref }}"}' > apps/webapp/web/version.json
-          echo '{"status":"ok","version":"${{ inputs.ref }}","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","service":"webapp"}' > apps/webapp/web/health.json
+          echo "{\"version\":\"${APP_VERSION}\"}" > apps/webapp/web/version.json
+          echo "{\"status\":\"ok\",\"version\":\"${APP_VERSION}\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"service\":\"webapp\"}" > apps/webapp/web/health.json
       - name: Setup Node (branding do PWA)
         uses: actions/setup-node@v4
         with:
@@ -96,7 +114,7 @@ jobs:
         working-directory: apps/webapp
         run: |
           flutter build web \
-            --dart-define=APP_VERSION=${{ inputs.ref }} \
+            --dart-define=APP_VERSION=${{ steps.version.outputs.value }} \
             --dart-define=API_BASE_URL= \
             --dart-define=TURNI_ENV=stage \
             --no-tree-shake-icons \

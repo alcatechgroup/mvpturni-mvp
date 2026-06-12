@@ -95,6 +95,13 @@ jobs:
       - name: Get dependencies
         working-directory: apps/webapp
         run: flutter pub get
+      - name: Garantir versão presente (CI/CD)
+        # A versão exibida (homolog/prod) é a tag de release. Nunca deployar sem
+        # ela — guarda contra um disparo sem ref_name (não deveria ocorrer).
+        run: |
+          test -n "${{ github.ref_name }}" || {
+            echo "::error::github.ref_name vazio — abortando build sem versão."; exit 1;
+          }
       - name: Gerar version.json e health.json
         run: |
           echo '{"version":"${{ github.ref_name }}"}' > apps/webapp/web/version.json
