@@ -1,5 +1,25 @@
 # Caso de suporte — Firebase Hosting corrompido no `turni-prod` (channel órfão)
 
+> ## ✅ RESOLVIDO — migração concluída em 2026-06-12
+> O 409 do channel órfão **deixou de ocorrer** (criar/deletar sites no `turni-prod` voltou a
+> funcionar — confirmado por probe). A landing de prod foi **migrada de volta para o `turni-prod`**:
+> - Sites no `turni-prod`: **`turni-prod-landing`** (apex `turni.com.br`) e **`turni-prod-redirect`**
+>   (redirect www → apex). **Gotcha:** os ids originais `turni-landing-prod`/`turni-redirect-prod`
+>   ficaram **reservados globalmente** pelo Firebase após o delete no `turni-prod-web` (hold
+>   pós-delete) — por isso os novos ids `turni-prod-*`.
+> - Domínio `turni.com.br` reconectado (cert `PROJECT_GROUPED` **reaproveitado** — sem reemissão de
+>   SSL; downtime ≈ 10 min, só conteúdo + recheck de posse). TXT do apex atualizado p/
+>   `hosting-site=turni-prod-landing`; A apex segue `199.36.158.100`.
+> - Secrets do GitHub Environment `landing-prod` repontados p/ `turni-prod` (WIF/SA do módulo `iam`,
+>   já aplicado). CI: tag `landing-v0.1.1` publicou o conteúdo. `.firebaserc`/`firebase.json`/Terraform
+>   de prod atualizados.
+> - **Projeto `turni-prod-web` excluído** (`gcloud projects delete`, estado `DELETE_REQUESTED` —
+>   recuperável por ~30 dias). **O caso de suporte abaixo NÃO precisou ser aberto.**
+>
+> O texto abaixo fica como histórico. Para o go-public via Terraform, ver o aviso de
+> `terraform import` em [runbook-landing.md](runbook-landing.md) (sites/custom domain já existem).
+
+
 > Cole o bloco em inglês abaixo no formulário de suporte do Firebase. O `turni-prod`
 > está no plano **Blaze** (billing vinculado), então há direito a suporte do Firebase.
 >

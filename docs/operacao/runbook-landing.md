@@ -35,10 +35,10 @@ desconhecido cai no `404.html` institucional (ADR-012 §1).
 | Site Firebase | Ambiente | Serve | Domínio | Existe hoje? |
 |---|---|---|---|---|
 | `turni-landing-homolog` | homolog | apex "Em breve" `/`, landing `/<path-secreto>/`, `robots.txt`, `404.html` | `landing.homolog.turni.com.br` (CNAME) | ✅ sim |
-| `turni-landing-prod` | prod | idem | `turni.com.br` (A/AAAA) | ❌ só no go-public (P6) |
-| `turni-www-redirect-prod` | prod | redirect 301 `www → apex` | `www.turni.com.br` | ❌ só no go-public (P6) |
+| `turni-prod-landing` | prod | idem | `turni.com.br` (A) | ✅ sim — live no projeto `turni-prod` |
+| `turni-prod-redirect` | prod | redirect 301 `www → apex` | `www.turni.com.br` | ⚠️ site existe (`turni-prod`); `www.turni.com.br` só ganha DNS no go-public (P6) |
 
-- **Projeto Firebase/GCP:** `turni-mvp` (homolog e prod no mesmo projeto, sites distintos).
+- **Projeto Firebase/GCP:** homolog em `turni-homol`; prod (landing `turni-prod-landing` + redirect `turni-prod-redirect`) em `turni-prod`. (Os ids `turni-landing-prod`/`turni-redirect-prod` ficaram reservados globalmente pelo Firebase após o delete do antigo workaround `turni-prod-web` em 2026-06 — ver [firebase-support-turni-prod-hosting.md](firebase-support-turni-prod-hosting.md).)
 - **O `<path-secreto>` nunca está no repositório.** A pasta-placeholder estável
   `apps/landing/public/_lp/` é renomeada **em build-time** para o valor do secret
   `LANDING_SECRET_PATH` (ADR-012 §2). O `robots.txt` é gerado do template
@@ -176,7 +176,7 @@ depende do conteúdo AS IS.
 
 ```bash
 set -euo pipefail
-SITE=turni-landing-homolog               # ou turni-landing-prod
+SITE=turni-landing-homolog               # ou turni-prod-landing
 TOKEN="$(gcloud auth print-access-token)"
 
 # 1. Liste as últimas releases e ache a última BOA (anterior à ruim):
@@ -406,12 +406,18 @@ Abra **um PR** com:
 # infra/envs/prod/terraform.tfvars   (criar se não existir)
 landing_prod_enabled = true
 # Confirme os IPs do apex no console Firebase (required DNS) antes do apply;
-# o default em variables.tf é ["151.101.1.195","151.101.65.195"].
+# o default em variables.tf é ["199.36.158.100"] (valor atual do Firebase).
 # firebase_apex_a_records    = [...]
 # firebase_apex_aaaa_records = [...]
 ```
-   Isso materializa `turni-landing-prod` + `turni-www-redirect-prod` e os registros DNS
+   Isso materializa `turni-prod-landing` + `turni-prod-redirect` e os registros DNS
    apex A/AAAA + www (módulo `dns_landing`, gated por `count`).
+   > ⚠️ **Atenção (estado imperativo pré-existente):** desde 2026-06 o site `turni-prod-landing`,
+   > o custom domain `turni.com.br` e os registros apex (A `199.36.158.100` + TXT
+   > `hosting-site=turni-prod-landing`) **já existem** no `turni-prod` (a landing foi migrada
+   > do workaround `turni-prod-web`). Antes do `apply` com `landing_prod_enabled=true`, faça
+   > `terraform import` desses recursos (sites, custom_domain, record-sets) ou eles dão
+   > "already exists". O redirect `turni-prod-redirect` já existe como site (sem custom domain).
 
 2. **CTAs da landing** — já são automáticos: o workflow troca `__WEBAPP_URL__` por
    `https://app.turni.com.br` quando a tag é **sem `-rc`** (job `detect-env`). **Nada a
@@ -434,7 +440,7 @@ landing_prod_enabled = true
 ```bash
 cd infra/envs/prod
 terraform init
-terraform plan      # revise: deve criar turni-landing-prod, turni-www-redirect-prod, DNS apex/www
+terraform plan      # revise: turni-prod-landing/turni-prod-redirect + DNS apex/www JÁ EXISTEM (importar antes — ver aviso acima)
 terraform apply
 ```
 
