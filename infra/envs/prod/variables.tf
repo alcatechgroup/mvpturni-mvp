@@ -62,7 +62,8 @@ variable "prod_live_enabled" {
 # Delegação de subdomínio: mapa FQDN → nameservers das zonas filhas, publicado como
 # registros NS na zona apex turni.com.br. Preencher com os `dns_name_servers` de:
 #   homolog.turni.com.br → output do env homolog (projeto turni-homol)
-#   stage.turni.com.br   → output do env stage   (projeto turni-stage)
+#   stage.turni.com.br   → output `dns_name_servers_stage` do env homolog (stage unificado
+#                          no turni-homol em 2026-06; antes era o projeto turni-stage)
 variable "delegations" {
   type        = map(list(string))
   default     = {}

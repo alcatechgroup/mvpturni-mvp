@@ -1,5 +1,20 @@
 # Runbook — Reestruturação GCP: 3 projetos independentes (homol / stage / prod)
 
+> ## ⚠️ SUPERSEDIDO EM PARTE — unificação homol+stage (2026-06-12)
+> O **stage deixou de ser projeto independente**: foi **unificado dentro do `turni-homol`**
+> para reduzir custo/superfície. Agora há **2 projetos ativos** (turni-homol com homol+stage,
+> turni-prod) + turni-mvp legado. `turni-stage` foi **excluído** (`DELETE_REQUESTED`).
+> - **Banco:** instance ÚNICO `turni-homolog` (db-f1-micro) compartilhado; stage usa
+>   **database+user `turni_stage`** (isolamento), homol segue em `turni`/`turni`.
+> - **Rede:** VPC compartilhada `turni-homolog`; stage tem subnet própria `10.3.0.0/24`.
+> - **Recursos de stage** (Cloud Run/jobs/pagarme-mock/Firebase/secrets/monitoring/DNS) vivem
+>   no `turni-homol` — ver `infra/envs/homolog/stage.tf` (root único; sem `infra/envs/stage`).
+> - **Firebase de stage:** site_id novos `turni-homol-stage-webapp`/`turni-homol-stage-landing`.
+> - **DNS:** zona `stage.turni.com.br` recriada no turni-homol; apex (turni-prod) re-delegado
+>   para `ns-cloud-a1..a4`. CI `deploy-stage.yml` e Environment `stage` repontados p/ turni-homol.
+>
+> O texto abaixo (3 projetos independentes) fica como histórico do bring-up.
+
 > Status: **proposta executável** (gate humano antes de qualquer `terraform apply` / cutover de DNS).
 > Decisão (Alexandro, 2026-06-07): sair de um único `turni-mvp` para **3 projetos GCP
 > independentes** — `turni-homol`, `turni-stage`, `turni-prod` — todos na billing

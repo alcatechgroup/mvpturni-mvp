@@ -270,8 +270,9 @@ module "firebase" {
 # ── DNS apex — turni.com.br vive no turni-prod (modelo de 3 projetos independentes) ─
 # Esta é a zona RAIZ do domínio: o registro.br delega turni.com.br para os nameservers
 # desta zona (output dns_name_servers). Ela publica os NS de DELEGAÇÃO dos subdomínios
-# homolog.turni.com.br (turni-homol) e stage.turni.com.br (turni-stage) — preencher
-# var.delegations com os outputs `dns_name_servers` daqueles envs. Os CNAMEs de app/api
+# homolog.turni.com.br e stage.turni.com.br (ambos no turni-homol desde a unificação de
+# 2026-06) — preencher var.delegations com os outputs `dns_name_servers`/`dns_name_servers_stage`
+# do env homolog. Os CNAMEs de app/api
 # de prod e o apex/www da landing entram no go-live (módulo dns_landing, gated abaixo).
 module "dns" {
   source        = "../../modules/dns"
