@@ -81,8 +81,8 @@ variable "landing_prod_enabled" {
 
 variable "firebase_apex_a_records" {
   type        = list(string)
-  default     = ["151.101.1.195", "151.101.65.195"]
-  description = "IPs IPv4 do Firebase Hosting para o apex turni.com.br — confirmar no go-public via required_dns_updates do custom domain / console Firebase"
+  default     = ["199.36.158.100"]
+  description = "IPs IPv4 do Firebase Hosting para o apex turni.com.br — valor atual do Firebase (confirmado live em 2026-06). Reconfirmar via required_dns_updates do custom domain / console Firebase se mudar."
 }
 
 variable "firebase_apex_aaaa_records" {

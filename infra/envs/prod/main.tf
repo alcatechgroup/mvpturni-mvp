@@ -15,7 +15,7 @@ locals {
   # Sites Firebase da landing prod — só materializados no go-public (landing_prod_enabled).
   landing_prod_sites = var.landing_prod_enabled ? {
     landing      = { site_id = "turni-landing-prod", custom_domain = local.apex_host }
-    www_redirect = { site_id = "turni-www-redirect-prod", custom_domain = local.www_host }
+    www_redirect = { site_id = "turni-redirect-prod", custom_domain = local.www_host }
   } : {}
 }
 
