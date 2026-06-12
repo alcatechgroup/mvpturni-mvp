@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/app_update/app_update.dart';
 import '../../core/install/install.dart';
 import '../../core/install/widgets/install_action_slot.dart';
-import '../../core/theme/theme_mode_controller.dart';
+import '../../core/theme/theme_toggle_button.dart';
 import '../../ds/components/app_version_label.dart';
 import '../../ds/tokens.dart';
 import '../../ds/typography.dart';
@@ -148,9 +148,9 @@ class _LoginScreenState extends State<LoginScreen> {
           SafeArea(
             child: Align(
               alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.all(TurniSpacing.sm),
-                child: const _LoginThemeToggle(),
+              child: const Padding(
+                padding: EdgeInsets.all(TurniSpacing.sm),
+                child: ThemeToggleButton(key: ValueKey('login:theme-toggle')),
               ),
             ),
           ),
@@ -332,33 +332,6 @@ class _HeroPillar extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Alternância claro↔escuro na tela de login. Espelha o `_ShellThemeToggle`
-/// (mesma fonte: [ThemeModeController]) para que a escolha valha já no
-/// pré-login e persista após o usuário entrar.
-class _LoginThemeToggle extends StatelessWidget {
-  const _LoginThemeToggle();
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = ThemeModeController.instance;
-    return ListenableBuilder(
-      listenable: controller,
-      builder: (context, _) {
-        final platform = MediaQuery.platformBrightnessOf(context);
-        final dark = controller.isDark(platform);
-        return IconButton(
-          key: const ValueKey('login:theme-toggle'),
-          tooltip: dark ? 'Tema claro' : 'Tema escuro',
-          icon: Icon(
-            dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-          ),
-          onPressed: () => controller.setDark(!dark),
-        );
-      },
     );
   }
 }

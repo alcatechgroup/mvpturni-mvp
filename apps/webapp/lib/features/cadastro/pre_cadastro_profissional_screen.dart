@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/install/install.dart';
 import '../../core/install/widgets/install_action_slot.dart';
+import '../../core/theme/theme_toggle_button.dart';
 import '../../ds/components/app_version_label.dart';
 import '../../ds/tokens.dart';
 import '../../ds/typography.dart';
@@ -250,14 +251,19 @@ class _PreCadastroProfissionalScreenState
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              key: const Key('link-entrar'),
-              onPressed: () => context.go('/login'),
-              style: TextButton.styleFrom(foregroundColor: accent),
-              child: const Text('Já tem conta? Entrar'),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const ThemeToggleButton(
+                key: ValueKey('cadastro-profissional:theme-toggle'),
+              ),
+              TextButton(
+                key: const Key('link-entrar'),
+                onPressed: () => context.go('/login'),
+                style: TextButton.styleFrom(foregroundColor: accent),
+                child: const Text('Já tem conta? Entrar'),
+              ),
+            ],
           ),
           Semantics(
             label: 'Turni',

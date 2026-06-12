@@ -208,5 +208,10 @@ void main() {
     // Formulário (lado direito) permanece intacto.
     expect(find.byKey(const Key('input-nome')), findsOneWidget);
     expect(find.byKey(const Key('btn-submit-cadastro')), findsOneWidget);
+    // Alternância de tema disponível no topo do formulário.
+    expect(
+      find.byKey(const ValueKey('cadastro-contratante:theme-toggle')),
+      findsOneWidget,
+    );
   });
 }
