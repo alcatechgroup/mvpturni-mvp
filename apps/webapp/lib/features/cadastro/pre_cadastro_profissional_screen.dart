@@ -217,14 +217,9 @@ class _PreCadastroProfissionalScreenState
       ),
     );
 
-    final form = isDesktop
-        ? Card(
-            child: Padding(
-              padding: const EdgeInsets.all(TurniSpacing.xl),
-              child: _buildForm(isDark, isDesktop, accent),
-            ),
-          )
-        : _buildForm(isDark, isDesktop, accent);
+    // Sem Card: no split desktop o formulário fica integrado à coluna (não
+    // como um "frame de celular" flutuante). Mobile já era sem card.
+    final form = _buildForm(isDark, isDesktop, accent);
 
     return Scaffold(
       key: const Key('screen-cadastro-profissional'),
