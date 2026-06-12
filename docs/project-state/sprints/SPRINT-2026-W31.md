@@ -1,9 +1,12 @@
 ---
 sprint_id: SPRINT-2026-W31
 wave: WAVE-2026-01
-status: active  # planned | active | closed
+status: closed  # planned | active | closed
 start_date: 2026-06-10
-end_date: null  # fechamento por goal-atingido
+end_date: 2026-06-12  # fechada por goal-atingido
+closed_at: 2026-06-12
+closed_by: "PO (Alexandro / Claude)"
+goal_outcome: achieved
 opened_at: 2026-06-10
 opened_by: "PO (Alexandro / Claude)"
 activated_at: 2026-06-10
@@ -127,17 +130,22 @@ STORY-092 (BE — abertura: em_disputa + justificativa + preauth + notificação
 |---|---|---|---|
 | — | — | — | — |
 
-## Fechamento do sprint (preencher no encerramento)
+## Fechamento do sprint (2026-06-12 — goal-atingido)
+
+> **Fechada por goal-atingido em 2026-06-12.** 8/8 estórias `done`; EPIC-005 validado com veredito **APPROVED** (STORY-097, 0 fail). Como era o **último épico da WAVE-2026-01**, este fechamento **encerra também a onda** (status report em `reports/status-2026-06-12.md`).
 
 ### O que foi entregue
-- ...
+- **EPIC-005 — Disputa mínima de check-out via backoffice, ponta a ponta:** contratante recusa o check-out com justificativa obrigatória → turno `em_disputa` (pré-autorização mantida) → profissional notificado (in-app + e-mail) + banner read-only → admin vê na fila `/disputas` (SLA 30 min) com a trilha do caso e resolve "pagar integral" → captura + Pix (fake/PDR-017) reusados do check-out feliz → turno `finalizado` apto à avaliação recíproca. Trilha de auditoria completa (abertura + resolução, atores e timestamps).
+- **Decisões:** ADR-020 (modelo `turnos.disputa` jsonb, transições, resolução = comando da api, admin é cliente), DDR-005 (telas recusa/banner/caso), IDR-032 (canal interno admin→api com `X-Internal-Token`). `nota_admin` ficou **obrigatória** (ADR-020/DDR-005, supera o "opcional" do CA original).
+- **Qualidade (report do validador):** suítes verdes (api 1118 / admin 153 / webapp 753), cobertura geral ≥80% e **núcleo api+admin 100%**, CI verde na main, E2E de disputa (recusa + resolve) + caminho feliz EPIC-003/004 sem regressão, escopo MVP respeitado, ciclo demonstrável no stage.
 
 ### O que ficou para trás (e por quê)
-- ...
+- **Resoluções `paga_parcial`/`sem_pagamento`, captura/estorno parcial, penalidade automática, UI rica de mediação, recurso do profissional** — fora do MVP por design (PDR-006 / `epic.md`); vão para o **EPIC-007 (WAVE-2026-02)**.
+- **Pendências parqueadas (carry-forward para a WAVE-2026-02):** dívida de a11y do EPIC-012; reativar `checkout_test` no gate; revisar tempo do gate E2E; chore de higiene do seeder `seedTurnoNaJanela`; **BUG-001** (Trivy) → `fixed`/`verified`; definir o **env canônico de validação** (`stage` vs `homolog`).
 
 ### Aprendizados
-- <aprendizado de produto>
-- <aprendizado de processo>
+- **Produto:** o caminho de exceção mais crítico ficou defensável com escopo mínimo (uma resolução), reusando integralmente a máquina financeira do check-out feliz — sem criar segunda fonte de bugs de dinheiro. A separação "admin é cliente, api é dona da transação" (ADR-020/IDR-032) manteve o backoffice simples e o RBAC em duas camadas.
+- **Processo:** os dois riscos de entrada (spikes-gargalo, L estourando sessão) não se materializaram — decisão antes de código (ADR/DDR aprovados no D1) provou-se de novo. **A lição F-B-1 funcionou ao contrário desta vez:** o CI vermelho do Trivy foi tratado como bloqueante de verdade e a hipótese do BUG-001 ("CVE base não-fixável") caiu na investigação — eram CVEs **fixáveis** de pacote OS (fix `apk upgrade` em `019b668`); diagnóstico independente > suposição herdada. O validador também flagrou um flake **pré-existente** do EPIC-003 (`GerarPinCheckoutTest`) que não bloqueia o épico, mas merece tratamento na próxima onda.
 
 ### Ajustes para o próximo sprint
-- <ajuste> — abertura da WAVE-2026-02 (replanejamento de onda, Fluxo A).
+- **Abrir a WAVE-2026-02 via Fluxo A** (replanejamento de onda): o dono define objetivo/hipótese. Candidatos: EPIC-007 (resoluções parciais de disputa), integração real de pagamento (Pagar.me — risco nº1, saiu por PDR-017), EPIC-009 (E2E mobile), EPIC-011 (geocoding). Entrar com as pendências parqueadas acima como itens explícitos de dívida.
