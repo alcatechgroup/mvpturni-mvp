@@ -32,7 +32,7 @@ permissions:
 env:
   FIREBASE_TOOLS_VERSION: "13.29.1"
   LANDING_SITE_HOMOLOG: "turni-landing-homolog"
-  LANDING_SITE_PROD: "turni-landing-prod"
+  LANDING_SITE_PROD: "turni-prod-landing"
 
 jobs:
   # ── CI: lint dos HTMLs de engenharia (Em breve + 404) em push de branch ──────
@@ -190,7 +190,7 @@ jobs:
       name: landing-prod
       url: https://turni.com.br
     env:
-      SITE: turni-landing-prod
+      SITE: turni-prod-landing
       BASE_URL: https://turni.com.br
       WEBAPP_URL: ${{ needs.detect-env.outputs.webapp_url }}
     steps:

@@ -90,7 +90,7 @@ variable "www_subdomain" {
 variable "www_cname_target" {
   type        = string
   default     = null
-  description = "Target CNAME do micro-site de redirect www (ex: turni-redirect-prod.web.app)"
+  description = "Target CNAME do micro-site de redirect www (ex: turni-prod-redirect.web.app)"
 }
 
 # ── Domínio remetente de e-mail (Resend — ADR-011 §e / STORY-021) ─────────────

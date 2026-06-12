@@ -17,12 +17,12 @@
         "stage": ["turni-webapp-stage"]
       }
     },
-    "//": "Landing + redirect www de prod vivem no mesmo projeto turni-prod (migrados do workaround turni-prod-web em 2026-06, após o Firebase resolver o channel órfão 409). Site de redirect = turni-redirect-prod (Firebase rejeita 'www' no site_id).",
+    "//": "Landing + redirect www de prod vivem no mesmo projeto turni-prod (migrados do workaround turni-prod-web em 2026-06, após o Firebase resolver o channel órfão 409). Os ids antigos turni-landing-prod/turni-redirect-prod ficaram reservados pelo delete do turni-prod-web (hold global do Firebase) → usados turni-prod-landing/turni-prod-redirect.",
     "turni-prod": {
       "hosting": {
         "prod": ["turni-webapp-prod"],
-        "landing-prod": ["turni-landing-prod"],
-        "www-redirect-prod": ["turni-redirect-prod"]
+        "landing-prod": ["turni-prod-landing"],
+        "www-redirect-prod": ["turni-prod-redirect"]
       }
     }
   }

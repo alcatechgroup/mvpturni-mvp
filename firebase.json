@@ -180,7 +180,7 @@
     },
 
     {
-      "//": "Landing prod — idem homolog. Live no projeto turni-prod, site turni-landing-prod, domínio apex turni.com.br (migrada do workaround turni-prod-web em 2026-06; ver docs/operacao/firebase-support-turni-prod-hosting.md).",
+      "//": "Landing prod — idem homolog. Live no projeto turni-prod, site turni-prod-landing, domínio apex turni.com.br (migrada do workaround turni-prod-web em 2026-06; ver docs/operacao/firebase-support-turni-prod-hosting.md).",
       "target": "landing-prod",
       "public": "apps/landing/public",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
@@ -216,7 +216,7 @@
     },
 
     {
-      "//": "Micro-site de redirect www → apex (ADR-012 §6, fallback). Redirect 301 cobre tudo. Site turni-redirect-prod no projeto turni-prod; www.turni.com.br ainda sem registro DNS (liga no go-public).",
+      "//": "Micro-site de redirect www → apex (ADR-012 §6, fallback). Redirect 301 cobre tudo. Site turni-prod-redirect no projeto turni-prod; www.turni.com.br ainda sem registro DNS (liga no go-public).",
       "target": "www-redirect-prod",
       "public": "apps/landing/public",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
