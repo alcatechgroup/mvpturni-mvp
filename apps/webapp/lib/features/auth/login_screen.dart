@@ -8,6 +8,7 @@ import '../../core/install/widgets/install_action_slot.dart';
 import '../../core/theme/theme_mode_controller.dart';
 import '../../ds/components/app_version_label.dart';
 import '../../ds/tokens.dart';
+import '../../ds/typography.dart';
 import 'auth_service.dart';
 
 /// Tela de login do WebApp (CA-5 — SCREEN-STORY-016 Tela A).
@@ -93,11 +94,54 @@ class _LoginScreenState extends State<LoginScreen> {
         ? TurniColors.surfacePageDark
         : TurniColors.surfacePageLight;
 
+    final form = _LoginForm(
+      formKey: _formKey,
+      emailCtrl: _emailCtrl,
+      passwordCtrl: _passwordCtrl,
+      obscurePassword: _obscurePassword,
+      loading: _loading,
+      banner: _banner,
+      accent: accent,
+      isDark: isDark,
+      desktop: isDesktop,
+      onTogglePassword: () =>
+          setState(() => _obscurePassword = !_obscurePassword),
+      onSubmit: _submit,
+    );
+
+    final formColumn = Center(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          horizontal: isDesktop ? TurniSpacing.x2l : TurniSpacing.lg,
+          vertical: isDesktop ? TurniSpacing.x3l : TurniSpacing.x2l,
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: form,
+        ),
+      ),
+    );
+
     return Scaffold(
       key: const ValueKey('login:screen'),
       backgroundColor: surfacePage,
       body: Stack(
         children: [
+          // Desktop (≥840): split editorial — imagem da equipe à esquerda,
+          // formulário à direita (protótipo SCREEN-STORY-016). Mobile: o
+          // formulário centralizado de sempre, sem a imagem hero.
+          if (isDesktop)
+            Row(
+              children: [
+                const Expanded(child: _LoginHero()),
+                Expanded(
+                  child: ColoredBox(color: surfacePage, child: formColumn),
+                ),
+              ],
+            )
+          else
+            formColumn,
+
           // Alternância de tema pré-login (mesma fonte do Perfil/shell —
           // [ThemeModeController]). DDR-001 §1: o acento segue neutro; só o
           // claro/escuro é alternável e persistido.
@@ -110,53 +154,184 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          Center(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: TurniSpacing.lg,
-                vertical: isDesktop ? TurniSpacing.x3l : TurniSpacing.x2l,
-              ),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: isDesktop
-                    ? Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(TurniSpacing.xl),
-                          child: _LoginForm(
-                            formKey: _formKey,
-                            emailCtrl: _emailCtrl,
-                            passwordCtrl: _passwordCtrl,
-                            obscurePassword: _obscurePassword,
-                            loading: _loading,
-                            banner: _banner,
-                            accent: accent,
-                            isDark: isDark,
-                            onTogglePassword: () => setState(
-                              () => _obscurePassword = !_obscurePassword,
-                            ),
-                            onSubmit: _submit,
-                          ),
-                        ),
-                      )
-                    : _LoginForm(
-                        formKey: _formKey,
-                        emailCtrl: _emailCtrl,
-                        passwordCtrl: _passwordCtrl,
-                        obscurePassword: _obscurePassword,
-                        loading: _loading,
-                        banner: _banner,
-                        accent: accent,
-                        isDark: isDark,
-                        onTogglePassword: () => setState(
-                          () => _obscurePassword = !_obscurePassword,
-                        ),
-                        onSubmit: _submit,
-                      ),
-              ),
-            ),
-          ),
         ],
       ),
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// Coluna hero (desktop) — imagem da equipe + brand statement
+// ──────────────────────────────────────────────────────────────
+
+/// Lado esquerdo do login em desktop (protótipo SCREEN-STORY-016): imagem da
+/// equipe full-bleed com overlay editorial e o brand statement por cima.
+/// Renderizado só em ≥840 — no mobile o formulário ocupa a tela inteira.
+class _LoginHero extends StatelessWidget {
+  const _LoginHero();
+
+  // Verde-claro de realce sobre a imagem (assinatura da marca no chrome escuro).
+  static const _heroAccent = Color(0xFF7BC299);
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/img/12-equipe-fundo.jpg'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: DecoratedBox(
+        // Overlay escurece a foto p/ legibilidade do texto (gradiente vertical).
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0x8C0F2818), Color(0x4D0F2818), Color(0xCC0F2818)],
+            stops: [0.0, 0.35, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TurniSpacing.x2l,
+              vertical: TurniSpacing.x2l,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Logomarca branca (no desktop a marca vive aqui, não no form).
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      const TextSpan(text: 'TURN'),
+                      TextSpan(
+                        text: 'I',
+                        style: TextStyle(color: _heroAccent),
+                      ),
+                      TextSpan(
+                        text: '.',
+                        style: TextStyle(color: _heroAccent),
+                      ),
+                    ],
+                  ),
+                  style: const TextStyle(
+                    fontFamily: 'BebasNeue',
+                    fontSize: 56,
+                    color: Colors.white,
+                    letterSpacing: 4,
+                    height: 1.0,
+                  ),
+                ),
+                const Spacer(),
+
+                // Eyebrow "ao vivo" (ponto + rótulo mono).
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF9DD9B0),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: TurniSpacing.sm),
+                    Text(
+                      'PLATAFORMA TURNI · AO VIVO',
+                      style: dsMono(
+                        fontSize: 11,
+                        letterSpacing: 3,
+                        color: const Color(0xFF9DD9B0),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: TurniSpacing.md),
+
+                // Brand statement.
+                const Text(
+                  'O ponto de encontro entre quem contrata e quem turnifica.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 44,
+                    fontWeight: FontWeight.w500,
+                    height: 1.05,
+                    letterSpacing: -1.0,
+                  ),
+                ),
+                const SizedBox(height: TurniSpacing.md),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: Text(
+                    'A plataforma que une os dois lados do turno em uma só '
+                    'rede. Acesse para retomar de onde parou.',
+                    style: TextStyle(
+                      color: Colors.white.withAlpha(217),
+                      fontSize: 15,
+                      height: 1.6,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: TurniSpacing.lg),
+
+                // Pilares — assinatura do produto.
+                Container(
+                  padding: const EdgeInsets.only(top: TurniSpacing.md),
+                  decoration: const BoxDecoration(
+                    border: Border(top: BorderSide(color: Color(0x2EFFFFFF))),
+                  ),
+                  child: const Wrap(
+                    spacing: TurniSpacing.md,
+                    runSpacing: TurniSpacing.sm,
+                    children: [
+                      _HeroPillar(icon: Icons.memory, label: 'MATCH IA'),
+                      _HeroPillar(
+                        icon: Icons.verified_user_outlined,
+                        label: 'PIN BILATERAL',
+                      ),
+                      _HeroPillar(icon: Icons.bolt, label: 'PIX 15MIN'),
+                      _HeroPillar(
+                        icon: Icons.restaurant,
+                        label: 'HOSPITALIDADE',
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Um pilar do hero — ícone verde + rótulo mono. Decorativo.
+class _HeroPillar extends StatelessWidget {
+  const _HeroPillar({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: _LoginHero._heroAccent),
+        const SizedBox(width: TurniSpacing.xs),
+        Text(
+          label,
+          style: dsMono(
+            fontSize: 10.5,
+            letterSpacing: 1.5,
+            color: Colors.white.withAlpha(191),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -198,6 +373,7 @@ class _LoginForm extends StatelessWidget {
     required this.banner,
     required this.accent,
     required this.isDark,
+    required this.desktop,
     required this.onTogglePassword,
     required this.onSubmit,
   });
@@ -210,6 +386,10 @@ class _LoginForm extends StatelessWidget {
   final _BannerState? banner;
   final Color accent;
   final bool isDark;
+
+  /// Desktop (≥840) mostra um cabeçalho textual ("Acesse sua conta"), porque a
+  /// logomarca vive no hero à esquerda. Mobile mantém a logo grande no topo.
+  final bool desktop;
   final VoidCallback onTogglePassword;
   final VoidCallback onSubmit;
 
@@ -221,21 +401,55 @@ class _LoginForm extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Logomarca
-          Semantics(
-            label: 'Turni',
-            header: true,
-            child: Text(
-              'TURNI.',
-              style: TextStyle(
-                fontFamily: 'BebasNeue',
-                fontSize: 48,
-                fontWeight: FontWeight.w400,
-                color: TurniColors.brandGreen,
-                height: 1.0,
+          // Cabeçalho: no desktop a marca está no hero à esquerda, então aqui
+          // entra um cabeçalho textual; no mobile mantemos a logomarca grande.
+          if (desktop) ...[
+            Text(
+              'JÁ É TURNI.',
+              style: dsMono(fontSize: 11, letterSpacing: 2.5, color: accent),
+            ),
+            const SizedBox(height: TurniSpacing.sm),
+            Semantics(
+              header: true,
+              child: Text(
+                'Acesse sua conta',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: -0.8,
+                  height: 1.1,
+                  color: isDark
+                      ? TurniColors.textStrongDark
+                      : TurniColors.textStrongLight,
+                ),
               ),
             ),
-          ),
+            const SizedBox(height: TurniSpacing.xs),
+            Text(
+              'Use o e-mail cadastrado · seu turno te espera do outro lado.',
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.55,
+                color: isDark
+                    ? TurniColors.textMutedDark
+                    : TurniColors.textMutedLight,
+              ),
+            ),
+          ] else
+            Semantics(
+              label: 'Turni',
+              header: true,
+              child: Text(
+                'TURNI.',
+                style: TextStyle(
+                  fontFamily: 'BebasNeue',
+                  fontSize: 48,
+                  fontWeight: FontWeight.w400,
+                  color: TurniColors.brandGreen,
+                  height: 1.0,
+                ),
+              ),
+            ),
           const SizedBox(height: TurniSpacing.xl),
 
           // Campo e-mail

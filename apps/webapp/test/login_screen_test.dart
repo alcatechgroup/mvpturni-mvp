@@ -93,6 +93,43 @@ void main() {
       expect(find.byKey(const ValueKey('login:theme-toggle')), findsOneWidget);
     });
 
+    testWidgets('desktop (≥840) mostra o hero da equipe ao lado do formulário', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(_loginApp());
+      // pump() simples: a DecorationImage do hero carrega de forma assíncrona;
+      // o texto renderiza no primeiro frame independentemente da imagem.
+      await tester.pump();
+
+      // Hero (coluna esquerda): brand statement do protótipo.
+      expect(
+        find.text('O ponto de encontro entre quem contrata e quem turnifica.'),
+        findsOneWidget,
+      );
+      // Cabeçalho textual do form (substitui a logomarca grande no desktop).
+      expect(find.text('Acesse sua conta'), findsOneWidget);
+      // Imagem de fundo da equipe presente.
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is DecoratedBox &&
+              w.decoration is BoxDecoration &&
+              (w.decoration as BoxDecoration).image?.image is AssetImage &&
+              ((w.decoration as BoxDecoration).image!.image as AssetImage)
+                      .assetName ==
+                  'assets/img/12-equipe-fundo.jpg',
+        ),
+        findsOneWidget,
+      );
+      // Form continua acessível.
+      expect(find.byKey(const ValueKey('login:email')), findsOneWidget);
+    });
+
     testWidgets('tem rótulo de versão discreto no rodapé (STORY-037 CA-8)', (
       tester,
     ) async {
