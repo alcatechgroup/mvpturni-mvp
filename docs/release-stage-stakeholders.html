@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#00A868; --green-ink:#2D5F3F; --ink:#0F1B2D; --muted:#5A6670;
+    --cream:#F7F4EC; --line:#E3DFD4; --dark:#0F1411;
+    --mostarda:#9A6E25; --mostarda-soft:#FBEED1;
+    --green-soft:#E5F0E8; --chrome:#1B2E1F;
+  }
+  @page { size: A4; margin: 0; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter',sans-serif;color:var(--ink);background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;line-height:1.55}
+  .page{width:210mm;min-height:297mm;margin:0 auto;position:relative}
+  .pad{padding:0 18mm}
+
+  /* Header */
+  .hero{background:linear-gradient(135deg,#15201A 0%,#0F1411 70%);color:#fff;padding:20mm 18mm 12mm}
+  .logo{font-family:'Bebas Neue';font-size:46px;letter-spacing:5px;line-height:1}
+  .logo .i{color:#7BC299}.logo .d{-webkit-text-stroke:1.5px #7BC299;color:transparent}
+  .eyebrow{font-family:'JetBrains Mono';font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#9DD9B0;margin:14px 0 6px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:'';width:26px;height:1px;background:#9DD9B0;display:inline-block}
+  .h-title{font-family:'Bebas Neue';font-size:54px;letter-spacing:.5px;line-height:.98;margin-bottom:10px}
+  .h-sub{font-size:13.5px;color:rgba(255,255,255,.82);max-width:135mm}
+  .meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .chip{font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.5px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff}
+  .chip.v{background:rgba(123,194,153,.16);border-color:rgba(123,194,153,.4);color:#9DD9B0}
+  .chip.warn{background:rgba(212,169,92,.16);border-color:rgba(212,169,92,.4);color:#E6C98A}
+
+  /* Body */
+  .intro{padding:12mm 18mm 4mm;font-size:13.5px;color:#37424d}
+  .intro b{color:var(--green-ink)}
+  .lead{font-size:15px;color:var(--ink);margin-bottom:10px}
+
+  .sec-label{font-family:'JetBrains Mono';font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin:9mm 0 4mm}
+
+  .card{border:1px solid var(--line);border-radius:14px;padding:7mm 8mm;margin-bottom:6mm;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px}
+  .card.admin::before{background:var(--chrome)}
+  .card.emp::before{background:var(--mostarda)}
+  .card.pro::before{background:var(--green-ink)}
+  .card-num{font-family:'Bebas Neue';font-size:30px;line-height:1;color:var(--green);margin-bottom:2px}
+  .card-h{font-family:'Bebas Neue';font-size:27px;letter-spacing:.5px;line-height:1.05}
+  .card-tag{display:inline-block;font-family:'JetBrains Mono';font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:999px;margin-left:8px;vertical-align:middle}
+  .card.admin .card-tag{background:var(--green-soft);color:var(--green-ink)}
+  .card.emp .card-tag{background:var(--mostarda-soft);color:var(--mostarda)}
+  .card.pro .card-tag{background:var(--green-soft);color:var(--green-ink)}
+  .card-desc{font-size:12.5px;color:var(--muted);margin:4px 0 9px}
+  .creds{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:12.5px;align-items:baseline}
+  .creds .k{font-family:'JetBrains Mono';font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .creds .val{font-family:'JetBrains Mono';font-size:12.5px;color:var(--ink);background:var(--cream);border:1px solid var(--line);border-radius:6px;padding:2px 8px;display:inline-block}
+  .creds .val.url{color:var(--green-ink)}
+
+  .note{background:var(--green-soft);border:1px solid #CFE3D6;border-radius:12px;padding:6mm 7mm;font-size:12.5px;color:#2c4a39}
+  .note b{color:var(--green-ink)}
+  .note .nh{font-family:'Bebas Neue';font-size:22px;letter-spacing:.5px;color:var(--green-ink);margin-bottom:4px}
+
+  ul.tips{list-style:none;font-size:12.5px;color:#37424d}
+  ul.tips li{padding:3px 0 3px 20px;position:relative}
+  ul.tips li::before{content:'›';position:absolute;left:4px;color:var(--green);font-weight:700}
+  ul.tips b{color:var(--ink)}
+
+  .footer{margin-top:8mm;padding:6mm 18mm 12mm;border-top:1px solid var(--line);font-size:10.5px;color:var(--muted)}
+  .footer .brand{font-family:'Bebas Neue';font-size:18px;letter-spacing:3px;color:var(--green-ink)}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <div class="logo">TURN<span class="i">I</span><span class="d">.</span></div>
+    <div class="eyebrow">Manual de acesso · Ambiente de demonstração</div>
+    <div class="h-title">Conheça a plataforma<br>em 2 minutos.</div>
+    <div class="h-sub">Um guia rápido para acessar e validar o ambiente de testes da Turni — a rede que conecta estabelecimentos a profissionais de hospitalidade.</div>
+    <div class="meta">
+      <span class="chip">📅 13 de junho de 2026</span>
+      <span class="chip v">versão v0.1.0-rc.108</span>
+      <span class="chip warn">⚠ uso restrito à validação desta versão</span>
+    </div>
+  </div>
+
+  <div class="intro">
+    <p class="lead">Este material vale <b>para a versão acima</b> e tem como único objetivo a <b>validação desta entrega</b>. As telas e credenciais podem mudar nas próximas versões.</p>
+    <p>Tudo aqui é <b>ambiente de teste</b>: nenhum pagamento é real e os dados podem ser reiniciados a qualquer momento. Explore sem receio. A Turni tem três visões — a <b>equipe Turni</b> (que aprova e acompanha), o <b>estabelecimento</b> (que contrata) e o <b>profissional</b> (que trabalha). Abaixo, como entrar em cada uma.</p>
+  </div>
+
+  <div class="pad">
+    <div class="sec-label">Como acessar cada perfil</div>
+
+    <div class="card admin">
+      <div class="card-num">01</div>
+      <div class="card-h">Equipe Turni <span class="card-tag">uso interno</span></div>
+      <div class="card-desc">O Painel de Gestão (Backoffice) onde os funcionários da Turni aprovam cadastros e acompanham a operação.</div>
+      <div class="creds">
+        <span class="k">Endereço</span><span><span class="val url">turni-admin-stage-tuhmw7pfwa-rj.a.run.app</span></span>
+        <span class="k">Usuário</span><span><span class="val">admin@turni.local</span></span>
+        <span class="k">Senha</span><span><span class="val">Turni@Stage2026</span></span>
+      </div>
+    </div>
+
+    <div class="card emp">
+      <div class="card-num">02</div>
+      <div class="card-h">Estabelecimento <span class="card-tag">quem contrata</span></div>
+      <div class="card-desc">O aplicativo de quem precisa cobrir um turno — bar, restaurante, hotel, evento.</div>
+      <div class="creds">
+        <span class="k">Endereço</span><span><span class="val url">app.stage.turni.com.br</span></span>
+        <span class="k">Usuário</span><span><span class="val">contratante.teste@turni.local</span></span>
+        <span class="k">Senha</span><span><span class="val">Turni@Stage2026</span></span>
+      </div>
+    </div>
+
+    <div class="card pro">
+      <div class="card-num">03</div>
+      <div class="card-h">Profissional <span class="card-tag">quem trabalha</span></div>
+      <div class="card-desc">O mesmo aplicativo, na visão de quem pega o turno, faz o check-in e recebe. Muda apenas o login.</div>
+      <div class="creds">
+        <span class="k">Endereço</span><span><span class="val url">app.stage.turni.com.br</span></span>
+        <span class="k">Usuário</span><span><span class="val">profissional.teste@turni.local</span></span>
+        <span class="k">Senha</span><span><span class="val">Turni@Stage2026</span></span>
+      </div>
+    </div>
+
+    <div class="sec-label">Quer ver a jornada completa?</div>
+    <div class="note">
+      <div class="nh">Cadastro → aprovação → uso</div>
+      Na tela de entrada do aplicativo, toque em <b>“Criar conta”</b> e escolha o lado (empresário ou profissional). O cadastro entra na <b>fila de aprovação</b>, que a equipe Turni libera pelo Painel de Gestão (perfil 01). É exatamente o fluxo real da plataforma.
+    </div>
+
+    <div class="sec-label">Boas práticas para a demonstração</div>
+    <ul class="tips">
+      <li><b>Primeira abertura pode demorar alguns segundos</b> enquanto o ambiente “acorda”. Se aparecer um erro, recarregue a página.</li>
+      <li>O botão de <b>tema claro/escuro</b> fica no canto da tela — fique à vontade.</li>
+      <li>Pagamentos são <b>simulados</b> e os dados são de teste — pode explorar à vontade.</li>
+      <li>Travou ou tem dúvida? Fale com a <b>equipe de produto da Turni</b>.</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    <span class="brand">TURNI.</span> · Manual gerado em 13/06/2026 para a versão v0.1.0-rc.108 · As credenciais são contas de demonstração válidas apenas neste ambiente de testes — não funcionam em produção.
+  </div>
+
+</div>
+</body>
+</html>
