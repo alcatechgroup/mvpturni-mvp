@@ -17,6 +17,7 @@ resource "google_monitoring_notification_channel" "email" {
 
 # ── Uptime checks ─────────────────────────────────────────────────────────────
 resource "google_monitoring_uptime_check_config" "api_health" {
+  count        = var.enable_uptime_checks ? 1 : 0
   project      = var.project_id
   display_name = "Turni API health (${var.env})"
   timeout      = "10s"
@@ -40,6 +41,7 @@ resource "google_monitoring_uptime_check_config" "api_health" {
 }
 
 resource "google_monitoring_uptime_check_config" "admin_health" {
+  count        = var.enable_uptime_checks ? 1 : 0
   project      = var.project_id
   display_name = "Turni Admin health (${var.env})"
   timeout      = "10s"
@@ -63,6 +65,7 @@ resource "google_monitoring_uptime_check_config" "admin_health" {
 }
 
 resource "google_monitoring_uptime_check_config" "webapp_root" {
+  count        = var.enable_uptime_checks ? 1 : 0
   project      = var.project_id
   display_name = "Turni WebApp root (${var.env})"
   timeout      = "10s"
@@ -87,6 +90,7 @@ resource "google_monitoring_uptime_check_config" "webapp_root" {
 
 # ── Alert: indisponibilidade (uptime check falha) ─────────────────────────────
 resource "google_monitoring_alert_policy" "uptime_failure" {
+  count        = var.enable_uptime_checks ? 1 : 0
   project      = var.project_id
   display_name = "Turni indisponível (${var.env})"
   combiner     = "OR"
@@ -94,7 +98,7 @@ resource "google_monitoring_alert_policy" "uptime_failure" {
   conditions {
     display_name = "API indisponível"
     condition_threshold {
-      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\" AND metric.labels.check_id=\"${google_monitoring_uptime_check_config.api_health.uptime_check_id}\""
+      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\" AND metric.labels.check_id=\"${google_monitoring_uptime_check_config.api_health[0].uptime_check_id}\""
       comparison      = "COMPARISON_LT"
       threshold_value = 1
       duration        = "120s"
@@ -110,7 +114,7 @@ resource "google_monitoring_alert_policy" "uptime_failure" {
   conditions {
     display_name = "Admin indisponível"
     condition_threshold {
-      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\" AND metric.labels.check_id=\"${google_monitoring_uptime_check_config.admin_health.uptime_check_id}\""
+      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\" AND metric.labels.check_id=\"${google_monitoring_uptime_check_config.admin_health[0].uptime_check_id}\""
       comparison      = "COMPARISON_LT"
       threshold_value = 1
       duration        = "120s"
@@ -126,7 +130,7 @@ resource "google_monitoring_alert_policy" "uptime_failure" {
   conditions {
     display_name = "WebApp indisponível"
     condition_threshold {
-      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\" AND metric.labels.check_id=\"${google_monitoring_uptime_check_config.webapp_root.uptime_check_id}\""
+      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\" AND metric.labels.check_id=\"${google_monitoring_uptime_check_config.webapp_root[0].uptime_check_id}\""
       comparison      = "COMPARISON_LT"
       threshold_value = 1
       duration        = "120s"
