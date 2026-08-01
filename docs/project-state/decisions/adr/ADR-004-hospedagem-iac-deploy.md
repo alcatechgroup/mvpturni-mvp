@@ -2,20 +2,27 @@
 adr_id: ADR-004
 slug: hospedagem-iac-deploy
 title: Hospedagem, Infra-as-Code e estratégia de deploy — GCP (Cloud Run + Cloud SQL + Firebase Hosting), Terraform, promoção tag-based
-status: accepted  # proposed | accepted | superseded | rejected | deferred
+status: superseded  # proposed | accepted | superseded | rejected | deferred
 decided_at: 2026-05-27  # YYYY-MM-DD quando virar accepted
 decided_by: arquiteto
 approved_by: Alexandro  # ex: "Alexandro" — preenchido na aprovação humana
 supersedes: null
-superseded_by: null
+superseded_by: ADR-021
 related_adrs: [ADR-001, ADR-002, ADR-003]
 related_pdrs: [PDR-003, PDR-004, PDR-011]
 related_epics: [EPIC-000]
 created_at: 2026-05-27
-updated_at: 2026-05-27
+updated_at: 2026-07-31
 ---
 
 # ADR-004 — Hospedagem, Infra-as-Code e estratégia de deploy
+
+> **SUPERSEDED pela [ADR-021](ADR-021-hospedagem-vps-unica-cloudflare.md) em 2026-07-31.**
+> A escolha desta ADR se apoiava nos ~US$2.000 de créditos da parceria Google (F1, peso
+> alto) e nos projetos `turni-homol`/`turni-prod`, ambos desativados no spin-off de
+> 2026-07-31. Os próprios "sinais de revisão" registrados no fim deste documento foram
+> acionados. Continua valendo como **registro do raciocínio** e como fonte das
+> alternativas AWS/Fly.io. O que segue descreve infraestrutura que **não existe mais**.
 
 ## Contexto
 
@@ -238,3 +245,7 @@ flowchart TB
 
 - 2026-05-27 — criada como `proposed` por Arquiteto (STORY-002). Provedor GCP escolhido por Alexandro na sessão de 2026-05-27 (créditos US$2K + parceria Google + região São Paulo), com AWS registrada como alternativa de primeira classe. Fly.io avaliada e mantida como alternativa de menor footprint.
 - 2026-05-27 — `accepted` por Alexandro (aprovação em chat; commit direto na `main`).
+
+- 2026-07-31 — `superseded` pela ADR-021 (VPS única por ambiente no projeto FoodHub,
+  Cloudflare na borda). Gatilhos: desativação dos projetos GCP no spin-off, fim dos
+  créditos que sustentavam F1 e mudança para projeto compartilhado.

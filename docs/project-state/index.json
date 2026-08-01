@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "generated_at": "2026-06-10",
+  "generated_at": "2026-07-31",
   "project": {
     "name": "Turni",
     "current_wave": null,
@@ -3745,14 +3745,15 @@
       {
         "id": "ADR-004",
         "title": "Hospedagem, Infra-as-Code e estratégia de deploy — GCP (Cloud Run + Cloud SQL + Firebase Hosting), Terraform, promoção tag-based",
-        "status": "accepted",
+        "status": "superseded",
         "path": "decisions/adr/ADR-004-hospedagem-iac-deploy.md",
         "decided_at": "2026-05-27",
         "decided_by": "arquiteto",
         "approved_by": "Alexandro",
         "supersedes": null,
-        "superseded_by": null,
-        "source_story": "STORY-002"
+        "superseded_by": "ADR-021",
+        "source_story": "STORY-002",
+        "note": "SUPERSEDED pela ADR-021 em 2026-07-31: os projetos turni-homol/turni-prod foram desativados no spin-off e os créditos Google que sustentavam a escolha (F1) acabaram. Mantida como registro do raciocínio e das alternativas AWS/Fly.io."
       },
       {
         "id": "ADR-007",
@@ -3948,6 +3949,19 @@
         "superseded_by": null,
         "source_story": "STORY-090",
         "note": "ACEITA por Alexandro em chat (2026-06-10). Destrava STORY-092 (abertura) e STORY-093 (resolução); STORY-096 via 093. 6 decisões: (1) disputa embutida em turnos.disputa jsonb (grão de cancelamento), não tabela; (2) abertura via AbrirDisputaService (aguardando_checkout->em_disputa, justificativa obrigatória, pré-autorização mantida) distinto do recusar() existente; (3) resolução paga_integral = comando da API ResolverDisputaService reusando TurnoFinalizado + captura+Pix existentes, idempotente em 3 camadas, admin é cliente (nunca escrita direta no banco); (4) evento novo DisputaAberta + reuso de TurnoFinalizado na resolução, fila do admin derivada do estado; (5) paga_parcial/sem_pagamento fora do MVP (estados já modelados; comandos ao EPIC-007); (6) trilha de leitura do admin = agregação de dados existentes."
+      },
+      {
+        "id": "ADR-021",
+        "title": "Hospedagem em VPS única por ambiente no projeto FoodHub, com Cloudflare na borda e subdomínios achatados",
+        "status": "proposed",
+        "path": "decisions/adr/ADR-021-hospedagem-vps-unica-cloudflare.md",
+        "decided_at": null,
+        "decided_by": "arquiteto",
+        "approved_by": null,
+        "supersedes": "ADR-004",
+        "superseded_by": null,
+        "source_story": null,
+        "note": "Substitui Cloud Run + Cloud SQL + Firebase Hosting por UMA VPS por ambiente (homolog, staging, prod) no projeto compartilhado FoodHub, com Postgres em container, Cloudflare como DNS/proxy e TLS por DNS-01 no Caddy. Subdomínios achatados (limite do Universal SSL). Ingress só das faixas da Cloudflare; SSH só por túnel IAP. Resolve o asterisco do worker da ADR-004 e derruba o custo de homolog de ~US$40-60 para ~US$20/mês. Trade-off assumido: ponto único de falha por ambiente e backup com janela de até 24h. PENDENTE de aprovação humana."
       }
     ],
     "idr": [

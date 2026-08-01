@@ -1,0 +1,94 @@
+# Borda da VPS do Turni (ADR-021): TLS, roteamento por host e o same-origin do WebApp.
+#
+# Substitui, em uma peça só, o que antes eram três: Firebase Hosting (estáticos +
+# rewrites), o domain mapping do Cloud Run e o certificado gerenciado do GCP.
+#
+# TLS por DNS-01: o desafio HTTP-01 exigiria que a Let's Encrypt alcançasse a porta 80
+# do origin, e o firewall só aceita as faixas da Cloudflare. DNS-01 usa o token da
+# Cloudflare (mesmo token do Terraform) para publicar o registro `_acme-challenge`,
+# então o certificado é emitido sem abrir nada. Resultado: certificado público válido
+# no origin, o que permite manter a zona em `Full (strict)`.
+#
+# Variáveis vêm de /opt/turni/.env (render-env.sh).
+{
+	email {$ACME_EMAIL}
+
+	servers {
+		# O IP de origem chega no CF-Connecting-IP; sem declarar a Cloudflare como
+		# proxy confiável, todo log e todo rate limit veriam o IP da borda dela.
+		# Mesma lista do firewall do GCP (infra/modules/network/variables.tf) — se uma
+		# mudar, a outra tem que mudar junto.
+		trusted_proxies static 173.245.48.0/20 103.21.244.0/22 103.22.200.0/22 103.31.4.0/22 141.101.64.0/18 108.162.192.0/18 190.93.240.0/20 188.114.96.0/20 197.234.240.0/22 198.41.128.0/17 162.158.0.0/15 104.16.0.0/13 104.24.0.0/14 172.64.0.0/13 131.0.72.0/22 2400:cb00::/32 2606:4700::/32 2803:f800::/32 2405:b500::/32 2405:8100::/32 2a06:98c0::/29 2c0f:f248::/32
+		client_ip_headers CF-Connecting-IP X-Forwarded-For
+	}
+}
+
+# ── Snippets ─────────────────────────────────────────────────────────────────
+(tls_cloudflare) {
+	tls {
+		dns cloudflare {$CLOUDFLARE_DNS_TOKEN}
+		# Resolver público: dentro da VPC o resolver do GCP não enxerga a propagação
+		# do TXT na Cloudflare, e o Caddy fica esperando um registro que "não existe".
+		resolvers 1.1.1.1 1.0.0.1
+	}
+}
+
+(comum) {
+	import tls_cloudflare
+
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+		format json
+	}
+}
+
+# ── WebApp Flutter — same-origin com a API ───────────────────────────────────
+# A razão de existir deste bloco: o Sanctum SPA autentica por COOKIE de sessão.
+# Servir o WebApp num host e a API em outro tornaria o cookie cross-site, que é
+# exatamente o problema que o Firebase rewrite resolvia antes (STORY-016). Aqui,
+# `/api` e `/sanctum` são o MESMO host do bundle — o cookie trafega naturalmente.
+{$WEBAPP_HOST} {
+	import comum
+
+	@backend path /api/* /sanctum/* /forgot-password* /reset-password*
+	handle @backend {
+		reverse_proxy api:8080
+	}
+
+	handle {
+		reverse_proxy webapp:80
+	}
+}
+
+# ── Backoffice (Livewire) ────────────────────────────────────────────────────
+{$ADMIN_HOST} {
+	import comum
+	reverse_proxy admin:8080
+}
+
+# ── API em host próprio ──────────────────────────────────────────────────────
+# Mantido para o webhook do gateway e para clientes que não sejam o WebApp. O
+# tráfego do app continua indo pelo host do WebApp (same-origin, acima).
+{$API_HOST} {
+	import comum
+	reverse_proxy api:8080
+}
+
+# ── Landing institucional (ADR-012) ──────────────────────────────────────────
+{$LANDING_HOST} {
+	import comum
+	reverse_proxy landing:80
+}

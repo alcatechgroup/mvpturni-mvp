@@ -1,7 +1,9 @@
-# Imagem de produção do API Turni (Laravel) para Cloud Run.
+# Imagem de produção do API Turni (Laravel) para a VPS (ADR-021).
 # Build context: raiz do repositório (monorepo).
 # Base: alpine:3.22 + php84 APK — sem compilação de extensões.
-# Serve na porta 8080 (padrão Cloud Run) via php-fpm + nginx + supervisord.
+# Serve na porta 8080 via php-fpm + nginx + supervisord; quem termina o TLS e roteia
+# por host é o Caddy da VPS. A mesma imagem roda como api, worker e scheduler — o
+# comando é que muda (ver infra/vps/docker-compose.yml).
 
 ARG APP_VERSION=dev
 
@@ -77,17 +79,16 @@ RUN chmod -R 755 storage bootstrap/cache \
     && chown -R app:app storage bootstrap/cache
 
 ARG APP_VERSION
-# SESSION_COOKIE=__session é OBRIGATÓRIO atrás do Firebase Hosting: o Hosting descarta
-# TODOS os cookies da request encaminhada ao Cloud Run EXCETO um chamado `__session`.
-# Sem isso, o cookie de sessão (laravel-session) nunca chega ao backend → o usuário loga
-# (200) mas toda request autenticada seguinte cai em 401. Ver IDR-019.
-# SESSION_DRIVER=database (não array): `array` não persiste a sessão; database usa a tabela
-# `sessions` (Cloud SQL), instância-independente.
+# SESSION_COOKIE deixou de ser fixado aqui: o `__session` era imposição do Firebase
+# Hosting, que descartava todo cookie encaminhado ao Cloud Run exceto um com esse nome
+# (IDR-019). O Caddy repassa os cookies como vieram, então o default do Laravel serve.
+# SESSION_DRIVER=database (não array): `array` não persiste a sessão entre requests.
+# LOG_CHANNEL default `stderr` mantém a imagem utilizável fora da VPS; na VPS o .env
+# sobrepõe com `stack` (stderr + arquivo JSON lido pelo Ops Agent).
 ENV APP_ENV=production \
     APP_DEBUG=false \
     LOG_CHANNEL=stderr \
     SESSION_DRIVER=database \
-    SESSION_COOKIE=__session \
     APP_VERSION=${APP_VERSION}
 
 EXPOSE 8080

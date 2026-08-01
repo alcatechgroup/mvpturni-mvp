@@ -1,0 +1,29 @@
+# Copie para terraform.tfvars e preencha. NUNCA commite terraform.tfvars (.gitignore).
+#
+# O token da Cloudflare NÃO fica aqui: ele vem do .env da raiz. Antes do apply:
+#   set -a && . .env && set +a && export TF_VAR_cloudflare_token="$CLOUDFLARE_TOKEN"
+
+alert_email = "xandroalmeida@gmail.com"
+
+# Gerar com: php artisan key:generate --show
+app_key_api   = "base64:GERE_COM_PHP_ARTISAN"
+app_key_admin = "base64:GERE_COM_PHP_ARTISAN"
+
+# Senha do Postgres da VPS — gerar com: openssl rand -base64 32
+db_password = "SENHA_FORTE_AQUI"
+
+# Chave do Resend (ADR-011)
+resend_api_key = "re_GERE_NO_PAINEL_DO_RESEND"
+
+# Fake de pagamento em staging (PDR-017 / ADR-016 d) — gerar com: openssl rand -hex 24
+pagarme_secret_key     = "sk_staging_GERE_ALEATORIO"
+pagarme_webhook_secret = "whsec_staging_GERE_ALEATORIO"
+
+# IDR-028 — chave da criptografia da chave Pix do snapshot de pix_falhas.
+# Gerar: php -r "echo 'base64:'.base64_encode(random_bytes(32));"
+pix_falha_chave_key = "base64:GERAR_VALOR_ALEATORIO"
+
+# DKIM público do Resend para mail-staging.turni.com.br (copiar do painel do Resend
+# após criar o domínio). Deixe comentado no primeiro apply; o Resend só mostra o valor
+# depois que o domínio existe.
+# mail_dkim_value = "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQ..."

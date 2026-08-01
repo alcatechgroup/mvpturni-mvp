@@ -287,7 +287,7 @@ e2e-webapp-smoke: ## smoke HTTP do WebApp (Playwright) contra localhost:8003 —
 # page.route mock, skipWaiting+reload) — NÃO migra para integration_test (STORY-043 CA-7).
 # Fica em Playwright, em target próprio NÃO-gating: o banner de nova versão só dispara
 # contra um build com tag real (IDR-017 desabilita a checagem em dev, version='dev'):
-#   BASE_URL=https://app.homolog.turni.com.br make e2e-webapp-app-update
+#   BASE_URL=https://app-homolog.turni.com.br make e2e-webapp-app-update
 # (welcome e as validações de pré-cadastro migraram para integration_test na STORY-043 —
 # o antigo `e2e-webapp-playwright-legacy` foi removido junto com os specs flaky de semantics.)
 e2e-webapp-app-update: ## smoke web-platform de auto-update (Playwright, NÃO-gating) — IDR-017/STORY-043

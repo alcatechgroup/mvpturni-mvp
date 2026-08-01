@@ -1,7 +1,6 @@
 terraform {
-  # PRODUÇÃO — aplicar somente no EPIC-006 (gate humano obrigatório antes de qualquer apply).
   backend "gcs" {
-    bucket = "turni-prod-tfstate"
+    bucket = "turni-tfstate-foodhub-87e0c"
     prefix = "prod"
   }
 
@@ -10,9 +9,9 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 6.0"
     }
-    google-beta = {
-      source  = "hashicorp/google-beta"
-      version = "~> 6.0"
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 5.0"
     }
   }
 
@@ -24,7 +23,10 @@ provider "google" {
   region  = var.region
 }
 
-provider "google-beta" {
-  project = var.project_id
-  region  = var.region
+# O token vem do .env da raiz, exportado como TF_VAR_cloudflare_token
+# (`set -a && . .env && set +a && export TF_VAR_cloudflare_token=$CLOUDFLARE_TOKEN`).
+# O MESMO token é guardado no Secret Manager e usado pelo Caddy da VPS no desafio
+# DNS-01 — daí precisar de permissão Zone:DNS:Edit na zona turni.com.br.
+provider "cloudflare" {
+  api_token = var.cloudflare_token
 }

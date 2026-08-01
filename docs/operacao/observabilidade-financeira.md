@@ -7,7 +7,10 @@
 ## Fonte dos dados
 
 `App\Support\Telemetry\PagamentoEvents` emite uma linha JSON por operação da ACL de
-pagamento, executada nos jobs do worker (`turni-worker-job-<env>`):
+pagamento, executada no worker e no scheduler. Desde a ADR-021 (stack numa VPS), essas
+linhas chegam ao Cloud Logging pelos log names `turni-<env>-worker` e
+`turni-<env>-scheduler` — o Ops Agent lê o arquivo JSON de cada serviço. Os filtros das
+métricas usam `log_id(...)` no lugar do antigo `resource.type="cloud_run_job"`:
 
 | Evento (`jsonPayload.message`) | Quando | Campos usados |
 |---|---|---|
@@ -42,6 +45,6 @@ por teste). Correlação por `turno_id` (e `request_id` — ADR-008 §f).
 ## Verificação rápida
 
 ```bash
-gcloud logging metrics list --project=turni-mvp | grep pagamento
+gcloud logging metrics list --project=foodhub-87e0c | grep pagamento
 # turni_homolog_pagamento_erros / _operacoes / _latencia_ms / _webhook_latencia_ms
 ```

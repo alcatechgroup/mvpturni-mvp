@@ -5,6 +5,11 @@
 **/bootstrap/cache
 infra/**/terraform.tfvars
 apps/webapp/build
+# Exceção: desde a ADR-021, o WebApp é empacotado como imagem estática e o
+# Dockerfile COPIA o bundle já construído (o `flutter build web` continua no
+# pipeline — trazer o SDK para dentro da imagem custaria ~1 GB por build).
+# Sem esta linha, o build da imagem webapp falha com "no such file or directory".
+!apps/webapp/build/web
 apps/webapp/.dart_tool
 apps/webapp/.flutter-plugins
 apps/webapp/.flutter-plugins-dependencies

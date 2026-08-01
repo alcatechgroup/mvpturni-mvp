@@ -1,0 +1,70 @@
+# Configuração do Ops Agent da VPS (ADR-008 reancorado pela ADR-021).
+#
+# PROBLEMA QUE ESTE ARQUIVO RESOLVE: no Cloud Run, `resource.type` separava api de
+# worker sozinho e o JSON do stdout virava `jsonPayload` sem ninguém pedir. Numa VPS,
+# todo log nasce como `gce_instance` e o stdout dos containers fica preso no
+# json-file do Docker — envelopado, sem identificar o serviço.
+#
+# Solução: cada serviço escreve seu PRÓPRIO arquivo JSON (canal `turni_json` do
+# Laravel — config/logging.php), e aqui existe um receiver por serviço. O ID do
+# receiver vira o LOG NAME no Cloud Logging, que é o que as métricas do módulo
+# monitoring casam com `log_id("turni-<env>-<serviço>")`.
+#
+# `__ENV__` é substituído pelo ambiente no bootstrap (startup script da VM).
+
+logging:
+  receivers:
+    turni-__ENV__-api:
+      type: files
+      include_paths:
+        - /var/lib/turni/logs/api/turni.json.log
+    turni-__ENV__-admin:
+      type: files
+      include_paths:
+        - /var/lib/turni/logs/admin/turni.json.log
+    turni-__ENV__-worker:
+      type: files
+      include_paths:
+        - /var/lib/turni/logs/worker/turni.json.log
+    turni-__ENV__-scheduler:
+      type: files
+      include_paths:
+        - /var/lib/turni/logs/scheduler/turni.json.log
+    turni-__ENV__-caddy:
+      type: files
+      include_paths:
+        - /var/lib/turni/logs/caddy/access.log
+
+  processors:
+    # O Monolog JsonFormatter já emite uma linha JSON por evento: message, context,
+    # level_name, channel. Um parse só e os campos ficam consultáveis como
+    # jsonPayload.message / jsonPayload.context.*.
+    parse_json:
+      type: parse_json
+
+    # Sem isto, todo log chega como INFO e um ERROR não se distingue no Logs Explorer
+    # nem dispara alerta. Os nomes do Monolog coincidem com os do Cloud Logging
+    # (DEBUG/INFO/NOTICE/WARNING/ERROR/CRITICAL/ALERT/EMERGENCY).
+    severidade:
+      type: modify_fields
+      fields:
+        severity:
+          copy_from: jsonPayload.level_name
+          default_value: INFO
+
+  service:
+    pipelines:
+      turni_apps:
+        receivers:
+          - turni-__ENV__-api
+          - turni-__ENV__-admin
+          - turni-__ENV__-worker
+          - turni-__ENV__-scheduler
+        processors: [parse_json, severidade]
+      turni_borda:
+        receivers: [turni-__ENV__-caddy]
+        processors: [parse_json]
+
+# A seção `metrics` é omitida de propósito: a configuração embutida do agente já
+# coleta hostmetrics (CPU, memória, disco, rede) — que é exatamente o que os alertas
+# de saúde da VPS consomem. Redeclarar só criaria chance de derrubar o default.

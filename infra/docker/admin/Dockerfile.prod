@@ -1,5 +1,6 @@
-# Imagem de produção do Backoffice Turni (Laravel + Livewire) para Cloud Run.
+# Imagem de produção do Backoffice Turni (Laravel + Livewire) para a VPS (ADR-021).
 # Build context: raiz do repositório (monorepo).
+# Serve na porta 8080; o TLS e o roteamento por host ficam no Caddy da VPS.
 # Base: alpine:3.22 + php84 APK — sem compilação de extensões.
 
 ARG APP_VERSION=dev
@@ -45,11 +46,16 @@ FROM alpine:3.22 AS runtime
 RUN apk upgrade --no-cache \
     && apk add --no-cache \
     nginx supervisor \
-    php84-fpm php84-pdo php84-pdo_pgsql php84-pcntl php84-opcache \
+    php84 php84-fpm php84-pdo php84-pdo_pgsql php84-pcntl php84-opcache \
     php84-mbstring php84-ctype php84-curl php84-dom php84-fileinfo \
     php84-openssl php84-session php84-tokenizer php84-xml php84-xmlwriter \
     php84-phar php84-posix php84-iconv \
     && adduser -D -u 1000 app \
+    # `php84` (CLI) + o symlink /usr/bin/php faltavam nesta imagem — só o FPM vinha.
+    # No Cloud Run ninguém percebia, porque nada rodava `artisan` no Backoffice. Na VPS,
+    # `config:cache` no deploy e qualquer `docker compose exec admin php artisan ...`
+    # falhavam com "php: executable file not found". Descoberto no bring-up do staging.
+    && ln -sf /usr/bin/php84 /usr/bin/php \
     && ln -sf /usr/sbin/php-fpm84 /usr/sbin/php-fpm \
     && sed -i 's/^user = nobody/user = app/' /etc/php84/php-fpm.d/www.conf \
     && sed -i 's/^group = nobody/group = app/' /etc/php84/php-fpm.d/www.conf \

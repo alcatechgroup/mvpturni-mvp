@@ -1,0 +1,16 @@
+# Backup diário de madrugada (03:00 BRT = 06:00 UTC — a VM roda em UTC).
+#
+# Persistent=true: se a VPS estiver desligada na hora marcada, o backup roda no boot
+# seguinte em vez de simplesmente não acontecer.
+
+[Unit]
+Description=Turni — agenda do backup diário do Postgres
+
+[Timer]
+OnCalendar=*-*-* 06:00:00 UTC
+RandomizedDelaySec=600
+Persistent=true
+Unit=turni-backup.service
+
+[Install]
+WantedBy=timers.target

@@ -121,7 +121,8 @@ services:
 
   # WebApp Flutter (web) — serve o build estático (apps/webapp/build/web) e faz
   # proxy de /api e /sanctum para o container `api` via router.php, espelhando a
-  # topologia same-origin de produção (firebase.json reescreve /api → Cloud Run).
+  # topologia same-origin dos ambientes implantados (o Caddy da VPS encaminha /api
+  # para o container da api — ADR-021).
   # Same-origin é o que permite o cookie de sessão Sanctum (SameSite=lax) trafegar.
   # `make setup` roda `flutter build web` no host (Flutter é pré-requisito).
   webapp:

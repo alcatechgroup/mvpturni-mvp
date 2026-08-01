@@ -1,27 +1,27 @@
-# PRODUÇÃO — projeto GCP independente turni-prod, aplicado mas PARADO (custo ~zero).
-# Copie para terraform.tfvars e preencha os valores reais. NUNCA commite terraform.tfvars.
+# Copie para terraform.tfvars e preencha. NUNCA commite terraform.tfvars (.gitignore).
+#
+# O token da Cloudflare NÃO fica aqui: vem do .env da raiz. Antes do apply:
+#   set -a && . .env && set +a && export TF_VAR_cloudflare_token="$CLOUDFLARE_TOKEN"
+#
+# ATENÇÃO: este ambiente serve usuário real. Os segredos aqui são DISTINTOS dos de
+# homolog/staging — reaproveitar APP_KEY entre ambientes anula o isolamento de sessão
+# e de dados criptografados.
 
-project_id  = "turni-prod"
-github_repo = "alcatechgroup/mvpturni-mvp"
 alert_email = "xandroalmeida@gmail.com"
 
+# Gerar com: php artisan key:generate --show
 app_key_api   = "base64:GERE_COM_PHP_ARTISAN"
 app_key_admin = "base64:GERE_COM_PHP_ARTISAN"
-db_password   = "SENHA_FORTE_PROD_AQUI"
 
-# E-mail transacional (ADR-011) — chave do Resend de PRODUÇÃO (não reusar homolog/stage)
-resend_api_key = "re_CHAVE_RESEND_PROD_AQUI"
+# Senha do Postgres da VPS — gerar com: openssl rand -base64 32
+db_password = "SENHA_FORTE_AQUI"
 
-# Imagens de bootstrap (o pipeline sobrescreve no deploy). Enquanto parado, "hello" basta.
-api_image   = "us-docker.pkg.dev/cloudrun/container/hello:latest"
-admin_image = "us-docker.pkg.dev/cloudrun/container/hello:latest"
+# Chave do Resend (ADR-011) — conta/domínio de produção
+resend_api_key = "re_GERE_NO_PAINEL_DO_RESEND"
 
-# Postura parada: false = recursos desligados (default). Só vira true no go-live (EPIC-006).
-prod_live_enabled = false
+# IDR-028 — chave da criptografia da chave Pix do snapshot de pix_falhas.
+# Gerar: php -r "echo 'base64:'.base64_encode(random_bytes(32));"
+pix_falha_chave_key = "base64:GERAR_VALOR_ALEATORIO"
 
-# Delegação dos subdomínios na zona apex. Preencher com os `dns_name_servers` dos envs
-# homolog (turni-homol) e stage (turni-stage) APÓS aplicá-los (2ª passada do apply do prod).
-# delegations = {
-#   "homolog.turni.com.br" = ["ns-cloud-a1.googledomains.com.", "ns-cloud-a2.googledomains.com.", "ns-cloud-a3.googledomains.com.", "ns-cloud-a4.googledomains.com."]
-#   "stage.turni.com.br"   = ["ns-cloud-b1.googledomains.com.", "ns-cloud-b2.googledomains.com.", "ns-cloud-b3.googledomains.com.", "ns-cloud-b4.googledomains.com."]
-# }
+# DKIM público do Resend para mail.turni.com.br
+# mail_dkim_value = "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQ..."

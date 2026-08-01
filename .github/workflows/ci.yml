@@ -61,6 +61,33 @@ jobs:
       - name: Run gitleaks
         run: gitleaks detect --source . --log-opts "HEAD^..HEAD" --verbose
 
+  # ── Terraform — formatação e validação dos módulos e ambientes ──────────────
+  # A infra é código (ADR-021 / quality-standards 2.3): HCL quebrado só aparecia na
+  # hora do apply, com o ambiente já pela metade. `validate` roda sem credencial e
+  # sem state, então cabe no CI de PR.
+  terraform-lint:
+    name: Terraform fmt & validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+          terraform_wrapper: false
+
+      - name: terraform fmt
+        run: terraform fmt -check -recursive infra/
+
+      - name: terraform validate (cada ambiente)
+        run: |
+          set -euo pipefail
+          for env in shared homolog staging prod; do
+            echo "── infra/envs/$env"
+            # -backend=false: valida sem tocar no state remoto nem exigir credencial.
+            terraform -chdir="infra/envs/$env" init -backend=false -input=false
+            terraform -chdir="infra/envs/$env" validate
+          done
+
   # ── PHP — lint + vuln scan ──────────────────────────────────────────────────
   php-lint:
     name: PHP lint & audit
@@ -126,7 +153,9 @@ jobs:
     needs: [php-lint]
     strategy:
       matrix:
-        app: [api, admin]
+        # caddy entrou com a ADR-021: é a borda TLS da VPS, a imagem mais exposta
+        # da stack — quebrar o build dela derruba os quatro hosts de uma vez.
+        app: [api, admin, caddy]
     steps:
       - uses: actions/checkout@v4
       - name: Build production image (smoke — não publicada)
@@ -165,7 +194,7 @@ jobs:
     needs: [smoke-build-php]
     strategy:
       matrix:
-        app: [api, admin]
+        app: [api, admin, caddy]
     steps:
       - uses: actions/checkout@v4
       - name: Build image para scan

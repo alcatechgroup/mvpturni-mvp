@@ -1,0 +1,50 @@
+# Landing institucional (ADR-012) empacotada como imagem estática — substitui o
+# Firebase Hosting (ADR-021). Build context: raiz do repositório.
+#
+# O GATE DA ADR-012 §2 continua valendo e é aplicado AQUI, em build-time, como antes
+# era no workflow: a pasta-placeholder `_lp/` é renomeada para o path secreto, o CTA
+# recebe a URL do WebApp do ambiente e o robots.txt é gerado a partir do template.
+# O path real nunca está no repositório — chega como build-arg vindo de um secret.
+#
+#   docker build -f infra/docker/landing/Dockerfile.prod \
+#     --build-arg LANDING_SECRET_PATH=... --build-arg WEBAPP_URL=https://... .
+#
+# ATENÇÃO: o build-arg fica visível no histórico da imagem (`docker history`). Isso é
+# aceito porque o path é obfuscação declarada, não segredo de segurança — o próprio
+# robots.txt o publica (ADR-012 §2/§3). A não-indexação real vem do
+# <meta name="robots" content="noindex,nofollow"> no HTML.
+
+FROM alpine:3.22 AS prep
+
+ARG LANDING_SECRET_PATH
+ARG WEBAPP_URL
+
+RUN apk add --no-cache perl
+
+WORKDIR /bundle
+COPY apps/landing/public/ ./
+
+RUN set -eux; \
+    test -n "$LANDING_SECRET_PATH" || { echo "LANDING_SECRET_PATH vazio"; exit 1; }; \
+    test -n "$WEBAPP_URL" || { echo "WEBAPP_URL vazio"; exit 1; }; \
+    mv _lp "$LANDING_SECRET_PATH"; \
+    perl -pi -e "s|__WEBAPP_URL__|${WEBAPP_URL}|g" "$LANDING_SECRET_PATH"/*.html; \
+    perl -pi -e "s|__LANDING_PATH__|${LANDING_SECRET_PATH}|g" robots.txt; \
+    # As mesmas validações do workflow antigo: nenhum placeholder pode sobreviver ao
+    # build, e o link para o app.html removido não pode voltar por descuido do marketing.
+    ! grep -rq "__WEBAPP_URL__" "$LANDING_SECRET_PATH"; \
+    ! grep -q "__LANDING_PATH__" robots.txt; \
+    ! grep -q 'href="app.html' "$LANDING_SECRET_PATH/index.html"
+
+FROM nginx:1.27-alpine
+
+RUN apk upgrade --no-cache
+
+COPY infra/docker/landing/nginx.conf /etc/nginx/nginx.conf
+COPY --from=prep /bundle /usr/share/nginx/html
+
+ARG APP_VERSION=dev
+LABEL org.opencontainers.image.title="turni-landing" \
+      org.opencontainers.image.version="${APP_VERSION}"
+
+EXPOSE 80

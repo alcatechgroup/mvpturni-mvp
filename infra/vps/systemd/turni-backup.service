@@ -1,0 +1,10 @@
+[Unit]
+Description=Turni — dump do Postgres para o bucket de backups
+Requires=docker.service
+After=turni.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/turni
+ExecStart=/opt/turni/scripts/backup.sh auto
+TimeoutStartSec=1800

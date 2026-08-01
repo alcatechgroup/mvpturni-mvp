@@ -59,7 +59,10 @@ mvpturni-mvp/
 │   ├── domain/         # PHP — domínio compartilhado (Composer path repository)
 │   └── design-tokens/  # fonte única de design tokens (Designer/DDR-001)
 ├── contracts/          # contrato de API (OpenAPI) — gera cliente Dart do WebApp
-├── infra/docker/       # Dockerfiles: imagem PHP compartilhada, mock Pagar.me, initdb do Postgres
+├── infra/docker/       # Dockerfiles das imagens (api, admin, webapp, landing, caddy, mock)
+├── infra/modules/      # módulos Terraform (rede, VPS, DNS, segredos, observabilidade)
+├── infra/envs/         # um diretório por camada de state: shared, homolog, staging, prod
+├── infra/vps/          # o que roda DENTRO da VPS: compose, Caddyfile, scripts, systemd
 ├── scripts/hooks/      # hooks de git versionados (pré-push)
 ├── docker-compose.yml  # sobe api + admin + worker + postgres + pagarme-mock + webapp
 ├── Makefile            # comando único e utilitários
@@ -71,7 +74,9 @@ Arquitetura: monolito modular Laravel com domínio compartilhado e duas camadas 
 
 ## Deploy para homologação (CI/CD)
 
-O pipeline de CI/CD usa **GitHub Actions** + **GCP** (Cloud Run + Firebase Hosting). Toda a infra é **Terraform** em `infra/envs/homolog/`.
+O pipeline usa **GitHub Actions** + **GCP**. Cada ambiente é **uma VPS** no projeto
+FoodHub rodando a stack inteira em containers, com a **Cloudflare** na borda (ADR-021).
+Toda a infra é **Terraform** em `infra/` — ver [infra/README.md](infra/README.md).
 
 ### Criar um release para homologação
 
@@ -80,16 +85,18 @@ O pipeline de CI/CD usa **GitHub Actions** + **GCP** (Cloud Run + Firebase Hosti
 git tag v0.1.0-rc.1
 git push origin v0.1.0-rc.1
 # O GitHub Actions release.yml dispara automaticamente:
-# build → push Artifact Registry → deploy Cloud Run + Firebase → health checks verdes
+# build das imagens → push Artifact Registry → backup do banco → deploy na VPS
+# (SSH pelo túnel IAP) → migrações → smoke HTTP nas quatro superfícies
 # Tempo: ≤ 10 min
 ```
 
 ### Verificar versão em homologação
 
 ```bash
-curl https://api.homolog.turni.com.br/version.json       # {"version":"v0.1.0-rc.1"}
-curl https://admin.homolog.turni.com.br/version.json     # {"version":"v0.1.0-rc.1"}
-curl https://app.homolog.turni.com.br/version.json       # {"version":"v0.1.0-rc.1"}
+# Subdomínios ACHATADOS — o Universal SSL da Cloudflare cobre um nível só (ADR-021 §c)
+curl https://api-homolog.turni.com.br/version.json     # {"version":"v0.1.0-rc.1"}
+curl https://admin-homolog.turni.com.br/version.json   # {"version":"v0.1.0-rc.1"}
+curl https://app-homolog.turni.com.br/version.json     # {"version":"v0.1.0-rc.1"}
 ```
 
 Mecanismo completo: [IDR-002](docs/project-state/decisions/idr/IDR-002-versioning-e-exposicao-versao-runtime.md).
@@ -97,22 +104,18 @@ Mecanismo completo: [IDR-002](docs/project-state/decisions/idr/IDR-002-versionin
 ### Acessar logs estruturados (ADR-008)
 
 ```bash
-# Logs do api em homologação (JSON estruturado no Cloud Logging)
-gcloud logging read \
-  'resource.type="cloud_run_revision" AND resource.labels.service_name="turni-api-homolog"' \
-  --project=SEU_PROJECT_ID --limit=50 --format=json | jq '.[] | .jsonPayload'
+# Um log name por serviço: turni-<env>-{api,admin,worker,scheduler,caddy}
+gcloud logging read 'log_id("turni-homolog-api")' \
+  --project=foodhub-87e0c --limit=50 --format=json | jq '.[] | .jsonPayload'
 ```
 
 ### Rollback
 
 ```bash
-# Cloud Run — redirecionar tráfego para revision anterior
-gcloud run services update-traffic turni-api-homolog \
-  --to-revisions="REVISION_ANTERIOR=100" \
-  --region=southamerica-east1 --project=SEU_PROJECT_ID
-
-# Firebase Hosting — webapp
-firebase hosting:rollback --site=turni-webapp-homolog
+# Volta para a última tag que ficou saudável (código; o schema é forward-only)
+gcloud compute ssh turni-homolog-vm --zone southamerica-east1-c \
+  --project foodhub-87e0c --tunnel-through-iap \
+  --command "sudo /opt/turni/scripts/deploy.sh --rollback"
 ```
 
 ### Como STORY-008 e STORY-009 consomem a versão
@@ -121,7 +124,7 @@ firebase hosting:rollback --site=turni-webapp-homolog
 - **Backoffice (PHP):** `env('APP_VERSION', 'dev')`
 - Arquivo `/version.json` já está em `public/` (PHP) e `web/` (Flutter) — gerado pelo pipeline.
 
-Runbook completo: [docs/operacao/runbook-homolog.md](docs/operacao/runbook-homolog.md).
+Runbook completo: [docs/operacao/runbook-vps.md](docs/operacao/runbook-vps.md).
 
 ## Protótipo PWA
 

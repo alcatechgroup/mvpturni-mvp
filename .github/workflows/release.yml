@@ -1,63 +1,129 @@
 name: Release
 
-# Único disparador de build de release + deploy (ADR-004 / quality-standards 2.2).
+# Único disparador de build de release + deploy (ADR-021 / quality-standards 2.2).
 #   vX.Y.Z-rc.N → build + deploy automático em homologação (sem gate humano)
-#   vX.Y.Z       → build + deploy em produção (gate humano via GitHub Environment "prod")
+#   vX.Y.Z      → build + deploy em produção (gate humano via GitHub Environment "prod")
 #
-# Push/merge em main sem tag NÃO dispara este workflow (CA-6).
+# Push/merge em main sem tag NÃO dispara este workflow.
+#
+# O QUE MUDOU COM A ADR-021: antes eram três caminhos de entrega (Cloud Run para
+# api/admin, Cloud Run Job para as migrações, Firebase Hosting para webapp e landing)
+# e um workflow separado só para a landing. Agora TUDO é imagem no Artifact Registry,
+# e o deploy é um único comando remoto na VPS, por SSH através do túnel IAP — sem
+# porta 22 exposta e sem chave de longa duração (a credencial vem do WIF).
 on:
   push:
     tags:
-      - "v[0-9]*.[0-9]*.[0-9]*-rc.[0-9]*"   # homolog: v0.1.0-rc.1
-      - "v[0-9]*.[0-9]*.[0-9]*"              # prod: v0.1.0 (detect-env distingue em runtime)
+      - "v[0-9]*.[0-9]*.[0-9]*-rc.[0-9]*" # homolog: v0.1.0-rc.1
+      - "v[0-9]*.[0-9]*.[0-9]*" # prod: v0.1.0 (detect-env distingue em runtime)
+
+  # STAGING não tem gatilho por tag de propósito: ele é o ambiente de demonstração,
+  # promovido quando alguém decide, não a cada release candidate. Este disparo manual
+  # também serve para reaplicar uma tag já publicada em qualquer ambiente.
+  workflow_dispatch:
+    inputs:
+      ambiente:
+        description: "Ambiente alvo"
+        type: choice
+        options: [staging, homolog, prod]
+        default: staging
+      tag:
+        description: "Tag da release (ex.: v0.1.0-rc.3). Vira a tag da imagem e a versão exibida."
+        required: true
+        type: string
 
 permissions:
   contents: read
-  id-token: write   # necessário para Workload Identity Federation
-
-# Modelo de 3 projetos GCP independentes: GCP_PROJECT_ID, GCP_WORKLOAD_IDENTITY_PROVIDER
-# e GCP_SERVICE_ACCOUNT são secrets POR GitHub Environment (homolog → turni-homol;
-# prod → turni-prod). Todo job que toca o GCP declara `environment:` para herdar o
-# conjunto certo. Deploy do Firebase é KEYLESS (firebase CLI usa a credencial WIF como
-# ADC) — sem FIREBASE_SERVICE_ACCOUNT.
+  id-token: write # Workload Identity Federation
 
 env:
   GCP_REGION: southamerica-east1
-  REGISTRY: ${{ secrets.GCP_REGION != '' && secrets.GCP_REGION || 'southamerica-east1' }}-docker.pkg.dev
 
 jobs:
-  # ── Detecta o ambiente alvo a partir da tag ──────────────────────────────────
+  # ── Ambiente alvo, derivado da tag ─────────────────────────────────────────
   detect-env:
-    name: Detectar ambiente (homolog / prod)
+    name: Detectar ambiente
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.detect.outputs.environment }}
       is_rc: ${{ steps.detect.outputs.is_rc }}
+      instance: ${{ steps.detect.outputs.instance }}
+      webapp_host: ${{ steps.detect.outputs.webapp_host }}
+      admin_host: ${{ steps.detect.outputs.admin_host }}
+      api_host: ${{ steps.detect.outputs.api_host }}
+      landing_host: ${{ steps.detect.outputs.landing_host }}
+      turni_env: ${{ steps.detect.outputs.turni_env }}
+      tag: ${{ steps.detect.outputs.tag }}
     steps:
       - id: detect
+        env:
+          ENTRADA_AMBIENTE: ${{ inputs.ambiente }}
+          ENTRADA_TAG: ${{ inputs.tag }}
         run: |
-          TAG="${GITHUB_REF_NAME}"
-          if [[ "$TAG" =~ -rc\. ]]; then
-            echo "environment=homolog" >> "$GITHUB_OUTPUT"
-            echo "is_rc=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "environment=prod" >> "$GITHUB_OUTPUT"
-            echo "is_rc=false" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          # Disparo manual manda; push de tag deriva o ambiente do formato da tag.
+          TAG="${ENTRADA_TAG:-$GITHUB_REF_NAME}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          AMBIENTE="${ENTRADA_AMBIENTE:-}"
+          if [ -z "$AMBIENTE" ]; then
+            [[ "$TAG" =~ -rc\. ]] && AMBIENTE=homolog || AMBIENTE=prod
           fi
 
-  # ── Build + push dos artefatos ───────────────────────────────────────────────
+          if [ "$AMBIENTE" = "staging" ]; then
+            {
+              echo "environment=staging"
+              echo "is_rc=true"
+              echo "instance=turni-staging-vm"
+              echo "webapp_host=app-staging.turni.com.br"
+              echo "admin_host=admin-staging.turni.com.br"
+              echo "api_host=api-staging.turni.com.br"
+              echo "landing_host=staging.turni.com.br"
+              # `homolog` é o contrato do banner "Ambiente de teste" (match exato —
+              # STORY-075); staging também precisa dele.
+              echo "turni_env=homolog"
+            } >> "$GITHUB_OUTPUT"
+          elif [ "$AMBIENTE" = "homolog" ]; then
+            {
+              echo "environment=homolog"
+              echo "is_rc=true"
+              echo "instance=turni-homolog-vm"
+              echo "webapp_host=app-homolog.turni.com.br"
+              echo "admin_host=admin-homolog.turni.com.br"
+              echo "api_host=api-homolog.turni.com.br"
+              echo "landing_host=homolog.turni.com.br"
+              echo "turni_env=homolog"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "environment=prod"
+              echo "is_rc=false"
+              echo "instance=turni-prod-vm"
+              echo "webapp_host=app.turni.com.br"
+              echo "admin_host=admin.turni.com.br"
+              echo "api_host=api.turni.com.br"
+              echo "landing_host=turni.com.br"
+              echo "turni_env=production"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+  # ── Imagens que dependem só do repositório ─────────────────────────────────
   build:
     name: Build & push ${{ matrix.app }}
     runs-on: ubuntu-latest
     needs: [detect-env]
-    # Empurra para o Artifact Registry do projeto ALVO (homolog/prod). Em tags finais
-    # o gate do Environment prod também cobre o build (1 aprovação p/ todo o release).
+    # O gate do Environment `prod` cobre também o build: uma aprovação para o release
+    # inteiro, em vez de uma por job.
     environment:
       name: ${{ needs.detect-env.outputs.environment }}
+    env:
+      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
     strategy:
       matrix:
-        # pagarme-mock: fake genérico de pagamento, deployado em homolog (PDR-017 / ADR-016 d).
-        app: [api, admin, pagarme-mock]
+        # pagarme-mock é o fake de pagamento (PDR-017 / ADR-016 d): a imagem é
+        # construída sempre, mas só sobe onde o profile `fake` está ligado — em
+        # produção o compose não a instancia.
+        app: [api, admin, caddy, pagarme-mock]
     steps:
       - uses: actions/checkout@v4
 
@@ -67,469 +133,242 @@ jobs:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      - name: Configurar Docker para Artifact Registry
+      - name: Configurar Docker para o Artifact Registry
         run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
 
-      - name: Build + push imagem de release (${{ matrix.app }})
+      - name: Build + push (${{ matrix.app }})
         run: |
+          set -euo pipefail
           IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/${{ matrix.app }}"
           docker build \
-            --file infra/docker/${{ matrix.app }}/Dockerfile.prod \
-            --build-arg APP_VERSION=${{ github.ref_name }} \
-            --tag "${IMAGE}:${{ github.ref_name }}" \
-            --tag "${IMAGE}:latest" \
+            --file "infra/docker/${{ matrix.app }}/Dockerfile.prod" \
+            --build-arg APP_VERSION="${TAG_RELEASE}" \
+            --tag "${IMAGE}:${TAG_RELEASE}" \
             --push \
             .
 
-  # ── Build Flutter web ────────────────────────────────────────────────────────
+  # ── WebApp Flutter: build web e depois empacotamento ───────────────────────
   build-webapp:
-    name: Build Flutter web
+    name: Build & push webapp
     runs-on: ubuntu-latest
     needs: [detect-env]
+    environment:
+      name: ${{ needs.detect-env.outputs.environment }}
+    env:
+      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
+    env:
+      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
+    env:
+      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
+    env:
+      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.x"
           cache: true
+
       - name: Get dependencies
         working-directory: apps/webapp
         run: flutter pub get
-      - name: Garantir versão presente (CI/CD)
-        # A versão exibida (homolog/prod) é a tag de release. Nunca deployar sem
-        # ela — guarda contra um disparo sem ref_name (não deveria ocorrer).
+
+      - name: Garantir versão presente
+        # A versão exibida no app é a tag de release. Nunca deployar sem ela.
         run: |
-          test -n "${{ github.ref_name }}" || {
-            echo "::error::github.ref_name vazio — abortando build sem versão."; exit 1;
+          test -n "${TAG_RELEASE}" || {
+            echo "::error::tag vazia — abortando build sem versão."; exit 1;
           }
+
       - name: Gerar version.json e health.json
         run: |
-          echo '{"version":"${{ github.ref_name }}"}' > apps/webapp/web/version.json
-          echo '{"status":"ok","version":"${{ github.ref_name }}","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","service":"webapp"}' > apps/webapp/web/health.json
+          echo '{"version":"${{ needs.detect-env.outputs.tag }}"}' > apps/webapp/web/version.json
+          echo '{"status":"ok","version":"${{ needs.detect-env.outputs.tag }}","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","service":"webapp"}' > apps/webapp/web/health.json
+
       - name: Setup Node (branding do PWA)
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: apps/webapp/package-lock.json
+
       - name: Branding do PWA por ambiente (ícone + nome)
-        # Tinge o ícone e ajusta nome/theme-color do PWA conforme o ambiente
-        # (prod verde, homolog azul). Roda ANTES do build — assets web são
-        # estáticos e o build é por tag, então não vaza entre ambientes.
+        # Tinge o ícone e ajusta nome/theme-color conforme o ambiente (prod verde,
+        # homolog azul). Roda ANTES do build; como o build é por tag, não vaza entre
+        # ambientes.
         working-directory: apps/webapp
         run: |
           npm ci --no-audit --no-fund
           node scripts/brand-webapp.mjs ${{ needs.detect-env.outputs.is_rc == 'true' && 'homolog' || 'production' }}
+
       - name: Build web (release)
         working-directory: apps/webapp
         run: |
-          # API_BASE_URL vazio = mesma origem: o WebApp chama /api e /sanctum no
-          # próprio domínio e o Firebase Hosting faz rewrite p/ o Cloud Run da api
-          # (firebase.json). Resolve o cookie cross-domain do Sanctum SPA. STORY-016.
-          # TURNI_ENV (STORY-075 / PDR-017): tag rc → homolog (banner "Ambiente de
-          # teste — pagamentos simulados" visível); tag final → production (sem
-          # banner). Build é por tag, então o define nunca vaza entre ambientes.
+          # API_BASE_URL vazio = MESMA ORIGEM. O WebApp chama /api e /sanctum no
+          # próprio host e o Caddy da VPS encaminha para o container da api — é o que
+          # mantém o cookie de sessão do Sanctum same-site (antes, o rewrite do
+          # Firebase Hosting cumpria esse papel — STORY-016).
           flutter build web \
-            --dart-define=APP_VERSION=${{ github.ref_name }} \
+            --dart-define=APP_VERSION=${{ needs.detect-env.outputs.tag }} \
             --dart-define=API_BASE_URL= \
-            --dart-define=TURNI_ENV=${{ needs.detect-env.outputs.is_rc == 'true' && 'homolog' || 'production' }} \
+            --dart-define=TURNI_ENV=${{ needs.detect-env.outputs.turni_env }} \
             --no-tree-shake-icons \
             --release
-      - name: Upload artefato web
-        uses: actions/upload-artifact@v4
-        with:
-          name: webapp-web-${{ github.ref_name }}
-          path: apps/webapp/build/web/
-          retention-days: 30
 
-  # ── Migração + seed do banco de homologação (Cloud Run Job) ──────────────────
-  # A imagem da api roda `php artisan migrate --force && db:seed --force` contra o
-  # Cloud SQL, ANTES dos deploys fliparem o tráfego (schema pronto p/ o código novo).
-  # Só homolog (is_rc): o seed cria os usuários de teste do CA-12 e NÃO vai p/ prod.
-  # (Prod terá seu próprio job migrate-only quando o deploy de produção for usado.)
-  migrate-homolog:
-    name: Migrar + seed (homolog)
-    runs-on: ubuntu-latest
-    needs: [build, detect-env]
-    if: needs.detect-env.outputs.is_rc == 'true'
-    environment:
-      name: homolog
-    timeout-minutes: 15
-    steps:
       - name: Autenticar no GCP via WIF
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v2
+      - name: Configurar Docker para o Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
 
-      - name: Garantir Cloud SQL ligado
-        run: |
-          # O scheduler de economia pode estar com a instância desligada (noite/fim
-          # de semana). Migração exige o banco no ar; liga e aguarda RUNNABLE.
-          STATE=$(gcloud sql instances describe turni-homolog \
-            --project=${{ secrets.GCP_PROJECT_ID }} --format="value(state)")
-          echo "estado atual: $STATE"
-          if [ "$STATE" != "RUNNABLE" ]; then
-            gcloud sql instances patch turni-homolog \
-              --project=${{ secrets.GCP_PROJECT_ID }} --activation-policy=ALWAYS --quiet
-            for i in $(seq 1 30); do
-              ST=$(gcloud sql instances describe turni-homolog \
-                --project=${{ secrets.GCP_PROJECT_ID }} --format="value(state)")
-              [ "$ST" = "RUNNABLE" ] && { echo "RUNNABLE"; break; }
-              echo "aguardando RUNNABLE ($i/30) — $ST"; sleep 10
-            done
-          fi
-
-      - name: Deploy + executa job de migração (migrate + seed)
-        run: |
-          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/api:${{ github.ref_name }}"
-          CONN="${{ secrets.GCP_PROJECT_ID }}:${{ env.GCP_REGION }}:turni-homolog"
-          gcloud run jobs deploy turni-migrate-homolog \
-            --image="$IMAGE" \
-            --region=${{ env.GCP_REGION }} \
-            --project=${{ secrets.GCP_PROJECT_ID }} \
-            --service-account=turni-apps@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
-            --set-cloudsql-instances="$CONN" \
-            --network=turni-homolog --subnet=turni-homolog-${{ env.GCP_REGION }} \
-            --vpc-egress=private-ranges-only \
-            --set-env-vars="APP_ENV=production,APP_DEBUG=false,LOG_CHANNEL=stderr,DB_CONNECTION=pgsql,DB_SOCKET=/cloudsql/${CONN},DB_DATABASE=turni,DB_USERNAME=turni,QUEUE_CONNECTION=database,SESSION_DRIVER=array" \
-            --set-secrets="APP_KEY=turni-homolog-app-key-api:latest,DB_PASSWORD=turni-homolog-db-password:latest,PIX_FALHA_CHAVE_KEY=turni-homolog-pix-falha-chave-key:latest" \
-            --command=sh \
-            --args='-c,php artisan migrate --force && php artisan db:seed --force' \
-            --max-retries=0 --task-timeout=300
-          gcloud run jobs execute turni-migrate-homolog \
-            --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} --wait
-
-      - name: Atualizar imagem do worker job + scheduler job (Cloud Run Jobs)
-        run: |
-          # O Terraform é dono da DEFINIÇÃO dos jobs (env, secrets, VPC, Cloud SQL —
-          # módulo worker-job, ignore_changes=[image]); o pipeline só atualiza a imagem
-          # a cada release, igual ao api/admin. Ambos rodam a MESMA imagem da api:
-          # - worker (IDR-016): Cloud Scheduler 1/min → queue:work --stop-when-empty
-          # - scheduler (STORY-073): Cloud Scheduler 1/min → schedule:run (Scheduler
-          #   do Laravel — auto-retirada PDR-009, lembretes, sweeper, no-show)
-          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/api:${{ github.ref_name }}"
-          for JOB in turni-worker-job-homolog turni-scheduler-job-homolog; do
-            gcloud run jobs update "$JOB" \
-              --image="$IMAGE" \
-              --region=${{ env.GCP_REGION }} \
-              --project=${{ secrets.GCP_PROJECT_ID }}
-          done
-
-  # ── Deploy API em homologação ────────────────────────────────────────────────
-  deploy-api-homolog:
-    name: Deploy API → homolog
-    runs-on: ubuntu-latest
-    needs: [build, detect-env, migrate-homolog]
-    if: needs.detect-env.outputs.is_rc == 'true'
-    environment:
-      name: homolog
-      url: https://api.homolog.turni.com.br/health
-    steps:
-      - uses: actions/checkout@v4
-      - name: Autenticar no GCP via WIF
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v2
-      - name: Deploy Cloud Run — api (homolog)
-        run: |
-          gcloud run deploy turni-api-homolog \
-            --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/api:${{ github.ref_name }}" \
-            --region ${{ env.GCP_REGION }} \
-            --project ${{ secrets.GCP_PROJECT_ID }} \
-            --tag "v-$(echo ${{ github.ref_name }} | tr '.' '-' | tr '+' '-')" \
-            --update-env-vars "SESSION_DRIVER=database,SESSION_COOKIE=__session" \
-            --no-traffic \
-            --quiet
-          gcloud run services update-traffic turni-api-homolog \
-            --to-latest \
-            --region ${{ env.GCP_REGION }} \
-            --project ${{ secrets.GCP_PROJECT_ID }}
-      - name: Health check
-        run: |
-          # Tenta domínio customizado; fallback para URL do Cloud Run enquanto DNS não está propagado
-          URL=$(gcloud run services describe turni-api-homolog \
-            --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
-            --format="value(status.url)" 2>/dev/null)
-          for i in $(seq 1 12); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${URL}/health")
-            if [ "$STATUS" = "200" ]; then echo "Health check ok: ${URL}/health"; exit 0; fi
-            echo "Aguardando... ($i/12) status=$STATUS"
-            sleep 10
-          done
-          echo "Health check falhou após 120s" && exit 1
-
-  # ── Deploy Admin em homologação ──────────────────────────────────────────────
-  deploy-admin-homolog:
-    name: Deploy Admin → homolog
-    runs-on: ubuntu-latest
-    needs: [build, detect-env, migrate-homolog]
-    if: needs.detect-env.outputs.is_rc == 'true'
-    environment:
-      name: homolog
-      url: https://admin.homolog.turni.com.br/health
-    steps:
-      - uses: actions/checkout@v4
-      - name: Autenticar no GCP via WIF
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v2
-      - name: Deploy Cloud Run — admin (homolog)
-        run: |
-          # IDR-003: homolog usa ingress=all para E2E no CI.
-          # Binding allUsers → roles/run.invoker é gerenciado por Terraform (infra/modules/cloud-run). Aqui só fazemos deploy da imagem.
-          # Prod continua com INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER + IAP.
-          gcloud run deploy turni-admin-homolog \
-            --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/admin:${{ github.ref_name }}" \
-            --region ${{ env.GCP_REGION }} \
-            --project ${{ secrets.GCP_PROJECT_ID }} \
-            --ingress=all \
-            --tag "v-$(echo ${{ github.ref_name }} | tr '.' '-' | tr '+' '-')" \
-            --no-traffic \
-            --quiet
-          gcloud run services update-traffic turni-admin-homolog \
-            --to-latest \
-            --region ${{ env.GCP_REGION }} \
-            --project ${{ secrets.GCP_PROJECT_ID }}
-      - name: Health check admin
-        run: |
-          ADMIN_URL=$(gcloud run services describe turni-admin-homolog \
-            --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
-            --format="value(status.url)" 2>/dev/null)
-          for i in $(seq 1 12); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${ADMIN_URL}/health")
-            if [ "$STATUS" = "200" ]; then echo "Admin health check ok: ${ADMIN_URL}/health"; exit 0; fi
-            echo "Aguardando... ($i/12) status=$STATUS"
-            sleep 10
-          done
-          echo "Health check falhou após 120s" && exit 1
-
-  # ── Deploy do fake de pagamento em homologação (PDR-017 / ADR-016 d) ─────────
-  # Fake genérico = gateway efetivo do MVP em homolog. Serviço/envs/secrets são do
-  # Terraform (infra/envs/homolog); aqui só a imagem da revisão. NÃO existe em prod.
-  deploy-pagarme-mock-homolog:
-    name: Deploy fake Pagar.me → homolog
-    runs-on: ubuntu-latest
-    needs: [build, detect-env]
-    if: needs.detect-env.outputs.is_rc == 'true'
-    environment:
-      name: homolog
-    steps:
-      - uses: actions/checkout@v4
-      - name: Autenticar no GCP via WIF
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v2
-      - name: Deploy Cloud Run — pagarme-mock (homolog)
-        run: |
-          gcloud run deploy turni-pagarme-mock-homolog \
-            --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/pagarme-mock:${{ github.ref_name }}" \
-            --region ${{ env.GCP_REGION }} \
-            --project ${{ secrets.GCP_PROJECT_ID }} \
-            --quiet
-      - name: Health check fake
-        run: |
-          URL=$(gcloud run services describe turni-pagarme-mock-homolog \
-            --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
-            --format="value(status.url)" 2>/dev/null)
-          for i in $(seq 1 12); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${URL}/health")
-            if [ "$STATUS" = "200" ]; then echo "Fake health check ok: ${URL}/health"; exit 0; fi
-            echo "Aguardando... ($i/12) status=$STATUS"
-            sleep 10
-          done
-          echo "Health check falhou após 120s" && exit 1
-
-  # ── Deploy WebApp (Firebase Hosting) em homologação ─────────────────────────
-  deploy-webapp-homolog:
-    name: Deploy WebApp → homolog (Firebase)
-    runs-on: ubuntu-latest
-    needs: [build-webapp, detect-env]
-    if: needs.detect-env.outputs.is_rc == 'true'
-    environment:
-      name: homolog
-      url: https://app.homolog.turni.com.br
-    steps:
-      - uses: actions/checkout@v4
-      - name: Autenticar no GCP via WIF
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-      - name: Download artefato web
-        uses: actions/download-artifact@v4
-        with:
-          name: webapp-web-${{ github.ref_name }}
-          path: apps/webapp/build/web/
-      # Keyless: o firebase CLI usa a credencial do passo WIF acima (ADC via
-      # GOOGLE_APPLICATION_CREDENTIALS exportado por google-github-actions/auth).
-      # Sem FIREBASE_SERVICE_ACCOUNT (chave de longa duração).
-      - name: Setup firebase-tools
-        run: npm i -g firebase-tools@13.29.1
-      - name: Deploy Firebase Hosting (homolog)
-        run: |
-          firebase deploy --only hosting:homolog \
-            --project ${{ secrets.GCP_PROJECT_ID }} --non-interactive \
-            --message "${{ github.ref_name }}"
-
-  # ── Smoke pós-deploy em homologação (curl /health + /version.json) ──────────
-  # Substitui o antigo job e2e-homolog. E2E em browser real é gate LOCAL
-  # (pre-push / `make e2e`) — ver IDR-004 e quality-standards.md §2.2.
-  # Aqui só verificamos que as 3 interfaces respondem 200 e estão servindo a
-  # versão da tag recém-deployada (catch rápido de deploy parcial / cache stale).
-  smoke-homolog:
-    name: Smoke pós-deploy (homolog)
-    runs-on: ubuntu-latest
-    needs: [deploy-api-homolog, deploy-admin-homolog, deploy-webapp-homolog, detect-env]
-    if: needs.detect-env.outputs.is_rc == 'true'
-    environment:
-      name: homolog
-    timeout-minutes: 5
-    steps:
-      - name: Autenticar no GCP via WIF
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Obter URLs Cloud Run
-        id: urls
-        run: |
-          API_URL=$(gcloud run services describe turni-api-homolog \
-            --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
-            --format="value(status.url)")
-          ADMIN_URL=$(gcloud run services describe turni-admin-homolog \
-            --region=${{ env.GCP_REGION }} --project=${{ secrets.GCP_PROJECT_ID }} \
-            --format="value(status.url)")
-          echo "api=${API_URL}"     >> "$GITHUB_OUTPUT"
-          echo "admin=${ADMIN_URL}" >> "$GITHUB_OUTPUT"
-          echo "webapp=https://app.homolog.turni.com.br" >> "$GITHUB_OUTPUT"
-
-      - name: Smoke — /health (3 interfaces)
+      - name: Build + push da imagem webapp
         run: |
           set -euo pipefail
+          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/webapp"
+          docker build \
+            --file infra/docker/webapp/Dockerfile.prod \
+            --build-arg APP_VERSION="${TAG_RELEASE}" \
+            --tag "${IMAGE}:${TAG_RELEASE}" \
+            --push \
+            .
+
+  # ── Landing institucional (gate da ADR-012 aplicado no build da imagem) ────
+  build-landing:
+    name: Build & push landing
+    runs-on: ubuntu-latest
+    needs: [detect-env]
+    environment:
+      name: ${{ needs.detect-env.outputs.environment }}
+    env:
+      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
+    env:
+      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
+    env:
+      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
+    env:
+      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Autenticar no GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Configurar Docker para o Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build + push da imagem landing
+        env:
+          LANDING_SECRET_PATH: ${{ secrets.LANDING_SECRET_PATH }}
+        run: |
+          set -euo pipefail
+          test -n "$LANDING_SECRET_PATH" || { echo "::error::secret LANDING_SECRET_PATH vazio"; exit 1; }
+          echo "::add-mask::$LANDING_SECRET_PATH"
+          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/landing"
+          # O rename de _lp/, o swap do CTA e a geração do robots.txt acontecem DENTRO
+          # do Dockerfile (ADR-012 §2) — as mesmas validações de antes rodam lá.
+          docker build \
+            --file infra/docker/landing/Dockerfile.prod \
+            --build-arg APP_VERSION="${TAG_RELEASE}" \
+            --build-arg LANDING_SECRET_PATH="$LANDING_SECRET_PATH" \
+            --build-arg WEBAPP_URL="https://${{ needs.detect-env.outputs.webapp_host }}" \
+            --tag "${IMAGE}:${TAG_RELEASE}" \
+            --push \
+            .
+
+  # ── Deploy na VPS ──────────────────────────────────────────────────────────
+  # Um comando remoto. O deploy.sh na VPS faz o resto: sincroniza config, relê
+  # segredos do Secret Manager, aplica migrações, sobe a stack e valida /health.
+  deploy:
+    name: Deploy na VPS (${{ needs.detect-env.outputs.environment }})
+    runs-on: ubuntu-latest
+    needs: [detect-env, build, build-webapp, build-landing]
+    environment:
+      name: ${{ needs.detect-env.outputs.environment }}
+    env:
+      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
+    steps:
+      - name: Autenticar no GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Backup do banco antes de migrar
+        # Migração é forward-only (quality-standards 2.4): o rollback devolve o código,
+        # não o schema. Este dump é a única rede de segurança para o dado se a migração
+        # da release se mostrar destrutiva.
+        run: |
+          set -euo pipefail
+          gcloud compute ssh "${{ needs.detect-env.outputs.instance }}" \
+            --zone "${{ env.GCP_REGION }}-c" \
+            --project "${{ secrets.GCP_PROJECT_ID }}" \
+            --tunnel-through-iap --quiet \
+            --command "sudo /opt/turni/scripts/backup.sh pre-${TAG_RELEASE}"
+
+      - name: Aplicar a release
+        run: |
+          set -euo pipefail
+          gcloud compute ssh "${{ needs.detect-env.outputs.instance }}" \
+            --zone "${{ env.GCP_REGION }}-c" \
+            --project "${{ secrets.GCP_PROJECT_ID }}" \
+            --tunnel-through-iap --quiet \
+            --command "sudo /opt/turni/scripts/deploy.sh ${TAG_RELEASE}"
+
+  # ── Smoke pelo DNS público ─────────────────────────────────────────────────
+  # Vale mais que o health interno do deploy: exercita a cadeia inteira — Cloudflare,
+  # certificado do Caddy, roteamento por host e o same-origin do WebApp.
+  smoke:
+    name: Smoke HTTP
+    runs-on: ubuntu-latest
+    needs: [detect-env, deploy]
+    steps:
+      - name: Verificar as quatro superfícies
+        env:
+          WEBAPP: ${{ needs.detect-env.outputs.webapp_host }}
+          ADMIN: ${{ needs.detect-env.outputs.admin_host }}
+          API: ${{ needs.detect-env.outputs.api_host }}
+          LANDING: ${{ needs.detect-env.outputs.landing_host }}
+          TAG: ${{ needs.detect-env.outputs.tag }}
+        run: |
+          set -uo pipefail
           fail=0
-          probe() {
-            local name=$1 url=$2
-            STATUS=$(curl -fsS -o /tmp/body -w "%{http_code}" "$url" || echo "000")
-            if [ "$STATUS" = "200" ]; then
-              echo "✓ $name → 200"
+
+          check() {
+            local nome="$1" url="$2" esperado="$3"
+            local code
+            code=$(curl -sSL --max-time 20 -o /dev/null -w '%{http_code}' "$url" || echo "000")
+            if [ "$code" = "$esperado" ]; then
+              echo "ok   $nome ($code) — $url"
             else
-              echo "✗ $name → $STATUS"
-              echo "── body:"; cat /tmp/body || true; echo
+              echo "FALHA $nome: esperado $esperado, veio $code — $url"
               fail=1
             fi
           }
-          probe "API    /health"  "${{ steps.urls.outputs.api }}/health"
-          probe "Admin  /health"  "${{ steps.urls.outputs.admin }}/health"
-          probe "WebApp /health.json" "${{ steps.urls.outputs.webapp }}/health.json"
-          exit $fail
 
-      - name: Smoke — /version.json bate com a tag
-        run: |
-          set -euo pipefail
-          TAG="${{ github.ref_name }}"
-          fail=0
-          check_version() {
-            local name=$1 url=$2
-            BODY=$(curl -fsS "$url" || echo "")
-            GOT=$(echo "$BODY" | grep -oE '"version":"[^"]+"' | head -1 | cut -d'"' -f4)
-            if [ "$GOT" = "$TAG" ]; then
-              echo "✓ $name version=$GOT"
-            else
-              echo "✗ $name esperava version=$TAG, recebeu '$GOT' (body: $BODY)"
-              fail=1
-            fi
-          }
-          check_version "API"    "${{ steps.urls.outputs.api }}/version.json"
-          check_version "Admin"  "${{ steps.urls.outputs.admin }}/version.json"
-          check_version "WebApp" "${{ steps.urls.outputs.webapp }}/version.json"
-          exit $fail
+          check "webapp"          "https://$WEBAPP/"        200
+          check "webapp /health"  "https://$WEBAPP/health"  200
+          check "api /health"     "https://$API/health"     200
+          check "admin"           "https://$ADMIN/"         200
+          check "landing"         "https://$LANDING/"       200
 
-      # STORY-017: foto de celular (~1.3 MB) era barrada com 413 no nginx (default 1 MB).
-      # Garante que o edge (nginx client_max_body_size + PHP upload_max_filesize) aceita
-      # upload realista. Payload incompleto de propósito → 422 de validação, sem criar
-      # usuário. O que NÃO pode acontecer é 413.
-      - name: Smoke — upload >1MB não é barrado no edge (regressão 413)
-        run: |
-          set -euo pipefail
-          head -c 1300000 /dev/urandom > /tmp/foto_smoke.jpg
-          STATUS=$(curl -s -o /tmp/up_body -w "%{http_code}" \
-            -F "foto=@/tmp/foto_smoke.jpg;type=image/jpeg" \
-            -F "name=smoke" -F "email=smoke@invalid.test" \
-            "${{ steps.urls.outputs.api }}/api/cadastro/profissional" || echo "000")
-          if [ "$STATUS" = "413" ]; then
-            echo "✗ upload de 1.3MB barrado com 413 (limites de corpo baixos)"; cat /tmp/up_body || true; exit 1
+          # A versão publicada tem que ser a da tag. Sem esta asserção, um deploy que
+          # falhou em trocar a imagem passaria despercebido: tudo responde 200, só que
+          # é a release anterior.
+          versao=$(curl -sSL --max-time 20 "https://$WEBAPP/version.json" | tr -d ' \n')
+          if echo "$versao" | grep -q "\"$TAG\""; then
+            echo "ok   versão publicada = $TAG"
+          else
+            echo "FALHA versão publicada: esperado $TAG, veio $versao"
+            fail=1
           fi
-          echo "✓ upload >1MB aceito no edge (HTTP $STATUS — 4xx de validação esperado, não 413)"
 
-  # ── Gate humano + deploy em PRODUÇÃO ────────────────────────────────────────
-  deploy-prod:
-    name: Deploy → PRODUÇÃO (gate humano obrigatório)
-    runs-on: ubuntu-latest
-    needs: [build, build-webapp, detect-env]
-    if: needs.detect-env.outputs.is_rc == 'false'
-    # GitHub Environment "prod" tem revisor obrigatório — 1 clique humano.
-    # Artefatos são reutilizados do build desta tag; NÃO são reconstruídos.
-    environment:
-      name: prod
-      url: https://app.turni.com.br
-    steps:
-      - uses: actions/checkout@v4
-      - name: Autenticar no GCP via WIF
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v2
-      - name: Deploy Cloud Run — api (prod)
-        run: |
-          gcloud run deploy turni-api-prod \
-            --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/api:${{ github.ref_name }}" \
-            --region ${{ env.GCP_REGION }} \
-            --project ${{ secrets.GCP_PROJECT_ID }} \
-            --no-traffic --quiet
-          gcloud run services update-traffic turni-api-prod \
-            --to-latest \
-            --region ${{ env.GCP_REGION }} \
-            --project ${{ secrets.GCP_PROJECT_ID }}
-      - name: Deploy Cloud Run — admin (prod)
-        run: |
-          gcloud run deploy turni-admin-prod \
-            --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/turni/admin:${{ github.ref_name }}" \
-            --region ${{ env.GCP_REGION }} \
-            --project ${{ secrets.GCP_PROJECT_ID }} \
-            --no-traffic --quiet
-          gcloud run services update-traffic turni-admin-prod \
-            --to-latest \
-            --region ${{ env.GCP_REGION }} \
-            --project ${{ secrets.GCP_PROJECT_ID }}
-      - name: Download artefato web
-        uses: actions/download-artifact@v4
-        with:
-          name: webapp-web-${{ github.ref_name }}
-          path: apps/webapp/build/web/
-      # Keyless: firebase CLI usa a credencial WIF (ADC) do passo de auth deste job.
-      - name: Setup firebase-tools
-        run: npm i -g firebase-tools@13.29.1
-      - name: Deploy Firebase Hosting (prod)
-        run: |
-          firebase deploy --only hosting:prod \
-            --project ${{ secrets.GCP_PROJECT_ID }} --non-interactive \
-            --message "${{ github.ref_name }}"
+          exit $fail

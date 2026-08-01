@@ -1,40 +1,34 @@
-output "wif_provider" {
-  description = "Valor para o GitHub secret GCP_WORKLOAD_IDENTITY_PROVIDER"
-  value       = module.iam.workload_identity_provider
+output "external_ip" {
+  description = "IP público da VPS de homologação"
+  value       = module.homolog.external_ip
 }
 
-output "ci_service_account" {
-  description = "Valor para o GitHub secret GCP_SERVICE_ACCOUNT"
-  value       = module.iam.ci_service_account_email
+output "instance_name" {
+  description = "Nome da instância (alvo do deploy via IAP)"
+  value       = module.homolog.instance_name
 }
 
-output "artifact_registry_url" {
-  value = module.artifact_registry.repository_url
+output "zone" {
+  description = "Zona da instância"
+  value       = module.homolog.zone
 }
 
-output "api_url" {
-  value = module.cloud_run_api.service_url
+output "urls" {
+  description = "URLs públicas do ambiente"
+  value       = module.homolog.urls
 }
 
-output "admin_url" {
-  value = module.cloud_run_admin.service_url
+output "config_bucket" {
+  description = "Bucket com o runtime publicado na VPS"
+  value       = module.homolog.config_bucket
 }
 
-output "firebase_site_id" {
-  value = module.firebase.site_id
+output "backups_bucket" {
+  description = "Bucket dos dumps do Postgres"
+  value       = module.homolog.backups_bucket
 }
 
-output "landing_site_id" {
-  description = "site_id do site Firebase da landing homolog"
-  value       = module.firebase.additional_site_ids["landing"]
-}
-
-output "landing_default_url" {
-  description = "URL default do site da landing homolog (placeholder até STORY-030 importar conteúdo)"
-  value       = "https://${module.firebase.additional_site_ids["landing"]}.web.app"
-}
-
-output "dns_name_servers" {
-  description = "Nameservers da zona homolog.turni.com.br — preencher na var `delegations` do env prod (apex) para o registro NS de delegação"
-  value       = module.dns.name_servers
+output "ssh_command" {
+  description = "Comando pronto para abrir shell na VPS (sem porta 22 exposta)"
+  value       = "gcloud compute ssh ${module.homolog.instance_name} --zone ${module.homolog.zone} --project ${var.project_id} --tunnel-through-iap"
 }

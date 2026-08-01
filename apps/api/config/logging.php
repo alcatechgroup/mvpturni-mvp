@@ -1,5 +1,6 @@
 <?php
 
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -102,6 +103,24 @@ return [
                 'stream' => 'php://stderr',
             ],
             'formatter' => env('LOG_STDERR_FORMATTER'),
+            'processors' => [PsrLogMessageProcessor::class],
+        ],
+
+        // Canal de arquivo em JSON — origem dos logs no Cloud Logging desde a
+        // ADR-021. Numa VPS ninguém coleta stdout de container automaticamente: cada
+        // serviço (api, admin, worker, scheduler) escreve o SEU arquivo, e o Ops Agent
+        // tem um receiver por arquivo — é o que dá ao Cloud Logging um log name por
+        // serviço e preserva os filtros das métricas de negócio (ADR-008).
+        // Usado junto do stderr via LOG_CHANNEL=stack + LOG_STACK=stderr,turni_json,
+        // para que `docker compose logs` continue servindo à depuração ao vivo.
+        'turni_json' => [
+            'driver' => 'monolog',
+            'level' => env('LOG_LEVEL', 'info'),
+            'handler' => StreamHandler::class,
+            'handler_with' => [
+                'stream' => env('LOG_JSON_PATH', storage_path('logs/turni.json.log')),
+            ],
+            'formatter' => JsonFormatter::class,
             'processors' => [PsrLogMessageProcessor::class],
         ],
 

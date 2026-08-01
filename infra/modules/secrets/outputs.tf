@@ -1,15 +1,9 @@
-output "app_key_api_secret_id" {
-  value = google_secret_manager_secret.app_key_api.secret_id
+output "secret_ids" {
+  description = "Mapa papel => secret_id criado (ex.: app-key-api => turni-homolog-app-key-api)"
+  value       = { for k, s in google_secret_manager_secret.this : k => s.secret_id }
 }
 
-output "app_key_admin_secret_id" {
-  value = google_secret_manager_secret.app_key_admin.secret_id
-}
-
-output "db_password_secret_id" {
-  value = google_secret_manager_secret.db_password.secret_id
-}
-
-output "resend_api_key_secret_id" {
-  value = google_secret_manager_secret.resend_api_key.secret_id
+output "secret_id_list" {
+  description = "Lista dos secret_id (para conceder acesso em bloco à SA da VPS)"
+  value       = [for s in google_secret_manager_secret.this : s.secret_id]
 }

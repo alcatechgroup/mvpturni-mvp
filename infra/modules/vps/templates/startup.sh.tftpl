@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+# Bootstrap da VPS do Turni (${env}) — roda a cada boot, é IDEMPOTENTE.
+# Renderizado pelo Terraform (infra/modules/vps). Ordem: disco de dados → swap →
+# Docker → Ops Agent → sincronizar runtime do bucket → subir a stack via systemd.
+#
+# Diagnóstico: `sudo journalctl -u google-startup-scripts -f` ou /var/log/turni-startup.log
+set -euo pipefail
+exec > >(tee -a /var/log/turni-startup.log | logger -t turni-startup) 2>&1
+
+echo "=== bootstrap turni/${env} — $(date -Is) ==="
+
+DATA_DEVICE="/dev/disk/by-id/google-${data_device_name}"
+DATA_MOUNT="${data_mount_point}"
+APP_DIR="${app_dir}"
+CONFIG_BUCKET="${config_bucket}"
+
+# ── 1. Disco de dados ────────────────────────────────────────────────────────
+# Formata SÓ na primeira vez (a ausência de filesystem é a condição). Um disco já
+# formatado nunca é tocado — é onde vive o Postgres.
+if ! blkid "$DATA_DEVICE" >/dev/null 2>&1; then
+  echo "-- formatando $DATA_DEVICE (primeiro boot)"
+  mkfs.ext4 -m 0 -F -E lazy_itable_init=0,lazy_journal_init=0,discard "$DATA_DEVICE"
+fi
+
+mkdir -p "$DATA_MOUNT"
+DATA_UUID="$(blkid -s UUID -o value "$DATA_DEVICE")"
+if ! grep -q "$DATA_UUID" /etc/fstab; then
+  # nofail: um disco ausente não pode impedir o boot (senão a VM sobe sem SSH).
+  echo "UUID=$DATA_UUID $DATA_MOUNT ext4 discard,defaults,nofail 0 2" >> /etc/fstab
+fi
+mountpoint -q "$DATA_MOUNT" || mount "$DATA_MOUNT"
+
+mkdir -p "$DATA_MOUNT"/{postgres,caddy/data,caddy/config}
+mkdir -p "$DATA_MOUNT"/storage/{api,admin}
+# Um diretório de log por serviço: é o que dá ao Ops Agent como distinguir quem
+# emitiu a linha (o receiver id vira o log name — ver infra/vps/ops-agent.yaml).
+mkdir -p "$DATA_MOUNT"/logs/{api,admin,worker,scheduler,caddy}
+# UID 1000 = usuário `app` das imagens PHP (Dockerfile.prod); 999 = postgres na imagem alpine.
+chown -R 1000:1000 "$DATA_MOUNT"/storage "$DATA_MOUNT"/logs
+chown -R 999:999 "$DATA_MOUNT"/postgres
+
+# ── 2. Swap ──────────────────────────────────────────────────────────────────
+# e2-small tem 2 GB. Sem swap, `composer`/`migrate` concorrendo com o Postgres levam
+# OOM-kill. 2 GB de swap não substituem RAM, só absorvem picos.
+if [ ! -f /swapfile ]; then
+  echo "-- criando swapfile de 2G"
+  fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
+  chmod 600 /swapfile
+  mkswap /swapfile
+  grep -q '/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+swapon --show | grep -q '/swapfile' || swapon /swapfile
+# Prioriza manter páginas anônimas na RAM; swap é rede de segurança, não regime.
+sysctl -w vm.swappiness=10 >/dev/null
+grep -q 'vm.swappiness' /etc/sysctl.d/99-turni.conf 2>/dev/null || echo 'vm.swappiness=10' > /etc/sysctl.d/99-turni.conf
+
+# ── 3. Docker Engine + plugin compose ────────────────────────────────────────
+if ! command -v docker >/dev/null 2>&1; then
+  echo "-- instalando Docker Engine"
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update -qq
+  apt-get install -y -qq ca-certificates curl gnupg
+  install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/debian/gpg \
+    | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  chmod a+r /etc/apt/keyrings/docker.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+    > /etc/apt/sources.list.d/docker.list
+  apt-get update -qq
+  apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  systemctl enable --now docker
+fi
+
+# Rotação de log dos containers: sem isto o json-file cresce sem teto e enche o disco
+# de boot (modo de falha clássico de VPS com Docker).
+if [ ! -f /etc/docker/daemon.json ]; then
+  mkdir -p /etc/docker
+  cat > /etc/docker/daemon.json <<'JSON'
+{
+  "log-driver": "json-file",
+  "log-opts": { "max-size": "10m", "max-file": "3" }
+}
+JSON
+  systemctl restart docker
+fi
+
+# ── 4. gcloud CLI (sincronizar config, ler segredos, enviar backup) ──────────
+if ! command -v gcloud >/dev/null 2>&1; then
+  echo "-- instalando google-cloud-cli"
+  export DEBIAN_FRONTEND=noninteractive
+  curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+    | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+  echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" \
+    > /etc/apt/sources.list.d/google-cloud-sdk.list
+  apt-get update -qq
+  apt-get install -y -qq google-cloud-cli
+fi
+
+# Autentica o Docker no Artifact Registry usando a SA da instância (sem chave).
+gcloud auth configure-docker "${region}-docker.pkg.dev" --quiet || true
+
+%{ if install_ops_agent ~}
+# ── 5. Ops Agent (ADR-008) ───────────────────────────────────────────────────
+# Sem Cloud Run, ninguém coleta log nem métrica sozinho. O agente lê os arquivos JSON
+# que cada serviço escreve (um receiver por serviço → um log name por serviço) e
+# publica memória/disco como métricas — que é o que os alertas do módulo monitoring
+# consomem. A config vem do repo (infra/vps/ops-agent.yaml), com __ENV__ resolvido aqui.
+if ! systemctl is-active --quiet google-cloud-ops-agent; then
+  echo "-- instalando Ops Agent"
+  curl -fsSL https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh -o /tmp/add-ops-agent-repo.sh
+  bash /tmp/add-ops-agent-repo.sh --also-install || echo "!! Ops Agent falhou; seguindo (não é bloqueante)"
+fi
+%{ endif ~}
+
+# ── 6. Runtime da aplicação ──────────────────────────────────────────────────
+mkdir -p "$APP_DIR"
+echo "-- sincronizando runtime de gs://$CONFIG_BUCKET"
+# SEM --delete: /opt/turni também guarda .env, .env.admin e .state/, que não existem
+# no bucket e seriam apagados a cada boot.
+gcloud storage rsync --recursive "gs://$CONFIG_BUCKET/runtime" "$APP_DIR" --quiet
+gcloud storage cp "gs://$CONFIG_BUCKET/runtime.env" "$APP_DIR/runtime.env" --quiet
+chmod +x "$APP_DIR"/scripts/*.sh
+
+# O runtime.env do bucket traz IMAGE_TAG=latest (valor de bootstrap). Num REBOOT, isso
+# degradaria o ambiente para a última imagem publicada em vez da release que estava no
+# ar — por isso a tag corrente, registrada pelo deploy.sh, tem precedência.
+CURRENT_TAG_FILE="$APP_DIR/.state/current_tag"
+if [ -s "$CURRENT_TAG_FILE" ]; then
+  sed -i "s|^IMAGE_TAG=.*|IMAGE_TAG=$(cat "$CURRENT_TAG_FILE")|" "$APP_DIR/runtime.env"
+fi
+
+# Monta o .env completo (runtime.env + segredos do Secret Manager).
+"$APP_DIR/scripts/render-env.sh"
+
+%{ if install_ops_agent ~}
+# Config do Ops Agent (só reinicia o agente quando o conteúdo muda de fato — reiniciar
+# a cada boot perderia o buffer em voo sem motivo).
+if [ -f "$APP_DIR/ops-agent.yaml" ]; then
+  sed "s/__ENV__/${env}/g" "$APP_DIR/ops-agent.yaml" > /tmp/ops-agent.yaml
+  if ! cmp -s /tmp/ops-agent.yaml /etc/google-cloud-ops-agent/config.yaml; then
+    mkdir -p /etc/google-cloud-ops-agent
+    mv /tmp/ops-agent.yaml /etc/google-cloud-ops-agent/config.yaml
+    systemctl restart google-cloud-ops-agent || true
+  fi
+fi
+%{ endif ~}
+
+# ── 7. systemd: a stack sobe no boot e reinicia sozinha ──────────────────────
+install -m 0644 "$APP_DIR/systemd/turni.service" /etc/systemd/system/turni.service
+install -m 0644 "$APP_DIR/systemd/turni-backup.service" /etc/systemd/system/turni-backup.service
+install -m 0644 "$APP_DIR/systemd/turni-backup.timer" /etc/systemd/system/turni-backup.timer
+systemctl daemon-reload
+systemctl enable turni.service turni-backup.timer
+
+# `start` com tolerância a falha DE PROPÓSITO: no primeiro boot de um ambiente novo
+# ainda não há imagem publicada no Artifact Registry, então o `up` falha — e com
+# `set -e` isso abortaria o script antes de habilitar o timer de backup (aconteceu no
+# bring-up do staging: o ambiente subiu sem agenda de backup). O deploy da primeira
+# release coloca a stack de pé; o `enable` acima garante o boot seguinte.
+systemctl start turni.service || echo "!! turni.service não subiu (normal no 1º boot, antes da primeira release)"
+systemctl start turni-backup.timer || echo "!! turni-backup.timer não iniciou"
+
+echo "=== bootstrap concluído — $(date -Is) ==="

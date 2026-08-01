@@ -14,10 +14,11 @@
 # Uso: scripts/story085-homolog-smoke.sh
 set -uo pipefail
 
-# A API de homolog é servida pela URL do Cloud Run (o subdomínio api.homolog.turni.com.br
-# não tem registro DNS). Origin = WebApp (Sanctum SPA stateful valida o Origin no CSRF).
-API="https://turni-api-homolog-tuhmw7pfwa-rj.a.run.app"
-ORIG="https://app.homolog.turni.com.br"
+# A API de homolog atende em api-homolog.turni.com.br — subdomínio achatado, limite do
+# Universal SSL da Cloudflare (ADR-021 §c).
+# Origin = WebApp (Sanctum SPA stateful valida o Origin no CSRF).
+API="https://api-homolog.turni.com.br"
+ORIG="https://app-homolog.turni.com.br"
 PASS="${ADMIN_SEED_PASSWORD:-turni-dev}"
 EMP="contratante.avaliacao@turni.local"
 PRO="profissional.avaliacao@turni.local"

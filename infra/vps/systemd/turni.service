@@ -1,0 +1,26 @@
+# A stack do Turni como unidade do sistema: sobe no boot e é o ponto único de
+# start/stop/status da máquina (`systemctl status turni`).
+#
+# Type=oneshot + RemainAfterExit: quem supervisiona os containers é o próprio Docker
+# (restart: unless-stopped no compose). O systemd cuida só da borda — subir tudo no
+# boot, na ordem certa, e derrubar limpo no shutdown.
+
+[Unit]
+Description=Turni — stack da aplicação (docker compose)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/turni
+# Os segredos são relidos a cada start: rotacionar no Secret Manager e reiniciar a
+# unidade basta, sem redeploy.
+ExecStartPre=/opt/turni/scripts/render-env.sh
+ExecStart=/usr/bin/docker compose -f /opt/turni/docker-compose.yml up -d --remove-orphans
+ExecStop=/usr/bin/docker compose -f /opt/turni/docker-compose.yml down
+TimeoutStartSec=600
+
+[Install]
+WantedBy=multi-user.target

@@ -74,7 +74,7 @@ manual, hot-fix sem release).
 - `Makefile`: novo target `make e2e` (com sub-targets `e2e-webapp` e `e2e-admin`).
 - `scripts/hooks/pre-push`: cabeçalho atualizado documentando que E2E roda via
   `make e2e` antes da tag (não no hook).
-- `docs/operacao/runbook-homolog.md`: nova seção "Antes de criar tag rc.N"
+- `docs/operacao/runbook-vps.md`: seção "Antes de criar tag rc.N" (era runbook-homolog.md até a ADR-021)
   cobrando `make e2e` verde como checklist explícito.
 - `docs/project-state/epics/EPIC-000-foundation/epic.md`: critério "CI roda... ao
   menos um E2E smoke" reformulado para "CI roda smoke curl pós-deploy + E2E local
@@ -92,7 +92,7 @@ o IDR-003 vira `superseded_by: IDR-XXX-iap-admin-homolog`.
 ### Riscos aceitos
 
 - **Regressão visual de UI escapa para homolog se o dev pular `make e2e`** antes
-  da tag. Mitigação: disciplina (`runbook-homolog.md` checklist) + smoke curl no
+  da tag. Mitigação: disciplina (`runbook-vps.md` checklist) + smoke HTTP no
   pipeline pega 5xx/404 (não pega CSS quebrado, mas pega quebra funcional severa).
 - **PO perde "rede de proteção automática" no pipeline**: smoke manual no app
   homolog continua sendo prática recomendada antes do deploy de produção (que tem

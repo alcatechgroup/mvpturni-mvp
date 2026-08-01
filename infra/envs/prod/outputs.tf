@@ -1,34 +1,34 @@
-output "wif_provider" {
-  description = "Valor para o GitHub secret GCP_WORKLOAD_IDENTITY_PROVIDER (Environment prod)"
-  value       = module.iam.workload_identity_provider
+output "external_ip" {
+  description = "IP público da VPS de prod"
+  value       = module.prod.external_ip
 }
 
-output "ci_service_account" {
-  description = "Valor para o GitHub secret GCP_SERVICE_ACCOUNT (Environment prod)"
-  value       = module.iam.ci_service_account_email
+output "instance_name" {
+  description = "Nome da instância (alvo do deploy via IAP)"
+  value       = module.prod.instance_name
 }
 
-output "artifact_registry_url" {
-  value = module.artifact_registry.repository_url
+output "zone" {
+  description = "Zona da instância"
+  value       = module.prod.zone
 }
 
-output "api_url" {
-  value = module.cloud_run_api.service_url
+output "urls" {
+  description = "URLs públicas do ambiente"
+  value       = module.prod.urls
 }
 
-output "admin_url" {
-  value = module.cloud_run_admin.service_url
+output "config_bucket" {
+  description = "Bucket com o runtime publicado na VPS"
+  value       = module.prod.config_bucket
 }
 
-output "firebase_site_id" {
-  description = "site_id do WebApp prod (null enquanto parado — firebase só sobe no go-live)"
-  value       = one(module.firebase[*].site_id)
+output "backups_bucket" {
+  description = "Bucket dos dumps do Postgres"
+  value       = module.prod.backups_bucket
 }
 
-# RAIZ do domínio: delegar turni.com.br para estes nameservers NO REGISTRO.BR (cutover
-# único do modelo de 3 projetos). Depois, as zonas filhas (homolog./stage.) são alcançadas
-# via os registros NS de delegação que esta zona publica (var.delegations).
-output "dns_name_servers" {
-  description = "Nameservers da zona apex turni.com.br — configurar no registro.br"
-  value       = module.dns.name_servers
+output "ssh_command" {
+  description = "Comando pronto para abrir shell na VPS (sem porta 22 exposta)"
+  value       = "gcloud compute ssh ${module.prod.instance_name} --zone ${module.prod.zone} --project ${var.project_id} --tunnel-through-iap"
 }

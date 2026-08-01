@@ -1,0 +1,28 @@
+# Caddy com o plugin de DNS da Cloudflare (ADR-021).
+#
+# A imagem oficial do Caddy não traz provedores de DNS — e sem o provedor da
+# Cloudflare não há desafio DNS-01, que é o único caminho de emissão de certificado
+# nesta topologia: o firewall do GCP só aceita 80/443 vindos do proxy da Cloudflare,
+# então a Let's Encrypt não consegue fazer HTTP-01 contra o origin.
+#
+# xcaddy recompila o binário com o módulo embutido. É o procedimento suportado pelo
+# projeto — não há "plugin em runtime" no Caddy.
+
+FROM caddy:2-builder-alpine AS builder
+
+RUN xcaddy build \
+    --with github.com/caddy-dns/cloudflare
+
+FROM caddy:2-alpine
+
+# `apk upgrade` antes de qualquer coisa: a base costuma trazer pacotes em revisões
+# anteriores às já corrigidas no repo, e o gate Trivy do CI reprova CVE fixável.
+RUN apk upgrade --no-cache
+
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+COPY infra/vps/Caddyfile /etc/caddy/Caddyfile
+
+# Diretório do access log em JSON — montado do disco de dados e lido pelo Ops Agent.
+RUN mkdir -p /var/log/caddy
+
+EXPOSE 80 443 443/udp

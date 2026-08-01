@@ -1,93 +1,85 @@
 variable "project_id" {
-  type = string
+  description = "ID do projeto GCP FoodHub"
+  type        = string
+  default     = "foodhub-87e0c"
 }
 
 variable "region" {
-  type    = string
-  default = "southamerica-east1"
+  description = "Região GCP"
+  type        = string
+  default     = "southamerica-east1"
 }
 
-variable "github_repo" {
-  type = string
+variable "zone" {
+  description = "Zona da VPS"
+  type        = string
+  default     = "southamerica-east1-c"
+}
+
+variable "machine_type" {
+  description = "Tipo de máquina de produção (folga em relação ao e2-small de homolog)"
+  type        = string
+  default     = "e2-medium"
+}
+
+variable "data_disk_size_gb" {
+  description = "Disco de dados de produção"
+  type        = number
+  default     = 50
 }
 
 variable "alert_email" {
-  type = string
+  description = "E-mail de alertas e contato do ACME"
+  type        = string
 }
 
-variable "db_password" {
-  type      = string
-  sensitive = true
+# ── Cloudflare ───────────────────────────────────────────────────────────────
+variable "cloudflare_token" {
+  description = "Token da API Cloudflare com Zone:DNS:Edit em turni.com.br. Vem do .env da raiz via TF_VAR_cloudflare_token. SEGREDO."
+  type        = string
+  sensitive   = true
 }
 
+variable "cloudflare_zone_id" {
+  description = "ID da zona turni.com.br"
+  type        = string
+  default     = "d9d4c3788151f6f7683f261ef35d2efb"
+}
+
+variable "mail_dkim_value" {
+  description = "DKIM público do Resend para mail.turni.com.br (dado público de DNS)"
+  type        = string
+  default     = null
+}
+
+# ── Segredos das aplicações ──────────────────────────────────────────────────
+# Sem os segredos do fake de pagamento: produção não sobe o fake (ADR-016 d).
 variable "app_key_api" {
-  type      = string
-  sensitive = true
+  description = "Laravel APP_KEY da api (base64:...)"
+  type        = string
+  sensitive   = true
 }
 
 variable "app_key_admin" {
-  type      = string
-  sensitive = true
+  description = "Laravel APP_KEY do admin (base64:...)"
+  type        = string
+  sensitive   = true
 }
 
-# Chave do Resend (ADR-011). O módulo secrets passou a exigi-la quando homolog ganhou
-# e-mail transacional (STORY-021) e este scaffold ficou para trás — `terraform validate`
-# quebrava. Detectado/corrigido na STORY-073.
+variable "db_password" {
+  description = "Senha do Postgres da VPS"
+  type        = string
+  sensitive   = true
+}
+
 variable "resend_api_key" {
-  type      = string
-  sensitive = true
+  description = "Chave da API do Resend (ADR-011)"
+  type        = string
+  sensitive   = true
 }
 
-variable "api_image" {
-  type    = string
-  default = ""
-}
-
-variable "admin_image" {
-  type    = string
-  default = ""
-}
-
-# ── Postura "prod parado" (3 projetos independentes) ─────────────────────────
-# false (default) = projeto turni-prod aplicado mas PARADO (custo ~zero): Cloud Run
-# min=0, worker/scheduler com Cloud Scheduler pausado, monitoring desligado. SQL sobe
-# STOPPED (activation_policy=NEVER no módulo). No go-live (EPIC-006), virar true e
-# reaplicar — e ligar o SQL manualmente (gcloud sql instances patch ... ALWAYS).
-variable "prod_live_enabled" {
-  type        = bool
-  default     = false
-  description = "true = liga os recursos de prod (min_instances=1, schedulers ativos, monitoring). Default false = parado."
-}
-
-# Delegação de subdomínio: mapa FQDN → nameservers das zonas filhas, publicado como
-# registros NS na zona apex turni.com.br. Preencher com os `dns_name_servers` de:
-#   homolog.turni.com.br → output do env homolog (projeto turni-homol)
-#   stage.turni.com.br   → output `dns_name_servers_stage` do env homolog (stage unificado
-#                          no turni-homol em 2026-06; antes era o projeto turni-stage)
-variable "delegations" {
-  type        = map(list(string))
-  default     = {}
-  description = "Ex: { \"homolog.turni.com.br\" = [\"ns-cloud-a1...\", ...], \"stage.turni.com.br\" = [...] }"
-}
-
-# ── Landing institucional (EPIC-006 / ADR-012) ───────────────────────────────
-# Gate de go-public: tudo da landing prod (sites Firebase + apex/www no DNS) fica
-# codificado mas NÃO aplicado enquanto false. O comercial autoriza o go-public via
-# PR que vira esta flag true (ver runbook STORY-032). Default false.
-variable "landing_prod_enabled" {
-  type        = bool
-  default     = false
-  description = "Liga os sites Firebase e registros DNS apex/www da landing em produção (go-public)"
-}
-
-variable "firebase_apex_a_records" {
-  type        = list(string)
-  default     = ["199.36.158.100"]
-  description = "IPs IPv4 do Firebase Hosting para o apex turni.com.br — valor atual do Firebase (confirmado live em 2026-06). Reconfirmar via required_dns_updates do custom domain / console Firebase se mudar."
-}
-
-variable "firebase_apex_aaaa_records" {
-  type        = list(string)
-  default     = []
-  description = "IPs IPv6 do Firebase Hosting para o apex (opcional — preencher no go-public se aplicável)"
+variable "pix_falha_chave_key" {
+  description = "IDR-028 — chave de criptografia da chave Pix do snapshot de pix_falhas (base64:<32 bytes>)"
+  type        = string
+  sensitive   = true
 }

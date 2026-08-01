@@ -1,0 +1,150 @@
+# Stack de um ambiente do Turni rodando na VPS (ADR-021).
+#
+# Este arquivo é publicado no bucket de config pelo Terraform e sincronizado para
+# /opt/turni na VPS. NÃO editar na máquina: o próximo deploy sobrescreve.
+#
+# Todas as variáveis vêm de /opt/turni/.env, montado pelo scripts/render-env.sh
+# (runtime.env gerado pelo Terraform + segredos lidos do Secret Manager).
+#
+# Topologia (ADR-002 continua valendo — o que mudou foi só onde roda):
+#   caddy ──► webapp (estático Flutter)   ┐
+#         ──► api    (php-fpm + nginx)    │ tudo na rede interna do compose;
+#         ──► admin  (php-fpm + nginx)    │ só o caddy publica porta no host
+#         ──► landing(estático)           ┘
+#   worker + scheduler: mesma imagem da api, sem porta
+#   postgres: dados no disco persistente, sem porta publicada
+
+name: turni
+
+x-php-common: &php-common
+  image: ${REGISTRY}/api:${IMAGE_TAG}
+  env_file: [.env]
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+  networks: [turni]
+
+services:
+  # ── Borda: TLS, roteamento por host e same-origin do WebApp ────────────────
+  caddy:
+    image: ${REGISTRY}/caddy:${IMAGE_TAG}
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    env_file: [.env]
+    volumes:
+      - ${DATA_DIR}/caddy/data:/data     # certificados ACME — PRECISA persistir
+      - ${DATA_DIR}/caddy/config:/config
+      - ${DATA_DIR}/logs/caddy:/var/log/caddy
+    depends_on: [api, admin, webapp, landing]
+    networks: [turni]
+
+  # ── Banco ──────────────────────────────────────────────────────────────────
+  # Sem porta publicada no host: o acesso externo é `psql` de dentro da VPS, via
+  # SSH pelo IAP. O firewall não abre 5432 e o compose não precisa.
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # A imagem 18 guarda os dados em subpasta versionada de /var/lib/postgresql.
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - ${DATA_DIR}/postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks: [turni]
+
+  # ── API JSON (cliente = WebApp Flutter) ────────────────────────────────────
+  api:
+    <<: *php-common
+    volumes:
+      - ${DATA_DIR}/storage/api:/app/storage/app     # uploads (fotos, documentos)
+      - ${DATA_DIR}/logs/api:/app/storage/logs       # lido pelo Ops Agent
+    environment:
+      LOG_JSON_PATH: /app/storage/logs/turni.json.log
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  # ── Backoffice Livewire ────────────────────────────────────────────────────
+  admin:
+    <<: *php-common
+    image: ${REGISTRY}/admin:${IMAGE_TAG}
+    # O segundo arquivo sobrepõe o primeiro: o Backoffice tem APP_KEY própria
+    # (ADR-009 5A — chaves distintas por app, para que comprometer uma não decifre
+    # o que a outra assinou).
+    env_file: [.env, .env.admin]
+    volumes:
+      - ${DATA_DIR}/storage/admin:/app/storage/app
+      - ${DATA_DIR}/logs/admin:/app/storage/logs
+    environment:
+      LOG_JSON_PATH: /app/storage/logs/turni.json.log
+
+  # ── Worker da fila ─────────────────────────────────────────────────────────
+  # Finalmente natural: o `queue:work` contínuo era o asterisco confesso da ADR-004
+  # (exigia VM à parte no Cloud Run, virou Cloud Run Job + Scheduler na IDR-016).
+  # Numa VPS é só mais um container.
+  worker:
+    <<: *php-common
+    command: ["php", "artisan", "queue:work", "--tries=3", "--sleep=2", "--max-time=3600"]
+    volumes:
+      - ${DATA_DIR}/storage/api:/app/storage/app
+      - ${DATA_DIR}/logs/worker:/app/storage/logs
+    environment:
+      LOG_JSON_PATH: /app/storage/logs/turni.json.log
+
+  # ── Scheduler do Laravel ───────────────────────────────────────────────────
+  # Container SEPARADO do worker de propósito (herdado da STORY-073): kill-switch
+  # independente — pausar a fila não pode desligar o cron, e vice-versa.
+  # `schedule:work` é o daemon que dispara `schedule:run` a cada minuto.
+  scheduler:
+    <<: *php-common
+    command: ["php", "artisan", "schedule:work"]
+    volumes:
+      - ${DATA_DIR}/storage/api:/app/storage/app
+      - ${DATA_DIR}/logs/scheduler:/app/storage/logs
+    environment:
+      LOG_JSON_PATH: /app/storage/logs/turni.json.log
+
+  # ── WebApp Flutter (bundle estático + headers de cache do PWA) ─────────────
+  webapp:
+    image: ${REGISTRY}/webapp:${IMAGE_TAG}
+    restart: unless-stopped
+    networks: [turni]
+
+  # ── Landing institucional (ADR-012) ────────────────────────────────────────
+  landing:
+    image: ${REGISTRY}/landing:${IMAGE_TAG}
+    restart: unless-stopped
+    networks: [turni]
+
+  # ── Fake de pagamento — SÓ homolog/staging (PDR-017 / ADR-016 d) ───────────
+  # Sob profile: em produção o `docker compose up` simplesmente não o instancia,
+  # porque COMPOSE_PROFILES não inclui `fake` (ver render-env.sh).
+  pagarme-mock:
+    image: ${REGISTRY}/pagarme-mock:${IMAGE_TAG}
+    profiles: [fake]
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      PAGARME_WEBHOOK_TARGET: http://api:8080/api/webhooks/pagarme
+      # O sleep do SLA segura um worker do php -S; 8 workers mantêm o fake atendendo.
+      PHP_CLI_SERVER_WORKERS: "8"
+    networks: [turni]
+
+networks:
+  turni:
+    driver: bridge

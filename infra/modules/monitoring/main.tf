@@ -1,13 +1,67 @@
-# Observabilidade mínima (ADR-008):
-# - Uptime checks em /health das duas interfaces (+ raiz do webapp)
-# - Alert policies para indisponibilidade e erro 5xx
-# - Log-based metrics RED (Requests, Errors, Duration)
-# - Canal de notificação: e-mail para Alexandro
+# Observabilidade do ambiente (ADR-008), reancorada na VPS pela ADR-021.
+#
+# O QUE MUDOU EM RELAÇÃO AO CLOUD RUN — e por quê os filtros são o que são:
+# antes, `resource.type="cloud_run_revision"` / `"cloud_run_job"` separavam api de
+# worker de graça. Numa VPS, TODO log nasce em `resource.type="gce_instance"`, então a
+# separação por serviço passa a vir do LOG NAME: o Ops Agent tem um receiver por
+# serviço, lendo o arquivo JSON que cada container escreve no volume compartilhado
+# (canal `turni_json` do Laravel — config/logging.php). O receiver id vira o log id,
+# no formato `turni-<env>-<serviço>`, e é isso que `log_id(...)` casa abaixo.
+#
+# Consequência boa: o log id já carrega o AMBIENTE, então homolog e prod não se
+# misturam mesmo compartilhando o projeto FoodHub com outras aplicações.
+#
+# As métricas de NEGÓCIO (e-mail crítico, cadastro, SLA de notificação, operações
+# financeiras) são as mesmas de antes — elas descrevem o domínio, não a hospedagem.
 
-# ── Canal de notificação ──────────────────────────────────────────────────────
+terraform {
+  required_providers {
+    time = {
+      source = "hashicorp/time"
+    }
+  }
+}
+
+# O Cloud Monitoring leva alguns minutos para reconhecer uma log-based metric recém
+# criada, e uma alert policy que a referencie antes disso falha com 404 ("Cannot find
+# metric(s) that match type..."). Sem esta espera, o PRIMEIRO apply de um ambiente
+# sempre quebra pela metade — descoberto no bring-up do staging (2026-08-01).
+resource "time_sleep" "metricas_propagando" {
+  create_duration = var.metric_propagation_delay
+
+  depends_on = [
+    google_logging_metric.requests,
+    google_logging_metric.errors_5xx,
+    google_logging_metric.request_duration,
+    google_logging_metric.email_failures,
+    google_logging_metric.cadastros_completados,
+    google_logging_metric.cadastro_completar_falhou,
+    google_logging_metric.notificacao_email_sla,
+    google_logging_metric.notificacao_email_failures,
+    google_logging_metric.pagamento_erros,
+    google_logging_metric.pagamento_operacoes,
+    google_logging_metric.pagamento_latencia,
+    google_logging_metric.pagamento_webhook_latencia,
+  ]
+}
+
+locals {
+  log_api       = "turni-${var.env}-api"
+  log_worker    = "turni-${var.env}-worker"
+  log_scheduler = "turni-${var.env}-scheduler"
+
+  # Os jobs de fila e o scheduler rodam o MESMO código da api: um evento de negócio
+  # pode nascer em qualquer um dos dois. Filtrar só o worker perderia o que o
+  # scheduler emitiu.
+  log_jobs = "(log_id(\"${local.log_worker}\") OR log_id(\"${local.log_scheduler}\"))"
+
+  gce = "resource.type=\"gce_instance\""
+}
+
+# ── Canal de notificação ─────────────────────────────────────────────────────
 resource "google_monitoring_notification_channel" "email" {
   project      = var.project_id
-  display_name = "E-mail Alexandro (${var.env})"
+  display_name = "Turni ${var.env} — e-mail de plantão"
   type         = "email"
 
   labels = {
@@ -15,16 +69,17 @@ resource "google_monitoring_notification_channel" "email" {
   }
 }
 
-# ── Uptime checks ─────────────────────────────────────────────────────────────
-resource "google_monitoring_uptime_check_config" "api_health" {
-  count        = var.enable_uptime_checks ? 1 : 0
+# ── Uptime checks (desligados por padrão — custo do Cloud Monitoring) ────────
+resource "google_monitoring_uptime_check_config" "http" {
+  for_each = var.enable_uptime_checks ? var.uptime_targets : {}
+
   project      = var.project_id
-  display_name = "Turni API health (${var.env})"
+  display_name = "Turni ${var.env} — ${each.key}"
   timeout      = "10s"
-  period       = "60s"
+  period       = "300s"
 
   http_check {
-    path           = "/health"
+    path           = each.value.path
     port           = 443
     use_ssl        = true
     validate_ssl   = true
@@ -35,107 +90,27 @@ resource "google_monitoring_uptime_check_config" "api_health" {
     type = "uptime_url"
     labels = {
       project_id = var.project_id
-      host       = var.api_host
+      host       = each.value.host
     }
   }
 }
 
-resource "google_monitoring_uptime_check_config" "admin_health" {
-  count        = var.enable_uptime_checks ? 1 : 0
-  project      = var.project_id
-  display_name = "Turni Admin health (${var.env})"
-  timeout      = "10s"
-  period       = "60s"
-
-  http_check {
-    path           = "/health"
-    port           = 443
-    use_ssl        = true
-    validate_ssl   = true
-    request_method = "GET"
-  }
-
-  monitored_resource {
-    type = "uptime_url"
-    labels = {
-      project_id = var.project_id
-      host       = var.admin_host
-    }
-  }
-}
-
-resource "google_monitoring_uptime_check_config" "webapp_root" {
-  count        = var.enable_uptime_checks ? 1 : 0
-  project      = var.project_id
-  display_name = "Turni WebApp root (${var.env})"
-  timeout      = "10s"
-  period       = "60s"
-
-  http_check {
-    path           = "/"
-    port           = 443
-    use_ssl        = true
-    validate_ssl   = true
-    request_method = "GET"
-  }
-
-  monitored_resource {
-    type = "uptime_url"
-    labels = {
-      project_id = var.project_id
-      host       = var.webapp_host
-    }
-  }
-}
-
-# ── Alert: indisponibilidade (uptime check falha) ─────────────────────────────
 resource "google_monitoring_alert_policy" "uptime_failure" {
-  count        = var.enable_uptime_checks ? 1 : 0
+  for_each = var.enable_uptime_checks ? var.uptime_targets : {}
+
   project      = var.project_id
-  display_name = "Turni indisponível (${var.env})"
+  display_name = "Turni ${var.env} — ${each.key} indisponível"
   combiner     = "OR"
 
   conditions {
-    display_name = "API indisponível"
+    display_name = "${each.key} não responde"
     condition_threshold {
-      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\" AND metric.labels.check_id=\"${google_monitoring_uptime_check_config.api_health[0].uptime_check_id}\""
+      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\" AND metric.labels.check_id=\"${google_monitoring_uptime_check_config.http[each.key].uptime_check_id}\""
       comparison      = "COMPARISON_LT"
       threshold_value = 1
-      duration        = "120s"
+      duration        = "600s"
       aggregations {
-        alignment_period     = "60s"
-        per_series_aligner   = "ALIGN_NEXT_OLDER"
-        cross_series_reducer = "REDUCE_COUNT_FALSE"
-        group_by_fields      = ["resource.labels.host"]
-      }
-    }
-  }
-
-  conditions {
-    display_name = "Admin indisponível"
-    condition_threshold {
-      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\" AND metric.labels.check_id=\"${google_monitoring_uptime_check_config.admin_health[0].uptime_check_id}\""
-      comparison      = "COMPARISON_LT"
-      threshold_value = 1
-      duration        = "120s"
-      aggregations {
-        alignment_period     = "60s"
-        per_series_aligner   = "ALIGN_NEXT_OLDER"
-        cross_series_reducer = "REDUCE_COUNT_FALSE"
-        group_by_fields      = ["resource.labels.host"]
-      }
-    }
-  }
-
-  conditions {
-    display_name = "WebApp indisponível"
-    condition_threshold {
-      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\" AND metric.labels.check_id=\"${google_monitoring_uptime_check_config.webapp_root[0].uptime_check_id}\""
-      comparison      = "COMPARISON_LT"
-      threshold_value = 1
-      duration        = "120s"
-      aggregations {
-        alignment_period     = "60s"
+        alignment_period     = "300s"
         per_series_aligner   = "ALIGN_NEXT_OLDER"
         cross_series_reducer = "REDUCE_COUNT_FALSE"
         group_by_fields      = ["resource.labels.host"]
@@ -150,11 +125,85 @@ resource "google_monitoring_alert_policy" "uptime_failure" {
   }
 }
 
-# ── Log-based metrics RED (ADR-008) ──────────────────────────────────────────
+# ── Saúde da própria VPS ─────────────────────────────────────────────────────
+# Novidade da ADR-021: com Cloud Run, capacidade era problema do Google. Agora é
+# nosso, e num e2-small o modo de falha real é ficar sem memória ou sem disco —
+# que derruba a stack inteira de uma vez, porque tudo mora na mesma máquina.
+# Estas métricas vêm do Ops Agent (agent.googleapis.com/*).
+
+resource "google_monitoring_alert_policy" "vps_memory" {
+  count = var.enable_vps_alerts ? 1 : 0
+
+  project      = var.project_id
+  display_name = "Turni ${var.env} — memória da VPS acima de ${var.memory_threshold_percent}%"
+  combiner     = "OR"
+
+  conditions {
+    display_name = "Memória usada > ${var.memory_threshold_percent}%"
+    condition_threshold {
+      filter          = "metric.type=\"agent.googleapis.com/memory/percent_used\" AND resource.type=\"gce_instance\" AND metric.labels.state=\"used\" AND metadata.user_labels.\"env\"=\"${var.env}\" AND metadata.user_labels.\"app\"=\"turni\""
+      comparison      = "COMPARISON_GT"
+      threshold_value = var.memory_threshold_percent
+      duration        = "600s"
+      aggregations {
+        alignment_period   = "300s"
+        per_series_aligner = "ALIGN_MEAN"
+      }
+    }
+  }
+
+  notification_channels = [google_monitoring_notification_channel.email.name]
+
+  alert_strategy {
+    auto_close = "3600s"
+  }
+
+  documentation {
+    content   = "Memória sustentada acima do limite no e2-small. Verifique `docker stats` na VPS; se for regime e não pico, o caminho é subir o machine_type no Terraform, não apertar mais o swap."
+    mime_type = "text/markdown"
+  }
+}
+
+resource "google_monitoring_alert_policy" "vps_disk" {
+  count = var.enable_vps_alerts ? 1 : 0
+
+  project      = var.project_id
+  display_name = "Turni ${var.env} — disco da VPS acima de ${var.disk_threshold_percent}%"
+  combiner     = "OR"
+
+  conditions {
+    display_name = "Disco usado > ${var.disk_threshold_percent}%"
+    condition_threshold {
+      filter          = "metric.type=\"agent.googleapis.com/disk/percent_used\" AND resource.type=\"gce_instance\" AND metric.labels.state=\"used\" AND metadata.user_labels.\"env\"=\"${var.env}\" AND metadata.user_labels.\"app\"=\"turni\""
+      comparison      = "COMPARISON_GT"
+      threshold_value = var.disk_threshold_percent
+      duration        = "600s"
+      aggregations {
+        alignment_period   = "300s"
+        per_series_aligner = "ALIGN_MAX"
+        group_by_fields    = ["metric.labels.device"]
+      }
+    }
+  }
+
+  notification_channels = [google_monitoring_notification_channel.email.name]
+
+  alert_strategy {
+    auto_close = "3600s"
+  }
+
+  documentation {
+    content   = "Disco cheio derruba o Postgres. Suspeitos usuais: imagens Docker antigas no disco de boot (`docker system prune -af`) e crescimento do banco no disco de dados (redimensionar `data_disk_size_gb`)."
+    mime_type = "text/markdown"
+  }
+}
+
+# ── Métricas RED (ADR-008) ───────────────────────────────────────────────────
 resource "google_logging_metric" "requests" {
-  project = var.project_id
-  name    = "turni_${var.env}_requests"
-  filter  = "resource.type=\"cloud_run_revision\" AND jsonPayload.event=\"request.handled\""
+  project     = var.project_id
+  name        = "turni_${var.env}_requests"
+  description = "Requisições atendidas pela api/admin (evento request.handled)"
+  filter      = "${local.gce} AND log_id(\"${local.log_api}\") AND jsonPayload.event=\"request.handled\""
 
   metric_descriptor {
     metric_kind = "DELTA"
@@ -179,9 +228,10 @@ resource "google_logging_metric" "requests" {
 }
 
 resource "google_logging_metric" "errors_5xx" {
-  project = var.project_id
-  name    = "turni_${var.env}_errors_5xx"
-  filter  = "resource.type=\"cloud_run_revision\" AND jsonPayload.status_code>=500"
+  project     = var.project_id
+  name        = "turni_${var.env}_errors_5xx"
+  description = "Respostas 5xx da api/admin"
+  filter      = "${local.gce} AND log_id(\"${local.log_api}\") AND jsonPayload.status_code>=500"
 
   metric_descriptor {
     metric_kind = "DELTA"
@@ -199,9 +249,10 @@ resource "google_logging_metric" "errors_5xx" {
 }
 
 resource "google_logging_metric" "request_duration" {
-  project = var.project_id
-  name    = "turni_${var.env}_request_duration_ms"
-  filter  = "resource.type=\"cloud_run_revision\" AND jsonPayload.event=\"request.handled\""
+  project     = var.project_id
+  name        = "turni_${var.env}_request_duration_ms"
+  description = "Latência das requisições atendidas (ms)"
+  filter      = "${local.gce} AND log_id(\"${local.log_api}\") AND jsonPayload.event=\"request.handled\""
 
   metric_descriptor {
     metric_kind = "DELTA"
@@ -228,16 +279,17 @@ resource "google_logging_metric" "request_duration" {
   }
 }
 
-# ── Alert: taxa de erro 5xx ───────────────────────────────────────────────────
 resource "google_monitoring_alert_policy" "error_rate" {
+  depends_on = [time_sleep.metricas_propagando]
+
   project      = var.project_id
-  display_name = "Turni taxa de erro 5xx alta (${var.env})"
+  display_name = "Turni ${var.env} — taxa de erro 5xx alta"
   combiner     = "AND"
 
   conditions {
     display_name = "Taxa de erro > 5%"
     condition_threshold {
-      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_errors_5xx\" AND resource.type=\"cloud_run_revision\""
+      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_errors_5xx\" AND resource.type=\"gce_instance\""
       comparison      = "COMPARISON_GT"
       threshold_value = 5
       duration        = "300s"
@@ -251,16 +303,15 @@ resource "google_monitoring_alert_policy" "error_rate" {
   notification_channels = [google_monitoring_notification_channel.email.name]
 }
 
-# ── Falha persistente de e-mail crítico (STORY-021 CA-8/CA-9 + ADR-011 §g) ───────
-# O worker (Cloud Run Job) emite log ERROR `email.aprovacao.falhou` /
-# `email.recuperacao.falhou` quando o job esgota as 3 tentativas (dead letter). Worker
-# loga JSON estruturado em stderr (LOG_STDERR_FORMATTER=Monolog JsonFormatter): o nome
-# do evento é `jsonPayload.message` e os campos ficam sob `jsonPayload.context.*`. O
-# lembrete (warning) é deliberadamente excluído: não é fluxo crítico (ADR-011 §g).
+# ── Falha persistente de e-mail crítico (STORY-021 CA-8/CA-9 + ADR-011 §g) ───
+# O worker emite ERROR `email.aprovacao.falhou` / `email.recuperacao.falhou` quando o
+# job esgota as 3 tentativas (dead letter). O lembrete (warning) é deliberadamente
+# excluído: não é fluxo crítico (ADR-011 §g).
 resource "google_logging_metric" "email_failures" {
-  project = var.project_id
-  name    = "turni_${var.env}_email_failures"
-  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND (jsonPayload.message=\"email.aprovacao.falhou\" OR jsonPayload.message=\"email.recuperacao.falhou\")"
+  project     = var.project_id
+  name        = "turni_${var.env}_email_failures"
+  description = "E-mails críticos que falharam após esgotar as tentativas"
+  filter      = "${local.gce} AND ${local.log_jobs} AND (jsonPayload.message=\"email.aprovacao.falhou\" OR jsonPayload.message=\"email.recuperacao.falhou\")"
 
   metric_descriptor {
     metric_kind = "DELTA"
@@ -279,14 +330,16 @@ resource "google_logging_metric" "email_failures" {
 }
 
 resource "google_monitoring_alert_policy" "email_failure" {
+  depends_on = [time_sleep.metricas_propagando]
+
   project      = var.project_id
-  display_name = "Turni falha de e-mail crítico (${var.env})"
+  display_name = "Turni ${var.env} — falha de e-mail crítico"
   combiner     = "OR"
 
   conditions {
     display_name = "E-mail de aprovação/reset falhou após retries"
     condition_threshold {
-      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_email_failures\" AND resource.type=\"cloud_run_job\""
+      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_email_failures\" AND resource.type=\"gce_instance\""
       comparison      = "COMPARISON_GT"
       threshold_value = 0
       duration        = "0s"
@@ -304,16 +357,15 @@ resource "google_monitoring_alert_policy" "email_failure" {
   }
 }
 
-# ── Cadastros completados (STORY-023/024 §observabilidade) ────────────────────
-# O api (Cloud Run) emite INFO `user.cadastro_completed` ao fim do completar cadastro
-# (profissional ou contratante), em transação atômica com a geração do AceiteEletronico.
-# Log Monolog JsonFormatter: o nome do evento é `jsonPayload.message` e os campos ficam
-# sob `jsonPayload.context.*` (mesma forma do `email_failures` do worker). Métrica de
-# SUCESSO rotulada por papel — alimenta o dashboard "cadastros completados por dia".
+# ── Cadastros completados (STORY-023/024 §observabilidade) ───────────────────
+# O api emite INFO `user.cadastro_completed` ao fim do completar cadastro, em
+# transação atômica com a geração do AceiteEletronico. Métrica de SUCESSO rotulada
+# por papel — alimenta o dashboard "cadastros completados por dia".
 resource "google_logging_metric" "cadastros_completados" {
-  project = var.project_id
-  name    = "turni_${var.env}_cadastros_completados"
-  filter  = "resource.type=\"cloud_run_revision\" AND jsonPayload.message=\"user.cadastro_completed\""
+  project     = var.project_id
+  name        = "turni_${var.env}_cadastros_completados"
+  description = "Cadastros completados, por papel"
+  filter      = "${local.gce} AND log_id(\"${local.log_api}\") AND jsonPayload.message=\"user.cadastro_completed\""
 
   metric_descriptor {
     metric_kind = "DELTA"
@@ -331,15 +383,14 @@ resource "google_logging_metric" "cadastros_completados" {
   }
 }
 
-# Falha do completar cadastro: o api loga ERROR `cadastro.template_indisponivel` quando
-# o contrato aplicável não tem versão ativa (nenhum aceite é gerado; usuário recebe 503).
-# É o sinal acionável de "completar cadastro está falhando" — vale alerta imediato.
-# (Decisão: NÃO alertamos anomalia na TAXA de sucesso — em volume de MVP gera ruído; o
-# sinal de falha concreto é este. A métrica de sucesso acima fica para o dashboard.)
+# Falha do completar cadastro: ERROR `cadastro.template_indisponivel` quando o contrato
+# aplicável não tem versão ativa (nenhum aceite é gerado; usuário recebe 503). É o sinal
+# acionável — não alertamos anomalia na TAXA de sucesso, que em volume de MVP só gera ruído.
 resource "google_logging_metric" "cadastro_completar_falhou" {
-  project = var.project_id
-  name    = "turni_${var.env}_cadastro_completar_falhou"
-  filter  = "resource.type=\"cloud_run_revision\" AND jsonPayload.message=\"cadastro.template_indisponivel\""
+  project     = var.project_id
+  name        = "turni_${var.env}_cadastro_completar_falhou"
+  description = "Tentativas de completar cadastro barradas por template contratual indisponível"
+  filter      = "${local.gce} AND log_id(\"${local.log_api}\") AND jsonPayload.message=\"cadastro.template_indisponivel\""
 
   metric_descriptor {
     metric_kind = "DELTA"
@@ -349,14 +400,16 @@ resource "google_logging_metric" "cadastro_completar_falhou" {
 }
 
 resource "google_monitoring_alert_policy" "cadastro_completar_falhou" {
+  depends_on = [time_sleep.metricas_propagando]
+
   project      = var.project_id
-  display_name = "Turni completar cadastro falhando — template indisponível (${var.env})"
+  display_name = "Turni ${var.env} — completar cadastro falhando (template indisponível)"
   combiner     = "OR"
 
   conditions {
     display_name = "Completar cadastro falhou (template contratual indisponível)"
     condition_threshold {
-      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_cadastro_completar_falhou\" AND resource.type=\"cloud_run_revision\""
+      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_cadastro_completar_falhou\" AND resource.type=\"gce_instance\""
       comparison      = "COMPARISON_GT"
       threshold_value = 0
       duration        = "0s"
@@ -374,16 +427,14 @@ resource "google_monitoring_alert_policy" "cadastro_completar_falhou" {
   }
 }
 
-# ── SLA de e-mail das notificações (STORY-053 CA-9) ───────────────────────────
-# O worker (queue:work) emite INFO `notificacao.email.sent` ao enviar cada e-mail de
-# notificação, com `sla_ms` = latência ponta-a-ponta (criação da notificação → envio).
-# Log Monolog JsonFormatter: evento em `jsonPayload.message`, campos sob
-# `jsonPayload.context.*` (mesma forma do `email_failures`). Métrica de DISTRIBUIÇÃO →
-# permite p50/p95/p99 no dashboard e no alerta. CA-9: p95 ≤ 60s.
+# ── SLA de e-mail das notificações (STORY-053 CA-9) ──────────────────────────
+# O worker emite INFO `notificacao.email.sent` a cada envio, com `sla_ms` = latência
+# ponta-a-ponta (criação da notificação → envio). Distribuição → p50/p95/p99. CA-9: p95 ≤ 60s.
 resource "google_logging_metric" "notificacao_email_sla" {
-  project = var.project_id
-  name    = "turni_${var.env}_notificacao_email_sla_ms"
-  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND jsonPayload.message=\"notificacao.email.sent\""
+  project     = var.project_id
+  name        = "turni_${var.env}_notificacao_email_sla_ms"
+  description = "Latência ponta-a-ponta do e-mail de notificação (ms)"
+  filter      = "${local.gce} AND ${local.log_jobs} AND jsonPayload.message=\"notificacao.email.sent\""
 
   metric_descriptor {
     metric_kind = "DELTA"
@@ -411,16 +462,17 @@ resource "google_logging_metric" "notificacao_email_sla" {
   }
 }
 
-# Alerta: p95 do SLA acima de 60s (CA-9). Janela de 5 min para evitar ruído de spikes.
 resource "google_monitoring_alert_policy" "notificacao_email_sla" {
+  depends_on = [time_sleep.metricas_propagando]
+
   project      = var.project_id
-  display_name = "Turni SLA de e-mail de notificação > 60s p95 (${var.env})"
+  display_name = "Turni ${var.env} — SLA de e-mail de notificação acima de 60s (p95)"
   combiner     = "OR"
 
   conditions {
     display_name = "p95(sla_ms) > 60000ms"
     condition_threshold {
-      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_notificacao_email_sla_ms\" AND resource.type=\"cloud_run_job\""
+      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_notificacao_email_sla_ms\" AND resource.type=\"gce_instance\""
       comparison      = "COMPARISON_GT"
       threshold_value = 60000
       duration        = "300s"
@@ -438,13 +490,13 @@ resource "google_monitoring_alert_policy" "notificacao_email_sla" {
   }
 }
 
-# Falha definitiva de e-mail de notificação: o worker loga ERROR `notificacao.email.falhou`
-# ao esgotar as 3 tentativas do EnviarEmailDaNotificacaoJob. Sinal acionável de "notificações
-# não estão saindo" — alerta imediato (mesmo padrão do `email_failure` crítico).
+# Falha definitiva do e-mail de notificação: ERROR `notificacao.email.falhou` ao esgotar
+# as 3 tentativas do EnviarEmailDaNotificacaoJob.
 resource "google_logging_metric" "notificacao_email_failures" {
-  project = var.project_id
-  name    = "turni_${var.env}_notificacao_email_failures"
-  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND jsonPayload.message=\"notificacao.email.falhou\""
+  project     = var.project_id
+  name        = "turni_${var.env}_notificacao_email_failures"
+  description = "E-mails de notificação que falharam definitivamente"
+  filter      = "${local.gce} AND ${local.log_jobs} AND jsonPayload.message=\"notificacao.email.falhou\""
 
   metric_descriptor {
     metric_kind = "DELTA"
@@ -463,14 +515,16 @@ resource "google_logging_metric" "notificacao_email_failures" {
 }
 
 resource "google_monitoring_alert_policy" "notificacao_email_failure" {
+  depends_on = [time_sleep.metricas_propagando]
+
   project      = var.project_id
-  display_name = "Turni falha de e-mail de notificação (${var.env})"
+  display_name = "Turni ${var.env} — falha de e-mail de notificação"
   combiner     = "OR"
 
   conditions {
     display_name = "E-mail de notificação falhou após retries"
     condition_threshold {
-      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_notificacao_email_failures\" AND resource.type=\"cloud_run_job\""
+      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_notificacao_email_failures\" AND resource.type=\"gce_instance\""
       comparison      = "COMPARISON_GT"
       threshold_value = 0
       duration        = "0s"
@@ -490,20 +544,16 @@ resource "google_monitoring_alert_policy" "notificacao_email_failure" {
 
 # ── Operações financeiras (EPIC-003 / ADR-016 g / STORY-068 F-NB-1) ──────────
 # A ACL de pagamento emite uma linha JSON por operação (PagamentoEvents — ADR-008):
-# `pagamento.operacao_concluida|operacao_falhou` nos jobs do worker (pré-auth na
-# aprovação, captura+Pix no TurnoFinalizado, liberação no cancelamento/no-show) e
+# `pagamento.operacao_concluida|operacao_falhou` nos jobs do worker e
 # `pagamento.webhook_processado` na confirmação assíncrona do gateway (fonte de
-# verdade — ADR-016 e). Estas métricas alimentam o SLO de erro ≤ 1% e os p95 de
-# captura e de webhook prometidos pela ADR-016. Definição operacional em
-# `docs/operacao/observabilidade-financeira.md`.
+# verdade — ADR-016 e). Alimentam o SLO de erro ≤ 1% e os p95 de captura e webhook.
+# Definição operacional em `docs/operacao/observabilidade-financeira.md`.
 
-# Erros de operação financeira (counter). SLO ≤ 1% sobre o total de operações; o
-# alerta abaixo dispara em QUALQUER falha (volume atual é baixo — 1 falha já é
-# acionável e o PDR-010 não tem retry de Pix).
 resource "google_logging_metric" "pagamento_erros" {
-  project = var.project_id
-  name    = "turni_${var.env}_pagamento_erros"
-  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND jsonPayload.message=\"pagamento.operacao_falhou\""
+  project     = var.project_id
+  name        = "turni_${var.env}_pagamento_erros"
+  description = "Operações da ACL de pagamento que falharam"
+  filter      = "${local.gce} AND ${local.log_jobs} AND jsonPayload.message=\"pagamento.operacao_falhou\""
 
   metric_descriptor {
     metric_kind = "DELTA"
@@ -527,11 +577,12 @@ resource "google_logging_metric" "pagamento_erros" {
   }
 }
 
-# Total de operações concluídas (counter) — denominador do SLO de erro ≤ 1%.
+# Total de operações concluídas — denominador do SLO de erro ≤ 1%.
 resource "google_logging_metric" "pagamento_operacoes" {
-  project = var.project_id
-  name    = "turni_${var.env}_pagamento_operacoes"
-  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND jsonPayload.message=\"pagamento.operacao_concluida\""
+  project     = var.project_id
+  name        = "turni_${var.env}_pagamento_operacoes"
+  description = "Operações da ACL de pagamento concluídas com sucesso"
+  filter      = "${local.gce} AND ${local.log_jobs} AND jsonPayload.message=\"pagamento.operacao_concluida\""
 
   metric_descriptor {
     metric_kind = "DELTA"
@@ -549,12 +600,12 @@ resource "google_logging_metric" "pagamento_operacoes" {
   }
 }
 
-# Latência das operações da ACL (distribution, ms) — p95 de CAPTURA via label
-# `operacao=captura` (pix/liberação/pré-auth saem de graça pela mesma métrica).
+# Latência das operações da ACL — p95 de CAPTURA via label `operacao=captura`.
 resource "google_logging_metric" "pagamento_latencia" {
-  project = var.project_id
-  name    = "turni_${var.env}_pagamento_latencia_ms"
-  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND jsonPayload.message=\"pagamento.operacao_concluida\""
+  project     = var.project_id
+  name        = "turni_${var.env}_pagamento_latencia_ms"
+  description = "Latência das operações da ACL de pagamento (ms)"
+  filter      = "${local.gce} AND ${local.log_jobs} AND jsonPayload.message=\"pagamento.operacao_concluida\""
 
   metric_descriptor {
     metric_kind = "DELTA"
@@ -582,11 +633,12 @@ resource "google_logging_metric" "pagamento_latencia" {
   }
 }
 
-# Latência do processamento do webhook do gateway (distribution, ms) — p95 webhook.
+# Latência do processamento do webhook do gateway — p95 webhook.
 resource "google_logging_metric" "pagamento_webhook_latencia" {
-  project = var.project_id
-  name    = "turni_${var.env}_pagamento_webhook_latencia_ms"
-  filter  = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"turni-worker-job-${var.env}\" AND jsonPayload.message=\"pagamento.webhook_processado\""
+  project     = var.project_id
+  name        = "turni_${var.env}_pagamento_webhook_latencia_ms"
+  description = "Latência do processamento do webhook do gateway (ms)"
+  filter      = "${local.gce} AND ${local.log_jobs} AND jsonPayload.message=\"pagamento.webhook_processado\""
 
   metric_descriptor {
     metric_kind = "DELTA"
@@ -614,17 +666,19 @@ resource "google_logging_metric" "pagamento_webhook_latencia" {
   }
 }
 
-# Alerta: falha de operação financeira (PDR-010 — Pix sem retry; falha é caso
-# operacional imediato, espelha o padrão do notificacao_email_failure).
+# Falha de operação financeira: PDR-010 não tem retry de Pix, então qualquer falha
+# já é caso operacional imediato.
 resource "google_monitoring_alert_policy" "pagamento_erro" {
+  depends_on = [time_sleep.metricas_propagando]
+
   project      = var.project_id
-  display_name = "Turni falha de operação financeira (${var.env})"
+  display_name = "Turni ${var.env} — falha de operação financeira"
   combiner     = "OR"
 
   conditions {
     display_name = "pagamento.operacao_falhou registrado"
     condition_threshold {
-      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_pagamento_erros\" AND resource.type=\"cloud_run_job\""
+      filter          = "metric.type=\"logging.googleapis.com/user/turni_${var.env}_pagamento_erros\" AND resource.type=\"gce_instance\""
       comparison      = "COMPARISON_GT"
       threshold_value = 0
       duration        = "0s"

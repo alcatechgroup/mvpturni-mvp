@@ -1,0 +1,23 @@
+# WebApp Flutter (web) empacotado como imagem estática — substitui o Firebase Hosting
+# (ADR-021). Build context: raiz do repositório.
+#
+# PRÉ-REQUISITO: `apps/webapp/build/web` já construído no contexto. O `flutter build
+# web` continua no pipeline (job build-webapp), e não aqui: trazer o SDK do Flutter
+# para dentro da imagem custaria ~1 GB e vários minutos por build, para produzir os
+# mesmos arquivos estáticos.
+#
+# Os headers de cache que antes viviam no firebase.json agora vivem no nginx.conf ao
+# lado — inclusive a regra que impede o app de nunca mais atualizar (STORY-037).
+
+FROM nginx:1.27-alpine
+
+RUN apk upgrade --no-cache
+
+COPY infra/docker/webapp/nginx.conf /etc/nginx/nginx.conf
+COPY apps/webapp/build/web /usr/share/nginx/html
+
+ARG APP_VERSION=dev
+LABEL org.opencontainers.image.title="turni-webapp" \
+      org.opencontainers.image.version="${APP_VERSION}"
+
+EXPOSE 80
