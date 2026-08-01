@@ -156,12 +156,6 @@ jobs:
       name: ${{ needs.detect-env.outputs.environment }}
     env:
       TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
-    env:
-      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
-    env:
-      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
-    env:
-      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
 
@@ -243,12 +237,6 @@ jobs:
     needs: [detect-env]
     environment:
       name: ${{ needs.detect-env.outputs.environment }}
-    env:
-      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
-    env:
-      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
-    env:
-      TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
     env:
       TAG_RELEASE: ${{ needs.detect-env.outputs.tag }}
     steps:

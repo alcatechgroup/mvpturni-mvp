@@ -61,6 +61,22 @@ jobs:
       - name: Run gitleaks
         run: gitleaks detect --source . --log-opts "HEAD^..HEAD" --verbose
 
+  # ── GitHub Actions — lint dos próprios workflows ────────────────────────────
+  # Um parser YAML genérico aceita coisas que o GitHub rejeita (chave duplicada é o
+  # caso clássico: `yaml.safe_load` fica com a última e segue feliz, o GitHub recusa o
+  # arquivo inteiro com HTTP 422 na hora do dispatch). O actionlint conhece o schema
+  # real do Actions — e o erro aparece no PR, não quando alguém tenta deployar.
+  actionlint:
+    name: Lint dos workflows (actionlint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rodar actionlint
+        run: |
+          set -euo pipefail
+          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          ./actionlint -color
+
   # ── Terraform — formatação e validação dos módulos e ambientes ──────────────
   # A infra é código (ADR-021 / quality-standards 2.3): HCL quebrado só aparecia na
   # hora do apply, com o ambiente já pela metade. `validate` roda sem credencial e
